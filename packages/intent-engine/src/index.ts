@@ -1,0 +1,6 @@
+export { IntentInterpreter } from './interpreter.js'
+export { ConflictDetector } from './conflict-detector.js'
+export { Suggester } from './suggester.js'
+export { PreflightPipeline } from './preflight.js'
+export type { Intent, Conflict, ConflictResult, Suggestion, PreflightResult, AIProviderConfig } from './types.js'
+export { IntentSchema } from './types.js'

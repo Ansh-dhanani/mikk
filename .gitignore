@@ -1,0 +1,8 @@
+node_modules/
+dist/
+.turbo/
+*.tsbuildinfo
+.mikk/cache/
+.env
+.env.local
+coverage/

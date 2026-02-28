@@ -1,0 +1,20 @@
+{
+    "name": "@mikk/web",
+    "version": "1.0.0",
+    "private": true,
+    "type": "module",
+    "scripts": {
+        "dev": "echo 'Next.js app scaffold — run: npx -y create-next-app@latest --typescript --eslint --tailwind --src-dir --app --import-alias @/*'",
+        "build": "echo 'Run npm run dev for scaffold instructions'",
+        "start": "echo 'Start the Next.js app'"
+    },
+    "dependencies": {
+        "@mikk/core": "workspace:*",
+        "@mikk/diagram-generator": "workspace:*",
+        "@mikk/ai-context": "workspace:*"
+    },
+    "devDependencies": {
+        "typescript": "^5.7.0",
+        "@types/node": "^22.0.0"
+    }
+}

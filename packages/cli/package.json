@@ -1,0 +1,26 @@
+{
+    "name": "@mikk/cli",
+    "version": "1.0.0",
+    "type": "module",
+    "main": "./dist/index.js",
+    "types": "./dist/index.d.ts",
+    "bin": {
+        "mikk": "./bin/mikk.js"
+    },
+    "scripts": {
+        "build": "tsc",
+        "test": "bun test",
+        "dev": "tsc --watch"
+    },
+    "dependencies": {
+        "@mikk/core": "workspace:*",
+        "@mikk/watcher": "workspace:*",
+        "commander": "^13.0.0",
+        "chalk": "^5.4.0",
+        "ora": "^8.0.0"
+    },
+    "devDependencies": {
+        "typescript": "^5.7.0",
+        "@types/node": "^22.0.0"
+    }
+}

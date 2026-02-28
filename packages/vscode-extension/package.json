@@ -1,0 +1,84 @@
+{
+    "name": "@mikk/vscode-extension",
+    "displayName": "Mikk - Codebase Nervous System",
+    "description": "VS Code extension for Mikk — see your architecture, get AI context, detect impact",
+    "version": "1.0.0",
+    "publisher": "mikk-dev",
+    "engines": {
+        "vscode": "^1.85.0"
+    },
+    "categories": [
+        "Other",
+        "Visualization"
+    ],
+    "activationEvents": [
+        "workspaceContains:mikk.json"
+    ],
+    "main": "./dist/extension.js",
+    "contributes": {
+        "commands": [
+            {
+                "command": "mikk.init",
+                "title": "Mikk: Initialize"
+            },
+            {
+                "command": "mikk.analyze",
+                "title": "Mikk: Analyze"
+            },
+            {
+                "command": "mikk.showDiagram",
+                "title": "Mikk: Show Architecture Diagram"
+            },
+            {
+                "command": "mikk.showImpact",
+                "title": "Mikk: Show Impact Analysis"
+            },
+            {
+                "command": "mikk.getContext",
+                "title": "Mikk: Get AI Context"
+            }
+        ],
+        "viewsContainers": {
+            "activitybar": [
+                {
+                    "id": "mikk-explorer",
+                    "title": "Mikk",
+                    "icon": "resources/icon.svg"
+                }
+            ]
+        },
+        "views": {
+            "mikk-explorer": [
+                {
+                    "id": "mikkModules",
+                    "name": "Modules",
+                    "icon": "resources/icon.svg"
+                },
+                {
+                    "id": "mikkFunctions",
+                    "name": "Functions",
+                    "icon": "resources/icon.svg"
+                },
+                {
+                    "id": "mikkHealth",
+                    "name": "Health",
+                    "icon": "resources/icon.svg"
+                }
+            ]
+        }
+    },
+    "scripts": {
+        "build": "tsc",
+        "watch": "tsc --watch",
+        "package": "npx -y @vscode/vsce package"
+    },
+    "dependencies": {
+        "@mikk/core": "workspace:*",
+        "@mikk/diagram-generator": "workspace:*",
+        "@mikk/ai-context": "workspace:*"
+    },
+    "devDependencies": {
+        "@types/vscode": "^1.85.0",
+        "typescript": "^5.7.0"
+    }
+}
