@@ -10,7 +10,6 @@
 </p>
 
 <p align="center">
-  <a href="https://github.com/ansh_dhanani/mikk/actions/workflows/ci.yml"><img src="https://github.com/ansh_dhanani/mikk/actions/workflows/ci.yml/badge.svg" alt="CI" /></a>
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-Apache_2.0-blue.svg" alt="License: Apache 2.0" /></a>
 </p>
 
