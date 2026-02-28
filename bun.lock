@@ -55,6 +55,7 @@
       },
       "dependencies": {
         "@mikk/core": "workspace:*",
+        "@mikk/diagram-generator": "workspace:*",
         "@mikk/watcher": "workspace:*",
         "chalk": "^5.4.0",
         "commander": "^13.0.0",

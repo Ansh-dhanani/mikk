@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="./assets/logo.png" alt="Mikk Logo" width="180" />
+</p>
+
 <h1 align="center">Mikk</h1>
 
 <p align="center">
@@ -6,7 +10,7 @@
 </p>
 
 <p align="center">
-  <a href="https://github.com/ansh-dhanani/mikk/actions/workflows/ci.yml"><img src="https://github.com/ansh-dhanani/mikk/actions/workflows/ci.yml/badge.svg" alt="CI" /></a>
+  <a href="https://github.com/ansh_dhanani/mikk/actions/workflows/ci.yml"><img src="https://github.com/ansh_dhanani/mikk/actions/workflows/ci.yml/badge.svg" alt="CI" /></a>
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-Apache_2.0-blue.svg" alt="License: Apache 2.0" /></a>
 </p>
 
@@ -106,6 +110,5 @@ Apache License 2.0 — see [LICENSE](LICENSE)
 
 **Mikk** — The Codebase Nervous System. Understand faster.
 
-## Star History
 
-[![Star History Chart](https://api.star-history.com/svg?repos=ansh-dhanani/mikk&type=date&legend=top-left)](https://www.star-history.com/#ansh-dhanani/mikk&type=date&legend=top-left)
+

@@ -13,7 +13,7 @@ const program = new Command()
 program
     .name('mikk')
     .description('The structural nervous system of your codebase')
-    .version('1.0.0')
+    .version(process.env.MIKK_VERSION || '1.0.3')
 
 // Register all commands
 registerInitCommand(program)

@@ -1,0 +1,4728 @@
+{
+  "version": "1.0.0",
+  "generatedAt": "2026-02-28T10:10:53.862Z",
+  "generatorVersion": "mikk-cli@1.0.0",
+  "projectRoot": "Mesh",
+  "syncState": {
+    "status": "clean",
+    "lastSyncAt": "2026-02-28T10:10:53.862Z",
+    "lockHash": "0093e6c4e1be99c86986e77a5f2c5f4ebbe8f8b7d946996ad894853bb82a73e3",
+    "contractHash": "78e6e393e0c1fc2e75cf0a8174019fd790c0bd04988b8e7349490ae3665fc824"
+  },
+  "modules": {
+    "packages": {
+      "id": "packages",
+      "files": [
+        "packages/ai-context/src/context-builder.ts",
+        "packages/ai-context/src/index.ts",
+        "packages/ai-context/src/providers.ts",
+        "packages/ai-context/src/types.ts",
+        "packages/cli/src/index.ts",
+        "packages/core/src/index.ts",
+        "packages/core/tests/helpers.ts",
+        "packages/intent-engine/src/conflict-detector.ts",
+        "packages/intent-engine/src/index.ts",
+        "packages/intent-engine/src/interpreter.ts",
+        "packages/intent-engine/src/preflight.ts",
+        "packages/intent-engine/src/suggester.ts",
+        "packages/intent-engine/src/types.ts",
+        "packages/diagram-generator/src/index.ts",
+        "packages/diagram-generator/src/orchestrator.ts",
+        "packages/watcher/src/daemon.ts",
+        "packages/watcher/src/file-watcher.ts",
+        "packages/watcher/src/incremental-analyzer.ts",
+        "packages/watcher/src/index.ts",
+        "packages/watcher/src/types.ts",
+        "packages/cli/src/commands/analyze.ts",
+        "packages/cli/src/commands/context.ts",
+        "packages/cli/src/commands/diff.ts",
+        "packages/cli/src/commands/init.ts",
+        "packages/cli/src/commands/intent.ts",
+        "packages/cli/src/commands/visualize.ts",
+        "packages/cli/src/commands/watch.ts",
+        "packages/core/src/hash/file-hasher.ts",
+        "packages/core/src/hash/index.ts",
+        "packages/core/src/hash/tree-hasher.ts",
+        "packages/core/src/graph/cluster-detector.ts",
+        "packages/core/src/graph/graph-builder.ts",
+        "packages/core/src/graph/impact-analyzer.ts",
+        "packages/core/src/graph/index.ts",
+        "packages/core/src/graph/types.ts",
+        "packages/core/src/contract/contract-generator.ts",
+        "packages/core/src/contract/contract-reader.ts",
+        "packages/core/src/contract/contract-writer.ts",
+        "packages/core/src/contract/index.ts",
+        "packages/core/src/contract/lock-compiler.ts",
+        "packages/core/src/contract/lock-reader.ts",
+        "packages/core/src/contract/schema.ts",
+        "packages/vscode-extension/src/extension.ts",
+        "packages/core/src/parser/base-parser.ts",
+        "packages/core/src/parser/index.ts",
+        "packages/core/src/parser/types.ts",
+        "packages/core/src/utils/errors.ts",
+        "packages/core/src/utils/fs.ts",
+        "packages/core/src/utils/logger.ts",
+        "packages/core/src/utils/minimatch.ts",
+        "packages/diagram-generator/src/generators/capsule-diagram.ts",
+        "packages/diagram-generator/src/generators/flow-diagram.ts",
+        "packages/diagram-generator/src/generators/health-diagram.ts",
+        "packages/diagram-generator/src/generators/impact-diagram.ts",
+        "packages/diagram-generator/src/generators/main-diagram.ts",
+        "packages/diagram-generator/src/generators/module-diagram.ts",
+        "packages/cli/src/commands/contract/index.ts",
+        "packages/core/src/parser/typescript/ts-extractor.ts",
+        "packages/core/src/parser/typescript/ts-parser.ts",
+        "packages/core/src/parser/typescript/ts-resolver.ts",
+        "packages/core/tests/fixtures/simple-api/src/index.ts",
+        "packages/core/tests/fixtures/simple-api/src/auth/middleware.ts",
+        "packages/core/tests/fixtures/simple-api/src/auth/verify.ts",
+        "packages/core/tests/fixtures/simple-api/src/utils/jwt.ts"
+      ],
+      "hash": "c296433e86919de5b15c9b9918e4efe32833fecd1accfa107fe164ab395ea38c",
+      "fragmentPath": ".mikk/fragments/packages.lock"
+    },
+    "apps": {
+      "id": "apps",
+      "files": [
+        "apps/web/src/index.ts",
+        "apps/registry/src/index.ts"
+      ],
+      "hash": "db42059012de1ce0e4df6ae7fbe5263ea5e2d4ac81ecd10d5fda8fc1c7ce7069",
+      "fragmentPath": ".mikk/fragments/apps.lock"
+    }
+  },
+  "functions": {
+    "class:packages/ai-context/src/context-builder.ts:ContextBuilder": {
+      "id": "class:packages/ai-context/src/context-builder.ts:ContextBuilder",
+      "name": "ContextBuilder",
+      "file": "packages/ai-context/src/context-builder.ts",
+      "startLine": 8,
+      "endLine": 145,
+      "hash": "",
+      "calls": [],
+      "calledBy": [],
+      "moduleId": "packages"
+    },
+    "fn:packages/ai-context/src/context-builder.ts:ContextBuilder.build": {
+      "id": "fn:packages/ai-context/src/context-builder.ts:ContextBuilder.build",
+      "name": "ContextBuilder.build",
+      "file": "packages/ai-context/src/context-builder.ts",
+      "startLine": 15,
+      "endLine": 35,
+      "hash": "c7c2a80aa635207afc895ea99dbc8e98e9d8d4c32cb2fb1fa94f1cda27d7e12c",
+      "calls": [],
+      "calledBy": [],
+      "moduleId": "packages",
+      "purpose": "Build AI context for a given query",
+      "edgeCasesHandled": [],
+      "errorHandling": [],
+      "detailedLines": []
+    },
+    "fn:packages/ai-context/src/context-builder.ts:ContextBuilder.findRelevantModules": {
+      "id": "fn:packages/ai-context/src/context-builder.ts:ContextBuilder.findRelevantModules",
+      "name": "ContextBuilder.findRelevantModules",
+      "file": "packages/ai-context/src/context-builder.ts",
+      "startLine": 38,
+      "endLine": 65,
+      "hash": "bc83ab04e87ef663ede7a28c9c34045d43eeecfc30911d5eba4e7bed14ddd4c2",
+      "calls": [],
+      "calledBy": [],
+      "moduleId": "packages",
+      "purpose": "Find which modules are relevant to the query",
+      "edgeCasesHandled": [
+        "query.focusModules && query.focusModules.length > 0",
+        "query.focusFiles && query.focusFiles.length > 0"
+      ],
+      "errorHandling": [],
+      "detailedLines": [
+        {
+          "startLine": 40,
+          "endLine": 42,
+          "blockType": "ControlFlow"
+        },
+        {
+          "startLine": 45,
+          "endLine": 52,
+          "blockType": "ControlFlow"
+        },
+        {
+          "startLine": 47,
+          "endLine": 50,
+          "blockType": "Loop"
+        },
+        {
+          "startLine": 49,
+          "endLine": 49,
+          "blockType": "ControlFlow"
+        }
+      ]
+    },
+    "fn:packages/ai-context/src/context-builder.ts:ContextBuilder.buildModuleContext": {
+      "id": "fn:packages/ai-context/src/context-builder.ts:ContextBuilder.buildModuleContext",
+      "name": "ContextBuilder.buildModuleContext",
+      "file": "packages/ai-context/src/context-builder.ts",
+      "startLine": 68,
+      "endLine": 99,
+      "hash": "d8bbdf0a492d1207df966c78fa8208610baca2cc1038287993336b0c7f9e4030",
+      "calls": [],
+      "calledBy": [],
+      "moduleId": "packages",
+      "purpose": "Build context for a single module",
+      "edgeCasesHandled": [],
+      "errorHandling": [],
+      "detailedLines": []
+    },
+    "fn:packages/ai-context/src/context-builder.ts:ContextBuilder.generatePrompt": {
+      "id": "fn:packages/ai-context/src/context-builder.ts:ContextBuilder.generatePrompt",
+      "name": "ContextBuilder.generatePrompt",
+      "file": "packages/ai-context/src/context-builder.ts",
+      "startLine": 102,
+      "endLine": 144,
+      "hash": "46fdadfced522f063a3dd17a1484132d5eda9b49f9a03f6077d03f8b412f3227",
+      "calls": [],
+      "calledBy": [],
+      "moduleId": "packages",
+      "purpose": "Generate the AI prompt from context",
+      "edgeCasesHandled": [],
+      "errorHandling": [],
+      "detailedLines": [
+        {
+          "startLine": 111,
+          "endLine": 125,
+          "blockType": "Loop"
+        },
+        {
+          "startLine": 114,
+          "endLine": 114,
+          "blockType": "ControlFlow"
+        },
+        {
+          "startLine": 117,
+          "endLine": 124,
+          "blockType": "ControlFlow"
+        },
+        {
+          "startLine": 119,
+          "endLine": 122,
+          "blockType": "Loop"
+        },
+        {
+          "startLine": 127,
+          "endLine": 133,
+          "blockType": "ControlFlow"
+        },
+        {
+          "startLine": 129,
+          "endLine": 131,
+          "blockType": "Loop"
+        },
+        {
+          "startLine": 135,
+          "endLine": 141,
+          "blockType": "ControlFlow"
+        },
+        {
+          "startLine": 137,
+          "endLine": 139,
+          "blockType": "Loop"
+        }
+      ]
+    },
+    "fn:packages/ai-context/src/providers.ts:getProvider": {
+      "id": "fn:packages/ai-context/src/providers.ts:getProvider",
+      "name": "getProvider",
+      "file": "packages/ai-context/src/providers.ts",
+      "startLine": 69,
+      "endLine": 77,
+      "hash": "318653a2aab913f4543ff07327b2d70a5f3498789ee10568d072c82be4c34e95",
+      "calls": [],
+      "calledBy": [],
+      "moduleId": "packages",
+      "purpose": "Get the appropriate provider by name.",
+      "edgeCasesHandled": [],
+      "errorHandling": [],
+      "detailedLines": [
+        {
+          "startLine": 70,
+          "endLine": 76,
+          "blockType": "ControlFlow"
+        }
+      ]
+    },
+    "class:packages/ai-context/src/providers.ts:ClaudeProvider": {
+      "id": "class:packages/ai-context/src/providers.ts:ClaudeProvider",
+      "name": "ClaudeProvider",
+      "file": "packages/ai-context/src/providers.ts",
+      "startLine": 7,
+      "endLine": 52,
+      "hash": "",
+      "calls": [],
+      "calledBy": [],
+      "moduleId": "packages"
+    },
+    "fn:packages/ai-context/src/providers.ts:ClaudeProvider.formatContext": {
+      "id": "fn:packages/ai-context/src/providers.ts:ClaudeProvider.formatContext",
+      "name": "ClaudeProvider.formatContext",
+      "file": "packages/ai-context/src/providers.ts",
+      "startLine": 11,
+      "endLine": 51,
+      "hash": "37be9ffe2fc762d64dbd8d43d599c44b74f8fee2eeb7bcb1ef4eb96650cf6a98",
+      "calls": [],
+      "calledBy": [],
+      "moduleId": "packages",
+      "purpose": "",
+      "edgeCasesHandled": [],
+      "errorHandling": [],
+      "detailedLines": [
+        {
+          "startLine": 20,
+          "endLine": 31,
+          "blockType": "Loop"
+        },
+        {
+          "startLine": 23,
+          "endLine": 23,
+          "blockType": "ControlFlow"
+        },
+        {
+          "startLine": 25,
+          "endLine": 29,
+          "blockType": "Loop"
+        },
+        {
+          "startLine": 33,
+          "endLine": 39,
+          "blockType": "ControlFlow"
+        },
+        {
+          "startLine": 35,
+          "endLine": 37,
+          "blockType": "Loop"
+        },
+        {
+          "startLine": 41,
+          "endLine": 47,
+          "blockType": "ControlFlow"
+        },
+        {
+          "startLine": 43,
+          "endLine": 45,
+          "blockType": "Loop"
+        }
+      ]
+    },
+    "class:packages/ai-context/src/providers.ts:GenericProvider": {
+      "id": "class:packages/ai-context/src/providers.ts:GenericProvider",
+      "name": "GenericProvider",
+      "file": "packages/ai-context/src/providers.ts",
+      "startLine": 57,
+      "endLine": 64,
+      "hash": "",
+      "calls": [],
+      "calledBy": [],
+      "moduleId": "packages"
+    },
+    "fn:packages/ai-context/src/providers.ts:GenericProvider.formatContext": {
+      "id": "fn:packages/ai-context/src/providers.ts:GenericProvider.formatContext",
+      "name": "GenericProvider.formatContext",
+      "file": "packages/ai-context/src/providers.ts",
+      "startLine": 61,
+      "endLine": 63,
+      "hash": "b71e74da6618e0f4e4a18d51baa5a875a0a1b679b30d28eb949c2f3c90fddc29",
+      "calls": [],
+      "calledBy": [],
+      "moduleId": "packages",
+      "purpose": "",
+      "edgeCasesHandled": [],
+      "errorHandling": [],
+      "detailedLines": []
+    },
+    "fn:packages/core/tests/helpers.ts:mockParsedFile": {
+      "id": "fn:packages/core/tests/helpers.ts:mockParsedFile",
+      "name": "mockParsedFile",
+      "file": "packages/core/tests/helpers.ts",
+      "startLine": 7,
+      "endLine": 22,
+      "hash": "52db55eecefd9816ec7eec73590ac1fee01c3a78fdc2afb53a25110f882adfc2",
+      "calls": [
+        "fn:packages/core/src/hash/file-hasher.ts:hashContent"
+      ],
+      "calledBy": [
+        "fn:packages/core/tests/helpers.ts:buildTestGraph"
+      ],
+      "moduleId": "packages",
+      "purpose": "Build a minimal ParsedFile for testing without actually parsing",
+      "edgeCasesHandled": [],
+      "errorHandling": [],
+      "detailedLines": []
+    },
+    "fn:packages/core/tests/helpers.ts:mockFunction": {
+      "id": "fn:packages/core/tests/helpers.ts:mockFunction",
+      "name": "mockFunction",
+      "file": "packages/core/tests/helpers.ts",
+      "startLine": 25,
+      "endLine": 44,
+      "hash": "019e0cda040f7a207266f0f30042cb8017a06eb05f50e8ce1243ee0866ac920c",
+      "calls": [
+        "fn:packages/core/src/hash/file-hasher.ts:hashContent"
+      ],
+      "calledBy": [
+        "fn:packages/core/tests/helpers.ts:buildTestGraph"
+      ],
+      "moduleId": "packages",
+      "purpose": "Build a minimal ParsedFunction",
+      "edgeCasesHandled": [],
+      "errorHandling": [],
+      "detailedLines": []
+    },
+    "fn:packages/core/tests/helpers.ts:mockImport": {
+      "id": "fn:packages/core/tests/helpers.ts:mockImport",
+      "name": "mockImport",
+      "file": "packages/core/tests/helpers.ts",
+      "startLine": 47,
+      "endLine": 59,
+      "hash": "0d1bdef65afd5844572c740dc8467870e177891f5d23e359ac3a3cee9adc8b3e",
+      "calls": [],
+      "calledBy": [
+        "fn:packages/core/tests/helpers.ts:buildTestGraph"
+      ],
+      "moduleId": "packages",
+      "purpose": "Build a minimal ParsedImport",
+      "edgeCasesHandled": [],
+      "errorHandling": [],
+      "detailedLines": []
+    },
+    "fn:packages/core/tests/helpers.ts:buildTestGraph": {
+      "id": "fn:packages/core/tests/helpers.ts:buildTestGraph",
+      "name": "buildTestGraph",
+      "file": "packages/core/tests/helpers.ts",
+      "startLine": 62,
+      "endLine": 83,
+      "hash": "5ea8f51cda261ee050908aec92172685457863708ebeff0477177e295bb4aa59",
+      "calls": [
+        "fn:packages/core/tests/helpers.ts:mockImport",
+        "fn:packages/core/tests/helpers.ts:mockParsedFile",
+        "fn:packages/core/tests/helpers.ts:mockFunction"
+      ],
+      "calledBy": [],
+      "moduleId": "packages",
+      "purpose": "Build a graph from simple tuple pairs for testing",
+      "edgeCasesHandled": [],
+      "errorHandling": [],
+      "detailedLines": []
+    },
+    "fn:apps/web/src/index.ts:placeholder": {
+      "id": "fn:apps/web/src/index.ts:placeholder",
+      "name": "placeholder",
+      "file": "apps/web/src/index.ts",
+      "startLine": 22,
+      "endLine": 24,
+      "hash": "6dda3abdf7846a11f40f583697fc7bbe192e1173529c27ef2819cf5dc63dc8c5",
+      "calls": [],
+      "calledBy": [],
+      "moduleId": "apps",
+      "purpose": "@mikkweb — Web Dashboard & Contract Generator",
+      "edgeCasesHandled": [],
+      "errorHandling": [],
+      "detailedLines": []
+    },
+    "class:packages/intent-engine/src/conflict-detector.ts:ConflictDetector": {
+      "id": "class:packages/intent-engine/src/conflict-detector.ts:ConflictDetector",
+      "name": "ConflictDetector",
+      "file": "packages/intent-engine/src/conflict-detector.ts",
+      "startLine": 8,
+      "endLine": 67,
+      "hash": "",
+      "calls": [],
+      "calledBy": [],
+      "moduleId": "packages"
+    },
+    "fn:packages/intent-engine/src/conflict-detector.ts:ConflictDetector.detect": {
+      "id": "fn:packages/intent-engine/src/conflict-detector.ts:ConflictDetector.detect",
+      "name": "ConflictDetector.detect",
+      "file": "packages/intent-engine/src/conflict-detector.ts",
+      "startLine": 14,
+      "endLine": 46,
+      "hash": "c983220988351e076a391bf3552b9419410839b4fbcd33ce43e2df29aa0c8d84",
+      "calls": [],
+      "calledBy": [],
+      "moduleId": "packages",
+      "purpose": "Check all intents for conflicts",
+      "edgeCasesHandled": [],
+      "errorHandling": [],
+      "detailedLines": [
+        {
+          "startLine": 17,
+          "endLine": 40,
+          "blockType": "Loop"
+        },
+        {
+          "startLine": 19,
+          "endLine": 29,
+          "blockType": "Loop"
+        },
+        {
+          "startLine": 20,
+          "endLine": 28,
+          "blockType": "ControlFlow"
+        },
+        {
+          "startLine": 32,
+          "endLine": 39,
+          "blockType": "ControlFlow"
+        }
+      ]
+    },
+    "fn:packages/intent-engine/src/conflict-detector.ts:ConflictDetector.violatesConstraint": {
+      "id": "fn:packages/intent-engine/src/conflict-detector.ts:ConflictDetector.violatesConstraint",
+      "name": "ConflictDetector.violatesConstraint",
+      "file": "packages/intent-engine/src/conflict-detector.ts",
+      "startLine": 48,
+      "endLine": 66,
+      "hash": "aa4d2c992f8fcd1b04efb40c310e617a2bec5b9e8c176ed7d41ef5384332256e",
+      "calls": [],
+      "calledBy": [],
+      "moduleId": "packages",
+      "purpose": "",
+      "edgeCasesHandled": [
+        "targetArea && targetArea !== restrictedArea"
+      ],
+      "errorHandling": [],
+      "detailedLines": [
+        {
+          "startLine": 53,
+          "endLine": 63,
+          "blockType": "ControlFlow"
+        },
+        {
+          "startLine": 56,
+          "endLine": 62,
+          "blockType": "ControlFlow"
+        },
+        {
+          "startLine": 59,
+          "endLine": 61,
+          "blockType": "ControlFlow"
+        }
+      ]
+    },
+    "class:packages/intent-engine/src/interpreter.ts:IntentInterpreter": {
+      "id": "class:packages/intent-engine/src/interpreter.ts:IntentInterpreter",
+      "name": "IntentInterpreter",
+      "file": "packages/intent-engine/src/interpreter.ts",
+      "startLine": 9,
+      "endLine": 93,
+      "hash": "",
+      "calls": [],
+      "calledBy": [],
+      "moduleId": "packages"
+    },
+    "fn:packages/intent-engine/src/interpreter.ts:IntentInterpreter.interpret": {
+      "id": "fn:packages/intent-engine/src/interpreter.ts:IntentInterpreter.interpret",
+      "name": "IntentInterpreter.interpret",
+      "file": "packages/intent-engine/src/interpreter.ts",
+      "startLine": 16,
+      "endLine": 43,
+      "hash": "616e010020264f519f7d4cfbab153eec4477650ebc046b24d4cc38b12d6091c7",
+      "calls": [],
+      "calledBy": [],
+      "moduleId": "packages",
+      "purpose": "Parse raw prompt into candidate intents",
+      "edgeCasesHandled": [],
+      "errorHandling": [],
+      "detailedLines": [
+        {
+          "startLine": 21,
+          "endLine": 23,
+          "blockType": "ControlFlow"
+        },
+        {
+          "startLine": 24,
+          "endLine": 26,
+          "blockType": "ControlFlow"
+        },
+        {
+          "startLine": 27,
+          "endLine": 29,
+          "blockType": "ControlFlow"
+        },
+        {
+          "startLine": 30,
+          "endLine": 32,
+          "blockType": "ControlFlow"
+        },
+        {
+          "startLine": 33,
+          "endLine": 35,
+          "blockType": "ControlFlow"
+        },
+        {
+          "startLine": 38,
+          "endLine": 40,
+          "blockType": "ControlFlow"
+        }
+      ]
+    },
+    "fn:packages/intent-engine/src/interpreter.ts:IntentInterpreter.createIntent": {
+      "id": "fn:packages/intent-engine/src/interpreter.ts:IntentInterpreter.createIntent",
+      "name": "IntentInterpreter.createIntent",
+      "file": "packages/intent-engine/src/interpreter.ts",
+      "startLine": 45,
+      "endLine": 61,
+      "hash": "a62b756cee162837bb36c04fa51956d98be266078d292b851e4469180fdbe6cc",
+      "calls": [],
+      "calledBy": [],
+      "moduleId": "packages",
+      "purpose": "",
+      "edgeCasesHandled": [],
+      "errorHandling": [],
+      "detailedLines": []
+    },
+    "fn:packages/intent-engine/src/interpreter.ts:IntentInterpreter.findMatchingModule": {
+      "id": "fn:packages/intent-engine/src/interpreter.ts:IntentInterpreter.findMatchingModule",
+      "name": "IntentInterpreter.findMatchingModule",
+      "file": "packages/intent-engine/src/interpreter.ts",
+      "startLine": 63,
+      "endLine": 71,
+      "hash": "4747a075675be7b8ddbe8b67902e5194443fa1b11c4ec7c0e7ea1b7fbfc710f9",
+      "calls": [],
+      "calledBy": [],
+      "moduleId": "packages",
+      "purpose": "",
+      "edgeCasesHandled": [
+        "promptLower.includes(module.id) || promptLower.includes(module.name.toLowerCase())"
+      ],
+      "errorHandling": [],
+      "detailedLines": [
+        {
+          "startLine": 65,
+          "endLine": 69,
+          "blockType": "Loop"
+        },
+        {
+          "startLine": 66,
+          "endLine": 68,
+          "blockType": "ControlFlow"
+        }
+      ]
+    },
+    "fn:packages/intent-engine/src/interpreter.ts:IntentInterpreter.findMatchingFunction": {
+      "id": "fn:packages/intent-engine/src/interpreter.ts:IntentInterpreter.findMatchingFunction",
+      "name": "IntentInterpreter.findMatchingFunction",
+      "file": "packages/intent-engine/src/interpreter.ts",
+      "startLine": 73,
+      "endLine": 81,
+      "hash": "41db0bc73773a3f679ff2c9e511cc883945ff9964d67c392c0788b8925c213f4",
+      "calls": [],
+      "calledBy": [],
+      "moduleId": "packages",
+      "purpose": "",
+      "edgeCasesHandled": [
+        "promptLower.includes(fn.name.toLowerCase())"
+      ],
+      "errorHandling": [],
+      "detailedLines": [
+        {
+          "startLine": 75,
+          "endLine": 79,
+          "blockType": "Loop"
+        },
+        {
+          "startLine": 76,
+          "endLine": 78,
+          "blockType": "ControlFlow"
+        }
+      ]
+    },
+    "fn:packages/intent-engine/src/interpreter.ts:IntentInterpreter.extractName": {
+      "id": "fn:packages/intent-engine/src/interpreter.ts:IntentInterpreter.extractName",
+      "name": "IntentInterpreter.extractName",
+      "file": "packages/intent-engine/src/interpreter.ts",
+      "startLine": 83,
+      "endLine": 92,
+      "hash": "a184c3e08090366ec5730bf8f87de50081ef206c32ad3901c2df2d5de8cd156c",
+      "calls": [],
+      "calledBy": [],
+      "moduleId": "packages",
+      "purpose": "",
+      "edgeCasesHandled": [
+        "word.startsWith('\"') || word.startsWith(\"'\")"
+      ],
+      "errorHandling": [],
+      "detailedLines": [
+        {
+          "startLine": 86,
+          "endLine": 90,
+          "blockType": "Loop"
+        },
+        {
+          "startLine": 87,
+          "endLine": 89,
+          "blockType": "ControlFlow"
+        }
+      ]
+    },
+    "class:packages/intent-engine/src/preflight.ts:PreflightPipeline": {
+      "id": "class:packages/intent-engine/src/preflight.ts:PreflightPipeline",
+      "name": "PreflightPipeline",
+      "file": "packages/intent-engine/src/preflight.ts",
+      "startLine": 12,
+      "endLine": 44,
+      "hash": "",
+      "calls": [],
+      "calledBy": [],
+      "moduleId": "packages"
+    },
+    "fn:packages/intent-engine/src/preflight.ts:PreflightPipeline.run": {
+      "id": "fn:packages/intent-engine/src/preflight.ts:PreflightPipeline.run",
+      "name": "PreflightPipeline.run",
+      "file": "packages/intent-engine/src/preflight.ts",
+      "startLine": 27,
+      "endLine": 43,
+      "hash": "0eebb32633ec22767f2261290cc35a9f8f5d3759659cebd80d7cb4ccd0e6eaf2",
+      "calls": [],
+      "calledBy": [],
+      "moduleId": "packages",
+      "purpose": "Run the full preflight pipeline",
+      "edgeCasesHandled": [],
+      "errorHandling": [],
+      "detailedLines": []
+    },
+    "class:packages/intent-engine/src/suggester.ts:Suggester": {
+      "id": "class:packages/intent-engine/src/suggester.ts:Suggester",
+      "name": "Suggester",
+      "file": "packages/intent-engine/src/suggester.ts",
+      "startLine": 8,
+      "endLine": 104,
+      "hash": "",
+      "calls": [],
+      "calledBy": [],
+      "moduleId": "packages"
+    },
+    "fn:packages/intent-engine/src/suggester.ts:Suggester.suggest": {
+      "id": "fn:packages/intent-engine/src/suggester.ts:Suggester.suggest",
+      "name": "Suggester.suggest",
+      "file": "packages/intent-engine/src/suggester.ts",
+      "startLine": 15,
+      "endLine": 17,
+      "hash": "9dce8a847d3ee79493dfb8702e1f0443d90212f6dd4ac298c70582fc2fec2006",
+      "calls": [],
+      "calledBy": [],
+      "moduleId": "packages",
+      "purpose": "Generate suggestions for a list of intents",
+      "edgeCasesHandled": [],
+      "errorHandling": [],
+      "detailedLines": []
+    },
+    "fn:packages/intent-engine/src/suggester.ts:Suggester.suggestForIntent": {
+      "id": "fn:packages/intent-engine/src/suggester.ts:Suggester.suggestForIntent",
+      "name": "Suggester.suggestForIntent",
+      "file": "packages/intent-engine/src/suggester.ts",
+      "startLine": 19,
+      "endLine": 88,
+      "hash": "4564928e76c3b1eb2b2718f65308a276d7da47db2072278639be8bc1b9de717c",
+      "calls": [],
+      "calledBy": [],
+      "moduleId": "packages",
+      "purpose": "",
+      "edgeCasesHandled": [],
+      "errorHandling": [],
+      "detailedLines": [
+        {
+          "startLine": 23,
+          "endLine": 79,
+          "blockType": "ControlFlow"
+        },
+        {
+          "startLine": 27,
+          "endLine": 32,
+          "blockType": "ControlFlow"
+        },
+        {
+          "startLine": 36,
+          "endLine": 51,
+          "blockType": "ControlFlow"
+        },
+        {
+          "startLine": 43,
+          "endLine": 50,
+          "blockType": "ControlFlow"
+        },
+        {
+          "startLine": 46,
+          "endLine": 49,
+          "blockType": "Loop"
+        },
+        {
+          "startLine": 48,
+          "endLine": 48,
+          "blockType": "ControlFlow"
+        },
+        {
+          "startLine": 55,
+          "endLine": 57,
+          "blockType": "ControlFlow"
+        },
+        {
+          "startLine": 62,
+          "endLine": 64,
+          "blockType": "ControlFlow"
+        },
+        {
+          "startLine": 69,
+          "endLine": 76,
+          "blockType": "ControlFlow"
+        },
+        {
+          "startLine": 70,
+          "endLine": 75,
+          "blockType": "Loop"
+        },
+        {
+          "startLine": 72,
+          "endLine": 74,
+          "blockType": "ControlFlow"
+        }
+      ]
+    },
+    "fn:packages/intent-engine/src/suggester.ts:Suggester.generateDescription": {
+      "id": "fn:packages/intent-engine/src/suggester.ts:Suggester.generateDescription",
+      "name": "Suggester.generateDescription",
+      "file": "packages/intent-engine/src/suggester.ts",
+      "startLine": 90,
+      "endLine": 103,
+      "hash": "31d3d7e848a789f43dac101447debf39127fedbb3ba4e87e3064b0a40f89afaf",
+      "calls": [],
+      "calledBy": [],
+      "moduleId": "packages",
+      "purpose": "",
+      "edgeCasesHandled": [],
+      "errorHandling": [],
+      "detailedLines": [
+        {
+          "startLine": 91,
+          "endLine": 102,
+          "blockType": "ControlFlow"
+        }
+      ]
+    },
+    "class:packages/diagram-generator/src/orchestrator.ts:DiagramOrchestrator": {
+      "id": "class:packages/diagram-generator/src/orchestrator.ts:DiagramOrchestrator",
+      "name": "DiagramOrchestrator",
+      "file": "packages/diagram-generator/src/orchestrator.ts",
+      "startLine": 15,
+      "endLine": 70,
+      "hash": "",
+      "calls": [],
+      "calledBy": [],
+      "moduleId": "packages"
+    },
+    "fn:packages/diagram-generator/src/orchestrator.ts:DiagramOrchestrator.generateAll": {
+      "id": "fn:packages/diagram-generator/src/orchestrator.ts:DiagramOrchestrator.generateAll",
+      "name": "DiagramOrchestrator.generateAll",
+      "file": "packages/diagram-generator/src/orchestrator.ts",
+      "startLine": 23,
+      "endLine": 53,
+      "hash": "4a3649ac9ca036b502783300f99d9b82436d7d5bae2724434bb5f78586a57f64",
+      "calls": [],
+      "calledBy": [],
+      "moduleId": "packages",
+      "purpose": "Generate all diagrams",
+      "edgeCasesHandled": [],
+      "errorHandling": [],
+      "detailedLines": [
+        {
+          "startLine": 42,
+          "endLine": 50,
+          "blockType": "Loop"
+        }
+      ]
+    },
+    "fn:packages/diagram-generator/src/orchestrator.ts:DiagramOrchestrator.generateImpact": {
+      "id": "fn:packages/diagram-generator/src/orchestrator.ts:DiagramOrchestrator.generateImpact",
+      "name": "DiagramOrchestrator.generateImpact",
+      "file": "packages/diagram-generator/src/orchestrator.ts",
+      "startLine": 56,
+      "endLine": 63,
+      "hash": "7e50493c6618dd046fa07e68d5a29031cb97c574b98cbd808786a639adb44a51",
+      "calls": [],
+      "calledBy": [],
+      "moduleId": "packages",
+      "purpose": "Generate impact diagram for specific changes",
+      "edgeCasesHandled": [],
+      "errorHandling": [],
+      "detailedLines": []
+    },
+    "fn:packages/diagram-generator/src/orchestrator.ts:DiagramOrchestrator.writeDiagram": {
+      "id": "fn:packages/diagram-generator/src/orchestrator.ts:DiagramOrchestrator.writeDiagram",
+      "name": "DiagramOrchestrator.writeDiagram",
+      "file": "packages/diagram-generator/src/orchestrator.ts",
+      "startLine": 65,
+      "endLine": 69,
+      "hash": "21ae2d862f778699e18f11b9dfec3d21d240fe31963013eebd4a15b03d968a02",
+      "calls": [],
+      "calledBy": [],
+      "moduleId": "packages",
+      "purpose": "",
+      "edgeCasesHandled": [],
+      "errorHandling": [],
+      "detailedLines": []
+    },
+    "fn:apps/registry/src/index.ts:placeholder": {
+      "id": "fn:apps/registry/src/index.ts:placeholder",
+      "name": "placeholder",
+      "file": "apps/registry/src/index.ts",
+      "startLine": 34,
+      "endLine": 36,
+      "hash": "d149c479b1cfa29fc5d74772451fc30f97c9b8b87ab8fc818a03f9f701e51a84",
+      "calls": [],
+      "calledBy": [],
+      "moduleId": "apps",
+      "purpose": "",
+      "edgeCasesHandled": [],
+      "errorHandling": [],
+      "detailedLines": []
+    },
+    "class:packages/watcher/src/daemon.ts:WatcherDaemon": {
+      "id": "class:packages/watcher/src/daemon.ts:WatcherDaemon",
+      "name": "WatcherDaemon",
+      "file": "packages/watcher/src/daemon.ts",
+      "startLine": 17,
+      "endLine": 112,
+      "hash": "",
+      "calls": [],
+      "calledBy": [],
+      "moduleId": "packages"
+    },
+    "fn:packages/watcher/src/daemon.ts:WatcherDaemon.start": {
+      "id": "fn:packages/watcher/src/daemon.ts:WatcherDaemon.start",
+      "name": "WatcherDaemon.start",
+      "file": "packages/watcher/src/daemon.ts",
+      "startLine": 28,
+      "endLine": 65,
+      "hash": "a69abf972306a6fcecd700027a2d503a7a2ec5fbd6ca4f751b2bc07e7f66c386",
+      "calls": [],
+      "calledBy": [],
+      "moduleId": "packages",
+      "purpose": "",
+      "edgeCasesHandled": [],
+      "errorHandling": [],
+      "detailedLines": [
+        {
+          "startLine": 48,
+          "endLine": 50,
+          "blockType": "Loop"
+        },
+        {
+          "startLine": 54,
+          "endLine": 56,
+          "blockType": "ControlFlow"
+        },
+        {
+          "startLine": 58,
+          "endLine": 60,
+          "blockType": "Loop"
+        }
+      ]
+    },
+    "fn:packages/watcher/src/daemon.ts:WatcherDaemon.stop": {
+      "id": "fn:packages/watcher/src/daemon.ts:WatcherDaemon.stop",
+      "name": "WatcherDaemon.stop",
+      "file": "packages/watcher/src/daemon.ts",
+      "startLine": 67,
+      "endLine": 70,
+      "hash": "fa903d605a509e6786a9d5c71359cece51c6368ab5e987d18068c9f28608f12b",
+      "calls": [],
+      "calledBy": [],
+      "moduleId": "packages",
+      "purpose": "",
+      "edgeCasesHandled": [],
+      "errorHandling": [],
+      "detailedLines": []
+    },
+    "fn:packages/watcher/src/daemon.ts:WatcherDaemon.on": {
+      "id": "fn:packages/watcher/src/daemon.ts:WatcherDaemon.on",
+      "name": "WatcherDaemon.on",
+      "file": "packages/watcher/src/daemon.ts",
+      "startLine": 72,
+      "endLine": 74,
+      "hash": "42034d17e3223754f1dcdaba8b0b9ca259a410d4167513fea72d2fe1cb497169",
+      "calls": [],
+      "calledBy": [],
+      "moduleId": "packages",
+      "purpose": "",
+      "edgeCasesHandled": [],
+      "errorHandling": [],
+      "detailedLines": []
+    },
+    "fn:packages/watcher/src/daemon.ts:WatcherDaemon.handleFileChange": {
+      "id": "fn:packages/watcher/src/daemon.ts:WatcherDaemon.handleFileChange",
+      "name": "WatcherDaemon.handleFileChange",
+      "file": "packages/watcher/src/daemon.ts",
+      "startLine": 76,
+      "endLine": 111,
+      "hash": "f4531bcdd93438e2faa2e693fbdf6415bf866a84bf760650e1ecb20de9cdf607",
+      "calls": [],
+      "calledBy": [],
+      "moduleId": "packages",
+      "purpose": "",
+      "edgeCasesHandled": [
+        "!this.analyzer || !this.lock"
+      ],
+      "errorHandling": [
+        {
+          "line": 79,
+          "type": "try-catch",
+          "detail": "try-catch block"
+        }
+      ],
+      "detailedLines": [
+        {
+          "startLine": 77,
+          "endLine": 77,
+          "blockType": "ControlFlow"
+        },
+        {
+          "startLine": 88,
+          "endLine": 96,
+          "blockType": "Loop"
+        },
+        {
+          "startLine": 104,
+          "endLine": 109,
+          "blockType": "Loop"
+        }
+      ]
+    },
+    "class:packages/watcher/src/file-watcher.ts:FileWatcher": {
+      "id": "class:packages/watcher/src/file-watcher.ts:FileWatcher",
+      "name": "FileWatcher",
+      "file": "packages/watcher/src/file-watcher.ts",
+      "startLine": 10,
+      "endLine": 93,
+      "hash": "",
+      "calls": [],
+      "calledBy": [],
+      "moduleId": "packages"
+    },
+    "fn:packages/watcher/src/file-watcher.ts:FileWatcher.start": {
+      "id": "fn:packages/watcher/src/file-watcher.ts:FileWatcher.start",
+      "name": "FileWatcher.start",
+      "file": "packages/watcher/src/file-watcher.ts",
+      "startLine": 18,
+      "endLine": 39,
+      "hash": "07c488cd560c2b40b8cb1ae02cc264d7f521316d30b43f6e7762761984dd0160",
+      "calls": [],
+      "calledBy": [],
+      "moduleId": "packages",
+      "purpose": "Start watching — non-blocking",
+      "edgeCasesHandled": [],
+      "errorHandling": [],
+      "detailedLines": []
+    },
+    "fn:packages/watcher/src/file-watcher.ts:FileWatcher.stop": {
+      "id": "fn:packages/watcher/src/file-watcher.ts:FileWatcher.stop",
+      "name": "FileWatcher.stop",
+      "file": "packages/watcher/src/file-watcher.ts",
+      "startLine": 42,
+      "endLine": 45,
+      "hash": "e212aa8e6c60ef3a76c7bc3c6bde9f874ff75c180a5b99248dd9668e70904c25",
+      "calls": [],
+      "calledBy": [],
+      "moduleId": "packages",
+      "purpose": "Stop watching",
+      "edgeCasesHandled": [],
+      "errorHandling": [],
+      "detailedLines": []
+    },
+    "fn:packages/watcher/src/file-watcher.ts:FileWatcher.on": {
+      "id": "fn:packages/watcher/src/file-watcher.ts:FileWatcher.on",
+      "name": "FileWatcher.on",
+      "file": "packages/watcher/src/file-watcher.ts",
+      "startLine": 48,
+      "endLine": 50,
+      "hash": "42034d17e3223754f1dcdaba8b0b9ca259a410d4167513fea72d2fe1cb497169",
+      "calls": [],
+      "calledBy": [],
+      "moduleId": "packages",
+      "purpose": "Register an event handler",
+      "edgeCasesHandled": [],
+      "errorHandling": [],
+      "detailedLines": []
+    },
+    "fn:packages/watcher/src/file-watcher.ts:FileWatcher.setHash": {
+      "id": "fn:packages/watcher/src/file-watcher.ts:FileWatcher.setHash",
+      "name": "FileWatcher.setHash",
+      "file": "packages/watcher/src/file-watcher.ts",
+      "startLine": 53,
+      "endLine": 55,
+      "hash": "03a5e25c42bd2a0bab1b0d37f5b6ab47b9f0a06984b62fe337c3aaabc428b194",
+      "calls": [],
+      "calledBy": [],
+      "moduleId": "packages",
+      "purpose": "Set initial hash for a file",
+      "edgeCasesHandled": [],
+      "errorHandling": [],
+      "detailedLines": []
+    },
+    "fn:packages/watcher/src/file-watcher.ts:FileWatcher.handleChange": {
+      "id": "fn:packages/watcher/src/file-watcher.ts:FileWatcher.handleChange",
+      "name": "FileWatcher.handleChange",
+      "file": "packages/watcher/src/file-watcher.ts",
+      "startLine": 57,
+      "endLine": 86,
+      "hash": "0a6bd38647a34684f519afee73d0ab5a1386f385e8cb4c6d1f3d32072f3e73da",
+      "calls": [],
+      "calledBy": [],
+      "moduleId": "packages",
+      "purpose": "",
+      "edgeCasesHandled": [
+        "oldHash === newHash"
+      ],
+      "errorHandling": [
+        {
+          "line": 64,
+          "type": "try-catch",
+          "detail": "try-catch block"
+        }
+      ],
+      "detailedLines": [
+        {
+          "startLine": 63,
+          "endLine": 69,
+          "blockType": "ControlFlow"
+        },
+        {
+          "startLine": 71,
+          "endLine": 71,
+          "blockType": "ControlFlow"
+        },
+        {
+          "startLine": 73,
+          "endLine": 73,
+          "blockType": "ControlFlow"
+        },
+        {
+          "startLine": 74,
+          "endLine": 74,
+          "blockType": "ControlFlow"
+        }
+      ]
+    },
+    "fn:packages/watcher/src/file-watcher.ts:FileWatcher.emit": {
+      "id": "fn:packages/watcher/src/file-watcher.ts:FileWatcher.emit",
+      "name": "FileWatcher.emit",
+      "file": "packages/watcher/src/file-watcher.ts",
+      "startLine": 88,
+      "endLine": 92,
+      "hash": "40f8e021a0af6570ceccf27f7d76e81ec4e9e03859093a313ba2243d689778eb",
+      "calls": [],
+      "calledBy": [],
+      "moduleId": "packages",
+      "purpose": "",
+      "edgeCasesHandled": [],
+      "errorHandling": [],
+      "detailedLines": [
+        {
+          "startLine": 89,
+          "endLine": 91,
+          "blockType": "Loop"
+        }
+      ]
+    },
+    "class:packages/watcher/src/incremental-analyzer.ts:IncrementalAnalyzer": {
+      "id": "class:packages/watcher/src/incremental-analyzer.ts:IncrementalAnalyzer",
+      "name": "IncrementalAnalyzer",
+      "file": "packages/watcher/src/incremental-analyzer.ts",
+      "startLine": 13,
+      "endLine": 97,
+      "hash": "",
+      "calls": [],
+      "calledBy": [],
+      "moduleId": "packages"
+    },
+    "fn:packages/watcher/src/incremental-analyzer.ts:IncrementalAnalyzer.analyze": {
+      "id": "fn:packages/watcher/src/incremental-analyzer.ts:IncrementalAnalyzer.analyze",
+      "name": "IncrementalAnalyzer.analyze",
+      "file": "packages/watcher/src/incremental-analyzer.ts",
+      "startLine": 29,
+      "endLine": 64,
+      "hash": "e36ba47dd38fffddd810a7308de0b4e6ca30440a24d3428f67f76edf5774f430",
+      "calls": [],
+      "calledBy": [],
+      "moduleId": "packages",
+      "purpose": "Handle a file change event",
+      "edgeCasesHandled": [
+        "type === 'deleted'"
+      ],
+      "errorHandling": [],
+      "detailedLines": [
+        {
+          "startLine": 36,
+          "endLine": 38,
+          "blockType": "ControlFlow"
+        }
+      ]
+    },
+    "fn:packages/watcher/src/incremental-analyzer.ts:IncrementalAnalyzer.addParsedFile": {
+      "id": "fn:packages/watcher/src/incremental-analyzer.ts:IncrementalAnalyzer.addParsedFile",
+      "name": "IncrementalAnalyzer.addParsedFile",
+      "file": "packages/watcher/src/incremental-analyzer.ts",
+      "startLine": 67,
+      "endLine": 69,
+      "hash": "51ccc74ceba761381a25e2522ffe1df83df1104c34e19dce96fc1c30fec36413",
+      "calls": [],
+      "calledBy": [],
+      "moduleId": "packages",
+      "purpose": "Add a parsed file to the tracker",
+      "edgeCasesHandled": [],
+      "errorHandling": [],
+      "detailedLines": []
+    },
+    "fn:packages/watcher/src/incremental-analyzer.ts:IncrementalAnalyzer.handleDeletion": {
+      "id": "fn:packages/watcher/src/incremental-analyzer.ts:IncrementalAnalyzer.handleDeletion",
+      "name": "IncrementalAnalyzer.handleDeletion",
+      "file": "packages/watcher/src/incremental-analyzer.ts",
+      "startLine": 71,
+      "endLine": 90,
+      "hash": "0f30f0ab5ff4e3bcb0002baf30fbacef210ec9728d57e3c1b652fbd60b0300f3",
+      "calls": [],
+      "calledBy": [],
+      "moduleId": "packages",
+      "purpose": "",
+      "edgeCasesHandled": [],
+      "errorHandling": [],
+      "detailedLines": []
+    },
+    "fn:packages/watcher/src/incremental-analyzer.ts:IncrementalAnalyzer.findAffectedNodes": {
+      "id": "fn:packages/watcher/src/incremental-analyzer.ts:IncrementalAnalyzer.findAffectedNodes",
+      "name": "IncrementalAnalyzer.findAffectedNodes",
+      "file": "packages/watcher/src/incremental-analyzer.ts",
+      "startLine": 92,
+      "endLine": 96,
+      "hash": "4dfba3f1fdfd0ededa3315a1337430e447fbf040dc5df4475355ed835ee3a71b",
+      "calls": [],
+      "calledBy": [],
+      "moduleId": "packages",
+      "purpose": "",
+      "edgeCasesHandled": [],
+      "errorHandling": [],
+      "detailedLines": []
+    },
+    "fn:packages/cli/src/commands/analyze.ts:registerAnalyzeCommand": {
+      "id": "fn:packages/cli/src/commands/analyze.ts:registerAnalyzeCommand",
+      "name": "registerAnalyzeCommand",
+      "file": "packages/cli/src/commands/analyze.ts",
+      "startLine": 10,
+      "endLine": 52,
+      "hash": "11b6b9ecb83d2ac7c61cc9ae27876c3977cf06a467d228852d55fb265a141b36",
+      "calls": [],
+      "calledBy": [],
+      "moduleId": "packages",
+      "purpose": "",
+      "edgeCasesHandled": [],
+      "errorHandling": [
+        {
+          "line": 19,
+          "type": "try-catch",
+          "detail": "try-catch block"
+        }
+      ],
+      "detailedLines": []
+    },
+    "fn:packages/cli/src/commands/context.ts:registerContextCommands": {
+      "id": "fn:packages/cli/src/commands/context.ts:registerContextCommands",
+      "name": "registerContextCommands",
+      "file": "packages/cli/src/commands/context.ts",
+      "startLine": 6,
+      "endLine": 142,
+      "hash": "139c8b0c166aec1386b707dc2ba4801614ae3d76e11eeb4d6b4fc96d59e73f0c",
+      "calls": [],
+      "calledBy": [],
+      "moduleId": "packages",
+      "purpose": "",
+      "edgeCasesHandled": [
+        "fileNodes.length === 0"
+      ],
+      "errorHandling": [
+        {
+          "line": 18,
+          "type": "try-catch",
+          "detail": "try-catch block"
+        },
+        {
+          "line": 72,
+          "type": "try-catch",
+          "detail": "try-catch block"
+        },
+        {
+          "line": 116,
+          "type": "try-catch",
+          "detail": "try-catch block"
+        }
+      ],
+      "detailedLines": [
+        {
+          "startLine": 30,
+          "endLine": 58,
+          "blockType": "ControlFlow"
+        },
+        {
+          "startLine": 31,
+          "endLine": 44,
+          "blockType": "Loop"
+        },
+        {
+          "startLine": 34,
+          "endLine": 34,
+          "blockType": "ControlFlow"
+        },
+        {
+          "startLine": 38,
+          "endLine": 43,
+          "blockType": "ControlFlow"
+        },
+        {
+          "startLine": 40,
+          "endLine": 42,
+          "blockType": "Loop"
+        },
+        {
+          "startLine": 52,
+          "endLine": 57,
+          "blockType": "ControlFlow"
+        },
+        {
+          "startLine": 54,
+          "endLine": 56,
+          "blockType": "Loop"
+        },
+        {
+          "startLine": 80,
+          "endLine": 83,
+          "blockType": "ControlFlow"
+        },
+        {
+          "startLine": 93,
+          "endLine": 102,
+          "blockType": "ControlFlow"
+        },
+        {
+          "startLine": 95,
+          "endLine": 98,
+          "blockType": "Loop"
+        },
+        {
+          "startLine": 99,
+          "endLine": 101,
+          "blockType": "ControlFlow"
+        },
+        {
+          "startLine": 125,
+          "endLine": 129,
+          "blockType": "Loop"
+        },
+        {
+          "startLine": 128,
+          "endLine": 128,
+          "blockType": "ControlFlow"
+        },
+        {
+          "startLine": 131,
+          "endLine": 136,
+          "blockType": "ControlFlow"
+        },
+        {
+          "startLine": 133,
+          "endLine": 135,
+          "blockType": "Loop"
+        }
+      ]
+    },
+    "fn:packages/cli/src/commands/diff.ts:registerDiffCommand": {
+      "id": "fn:packages/cli/src/commands/diff.ts:registerDiffCommand",
+      "name": "registerDiffCommand",
+      "file": "packages/cli/src/commands/diff.ts",
+      "startLine": 11,
+      "endLine": 80,
+      "hash": "a9ac526e599dd87074ef1819987464c01754c9665aa79f9e0bfb999f1c2a789b",
+      "calls": [],
+      "calledBy": [],
+      "moduleId": "packages",
+      "purpose": "",
+      "edgeCasesHandled": [
+        "changes.length === 0"
+      ],
+      "errorHandling": [
+        {
+          "line": 18,
+          "type": "try-catch",
+          "detail": "try-catch block"
+        }
+      ],
+      "detailedLines": [
+        {
+          "startLine": 25,
+          "endLine": 38,
+          "blockType": "Loop"
+        },
+        {
+          "startLine": 30,
+          "endLine": 33,
+          "blockType": "ControlFlow"
+        },
+        {
+          "startLine": 35,
+          "endLine": 37,
+          "blockType": "ControlFlow"
+        },
+        {
+          "startLine": 41,
+          "endLine": 45,
+          "blockType": "Loop"
+        },
+        {
+          "startLine": 42,
+          "endLine": 44,
+          "blockType": "ControlFlow"
+        },
+        {
+          "startLine": 47,
+          "endLine": 50,
+          "blockType": "ControlFlow"
+        },
+        {
+          "startLine": 54,
+          "endLine": 72,
+          "blockType": "Loop"
+        },
+        {
+          "startLine": 57,
+          "endLine": 70,
+          "blockType": "ControlFlow"
+        }
+      ]
+    },
+    "fn:packages/cli/src/commands/init.ts:registerInitCommand": {
+      "id": "fn:packages/cli/src/commands/init.ts:registerInitCommand",
+      "name": "registerInitCommand",
+      "file": "packages/cli/src/commands/init.ts",
+      "startLine": 13,
+      "endLine": 87,
+      "hash": "92f1b2fa7d82b0440d2f3ffbfb9dbe861ccb0689554bae18fa53344bd8c09f57",
+      "calls": [],
+      "calledBy": [],
+      "moduleId": "packages",
+      "purpose": "",
+      "edgeCasesHandled": [],
+      "errorHandling": [
+        {
+          "line": 23,
+          "type": "try-catch",
+          "detail": "try-catch block"
+        }
+      ],
+      "detailedLines": [
+        {
+          "startLine": 50,
+          "endLine": 54,
+          "blockType": "Loop"
+        }
+      ]
+    },
+    "fn:packages/cli/src/commands/intent.ts:registerIntentCommand": {
+      "id": "fn:packages/cli/src/commands/intent.ts:registerIntentCommand",
+      "name": "registerIntentCommand",
+      "file": "packages/cli/src/commands/intent.ts",
+      "startLine": 4,
+      "endLine": 19,
+      "hash": "538ad2508557b8ae7e71645c856a4677b7c95c5c6838534667148091cbb0cd13",
+      "calls": [],
+      "calledBy": [],
+      "moduleId": "packages",
+      "purpose": "",
+      "edgeCasesHandled": [],
+      "errorHandling": [],
+      "detailedLines": []
+    },
+    "fn:packages/cli/src/commands/visualize.ts:getOrchestrator": {
+      "id": "fn:packages/cli/src/commands/visualize.ts:getOrchestrator",
+      "name": "getOrchestrator",
+      "file": "packages/cli/src/commands/visualize.ts",
+      "startLine": 7,
+      "endLine": 21,
+      "hash": "e4d600f8332c7015ab7cb8ff80cdc2e71b8292b74f4b52f6f169b3a84ff3cbf8",
+      "calls": [],
+      "calledBy": [
+        "fn:packages/cli/src/commands/visualize.ts:registerVisualizeCommands"
+      ],
+      "moduleId": "packages",
+      "purpose": "",
+      "edgeCasesHandled": [],
+      "errorHandling": [
+        {
+          "line": 12,
+          "type": "try-catch",
+          "detail": "try-catch block"
+        }
+      ],
+      "detailedLines": []
+    },
+    "fn:packages/cli/src/commands/visualize.ts:registerVisualizeCommands": {
+      "id": "fn:packages/cli/src/commands/visualize.ts:registerVisualizeCommands",
+      "name": "registerVisualizeCommands",
+      "file": "packages/cli/src/commands/visualize.ts",
+      "startLine": 23,
+      "endLine": 84,
+      "hash": "afe1cc7502e7d17182638fff83302881bbf24c39639be94a3a883c7abe4a5f0a",
+      "calls": [
+        "fn:packages/cli/src/commands/visualize.ts:getOrchestrator"
+      ],
+      "calledBy": [],
+      "moduleId": "packages",
+      "purpose": "",
+      "edgeCasesHandled": [],
+      "errorHandling": [
+        {
+          "line": 34,
+          "type": "try-catch",
+          "detail": "try-catch block"
+        },
+        {
+          "line": 50,
+          "type": "try-catch",
+          "detail": "try-catch block"
+        }
+      ],
+      "detailedLines": []
+    },
+    "fn:packages/cli/src/commands/watch.ts:registerWatchCommand": {
+      "id": "fn:packages/cli/src/commands/watch.ts:registerWatchCommand",
+      "name": "registerWatchCommand",
+      "file": "packages/cli/src/commands/watch.ts",
+      "startLine": 5,
+      "endLine": 50,
+      "hash": "8849768db958de3d808b266939a6b24822dee454cb57ea59df26f043d7ba914c",
+      "calls": [],
+      "calledBy": [],
+      "moduleId": "packages",
+      "purpose": "",
+      "edgeCasesHandled": [],
+      "errorHandling": [
+        {
+          "line": 35,
+          "type": "try-catch",
+          "detail": "try-catch block"
+        }
+      ],
+      "detailedLines": [
+        {
+          "startLine": 22,
+          "endLine": 32,
+          "blockType": "ControlFlow"
+        }
+      ]
+    },
+    "fn:packages/core/src/hash/file-hasher.ts:hashContent": {
+      "id": "fn:packages/core/src/hash/file-hasher.ts:hashContent",
+      "name": "hashContent",
+      "file": "packages/core/src/hash/file-hasher.ts",
+      "startLine": 7,
+      "endLine": 9,
+      "hash": "c109ab2a1787898957a328471d8fd9c2b425679163d021ce7578a377c967d52c",
+      "calls": [],
+      "calledBy": [
+        "fn:packages/core/tests/helpers.ts:mockParsedFile",
+        "fn:packages/core/tests/helpers.ts:mockFunction",
+        "fn:packages/core/src/hash/file-hasher.ts:hashFile",
+        "fn:packages/core/src/hash/file-hasher.ts:hashFunctionBody"
+      ],
+      "moduleId": "packages",
+      "purpose": "Compute SHA-256 hash of a string.",
+      "edgeCasesHandled": [],
+      "errorHandling": [],
+      "detailedLines": []
+    },
+    "fn:packages/core/src/hash/file-hasher.ts:hashFile": {
+      "id": "fn:packages/core/src/hash/file-hasher.ts:hashFile",
+      "name": "hashFile",
+      "file": "packages/core/src/hash/file-hasher.ts",
+      "startLine": 14,
+      "endLine": 17,
+      "hash": "b130a1f3245db9b420d905d00ebcad05561c6ad82122c8793c94396d9a58ca7f",
+      "calls": [
+        "fn:packages/core/src/hash/file-hasher.ts:hashContent"
+      ],
+      "calledBy": [],
+      "moduleId": "packages",
+      "purpose": "Compute SHA-256 hash of a file on disk.",
+      "edgeCasesHandled": [],
+      "errorHandling": [],
+      "detailedLines": []
+    },
+    "fn:packages/core/src/hash/file-hasher.ts:hashFunctionBody": {
+      "id": "fn:packages/core/src/hash/file-hasher.ts:hashFunctionBody",
+      "name": "hashFunctionBody",
+      "file": "packages/core/src/hash/file-hasher.ts",
+      "startLine": 22,
+      "endLine": 30,
+      "hash": "8c381aac88f612866d349878695fbfa028e035d13c79158165817d1d7b110091",
+      "calls": [
+        "fn:packages/core/src/hash/file-hasher.ts:hashContent"
+      ],
+      "calledBy": [],
+      "moduleId": "packages",
+      "purpose": "Hash a specific function body by extracting lines from file content.",
+      "edgeCasesHandled": [],
+      "errorHandling": [],
+      "detailedLines": []
+    },
+    "fn:packages/core/src/hash/tree-hasher.ts:computeModuleHash": {
+      "id": "fn:packages/core/src/hash/tree-hasher.ts:computeModuleHash",
+      "name": "computeModuleHash",
+      "file": "packages/core/src/hash/tree-hasher.ts",
+      "startLine": 7,
+      "endLine": 10,
+      "hash": "b1bd59cae69df6d13d0ad2561232227f1541611f2123d293c390a56e53884c5f",
+      "calls": [],
+      "calledBy": [],
+      "moduleId": "packages",
+      "purpose": "Compute Merkle tree hash for a module from its file hashes.",
+      "edgeCasesHandled": [],
+      "errorHandling": [],
+      "detailedLines": []
+    },
+    "fn:packages/core/src/hash/tree-hasher.ts:computeRootHash": {
+      "id": "fn:packages/core/src/hash/tree-hasher.ts:computeRootHash",
+      "name": "computeRootHash",
+      "file": "packages/core/src/hash/tree-hasher.ts",
+      "startLine": 15,
+      "endLine": 20,
+      "hash": "d61b57af13d09f60d46df414a70a36248ab6f1aef5d45ff192e243d4baca8fc5",
+      "calls": [],
+      "calledBy": [],
+      "moduleId": "packages",
+      "purpose": "Compute root hash from all module hashes.",
+      "edgeCasesHandled": [],
+      "errorHandling": [],
+      "detailedLines": []
+    },
+    "class:packages/core/src/graph/cluster-detector.ts:ClusterDetector": {
+      "id": "class:packages/core/src/graph/cluster-detector.ts:ClusterDetector",
+      "name": "ClusterDetector",
+      "file": "packages/core/src/graph/cluster-detector.ts",
+      "startLine": 8,
+      "endLine": 108,
+      "hash": "",
+      "calls": [],
+      "calledBy": [],
+      "moduleId": "packages"
+    },
+    "fn:packages/core/src/graph/cluster-detector.ts:ClusterDetector.detect": {
+      "id": "fn:packages/core/src/graph/cluster-detector.ts:ClusterDetector.detect",
+      "name": "ClusterDetector.detect",
+      "file": "packages/core/src/graph/cluster-detector.ts",
+      "startLine": 12,
+      "endLine": 51,
+      "hash": "524815b5cc78909bda02e735ab96ac4b534e4d8991d94aee7e12e39e8678b221",
+      "calls": [],
+      "calledBy": [],
+      "moduleId": "packages",
+      "purpose": "Returns groups of files that naturally belong together, sorted by confidence",
+      "edgeCasesHandled": [
+        "fileNodes.length === 0"
+      ],
+      "errorHandling": [],
+      "detailedLines": [
+        {
+          "startLine": 15,
+          "endLine": 15,
+          "blockType": "ControlFlow"
+        },
+        {
+          "startLine": 19,
+          "endLine": 28,
+          "blockType": "Loop"
+        },
+        {
+          "startLine": 23,
+          "endLine": 25,
+          "blockType": "ControlFlow"
+        },
+        {
+          "startLine": 26,
+          "endLine": 26,
+          "blockType": "ControlFlow"
+        },
+        {
+          "startLine": 32,
+          "endLine": 48,
+          "blockType": "Loop"
+        }
+      ]
+    },
+    "fn:packages/core/src/graph/cluster-detector.ts:ClusterDetector.computeClusterConfidence": {
+      "id": "fn:packages/core/src/graph/cluster-detector.ts:ClusterDetector.computeClusterConfidence",
+      "name": "ClusterDetector.computeClusterConfidence",
+      "file": "packages/core/src/graph/cluster-detector.ts",
+      "startLine": 58,
+      "endLine": 99,
+      "hash": "5f5e26edeea4a83b81e38b37d9fe1ee02b8973aa380f3eedb5d9969bb89e998e",
+      "calls": [],
+      "calledBy": [],
+      "moduleId": "packages",
+      "purpose": "Confidence = (internal edges)  (internal edges + external edges)",
+      "edgeCasesHandled": [
+        "total === 0"
+      ],
+      "errorHandling": [],
+      "detailedLines": [
+        {
+          "startLine": 63,
+          "endLine": 74,
+          "blockType": "Loop"
+        },
+        {
+          "startLine": 65,
+          "endLine": 73,
+          "blockType": "Loop"
+        },
+        {
+          "startLine": 66,
+          "endLine": 72,
+          "blockType": "ControlFlow"
+        },
+        {
+          "startLine": 67,
+          "endLine": 71,
+          "blockType": "ControlFlow"
+        },
+        {
+          "startLine": 77,
+          "endLine": 94,
+          "blockType": "Loop"
+        },
+        {
+          "startLine": 79,
+          "endLine": 93,
+          "blockType": "Loop"
+        },
+        {
+          "startLine": 80,
+          "endLine": 92,
+          "blockType": "ControlFlow"
+        },
+        {
+          "startLine": 82,
+          "endLine": 91,
+          "blockType": "Loop"
+        },
+        {
+          "startLine": 83,
+          "endLine": 90,
+          "blockType": "ControlFlow"
+        },
+        {
+          "startLine": 85,
+          "endLine": 89,
+          "blockType": "ControlFlow"
+        },
+        {
+          "startLine": 87,
+          "endLine": 89,
+          "blockType": "ControlFlow"
+        },
+        {
+          "startLine": 97,
+          "endLine": 97,
+          "blockType": "ControlFlow"
+        }
+      ]
+    },
+    "fn:packages/core/src/graph/cluster-detector.ts:ClusterDetector.inferName": {
+      "id": "fn:packages/core/src/graph/cluster-detector.ts:ClusterDetector.inferName",
+      "name": "ClusterDetector.inferName",
+      "file": "packages/core/src/graph/cluster-detector.ts",
+      "startLine": 102,
+      "endLine": 107,
+      "hash": "306f0ce64e8bade16f922363a46ab0e2f049894cd3923c39b7caa57c4b0d40d2",
+      "calls": [],
+      "calledBy": [],
+      "moduleId": "packages",
+      "purpose": "Infer a human-readable name from a directory name",
+      "edgeCasesHandled": [],
+      "errorHandling": [],
+      "detailedLines": []
+    },
+    "class:packages/core/src/graph/graph-builder.ts:GraphBuilder": {
+      "id": "class:packages/core/src/graph/graph-builder.ts:GraphBuilder",
+      "name": "GraphBuilder",
+      "file": "packages/core/src/graph/graph-builder.ts",
+      "startLine": 9,
+      "endLine": 189,
+      "hash": "",
+      "calls": [],
+      "calledBy": [],
+      "moduleId": "packages"
+    },
+    "fn:packages/core/src/graph/graph-builder.ts:GraphBuilder.build": {
+      "id": "fn:packages/core/src/graph/graph-builder.ts:GraphBuilder.build",
+      "name": "GraphBuilder.build",
+      "file": "packages/core/src/graph/graph-builder.ts",
+      "startLine": 11,
+      "endLine": 41,
+      "hash": "bf44d1f21730df091ba0a6d40f41bbc0a20c154dc69c3b0a611ef5f1d1af0828",
+      "calls": [],
+      "calledBy": [],
+      "moduleId": "packages",
+      "purpose": "Main entry point — takes all parsed files and returns the complete graph",
+      "edgeCasesHandled": [],
+      "errorHandling": [],
+      "detailedLines": [
+        {
+          "startLine": 20,
+          "endLine": 28,
+          "blockType": "Loop"
+        },
+        {
+          "startLine": 22,
+          "endLine": 24,
+          "blockType": "Loop"
+        },
+        {
+          "startLine": 25,
+          "endLine": 27,
+          "blockType": "Loop"
+        },
+        {
+          "startLine": 31,
+          "endLine": 35,
+          "blockType": "Loop"
+        }
+      ]
+    },
+    "fn:packages/core/src/graph/graph-builder.ts:GraphBuilder.addFileNode": {
+      "id": "fn:packages/core/src/graph/graph-builder.ts:GraphBuilder.addFileNode",
+      "name": "GraphBuilder.addFileNode",
+      "file": "packages/core/src/graph/graph-builder.ts",
+      "startLine": 43,
+      "endLine": 51,
+      "hash": "a4ab1e745bb119c55af32ddcaccbc155281d7251564c51ef458028dfe2cc6162",
+      "calls": [],
+      "calledBy": [],
+      "moduleId": "packages",
+      "purpose": "",
+      "edgeCasesHandled": [],
+      "errorHandling": [],
+      "detailedLines": []
+    },
+    "fn:packages/core/src/graph/graph-builder.ts:GraphBuilder.addFunctionNode": {
+      "id": "fn:packages/core/src/graph/graph-builder.ts:GraphBuilder.addFunctionNode",
+      "name": "GraphBuilder.addFunctionNode",
+      "file": "packages/core/src/graph/graph-builder.ts",
+      "startLine": 53,
+      "endLine": 71,
+      "hash": "85f08428c47aea13f609009fe39057dabde9f363a56912e1b19635e88b111736",
+      "calls": [],
+      "calledBy": [],
+      "moduleId": "packages",
+      "purpose": "",
+      "edgeCasesHandled": [],
+      "errorHandling": [],
+      "detailedLines": []
+    },
+    "fn:packages/core/src/graph/graph-builder.ts:GraphBuilder.addClassNode": {
+      "id": "fn:packages/core/src/graph/graph-builder.ts:GraphBuilder.addClassNode",
+      "name": "GraphBuilder.addClassNode",
+      "file": "packages/core/src/graph/graph-builder.ts",
+      "startLine": 73,
+      "endLine": 90,
+      "hash": "bc8205f860f6d11a708e16651eafffedd170b5d3f8f4c712aa7962836633a8a6",
+      "calls": [],
+      "calledBy": [],
+      "moduleId": "packages",
+      "purpose": "",
+      "edgeCasesHandled": [],
+      "errorHandling": [],
+      "detailedLines": [
+        {
+          "startLine": 87,
+          "endLine": 89,
+          "blockType": "Loop"
+        }
+      ]
+    },
+    "fn:packages/core/src/graph/graph-builder.ts:GraphBuilder.addImportEdges": {
+      "id": "fn:packages/core/src/graph/graph-builder.ts:GraphBuilder.addImportEdges",
+      "name": "GraphBuilder.addImportEdges",
+      "file": "packages/core/src/graph/graph-builder.ts",
+      "startLine": 93,
+      "endLine": 103,
+      "hash": "f113807d7d6440e065558bc41fbc88c0f4c211e2ec77459248958f66d2c5f5c0",
+      "calls": [],
+      "calledBy": [],
+      "moduleId": "packages",
+      "purpose": "Creates edges for import statements: fileA imports fileB → edge(A, B, 'imports')",
+      "edgeCasesHandled": [],
+      "errorHandling": [],
+      "detailedLines": [
+        {
+          "startLine": 94,
+          "endLine": 102,
+          "blockType": "Loop"
+        },
+        {
+          "startLine": 95,
+          "endLine": 101,
+          "blockType": "ControlFlow"
+        }
+      ]
+    },
+    "fn:packages/core/src/graph/graph-builder.ts:GraphBuilder.addCallEdges": {
+      "id": "fn:packages/core/src/graph/graph-builder.ts:GraphBuilder.addCallEdges",
+      "name": "GraphBuilder.addCallEdges",
+      "file": "packages/core/src/graph/graph-builder.ts",
+      "startLine": 106,
+      "endLine": 146,
+      "hash": "af7f4c5ece46c9f9bfadd2d5f94d5cc962249611f41739cc6fa07684ca0c2d89",
+      "calls": [],
+      "calledBy": [],
+      "moduleId": "packages",
+      "purpose": "Creates edges for function calls: fnA calls fnB → edge(A, B, 'calls')",
+      "edgeCasesHandled": [],
+      "errorHandling": [],
+      "detailedLines": [
+        {
+          "startLine": 109,
+          "endLine": 115,
+          "blockType": "Loop"
+        },
+        {
+          "startLine": 110,
+          "endLine": 114,
+          "blockType": "ControlFlow"
+        },
+        {
+          "startLine": 111,
+          "endLine": 113,
+          "blockType": "Loop"
+        },
+        {
+          "startLine": 119,
+          "endLine": 145,
+          "blockType": "Loop"
+        },
+        {
+          "startLine": 120,
+          "endLine": 144,
+          "blockType": "Loop"
+        },
+        {
+          "startLine": 126,
+          "endLine": 133,
+          "blockType": "ControlFlow"
+        },
+        {
+          "startLine": 137,
+          "endLine": 143,
+          "blockType": "ControlFlow"
+        }
+      ]
+    },
+    "fn:packages/core/src/graph/graph-builder.ts:GraphBuilder.addContainmentEdges": {
+      "id": "fn:packages/core/src/graph/graph-builder.ts:GraphBuilder.addContainmentEdges",
+      "name": "GraphBuilder.addContainmentEdges",
+      "file": "packages/core/src/graph/graph-builder.ts",
+      "startLine": 149,
+      "endLine": 171,
+      "hash": "bfdf12fca7f565e5e7fa2bffe7e288222939123117da5f675b27a8b330bb83a2",
+      "calls": [],
+      "calledBy": [],
+      "moduleId": "packages",
+      "purpose": "Creates containment edges: file contains function → edge(file, fn, 'contains')",
+      "edgeCasesHandled": [],
+      "errorHandling": [],
+      "detailedLines": [
+        {
+          "startLine": 150,
+          "endLine": 156,
+          "blockType": "Loop"
+        },
+        {
+          "startLine": 157,
+          "endLine": 170,
+          "blockType": "Loop"
+        },
+        {
+          "startLine": 163,
+          "endLine": 169,
+          "blockType": "Loop"
+        }
+      ]
+    },
+    "fn:packages/core/src/graph/graph-builder.ts:GraphBuilder.buildAdjacencyMaps": {
+      "id": "fn:packages/core/src/graph/graph-builder.ts:GraphBuilder.buildAdjacencyMaps",
+      "name": "GraphBuilder.buildAdjacencyMaps",
+      "file": "packages/core/src/graph/graph-builder.ts",
+      "startLine": 174,
+      "endLine": 188,
+      "hash": "3cc61a59d7cb4a8897c959e077cbd5fd00301dc882747933215c630e9dd41e3b",
+      "calls": [],
+      "calledBy": [],
+      "moduleId": "packages",
+      "purpose": "Build adjacency maps from edge list for O(1) lookups",
+      "edgeCasesHandled": [],
+      "errorHandling": [],
+      "detailedLines": [
+        {
+          "startLine": 175,
+          "endLine": 187,
+          "blockType": "Loop"
+        },
+        {
+          "startLine": 177,
+          "endLine": 179,
+          "blockType": "ControlFlow"
+        },
+        {
+          "startLine": 183,
+          "endLine": 185,
+          "blockType": "ControlFlow"
+        }
+      ]
+    },
+    "class:packages/core/src/graph/impact-analyzer.ts:ImpactAnalyzer": {
+      "id": "class:packages/core/src/graph/impact-analyzer.ts:ImpactAnalyzer",
+      "name": "ImpactAnalyzer",
+      "file": "packages/core/src/graph/impact-analyzer.ts",
+      "startLine": 8,
+      "endLine": 55,
+      "hash": "",
+      "calls": [],
+      "calledBy": [],
+      "moduleId": "packages"
+    },
+    "fn:packages/core/src/graph/impact-analyzer.ts:ImpactAnalyzer.analyze": {
+      "id": "fn:packages/core/src/graph/impact-analyzer.ts:ImpactAnalyzer.analyze",
+      "name": "ImpactAnalyzer.analyze",
+      "file": "packages/core/src/graph/impact-analyzer.ts",
+      "startLine": 12,
+      "endLine": 40,
+      "hash": "7d053dd078f93d51758d039785d26260c15f62a633dbfd040606e02503878167",
+      "calls": [],
+      "calledBy": [],
+      "moduleId": "packages",
+      "purpose": "Given a list of changed node IDs, find everything impacted",
+      "edgeCasesHandled": [],
+      "errorHandling": [],
+      "detailedLines": [
+        {
+          "startLine": 17,
+          "endLine": 30,
+          "blockType": "Loop"
+        },
+        {
+          "startLine": 19,
+          "endLine": 19,
+          "blockType": "ControlFlow"
+        },
+        {
+          "startLine": 25,
+          "endLine": 29,
+          "blockType": "Loop"
+        },
+        {
+          "startLine": 26,
+          "endLine": 28,
+          "blockType": "ControlFlow"
+        }
+      ]
+    },
+    "fn:packages/core/src/graph/impact-analyzer.ts:ImpactAnalyzer.computeConfidence": {
+      "id": "fn:packages/core/src/graph/impact-analyzer.ts:ImpactAnalyzer.computeConfidence",
+      "name": "ImpactAnalyzer.computeConfidence",
+      "file": "packages/core/src/graph/impact-analyzer.ts",
+      "startLine": 47,
+      "endLine": 54,
+      "hash": "6c1515f487c6085255f0d209535a84308cd39b8c8af32b2fbf3a6c58d398f2c9",
+      "calls": [],
+      "calledBy": [],
+      "moduleId": "packages",
+      "purpose": "How confident are we in this impact analysis?",
+      "edgeCasesHandled": [
+        "impactedCount < 5 && depth < 3",
+        "impactedCount < 20 && depth < 6"
+      ],
+      "errorHandling": [],
+      "detailedLines": [
+        {
+          "startLine": 51,
+          "endLine": 51,
+          "blockType": "ControlFlow"
+        },
+        {
+          "startLine": 52,
+          "endLine": 52,
+          "blockType": "ControlFlow"
+        }
+      ]
+    },
+    "class:packages/core/src/contract/contract-generator.ts:ContractGenerator": {
+      "id": "class:packages/core/src/contract/contract-generator.ts:ContractGenerator",
+      "name": "ContractGenerator",
+      "file": "packages/core/src/contract/contract-generator.ts",
+      "startLine": 9,
+      "endLine": 85,
+      "hash": "",
+      "calls": [],
+      "calledBy": [],
+      "moduleId": "packages"
+    },
+    "fn:packages/core/src/contract/contract-generator.ts:ContractGenerator.generateFromClusters": {
+      "id": "fn:packages/core/src/contract/contract-generator.ts:ContractGenerator.generateFromClusters",
+      "name": "ContractGenerator.generateFromClusters",
+      "file": "packages/core/src/contract/contract-generator.ts",
+      "startLine": 11,
+      "endLine": 51,
+      "hash": "3946532299b88285269b77d5f10ebba9f4fa52ed581adf90c3b67ae7fc0f8c65",
+      "calls": [],
+      "calledBy": [],
+      "moduleId": "packages",
+      "purpose": "Generate a full mikk.json contract from detected clusters",
+      "edgeCasesHandled": [],
+      "errorHandling": [],
+      "detailedLines": []
+    },
+    "fn:packages/core/src/contract/contract-generator.ts:ContractGenerator.inferPaths": {
+      "id": "fn:packages/core/src/contract/contract-generator.ts:ContractGenerator.inferPaths",
+      "name": "ContractGenerator.inferPaths",
+      "file": "packages/core/src/contract/contract-generator.ts",
+      "startLine": 54,
+      "endLine": 67,
+      "hash": "9b5886a81329a2f19b4535a2bb7305f8a3af255e89adca5e2ee50ebac08aa68f",
+      "calls": [],
+      "calledBy": [],
+      "moduleId": "packages",
+      "purpose": "Infer path patterns from a list of files",
+      "edgeCasesHandled": [
+        "files.length === 0"
+      ],
+      "errorHandling": [],
+      "detailedLines": [
+        {
+          "startLine": 56,
+          "endLine": 56,
+          "blockType": "ControlFlow"
+        },
+        {
+          "startLine": 59,
+          "endLine": 63,
+          "blockType": "Loop"
+        }
+      ]
+    },
+    "fn:packages/core/src/contract/contract-generator.ts:ContractGenerator.inferEntryFunctions": {
+      "id": "fn:packages/core/src/contract/contract-generator.ts:ContractGenerator.inferEntryFunctions",
+      "name": "ContractGenerator.inferEntryFunctions",
+      "file": "packages/core/src/contract/contract-generator.ts",
+      "startLine": 70,
+      "endLine": 84,
+      "hash": "636cd92187b42a822d13f86c15832ed8480ffd1961b18e2dc927b6ab84e74b6a",
+      "calls": [],
+      "calledBy": [],
+      "moduleId": "packages",
+      "purpose": "Find exported functions in a cluster — these are likely entry points",
+      "edgeCasesHandled": [],
+      "errorHandling": [],
+      "detailedLines": [
+        {
+          "startLine": 74,
+          "endLine": 81,
+          "blockType": "Loop"
+        },
+        {
+          "startLine": 75,
+          "endLine": 75,
+          "blockType": "ControlFlow"
+        },
+        {
+          "startLine": 76,
+          "endLine": 80,
+          "blockType": "Loop"
+        },
+        {
+          "startLine": 77,
+          "endLine": 79,
+          "blockType": "ControlFlow"
+        }
+      ]
+    },
+    "class:packages/core/src/contract/contract-reader.ts:ContractReader": {
+      "id": "class:packages/core/src/contract/contract-reader.ts:ContractReader",
+      "name": "ContractReader",
+      "file": "packages/core/src/contract/contract-reader.ts",
+      "startLine": 8,
+      "endLine": 28,
+      "hash": "",
+      "calls": [],
+      "calledBy": [],
+      "moduleId": "packages"
+    },
+    "fn:packages/core/src/contract/contract-reader.ts:ContractReader.read": {
+      "id": "fn:packages/core/src/contract/contract-reader.ts:ContractReader.read",
+      "name": "ContractReader.read",
+      "file": "packages/core/src/contract/contract-reader.ts",
+      "startLine": 10,
+      "endLine": 27,
+      "hash": "8f6fb1f8bb02caf2463ae8d5ac115d372ce516e1780b1373f8225347020db89d",
+      "calls": [],
+      "calledBy": [],
+      "moduleId": "packages",
+      "purpose": "Read and validate mikk.json",
+      "edgeCasesHandled": [
+        "!result.success"
+      ],
+      "errorHandling": [
+        {
+          "line": 12,
+          "type": "try-catch",
+          "detail": "try-catch block"
+        },
+        {
+          "line": 15,
+          "type": "throw",
+          "detail": "new ContractNotFoundError(contractPath)"
+        },
+        {
+          "line": 23,
+          "type": "throw",
+          "detail": "new Error(`Invalid mikk.json:\\n${errors}`)"
+        }
+      ],
+      "detailedLines": [
+        {
+          "startLine": 21,
+          "endLine": 24,
+          "blockType": "ControlFlow"
+        }
+      ]
+    },
+    "class:packages/core/src/contract/contract-writer.ts:ContractWriter": {
+      "id": "class:packages/core/src/contract/contract-writer.ts:ContractWriter",
+      "name": "ContractWriter",
+      "file": "packages/core/src/contract/contract-writer.ts",
+      "startLine": 19,
+      "endLine": 114,
+      "hash": "",
+      "calls": [],
+      "calledBy": [],
+      "moduleId": "packages"
+    },
+    "fn:packages/core/src/contract/contract-writer.ts:ContractWriter.writeNew": {
+      "id": "fn:packages/core/src/contract/contract-writer.ts:ContractWriter.writeNew",
+      "name": "ContractWriter.writeNew",
+      "file": "packages/core/src/contract/contract-writer.ts",
+      "startLine": 21,
+      "endLine": 25,
+      "hash": "fffaea30c59878f01c24a71909b5f1f7e07717df6297c164595ac17c4af742df",
+      "calls": [],
+      "calledBy": [],
+      "moduleId": "packages",
+      "purpose": "Write a new mikk.json — safe for first write",
+      "edgeCasesHandled": [],
+      "errorHandling": [],
+      "detailedLines": []
+    },
+    "fn:packages/core/src/contract/contract-writer.ts:ContractWriter.update": {
+      "id": "fn:packages/core/src/contract/contract-writer.ts:ContractWriter.update",
+      "name": "ContractWriter.update",
+      "file": "packages/core/src/contract/contract-writer.ts",
+      "startLine": 28,
+      "endLine": 60,
+      "hash": "fa909372d055538738e7e7210437b22d0de09e752c68b1e6e00da2b9b69a0bef",
+      "calls": [],
+      "calledBy": [],
+      "moduleId": "packages",
+      "purpose": "Update an existing mikk.json respecting overwrite mode",
+      "edgeCasesHandled": [
+        "mode === 'never'",
+        "mode === 'ask'",
+        "mode === 'explicit'"
+      ],
+      "errorHandling": [],
+      "detailedLines": [
+        {
+          "startLine": 35,
+          "endLine": 37,
+          "blockType": "ControlFlow"
+        },
+        {
+          "startLine": 39,
+          "endLine": 45,
+          "blockType": "ControlFlow"
+        },
+        {
+          "startLine": 47,
+          "endLine": 57,
+          "blockType": "ControlFlow"
+        }
+      ]
+    },
+    "fn:packages/core/src/contract/contract-writer.ts:ContractWriter.mergeContracts": {
+      "id": "fn:packages/core/src/contract/contract-writer.ts:ContractWriter.mergeContracts",
+      "name": "ContractWriter.mergeContracts",
+      "file": "packages/core/src/contract/contract-writer.ts",
+      "startLine": 63,
+      "endLine": 79,
+      "hash": "7a5c1173302de971ca221a5de4fad8df578ec75bfbb610fe260d39bfd01f61a1",
+      "calls": [],
+      "calledBy": [],
+      "moduleId": "packages",
+      "purpose": "Merge two contracts — updates overwrite existing fields",
+      "edgeCasesHandled": [],
+      "errorHandling": [],
+      "detailedLines": []
+    },
+    "fn:packages/core/src/contract/contract-writer.ts:ContractWriter.diffContracts": {
+      "id": "fn:packages/core/src/contract/contract-writer.ts:ContractWriter.diffContracts",
+      "name": "ContractWriter.diffContracts",
+      "file": "packages/core/src/contract/contract-writer.ts",
+      "startLine": 82,
+      "endLine": 87,
+      "hash": "e94ee76e70b03d651e78bb53c11d5ba8a60911aa822dbaba12dd2da14de078d7",
+      "calls": [],
+      "calledBy": [],
+      "moduleId": "packages",
+      "purpose": "Compute diff between two contracts",
+      "edgeCasesHandled": [],
+      "errorHandling": [],
+      "detailedLines": []
+    },
+    "fn:packages/core/src/contract/contract-writer.ts:ContractWriter.writeAuditLog": {
+      "id": "fn:packages/core/src/contract/contract-writer.ts:ContractWriter.writeAuditLog",
+      "name": "ContractWriter.writeAuditLog",
+      "file": "packages/core/src/contract/contract-writer.ts",
+      "startLine": 90,
+      "endLine": 113,
+      "hash": "cb3c4ba2263dd29f1c7efa28cd14486e87086b71fe2c059b910861a7cdb9a7e1",
+      "calls": [],
+      "calledBy": [],
+      "moduleId": "packages",
+      "purpose": "Write audit log to .mikkoverwrite-history.json",
+      "edgeCasesHandled": [],
+      "errorHandling": [
+        {
+          "line": 98,
+          "type": "try-catch",
+          "detail": "try-catch block"
+        }
+      ],
+      "detailedLines": []
+    },
+    "class:packages/core/src/contract/lock-compiler.ts:LockCompiler": {
+      "id": "class:packages/core/src/contract/lock-compiler.ts:LockCompiler",
+      "name": "LockCompiler",
+      "file": "packages/core/src/contract/lock-compiler.ts",
+      "startLine": 16,
+      "endLine": 168,
+      "hash": "",
+      "calls": [],
+      "calledBy": [],
+      "moduleId": "packages"
+    },
+    "fn:packages/core/src/contract/lock-compiler.ts:LockCompiler.compile": {
+      "id": "fn:packages/core/src/contract/lock-compiler.ts:LockCompiler.compile",
+      "name": "LockCompiler.compile",
+      "file": "packages/core/src/contract/lock-compiler.ts",
+      "startLine": 18,
+      "endLine": 61,
+      "hash": "c79daa39b5958583fadcd51489f9290e9547b7e22e8994b9cf188f5cee7d6c24",
+      "calls": [],
+      "calledBy": [],
+      "moduleId": "packages",
+      "purpose": "Main entry — compile full lock from graph + contract + parsed files",
+      "edgeCasesHandled": [],
+      "errorHandling": [],
+      "detailedLines": [
+        {
+          "startLine": 28,
+          "endLine": 30,
+          "blockType": "Loop"
+        }
+      ]
+    },
+    "fn:packages/core/src/contract/lock-compiler.ts:LockCompiler.compileFunctions": {
+      "id": "fn:packages/core/src/contract/lock-compiler.ts:LockCompiler.compileFunctions",
+      "name": "LockCompiler.compileFunctions",
+      "file": "packages/core/src/contract/lock-compiler.ts",
+      "startLine": 64,
+      "endLine": 95,
+      "hash": "d8d93a42904d21eee810e290a0f56cedcb92108990f583154947506e7f2479c3",
+      "calls": [],
+      "calledBy": [],
+      "moduleId": "packages",
+      "purpose": "Compile function entries, assigning each to its module",
+      "edgeCasesHandled": [],
+      "errorHandling": [],
+      "detailedLines": [
+        {
+          "startLine": 70,
+          "endLine": 92,
+          "blockType": "Loop"
+        },
+        {
+          "startLine": 71,
+          "endLine": 71,
+          "blockType": "ControlFlow"
+        }
+      ]
+    },
+    "fn:packages/core/src/contract/lock-compiler.ts:LockCompiler.compileModules": {
+      "id": "fn:packages/core/src/contract/lock-compiler.ts:LockCompiler.compileModules",
+      "name": "LockCompiler.compileModules",
+      "file": "packages/core/src/contract/lock-compiler.ts",
+      "startLine": 98,
+      "endLine": 123,
+      "hash": "3e7160be064f3db56f06424f0a56011bd24b124fa87a58f8b63df720e138e74e",
+      "calls": [],
+      "calledBy": [],
+      "moduleId": "packages",
+      "purpose": "Compile module entries from contract definitions",
+      "edgeCasesHandled": [],
+      "errorHandling": [],
+      "detailedLines": [
+        {
+          "startLine": 104,
+          "endLine": 120,
+          "blockType": "Loop"
+        }
+      ]
+    },
+    "fn:packages/core/src/contract/lock-compiler.ts:LockCompiler.compileFiles": {
+      "id": "fn:packages/core/src/contract/lock-compiler.ts:LockCompiler.compileFiles",
+      "name": "LockCompiler.compileFiles",
+      "file": "packages/core/src/contract/lock-compiler.ts",
+      "startLine": 126,
+      "endLine": 143,
+      "hash": "63c24fa59df90ca26aad251ecbf466f1930d6cc9e53966f7d3a0856f2de185d6",
+      "calls": [],
+      "calledBy": [],
+      "moduleId": "packages",
+      "purpose": "Compile file entries",
+      "edgeCasesHandled": [],
+      "errorHandling": [],
+      "detailedLines": [
+        {
+          "startLine": 132,
+          "endLine": 140,
+          "blockType": "Loop"
+        }
+      ]
+    },
+    "fn:packages/core/src/contract/lock-compiler.ts:LockCompiler.findModule": {
+      "id": "fn:packages/core/src/contract/lock-compiler.ts:LockCompiler.findModule",
+      "name": "LockCompiler.findModule",
+      "file": "packages/core/src/contract/lock-compiler.ts",
+      "startLine": 146,
+      "endLine": 156,
+      "hash": "8dbe8ae51d1ddaa68b4adbc85b741b3405b3b5a92032c2abea0a214b8949bf94",
+      "calls": [],
+      "calledBy": [],
+      "moduleId": "packages",
+      "purpose": "Find which module a file belongs to based on path patterns",
+      "edgeCasesHandled": [
+        "this.fileMatchesModule(filePath, module.paths)"
+      ],
+      "errorHandling": [],
+      "detailedLines": [
+        {
+          "startLine": 150,
+          "endLine": 154,
+          "blockType": "Loop"
+        },
+        {
+          "startLine": 151,
+          "endLine": 153,
+          "blockType": "ControlFlow"
+        }
+      ]
+    },
+    "fn:packages/core/src/contract/lock-compiler.ts:LockCompiler.fileMatchesModule": {
+      "id": "fn:packages/core/src/contract/lock-compiler.ts:LockCompiler.fileMatchesModule",
+      "name": "LockCompiler.fileMatchesModule",
+      "file": "packages/core/src/contract/lock-compiler.ts",
+      "startLine": 159,
+      "endLine": 167,
+      "hash": "7adb029ceb80933f983244c829acb39177f44df123d2fa24bd9ad948904cad67",
+      "calls": [],
+      "calledBy": [],
+      "moduleId": "packages",
+      "purpose": "Check if a file path matches any of the module's path patterns",
+      "edgeCasesHandled": [
+        "minimatch(normalized, pattern)"
+      ],
+      "errorHandling": [],
+      "detailedLines": [
+        {
+          "startLine": 161,
+          "endLine": 165,
+          "blockType": "Loop"
+        },
+        {
+          "startLine": 162,
+          "endLine": 164,
+          "blockType": "ControlFlow"
+        }
+      ]
+    },
+    "class:packages/core/src/contract/lock-reader.ts:LockReader": {
+      "id": "class:packages/core/src/contract/lock-reader.ts:LockReader",
+      "name": "LockReader",
+      "file": "packages/core/src/contract/lock-reader.ts",
+      "startLine": 8,
+      "endLine": 34,
+      "hash": "",
+      "calls": [],
+      "calledBy": [],
+      "moduleId": "packages"
+    },
+    "fn:packages/core/src/contract/lock-reader.ts:LockReader.read": {
+      "id": "fn:packages/core/src/contract/lock-reader.ts:LockReader.read",
+      "name": "LockReader.read",
+      "file": "packages/core/src/contract/lock-reader.ts",
+      "startLine": 10,
+      "endLine": 27,
+      "hash": "6afb215f41ef16b3fdcbc8339d74a9acd8f363cefcf76d8bef866b939dbb2e75",
+      "calls": [],
+      "calledBy": [],
+      "moduleId": "packages",
+      "purpose": "Read and validate mikk.lock.json",
+      "edgeCasesHandled": [
+        "!result.success"
+      ],
+      "errorHandling": [
+        {
+          "line": 12,
+          "type": "try-catch",
+          "detail": "try-catch block"
+        },
+        {
+          "line": 15,
+          "type": "throw",
+          "detail": "new LockNotFoundError()"
+        },
+        {
+          "line": 23,
+          "type": "throw",
+          "detail": "new Error(`Invalid mikk.lock.json:\\n${errors}`)"
+        }
+      ],
+      "detailedLines": [
+        {
+          "startLine": 21,
+          "endLine": 24,
+          "blockType": "ControlFlow"
+        }
+      ]
+    },
+    "fn:packages/core/src/contract/lock-reader.ts:LockReader.write": {
+      "id": "fn:packages/core/src/contract/lock-reader.ts:LockReader.write",
+      "name": "LockReader.write",
+      "file": "packages/core/src/contract/lock-reader.ts",
+      "startLine": 30,
+      "endLine": 33,
+      "hash": "bedd0fe7403ca6f9023225ceb3e5403d665e74e4689da52d1c4e711f4bc82d52",
+      "calls": [],
+      "calledBy": [],
+      "moduleId": "packages",
+      "purpose": "Write lock file to disk",
+      "edgeCasesHandled": [],
+      "errorHandling": [],
+      "detailedLines": []
+    },
+    "fn:packages/vscode-extension/src/extension.ts:activate": {
+      "id": "fn:packages/vscode-extension/src/extension.ts:activate",
+      "name": "activate",
+      "file": "packages/vscode-extension/src/extension.ts",
+      "startLine": 9,
+      "endLine": 79,
+      "hash": "b115b22b88b7d2b7e894325157aebb45ab48e6902322d816daa9f2242b799071",
+      "calls": [],
+      "calledBy": [],
+      "moduleId": "packages",
+      "purpose": "VS Code Extension entry point for Mikk.",
+      "edgeCasesHandled": [
+        "!workspaceFolder"
+      ],
+      "errorHandling": [
+        {
+          "line": 34,
+          "type": "try-catch",
+          "detail": "try-catch block"
+        }
+      ],
+      "detailedLines": [
+        {
+          "startLine": 28,
+          "endLine": 31,
+          "blockType": "ControlFlow"
+        },
+        {
+          "startLine": 47,
+          "endLine": 52,
+          "blockType": "ControlFlow"
+        },
+        {
+          "startLine": 60,
+          "endLine": 64,
+          "blockType": "ControlFlow"
+        }
+      ]
+    },
+    "fn:packages/vscode-extension/src/extension.ts:deactivate": {
+      "id": "fn:packages/vscode-extension/src/extension.ts:deactivate",
+      "name": "deactivate",
+      "file": "packages/vscode-extension/src/extension.ts",
+      "startLine": 81,
+      "endLine": 83,
+      "hash": "4b5c244241039bebb1e358ca3ebf3f6c0dcc09fbc7b92ff97844a9c3c6e0ee61",
+      "calls": [],
+      "calledBy": [],
+      "moduleId": "packages",
+      "purpose": "",
+      "edgeCasesHandled": [],
+      "errorHandling": [],
+      "detailedLines": []
+    },
+    "class:packages/vscode-extension/src/extension.ts:ModulesTreeProvider": {
+      "id": "class:packages/vscode-extension/src/extension.ts:ModulesTreeProvider",
+      "name": "ModulesTreeProvider",
+      "file": "packages/vscode-extension/src/extension.ts",
+      "startLine": 86,
+      "endLine": 111,
+      "hash": "",
+      "calls": [],
+      "calledBy": [],
+      "moduleId": "packages"
+    },
+    "fn:packages/vscode-extension/src/extension.ts:ModulesTreeProvider.getTreeItem": {
+      "id": "fn:packages/vscode-extension/src/extension.ts:ModulesTreeProvider.getTreeItem",
+      "name": "ModulesTreeProvider.getTreeItem",
+      "file": "packages/vscode-extension/src/extension.ts",
+      "startLine": 87,
+      "endLine": 89,
+      "hash": "b50fd50e4b137b954c53136fda422b7fac381ff36673d739028eb3e78916d5f4",
+      "calls": [],
+      "calledBy": [],
+      "moduleId": "packages",
+      "purpose": "",
+      "edgeCasesHandled": [],
+      "errorHandling": [],
+      "detailedLines": []
+    },
+    "fn:packages/vscode-extension/src/extension.ts:ModulesTreeProvider.getChildren": {
+      "id": "fn:packages/vscode-extension/src/extension.ts:ModulesTreeProvider.getChildren",
+      "name": "ModulesTreeProvider.getChildren",
+      "file": "packages/vscode-extension/src/extension.ts",
+      "startLine": 91,
+      "endLine": 110,
+      "hash": "3d4850e3167b1daa3bb7d461e5f266566aaf82a9c228e4f89a1d977413945aac",
+      "calls": [],
+      "calledBy": [],
+      "moduleId": "packages",
+      "purpose": "",
+      "edgeCasesHandled": [
+        "!workspaceFolder"
+      ],
+      "errorHandling": [
+        {
+          "line": 95,
+          "type": "try-catch",
+          "detail": "try-catch block"
+        }
+      ],
+      "detailedLines": [
+        {
+          "startLine": 93,
+          "endLine": 93,
+          "blockType": "ControlFlow"
+        }
+      ]
+    },
+    "class:packages/core/src/parser/base-parser.ts:BaseParser": {
+      "id": "class:packages/core/src/parser/base-parser.ts:BaseParser",
+      "name": "BaseParser",
+      "file": "packages/core/src/parser/base-parser.ts",
+      "startLine": 7,
+      "endLine": 16,
+      "hash": "",
+      "calls": [],
+      "calledBy": [],
+      "moduleId": "packages"
+    },
+    "fn:packages/core/src/parser/base-parser.ts:BaseParser.parse": {
+      "id": "fn:packages/core/src/parser/base-parser.ts:BaseParser.parse",
+      "name": "BaseParser.parse",
+      "file": "packages/core/src/parser/base-parser.ts",
+      "startLine": 9,
+      "endLine": 9,
+      "hash": "a7447b0a64be775e65826c128ae977203d0e6e5c313b3cf2e001b73ba7d00e4e",
+      "calls": [],
+      "calledBy": [],
+      "moduleId": "packages",
+      "purpose": "Given raw file content as a string, return ParsedFile",
+      "edgeCasesHandled": [],
+      "errorHandling": [],
+      "detailedLines": []
+    },
+    "fn:packages/core/src/parser/base-parser.ts:BaseParser.resolveImports": {
+      "id": "fn:packages/core/src/parser/base-parser.ts:BaseParser.resolveImports",
+      "name": "BaseParser.resolveImports",
+      "file": "packages/core/src/parser/base-parser.ts",
+      "startLine": 12,
+      "endLine": 12,
+      "hash": "b21086526582765778441b2832712625fec61298b6aea6551854b9761785db3d",
+      "calls": [],
+      "calledBy": [],
+      "moduleId": "packages",
+      "purpose": "Given a list of parsed files, resolve all import paths to absolute project paths",
+      "edgeCasesHandled": [],
+      "errorHandling": [],
+      "detailedLines": []
+    },
+    "fn:packages/core/src/parser/base-parser.ts:BaseParser.getSupportedExtensions": {
+      "id": "fn:packages/core/src/parser/base-parser.ts:BaseParser.getSupportedExtensions",
+      "name": "BaseParser.getSupportedExtensions",
+      "file": "packages/core/src/parser/base-parser.ts",
+      "startLine": 15,
+      "endLine": 15,
+      "hash": "b41914ef0f8732678172c6f86b07b3a140f34ebf5a4f297131512ce3bc2127a0",
+      "calls": [],
+      "calledBy": [],
+      "moduleId": "packages",
+      "purpose": "Returns which file extensions this parser handles",
+      "edgeCasesHandled": [],
+      "errorHandling": [],
+      "detailedLines": []
+    },
+    "fn:packages/core/src/parser/index.ts:getParser": {
+      "id": "fn:packages/core/src/parser/index.ts:getParser",
+      "name": "getParser",
+      "file": "packages/core/src/parser/index.ts",
+      "startLine": 14,
+      "endLine": 23,
+      "hash": "36310faf66e15e5ee02da5532ec051614de8bbaa5cc806179fb48177478afcf5",
+      "calls": [],
+      "calledBy": [],
+      "moduleId": "packages",
+      "purpose": "Get the appropriate parser for a file based on its extension",
+      "edgeCasesHandled": [],
+      "errorHandling": [
+        {
+          "line": 21,
+          "type": "throw",
+          "detail": "new UnsupportedLanguageError(ext)"
+        }
+      ],
+      "detailedLines": [
+        {
+          "startLine": 16,
+          "endLine": 22,
+          "blockType": "ControlFlow"
+        }
+      ]
+    },
+    "fn:packages/core/src/parser/index.ts:parseFiles": {
+      "id": "fn:packages/core/src/parser/index.ts:parseFiles",
+      "name": "parseFiles",
+      "file": "packages/core/src/parser/index.ts",
+      "startLine": 26,
+      "endLine": 45,
+      "hash": "c0353308e98b2de8742e089c297ddc0b4f7d06ded9cc37a59e12cb6635718d39",
+      "calls": [],
+      "calledBy": [],
+      "moduleId": "packages",
+      "purpose": "Parse multiple files and resolve imports across them",
+      "edgeCasesHandled": [],
+      "errorHandling": [],
+      "detailedLines": [
+        {
+          "startLine": 34,
+          "endLine": 41,
+          "blockType": "Loop"
+        },
+        {
+          "startLine": 36,
+          "endLine": 40,
+          "blockType": "ControlFlow"
+        }
+      ]
+    },
+    "class:packages/core/src/utils/errors.ts:MikkError": {
+      "id": "class:packages/core/src/utils/errors.ts:MikkError",
+      "name": "MikkError",
+      "file": "packages/core/src/utils/errors.ts",
+      "startLine": 1,
+      "endLine": 6,
+      "hash": "",
+      "calls": [],
+      "calledBy": [],
+      "moduleId": "packages"
+    },
+    "class:packages/core/src/utils/errors.ts:ParseError": {
+      "id": "class:packages/core/src/utils/errors.ts:ParseError",
+      "name": "ParseError",
+      "file": "packages/core/src/utils/errors.ts",
+      "startLine": 8,
+      "endLine": 12,
+      "hash": "",
+      "calls": [],
+      "calledBy": [],
+      "moduleId": "packages"
+    },
+    "class:packages/core/src/utils/errors.ts:ContractNotFoundError": {
+      "id": "class:packages/core/src/utils/errors.ts:ContractNotFoundError",
+      "name": "ContractNotFoundError",
+      "file": "packages/core/src/utils/errors.ts",
+      "startLine": 14,
+      "endLine": 18,
+      "hash": "",
+      "calls": [],
+      "calledBy": [],
+      "moduleId": "packages"
+    },
+    "class:packages/core/src/utils/errors.ts:LockNotFoundError": {
+      "id": "class:packages/core/src/utils/errors.ts:LockNotFoundError",
+      "name": "LockNotFoundError",
+      "file": "packages/core/src/utils/errors.ts",
+      "startLine": 20,
+      "endLine": 24,
+      "hash": "",
+      "calls": [],
+      "calledBy": [],
+      "moduleId": "packages"
+    },
+    "class:packages/core/src/utils/errors.ts:UnsupportedLanguageError": {
+      "id": "class:packages/core/src/utils/errors.ts:UnsupportedLanguageError",
+      "name": "UnsupportedLanguageError",
+      "file": "packages/core/src/utils/errors.ts",
+      "startLine": 26,
+      "endLine": 30,
+      "hash": "",
+      "calls": [],
+      "calledBy": [],
+      "moduleId": "packages"
+    },
+    "class:packages/core/src/utils/errors.ts:OverwritePermissionError": {
+      "id": "class:packages/core/src/utils/errors.ts:OverwritePermissionError",
+      "name": "OverwritePermissionError",
+      "file": "packages/core/src/utils/errors.ts",
+      "startLine": 32,
+      "endLine": 36,
+      "hash": "",
+      "calls": [],
+      "calledBy": [],
+      "moduleId": "packages"
+    },
+    "class:packages/core/src/utils/errors.ts:SyncStateError": {
+      "id": "class:packages/core/src/utils/errors.ts:SyncStateError",
+      "name": "SyncStateError",
+      "file": "packages/core/src/utils/errors.ts",
+      "startLine": 38,
+      "endLine": 42,
+      "hash": "",
+      "calls": [],
+      "calledBy": [],
+      "moduleId": "packages"
+    },
+    "fn:packages/core/src/utils/fs.ts:discoverFiles": {
+      "id": "fn:packages/core/src/utils/fs.ts:discoverFiles",
+      "name": "discoverFiles",
+      "file": "packages/core/src/utils/fs.ts",
+      "startLine": 9,
+      "endLine": 21,
+      "hash": "dff302b14bf9e27cc8b18525563dac01a13ddab31dd2fe103677a968a92941fe",
+      "calls": [],
+      "calledBy": [],
+      "moduleId": "packages",
+      "purpose": "Discover all source files in a project directory.",
+      "edgeCasesHandled": [],
+      "errorHandling": [],
+      "detailedLines": []
+    },
+    "fn:packages/core/src/utils/fs.ts:readFileContent": {
+      "id": "fn:packages/core/src/utils/fs.ts:readFileContent",
+      "name": "readFileContent",
+      "file": "packages/core/src/utils/fs.ts",
+      "startLine": 26,
+      "endLine": 28,
+      "hash": "d1bfb0475e45c423f8c34c2574fa7e06c2b069d3845a334bcc3fa0d1d6fe90fc",
+      "calls": [],
+      "calledBy": [],
+      "moduleId": "packages",
+      "purpose": "Reads a file and returns its content as a UTF-8 string.",
+      "edgeCasesHandled": [],
+      "errorHandling": [],
+      "detailedLines": []
+    },
+    "fn:packages/core/src/utils/fs.ts:writeFileContent": {
+      "id": "fn:packages/core/src/utils/fs.ts:writeFileContent",
+      "name": "writeFileContent",
+      "file": "packages/core/src/utils/fs.ts",
+      "startLine": 33,
+      "endLine": 36,
+      "hash": "eab9c2a6094f92bc1987bbf4999d3811c8f3e8cd18bddbc0dc7d2cea7674374e",
+      "calls": [],
+      "calledBy": [],
+      "moduleId": "packages",
+      "purpose": "Writes content to a file, creating parent directories if needed.",
+      "edgeCasesHandled": [],
+      "errorHandling": [],
+      "detailedLines": []
+    },
+    "fn:packages/core/src/utils/fs.ts:fileExists": {
+      "id": "fn:packages/core/src/utils/fs.ts:fileExists",
+      "name": "fileExists",
+      "file": "packages/core/src/utils/fs.ts",
+      "startLine": 41,
+      "endLine": 48,
+      "hash": "a5ce9744d4dd85dc1281ac666aba71f38a48eea4aeab39f4dfd4aec2e6492b98",
+      "calls": [],
+      "calledBy": [
+        "fn:packages/core/src/utils/fs.ts:setupMikkDirectory"
+      ],
+      "moduleId": "packages",
+      "purpose": "Check if a file exists.",
+      "edgeCasesHandled": [],
+      "errorHandling": [
+        {
+          "line": 42,
+          "type": "try-catch",
+          "detail": "try-catch block"
+        }
+      ],
+      "detailedLines": []
+    },
+    "fn:packages/core/src/utils/fs.ts:setupMikkDirectory": {
+      "id": "fn:packages/core/src/utils/fs.ts:setupMikkDirectory",
+      "name": "setupMikkDirectory",
+      "file": "packages/core/src/utils/fs.ts",
+      "startLine": 53,
+      "endLine": 75,
+      "hash": "de7ca0e9087b492ea3c4ea4a95f06396a7f0617e5ae303d568763094046499fa",
+      "calls": [
+        "fn:packages/core/src/utils/fs.ts:fileExists"
+      ],
+      "calledBy": [],
+      "moduleId": "packages",
+      "purpose": "Set up the .mikk directory structure in a project root.",
+      "edgeCasesHandled": [],
+      "errorHandling": [],
+      "detailedLines": [
+        {
+          "startLine": 66,
+          "endLine": 68,
+          "blockType": "Loop"
+        },
+        {
+          "startLine": 72,
+          "endLine": 74,
+          "blockType": "ControlFlow"
+        }
+      ]
+    },
+    "fn:packages/core/src/utils/logger.ts:setLogLevel": {
+      "id": "fn:packages/core/src/utils/logger.ts:setLogLevel",
+      "name": "setLogLevel",
+      "file": "packages/core/src/utils/logger.ts",
+      "startLine": 6,
+      "endLine": 13,
+      "hash": "16527062a7c0e788a11d7665b27d28c8a78d0468f032a156523f6bdac683b0bf",
+      "calls": [],
+      "calledBy": [],
+      "moduleId": "packages",
+      "purpose": "",
+      "edgeCasesHandled": [],
+      "errorHandling": [],
+      "detailedLines": [
+        {
+          "startLine": 7,
+          "endLine": 12,
+          "blockType": "ControlFlow"
+        }
+      ]
+    },
+    "fn:packages/core/src/utils/logger.ts:shouldLog": {
+      "id": "fn:packages/core/src/utils/logger.ts:shouldLog",
+      "name": "shouldLog",
+      "file": "packages/core/src/utils/logger.ts",
+      "startLine": 15,
+      "endLine": 18,
+      "hash": "ea42a9d6b5e4c7046b1bb68db6e5cbad68ac10bbae3ad6d86d59ee5e7c640bdc",
+      "calls": [],
+      "calledBy": [
+        "fn:packages/core/src/utils/logger.ts:log"
+      ],
+      "moduleId": "packages",
+      "purpose": "",
+      "edgeCasesHandled": [
+        "process.env.MIKK_LOG_LEVEL === 'silent'"
+      ],
+      "errorHandling": [],
+      "detailedLines": [
+        {
+          "startLine": 16,
+          "endLine": 16,
+          "blockType": "ControlFlow"
+        }
+      ]
+    },
+    "fn:packages/core/src/utils/logger.ts:log": {
+      "id": "fn:packages/core/src/utils/logger.ts:log",
+      "name": "log",
+      "file": "packages/core/src/utils/logger.ts",
+      "startLine": 20,
+      "endLine": 29,
+      "hash": "9935f217b957cbd684a014e0b29ad0d1604fa85f8cde121c97655cc9b74d3484",
+      "calls": [
+        "fn:packages/core/src/utils/logger.ts:shouldLog"
+      ],
+      "calledBy": [],
+      "moduleId": "packages",
+      "purpose": "",
+      "edgeCasesHandled": [
+        "!shouldLog(level)"
+      ],
+      "errorHandling": [],
+      "detailedLines": [
+        {
+          "startLine": 21,
+          "endLine": 21,
+          "blockType": "ControlFlow"
+        }
+      ]
+    },
+    "fn:packages/core/src/utils/minimatch.ts:minimatch": {
+      "id": "fn:packages/core/src/utils/minimatch.ts:minimatch",
+      "name": "minimatch",
+      "file": "packages/core/src/utils/minimatch.ts",
+      "startLine": 5,
+      "endLine": 19,
+      "hash": "9c56b3506f504b9b023c92e5285a54ea4b9c1df9139e04182e7403b59b8dd30e",
+      "calls": [],
+      "calledBy": [],
+      "moduleId": "packages",
+      "purpose": "Simple minimatch-like glob matching utility.",
+      "edgeCasesHandled": [],
+      "errorHandling": [],
+      "detailedLines": []
+    },
+    "class:packages/diagram-generator/src/generators/capsule-diagram.ts:CapsuleDiagramGenerator": {
+      "id": "class:packages/diagram-generator/src/generators/capsule-diagram.ts:CapsuleDiagramGenerator",
+      "name": "CapsuleDiagramGenerator",
+      "file": "packages/diagram-generator/src/generators/capsule-diagram.ts",
+      "startLine": 8,
+      "endLine": 79,
+      "hash": "",
+      "calls": [],
+      "calledBy": [],
+      "moduleId": "packages"
+    },
+    "fn:packages/diagram-generator/src/generators/capsule-diagram.ts:CapsuleDiagramGenerator.generate": {
+      "id": "fn:packages/diagram-generator/src/generators/capsule-diagram.ts:CapsuleDiagramGenerator.generate",
+      "name": "CapsuleDiagramGenerator.generate",
+      "file": "packages/diagram-generator/src/generators/capsule-diagram.ts",
+      "startLine": 14,
+      "endLine": 74,
+      "hash": "dfa63de60efc825c86f53962a977f1be457bedc5dbf69da29ceac790bd4fa82b",
+      "calls": [],
+      "calledBy": [],
+      "moduleId": "packages",
+      "purpose": "",
+      "edgeCasesHandled": [
+        "!module"
+      ],
+      "errorHandling": [],
+      "detailedLines": [
+        {
+          "startLine": 16,
+          "endLine": 16,
+          "blockType": "ControlFlow"
+        },
+        {
+          "startLine": 38,
+          "endLine": 44,
+          "blockType": "ControlFlow"
+        },
+        {
+          "startLine": 40,
+          "endLine": 42,
+          "blockType": "Loop"
+        },
+        {
+          "startLine": 46,
+          "endLine": 54,
+          "blockType": "ControlFlow"
+        },
+        {
+          "startLine": 48,
+          "endLine": 50,
+          "blockType": "Loop"
+        },
+        {
+          "startLine": 52,
+          "endLine": 54,
+          "blockType": "ControlFlow"
+        },
+        {
+          "startLine": 60,
+          "endLine": 67,
+          "blockType": "Loop"
+        },
+        {
+          "startLine": 61,
+          "endLine": 66,
+          "blockType": "Loop"
+        },
+        {
+          "startLine": 63,
+          "endLine": 65,
+          "blockType": "ControlFlow"
+        }
+      ]
+    },
+    "fn:packages/diagram-generator/src/generators/capsule-diagram.ts:CapsuleDiagramGenerator.sanitizeId": {
+      "id": "fn:packages/diagram-generator/src/generators/capsule-diagram.ts:CapsuleDiagramGenerator.sanitizeId",
+      "name": "CapsuleDiagramGenerator.sanitizeId",
+      "file": "packages/diagram-generator/src/generators/capsule-diagram.ts",
+      "startLine": 76,
+      "endLine": 78,
+      "hash": "5f1b05ae7275ed337d8f4758d601859793c0b5d088c29902bc1edabe913ddf0e",
+      "calls": [],
+      "calledBy": [],
+      "moduleId": "packages",
+      "purpose": "",
+      "edgeCasesHandled": [],
+      "errorHandling": [],
+      "detailedLines": []
+    },
+    "class:packages/diagram-generator/src/generators/flow-diagram.ts:FlowDiagramGenerator": {
+      "id": "class:packages/diagram-generator/src/generators/flow-diagram.ts:FlowDiagramGenerator",
+      "name": "FlowDiagramGenerator",
+      "file": "packages/diagram-generator/src/generators/flow-diagram.ts",
+      "startLine": 8,
+      "endLine": 89,
+      "hash": "",
+      "calls": [],
+      "calledBy": [],
+      "moduleId": "packages"
+    },
+    "fn:packages/diagram-generator/src/generators/flow-diagram.ts:FlowDiagramGenerator.generate": {
+      "id": "fn:packages/diagram-generator/src/generators/flow-diagram.ts:FlowDiagramGenerator.generate",
+      "name": "FlowDiagramGenerator.generate",
+      "file": "packages/diagram-generator/src/generators/flow-diagram.ts",
+      "startLine": 14,
+      "endLine": 27,
+      "hash": "0afb529427d90503ad4768ce82ec6054a984ce3cdf47ef073819570b5b7c81c0",
+      "calls": [],
+      "calledBy": [],
+      "moduleId": "packages",
+      "purpose": "Generate a sequence diagram starting from a function",
+      "edgeCasesHandled": [],
+      "errorHandling": [],
+      "detailedLines": [
+        {
+          "startLine": 22,
+          "endLine": 24,
+          "blockType": "ControlFlow"
+        }
+      ]
+    },
+    "fn:packages/diagram-generator/src/generators/flow-diagram.ts:FlowDiagramGenerator.generateEntryPoints": {
+      "id": "fn:packages/diagram-generator/src/generators/flow-diagram.ts:FlowDiagramGenerator.generateEntryPoints",
+      "name": "FlowDiagramGenerator.generateEntryPoints",
+      "file": "packages/diagram-generator/src/generators/flow-diagram.ts",
+      "startLine": 30,
+      "endLine": 54,
+      "hash": "31aa6914619ca97dcc759cf248f2fb43400ae6317b2704314204719e6b9f430a",
+      "calls": [],
+      "calledBy": [],
+      "moduleId": "packages",
+      "purpose": "Generate a flow diagram showing all entry points",
+      "edgeCasesHandled": [],
+      "errorHandling": [],
+      "detailedLines": [
+        {
+          "startLine": 38,
+          "endLine": 48,
+          "blockType": "Loop"
+        },
+        {
+          "startLine": 42,
+          "endLine": 47,
+          "blockType": "Loop"
+        },
+        {
+          "startLine": 44,
+          "endLine": 46,
+          "blockType": "ControlFlow"
+        }
+      ]
+    },
+    "fn:packages/diagram-generator/src/generators/flow-diagram.ts:FlowDiagramGenerator.traceFlow": {
+      "id": "fn:packages/diagram-generator/src/generators/flow-diagram.ts:FlowDiagramGenerator.traceFlow",
+      "name": "FlowDiagramGenerator.traceFlow",
+      "file": "packages/diagram-generator/src/generators/flow-diagram.ts",
+      "startLine": 56,
+      "endLine": 80,
+      "hash": "3a7b6d51111b796ffd60e9423813947be719d7d6fef96e49e2d7b6aa927c037f",
+      "calls": [],
+      "calledBy": [],
+      "moduleId": "packages",
+      "purpose": "",
+      "edgeCasesHandled": [
+        "depth >= maxDepth || visited.has(fnId)",
+        "!fn"
+      ],
+      "errorHandling": [],
+      "detailedLines": [
+        {
+          "startLine": 63,
+          "endLine": 63,
+          "blockType": "ControlFlow"
+        },
+        {
+          "startLine": 67,
+          "endLine": 67,
+          "blockType": "ControlFlow"
+        },
+        {
+          "startLine": 71,
+          "endLine": 79,
+          "blockType": "Loop"
+        },
+        {
+          "startLine": 73,
+          "endLine": 73,
+          "blockType": "ControlFlow"
+        }
+      ]
+    },
+    "fn:packages/diagram-generator/src/generators/flow-diagram.ts:FlowDiagramGenerator.getParticipantName": {
+      "id": "fn:packages/diagram-generator/src/generators/flow-diagram.ts:FlowDiagramGenerator.getParticipantName",
+      "name": "FlowDiagramGenerator.getParticipantName",
+      "file": "packages/diagram-generator/src/generators/flow-diagram.ts",
+      "startLine": 82,
+      "endLine": 84,
+      "hash": "f34c54c3ff2805234d065c28de4e9fe02a1f80ec412c3b1e13556a39fa2d3ba0",
+      "calls": [],
+      "calledBy": [],
+      "moduleId": "packages",
+      "purpose": "",
+      "edgeCasesHandled": [],
+      "errorHandling": [],
+      "detailedLines": []
+    },
+    "fn:packages/diagram-generator/src/generators/flow-diagram.ts:FlowDiagramGenerator.sanitizeId": {
+      "id": "fn:packages/diagram-generator/src/generators/flow-diagram.ts:FlowDiagramGenerator.sanitizeId",
+      "name": "FlowDiagramGenerator.sanitizeId",
+      "file": "packages/diagram-generator/src/generators/flow-diagram.ts",
+      "startLine": 86,
+      "endLine": 88,
+      "hash": "5f1b05ae7275ed337d8f4758d601859793c0b5d088c29902bc1edabe913ddf0e",
+      "calls": [],
+      "calledBy": [],
+      "moduleId": "packages",
+      "purpose": "",
+      "edgeCasesHandled": [],
+      "errorHandling": [],
+      "detailedLines": []
+    },
+    "class:packages/diagram-generator/src/generators/health-diagram.ts:HealthDiagramGenerator": {
+      "id": "class:packages/diagram-generator/src/generators/health-diagram.ts:HealthDiagramGenerator",
+      "name": "HealthDiagramGenerator",
+      "file": "packages/diagram-generator/src/generators/health-diagram.ts",
+      "startLine": 8,
+      "endLine": 68,
+      "hash": "",
+      "calls": [],
+      "calledBy": [],
+      "moduleId": "packages"
+    },
+    "fn:packages/diagram-generator/src/generators/health-diagram.ts:HealthDiagramGenerator.generate": {
+      "id": "fn:packages/diagram-generator/src/generators/health-diagram.ts:HealthDiagramGenerator.generate",
+      "name": "HealthDiagramGenerator.generate",
+      "file": "packages/diagram-generator/src/generators/health-diagram.ts",
+      "startLine": 14,
+      "endLine": 36,
+      "hash": "3ef7e84586cae4540c6ca9fb612d6fe50fef5743f26886f4269efe93f63b593c",
+      "calls": [],
+      "calledBy": [],
+      "moduleId": "packages",
+      "purpose": "",
+      "edgeCasesHandled": [],
+      "errorHandling": [],
+      "detailedLines": [
+        {
+          "startLine": 19,
+          "endLine": 28,
+          "blockType": "Loop"
+        }
+      ]
+    },
+    "fn:packages/diagram-generator/src/generators/health-diagram.ts:HealthDiagramGenerator.computeMetrics": {
+      "id": "fn:packages/diagram-generator/src/generators/health-diagram.ts:HealthDiagramGenerator.computeMetrics",
+      "name": "HealthDiagramGenerator.computeMetrics",
+      "file": "packages/diagram-generator/src/generators/health-diagram.ts",
+      "startLine": 38,
+      "endLine": 63,
+      "hash": "80543375b779bc269a1d491a544af3c266e1fb34c2e5233be0fc31e2be4e0fc8",
+      "calls": [],
+      "calledBy": [],
+      "moduleId": "packages",
+      "purpose": "",
+      "edgeCasesHandled": [],
+      "errorHandling": [],
+      "detailedLines": [
+        {
+          "startLine": 45,
+          "endLine": 53,
+          "blockType": "Loop"
+        },
+        {
+          "startLine": 46,
+          "endLine": 52,
+          "blockType": "Loop"
+        },
+        {
+          "startLine": 48,
+          "endLine": 51,
+          "blockType": "ControlFlow"
+        },
+        {
+          "startLine": 49,
+          "endLine": 50,
+          "blockType": "ControlFlow"
+        }
+      ]
+    },
+    "fn:packages/diagram-generator/src/generators/health-diagram.ts:HealthDiagramGenerator.sanitizeId": {
+      "id": "fn:packages/diagram-generator/src/generators/health-diagram.ts:HealthDiagramGenerator.sanitizeId",
+      "name": "HealthDiagramGenerator.sanitizeId",
+      "file": "packages/diagram-generator/src/generators/health-diagram.ts",
+      "startLine": 65,
+      "endLine": 67,
+      "hash": "5f1b05ae7275ed337d8f4758d601859793c0b5d088c29902bc1edabe913ddf0e",
+      "calls": [],
+      "calledBy": [],
+      "moduleId": "packages",
+      "purpose": "",
+      "edgeCasesHandled": [],
+      "errorHandling": [],
+      "detailedLines": []
+    },
+    "class:packages/diagram-generator/src/generators/impact-diagram.ts:ImpactDiagramGenerator": {
+      "id": "class:packages/diagram-generator/src/generators/impact-diagram.ts:ImpactDiagramGenerator",
+      "name": "ImpactDiagramGenerator",
+      "file": "packages/diagram-generator/src/generators/impact-diagram.ts",
+      "startLine": 8,
+      "endLine": 65,
+      "hash": "",
+      "calls": [],
+      "calledBy": [],
+      "moduleId": "packages"
+    },
+    "fn:packages/diagram-generator/src/generators/impact-diagram.ts:ImpactDiagramGenerator.generate": {
+      "id": "fn:packages/diagram-generator/src/generators/impact-diagram.ts:ImpactDiagramGenerator.generate",
+      "name": "ImpactDiagramGenerator.generate",
+      "file": "packages/diagram-generator/src/generators/impact-diagram.ts",
+      "startLine": 13,
+      "endLine": 60,
+      "hash": "ca3535b4a81378ccbf1193e5b06b204c3b13308d7945de23ba69f429da8212b4",
+      "calls": [],
+      "calledBy": [],
+      "moduleId": "packages",
+      "purpose": "",
+      "edgeCasesHandled": [],
+      "errorHandling": [],
+      "detailedLines": [
+        {
+          "startLine": 19,
+          "endLine": 24,
+          "blockType": "Loop"
+        },
+        {
+          "startLine": 21,
+          "endLine": 23,
+          "blockType": "ControlFlow"
+        },
+        {
+          "startLine": 27,
+          "endLine": 32,
+          "blockType": "Loop"
+        },
+        {
+          "startLine": 29,
+          "endLine": 31,
+          "blockType": "ControlFlow"
+        },
+        {
+          "startLine": 38,
+          "endLine": 46,
+          "blockType": "Loop"
+        },
+        {
+          "startLine": 40,
+          "endLine": 40,
+          "blockType": "ControlFlow"
+        },
+        {
+          "startLine": 41,
+          "endLine": 45,
+          "blockType": "Loop"
+        },
+        {
+          "startLine": 42,
+          "endLine": 44,
+          "blockType": "ControlFlow"
+        },
+        {
+          "startLine": 52,
+          "endLine": 54,
+          "blockType": "Loop"
+        },
+        {
+          "startLine": 55,
+          "endLine": 57,
+          "blockType": "Loop"
+        }
+      ]
+    },
+    "fn:packages/diagram-generator/src/generators/impact-diagram.ts:ImpactDiagramGenerator.sanitizeId": {
+      "id": "fn:packages/diagram-generator/src/generators/impact-diagram.ts:ImpactDiagramGenerator.sanitizeId",
+      "name": "ImpactDiagramGenerator.sanitizeId",
+      "file": "packages/diagram-generator/src/generators/impact-diagram.ts",
+      "startLine": 62,
+      "endLine": 64,
+      "hash": "5f1b05ae7275ed337d8f4758d601859793c0b5d088c29902bc1edabe913ddf0e",
+      "calls": [],
+      "calledBy": [],
+      "moduleId": "packages",
+      "purpose": "",
+      "edgeCasesHandled": [],
+      "errorHandling": [],
+      "detailedLines": []
+    },
+    "class:packages/diagram-generator/src/generators/main-diagram.ts:MainDiagramGenerator": {
+      "id": "class:packages/diagram-generator/src/generators/main-diagram.ts:MainDiagramGenerator",
+      "name": "MainDiagramGenerator",
+      "file": "packages/diagram-generator/src/generators/main-diagram.ts",
+      "startLine": 8,
+      "endLine": 63,
+      "hash": "",
+      "calls": [],
+      "calledBy": [],
+      "moduleId": "packages"
+    },
+    "fn:packages/diagram-generator/src/generators/main-diagram.ts:MainDiagramGenerator.generate": {
+      "id": "fn:packages/diagram-generator/src/generators/main-diagram.ts:MainDiagramGenerator.generate",
+      "name": "MainDiagramGenerator.generate",
+      "file": "packages/diagram-generator/src/generators/main-diagram.ts",
+      "startLine": 14,
+      "endLine": 58,
+      "hash": "313906a1ab17bc0912e6b2ec5fcb70b820882e7bd6101df15b95d61c8755d830",
+      "calls": [],
+      "calledBy": [],
+      "moduleId": "packages",
+      "purpose": "",
+      "edgeCasesHandled": [],
+      "errorHandling": [],
+      "detailedLines": [
+        {
+          "startLine": 20,
+          "endLine": 25,
+          "blockType": "Loop"
+        },
+        {
+          "startLine": 32,
+          "endLine": 43,
+          "blockType": "Loop"
+        },
+        {
+          "startLine": 33,
+          "endLine": 42,
+          "blockType": "Loop"
+        },
+        {
+          "startLine": 35,
+          "endLine": 41,
+          "blockType": "ControlFlow"
+        },
+        {
+          "startLine": 37,
+          "endLine": 39,
+          "blockType": "ControlFlow"
+        },
+        {
+          "startLine": 45,
+          "endLine": 48,
+          "blockType": "Loop"
+        },
+        {
+          "startLine": 53,
+          "endLine": 55,
+          "blockType": "Loop"
+        }
+      ]
+    },
+    "fn:packages/diagram-generator/src/generators/main-diagram.ts:MainDiagramGenerator.sanitizeId": {
+      "id": "fn:packages/diagram-generator/src/generators/main-diagram.ts:MainDiagramGenerator.sanitizeId",
+      "name": "MainDiagramGenerator.sanitizeId",
+      "file": "packages/diagram-generator/src/generators/main-diagram.ts",
+      "startLine": 60,
+      "endLine": 62,
+      "hash": "5f1b05ae7275ed337d8f4758d601859793c0b5d088c29902bc1edabe913ddf0e",
+      "calls": [],
+      "calledBy": [],
+      "moduleId": "packages",
+      "purpose": "",
+      "edgeCasesHandled": [],
+      "errorHandling": [],
+      "detailedLines": []
+    },
+    "class:packages/diagram-generator/src/generators/module-diagram.ts:ModuleDiagramGenerator": {
+      "id": "class:packages/diagram-generator/src/generators/module-diagram.ts:ModuleDiagramGenerator",
+      "name": "ModuleDiagramGenerator",
+      "file": "packages/diagram-generator/src/generators/module-diagram.ts",
+      "startLine": 8,
+      "endLine": 63,
+      "hash": "",
+      "calls": [],
+      "calledBy": [],
+      "moduleId": "packages"
+    },
+    "fn:packages/diagram-generator/src/generators/module-diagram.ts:ModuleDiagramGenerator.generate": {
+      "id": "fn:packages/diagram-generator/src/generators/module-diagram.ts:ModuleDiagramGenerator.generate",
+      "name": "ModuleDiagramGenerator.generate",
+      "file": "packages/diagram-generator/src/generators/module-diagram.ts",
+      "startLine": 14,
+      "endLine": 58,
+      "hash": "aa79e6526d69608bb4402a611bacbfccd28080a27854528eeb94d92307301785",
+      "calls": [],
+      "calledBy": [],
+      "moduleId": "packages",
+      "purpose": "",
+      "edgeCasesHandled": [
+        "!module"
+      ],
+      "errorHandling": [],
+      "detailedLines": [
+        {
+          "startLine": 16,
+          "endLine": 16,
+          "blockType": "ControlFlow"
+        },
+        {
+          "startLine": 25,
+          "endLine": 28,
+          "blockType": "Loop"
+        },
+        {
+          "startLine": 34,
+          "endLine": 41,
+          "blockType": "Loop"
+        },
+        {
+          "startLine": 35,
+          "endLine": 40,
+          "blockType": "Loop"
+        },
+        {
+          "startLine": 37,
+          "endLine": 39,
+          "blockType": "ControlFlow"
+        },
+        {
+          "startLine": 44,
+          "endLine": 51,
+          "blockType": "Loop"
+        },
+        {
+          "startLine": 45,
+          "endLine": 50,
+          "blockType": "Loop"
+        },
+        {
+          "startLine": 47,
+          "endLine": 49,
+          "blockType": "ControlFlow"
+        }
+      ]
+    },
+    "fn:packages/diagram-generator/src/generators/module-diagram.ts:ModuleDiagramGenerator.sanitizeId": {
+      "id": "fn:packages/diagram-generator/src/generators/module-diagram.ts:ModuleDiagramGenerator.sanitizeId",
+      "name": "ModuleDiagramGenerator.sanitizeId",
+      "file": "packages/diagram-generator/src/generators/module-diagram.ts",
+      "startLine": 60,
+      "endLine": 62,
+      "hash": "5f1b05ae7275ed337d8f4758d601859793c0b5d088c29902bc1edabe913ddf0e",
+      "calls": [],
+      "calledBy": [],
+      "moduleId": "packages",
+      "purpose": "",
+      "edgeCasesHandled": [],
+      "errorHandling": [],
+      "detailedLines": []
+    },
+    "fn:packages/cli/src/commands/contract/index.ts:registerContractCommands": {
+      "id": "fn:packages/cli/src/commands/contract/index.ts:registerContractCommands",
+      "name": "registerContractCommands",
+      "file": "packages/cli/src/commands/contract/index.ts",
+      "startLine": 7,
+      "endLine": 68,
+      "hash": "0ddec30112489ce6f694c7dfb0359d3b1465734d5731b6636a03bcfbd6d0d2c4",
+      "calls": [],
+      "calledBy": [],
+      "moduleId": "packages",
+      "purpose": "",
+      "edgeCasesHandled": [],
+      "errorHandling": [
+        {
+          "line": 20,
+          "type": "try-catch",
+          "detail": "try-catch block"
+        }
+      ],
+      "detailedLines": [
+        {
+          "startLine": 31,
+          "endLine": 39,
+          "blockType": "Loop"
+        },
+        {
+          "startLine": 36,
+          "endLine": 38,
+          "blockType": "ControlFlow"
+        },
+        {
+          "startLine": 41,
+          "endLine": 45,
+          "blockType": "ControlFlow"
+        }
+      ]
+    },
+    "class:packages/core/src/parser/typescript/ts-extractor.ts:TypeScriptExtractor": {
+      "id": "class:packages/core/src/parser/typescript/ts-extractor.ts:TypeScriptExtractor",
+      "name": "TypeScriptExtractor",
+      "file": "packages/core/src/parser/typescript/ts-extractor.ts",
+      "startLine": 9,
+      "endLine": 429,
+      "hash": "",
+      "calls": [],
+      "calledBy": [],
+      "moduleId": "packages"
+    },
+    "fn:packages/core/src/parser/typescript/ts-extractor.ts:TypeScriptExtractor.extractFunctions": {
+      "id": "fn:packages/core/src/parser/typescript/ts-extractor.ts:TypeScriptExtractor.extractFunctions",
+      "name": "TypeScriptExtractor.extractFunctions",
+      "file": "packages/core/src/parser/typescript/ts-extractor.ts",
+      "startLine": 26,
+      "endLine": 49,
+      "hash": "51b4b945d229e0b2177efab10e20e3df21a8ad80426ab8acc3b8eea35ab8ae6d",
+      "calls": [],
+      "calledBy": [],
+      "moduleId": "packages",
+      "purpose": "Extract all top-level and variable-assigned functions",
+      "edgeCasesHandled": [],
+      "errorHandling": [],
+      "detailedLines": [
+        {
+          "startLine": 30,
+          "endLine": 32,
+          "blockType": "ControlFlow"
+        },
+        {
+          "startLine": 35,
+          "endLine": 46,
+          "blockType": "ControlFlow"
+        },
+        {
+          "startLine": 36,
+          "endLine": 45,
+          "blockType": "Loop"
+        },
+        {
+          "startLine": 37,
+          "endLine": 44,
+          "blockType": "ControlFlow"
+        },
+        {
+          "startLine": 38,
+          "endLine": 43,
+          "blockType": "ControlFlow"
+        }
+      ]
+    },
+    "fn:packages/core/src/parser/typescript/ts-extractor.ts:TypeScriptExtractor.extractClasses": {
+      "id": "fn:packages/core/src/parser/typescript/ts-extractor.ts:TypeScriptExtractor.extractClasses",
+      "name": "TypeScriptExtractor.extractClasses",
+      "file": "packages/core/src/parser/typescript/ts-extractor.ts",
+      "startLine": 52,
+      "endLine": 60,
+      "hash": "ad52f93b34aef6d8ed7475968fa45a8f080db2aaca3a11975869f3feb4ab8087",
+      "calls": [],
+      "calledBy": [],
+      "moduleId": "packages",
+      "purpose": "Extract all class declarations",
+      "edgeCasesHandled": [],
+      "errorHandling": [],
+      "detailedLines": [
+        {
+          "startLine": 55,
+          "endLine": 57,
+          "blockType": "ControlFlow"
+        }
+      ]
+    },
+    "fn:packages/core/src/parser/typescript/ts-extractor.ts:TypeScriptExtractor.extractImports": {
+      "id": "fn:packages/core/src/parser/typescript/ts-extractor.ts:TypeScriptExtractor.extractImports",
+      "name": "TypeScriptExtractor.extractImports",
+      "file": "packages/core/src/parser/typescript/ts-extractor.ts",
+      "startLine": 63,
+      "endLine": 72,
+      "hash": "338c15d0ccc6cddad87bc3b11c6d5971a619266b57386d90e3258224e38a45d5",
+      "calls": [],
+      "calledBy": [],
+      "moduleId": "packages",
+      "purpose": "Extract all import statements",
+      "edgeCasesHandled": [],
+      "errorHandling": [],
+      "detailedLines": [
+        {
+          "startLine": 66,
+          "endLine": 69,
+          "blockType": "ControlFlow"
+        },
+        {
+          "startLine": 68,
+          "endLine": 68,
+          "blockType": "ControlFlow"
+        }
+      ]
+    },
+    "fn:packages/core/src/parser/typescript/ts-extractor.ts:TypeScriptExtractor.extractExports": {
+      "id": "fn:packages/core/src/parser/typescript/ts-extractor.ts:TypeScriptExtractor.extractExports",
+      "name": "TypeScriptExtractor.extractExports",
+      "file": "packages/core/src/parser/typescript/ts-extractor.ts",
+      "startLine": 75,
+      "endLine": 146,
+      "hash": "3fd60e335b9886e94efe23198442688606e9328104e4325fe9d725c17854b336",
+      "calls": [],
+      "calledBy": [],
+      "moduleId": "packages",
+      "purpose": "Extract all exported symbols",
+      "edgeCasesHandled": [],
+      "errorHandling": [],
+      "detailedLines": [
+        {
+          "startLine": 79,
+          "endLine": 85,
+          "blockType": "ControlFlow"
+        },
+        {
+          "startLine": 87,
+          "endLine": 93,
+          "blockType": "ControlFlow"
+        },
+        {
+          "startLine": 95,
+          "endLine": 108,
+          "blockType": "ControlFlow"
+        },
+        {
+          "startLine": 96,
+          "endLine": 107,
+          "blockType": "Loop"
+        },
+        {
+          "startLine": 97,
+          "endLine": 106,
+          "blockType": "ControlFlow"
+        },
+        {
+          "startLine": 110,
+          "endLine": 116,
+          "blockType": "ControlFlow"
+        },
+        {
+          "startLine": 118,
+          "endLine": 124,
+          "blockType": "ControlFlow"
+        },
+        {
+          "startLine": 126,
+          "endLine": 133,
+          "blockType": "ControlFlow"
+        },
+        {
+          "startLine": 135,
+          "endLine": 143,
+          "blockType": "ControlFlow"
+        },
+        {
+          "startLine": 136,
+          "endLine": 142,
+          "blockType": "Loop"
+        }
+      ]
+    },
+    "fn:packages/core/src/parser/typescript/ts-extractor.ts:TypeScriptExtractor.parseFunctionDeclaration": {
+      "id": "fn:packages/core/src/parser/typescript/ts-extractor.ts:TypeScriptExtractor.parseFunctionDeclaration",
+      "name": "TypeScriptExtractor.parseFunctionDeclaration",
+      "file": "packages/core/src/parser/typescript/ts-extractor.ts",
+      "startLine": 150,
+      "endLine": 177,
+      "hash": "b1c22f86ce77aaf8634be9fe058143d8fcb4b6b7b537129ce312f33e4f0dd9ea",
+      "calls": [],
+      "calledBy": [],
+      "moduleId": "packages",
+      "purpose": "─── Private Helpers ──────────────────────────────────────",
+      "edgeCasesHandled": [],
+      "errorHandling": [],
+      "detailedLines": []
+    },
+    "fn:packages/core/src/parser/typescript/ts-extractor.ts:TypeScriptExtractor.parseVariableFunction": {
+      "id": "fn:packages/core/src/parser/typescript/ts-extractor.ts:TypeScriptExtractor.parseVariableFunction",
+      "name": "TypeScriptExtractor.parseVariableFunction",
+      "file": "packages/core/src/parser/typescript/ts-extractor.ts",
+      "startLine": 179,
+      "endLine": 210,
+      "hash": "5ce067e360939420e7afcfee151d1a3df0fd7eff89360ddf06d6fd5dd6a3864d",
+      "calls": [],
+      "calledBy": [],
+      "moduleId": "packages",
+      "purpose": "",
+      "edgeCasesHandled": [],
+      "errorHandling": [],
+      "detailedLines": []
+    },
+    "fn:packages/core/src/parser/typescript/ts-extractor.ts:TypeScriptExtractor.parseClass": {
+      "id": "fn:packages/core/src/parser/typescript/ts-extractor.ts:TypeScriptExtractor.parseClass",
+      "name": "TypeScriptExtractor.parseClass",
+      "file": "packages/core/src/parser/typescript/ts-extractor.ts",
+      "startLine": 212,
+      "endLine": 258,
+      "hash": "f89522beb7e4071c9c22a9c4489b41a44debb257d0fad969481e7d31530d8519",
+      "calls": [],
+      "calledBy": [],
+      "moduleId": "packages",
+      "purpose": "",
+      "edgeCasesHandled": [],
+      "errorHandling": [],
+      "detailedLines": [
+        {
+          "startLine": 218,
+          "endLine": 247,
+          "blockType": "Loop"
+        },
+        {
+          "startLine": 219,
+          "endLine": 246,
+          "blockType": "ControlFlow"
+        }
+      ]
+    },
+    "fn:packages/core/src/parser/typescript/ts-extractor.ts:TypeScriptExtractor.parseImport": {
+      "id": "fn:packages/core/src/parser/typescript/ts-extractor.ts:TypeScriptExtractor.parseImport",
+      "name": "TypeScriptExtractor.parseImport",
+      "file": "packages/core/src/parser/typescript/ts-extractor.ts",
+      "startLine": 260,
+      "endLine": 295,
+      "hash": "de50279e189fb4822329c03a6f81159c8cb62212da974486ee9bef008a98957f",
+      "calls": [],
+      "calledBy": [],
+      "moduleId": "packages",
+      "purpose": "",
+      "edgeCasesHandled": [
+        "node.importClause?.isTypeOnly"
+      ],
+      "errorHandling": [],
+      "detailedLines": [
+        {
+          "startLine": 265,
+          "endLine": 283,
+          "blockType": "ControlFlow"
+        },
+        {
+          "startLine": 267,
+          "endLine": 270,
+          "blockType": "ControlFlow"
+        },
+        {
+          "startLine": 272,
+          "endLine": 282,
+          "blockType": "ControlFlow"
+        },
+        {
+          "startLine": 273,
+          "endLine": 277,
+          "blockType": "ControlFlow"
+        },
+        {
+          "startLine": 274,
+          "endLine": 276,
+          "blockType": "Loop"
+        },
+        {
+          "startLine": 279,
+          "endLine": 281,
+          "blockType": "ControlFlow"
+        },
+        {
+          "startLine": 286,
+          "endLine": 286,
+          "blockType": "ControlFlow"
+        }
+      ]
+    },
+    "fn:packages/core/src/parser/typescript/ts-extractor.ts:TypeScriptExtractor.extractCalls": {
+      "id": "fn:packages/core/src/parser/typescript/ts-extractor.ts:TypeScriptExtractor.extractCalls",
+      "name": "TypeScriptExtractor.extractCalls",
+      "file": "packages/core/src/parser/typescript/ts-extractor.ts",
+      "startLine": 298,
+      "endLine": 314,
+      "hash": "e8a4ecbef966052851e9b3fd6bb305d33e039eb5582f1a5f6f9b8628b2d0631e",
+      "calls": [],
+      "calledBy": [],
+      "moduleId": "packages",
+      "purpose": "Extract functionmethod call expressions from a node",
+      "edgeCasesHandled": [],
+      "errorHandling": [],
+      "detailedLines": [
+        {
+          "startLine": 301,
+          "endLine": 309,
+          "blockType": "ControlFlow"
+        },
+        {
+          "startLine": 303,
+          "endLine": 308,
+          "blockType": "ControlFlow"
+        },
+        {
+          "startLine": 305,
+          "endLine": 308,
+          "blockType": "ControlFlow"
+        }
+      ]
+    },
+    "fn:packages/core/src/parser/typescript/ts-extractor.ts:TypeScriptExtractor.extractPurpose": {
+      "id": "fn:packages/core/src/parser/typescript/ts-extractor.ts:TypeScriptExtractor.extractPurpose",
+      "name": "TypeScriptExtractor.extractPurpose",
+      "file": "packages/core/src/parser/typescript/ts-extractor.ts",
+      "startLine": 317,
+      "endLine": 330,
+      "hash": "76130a9b00527a407b44ee8b25f9364c3fb35457ed7d80512de0f5b3531d193d",
+      "calls": [],
+      "calledBy": [],
+      "moduleId": "packages",
+      "purpose": "Extract the purpose from JSDoc comments or preceding single-line comments",
+      "edgeCasesHandled": [
+        "lastCommentStr.startsWith('/**')",
+        "lastCommentStr.startsWith('//')"
+      ],
+      "errorHandling": [],
+      "detailedLines": [
+        {
+          "startLine": 320,
+          "endLine": 328,
+          "blockType": "ControlFlow"
+        },
+        {
+          "startLine": 322,
+          "endLine": 324,
+          "blockType": "ControlFlow"
+        },
+        {
+          "startLine": 325,
+          "endLine": 327,
+          "blockType": "ControlFlow"
+        }
+      ]
+    },
+    "fn:packages/core/src/parser/typescript/ts-extractor.ts:TypeScriptExtractor.extractEdgeCases": {
+      "id": "fn:packages/core/src/parser/typescript/ts-extractor.ts:TypeScriptExtractor.extractEdgeCases",
+      "name": "TypeScriptExtractor.extractEdgeCases",
+      "file": "packages/core/src/parser/typescript/ts-extractor.ts",
+      "startLine": 333,
+      "endLine": 351,
+      "hash": "a5b24dc6e038a86658800394d0f5a578af75d32aed7fe12fa3e3559d3d5dfb12",
+      "calls": [],
+      "calledBy": [],
+      "moduleId": "packages",
+      "purpose": "Extract edge cases handled (if statements returning early)",
+      "edgeCasesHandled": [],
+      "errorHandling": [],
+      "detailedLines": [
+        {
+          "startLine": 336,
+          "endLine": 346,
+          "blockType": "ControlFlow"
+        },
+        {
+          "startLine": 338,
+          "endLine": 345,
+          "blockType": "ControlFlow"
+        }
+      ]
+    },
+    "fn:packages/core/src/parser/typescript/ts-extractor.ts:TypeScriptExtractor.extractErrorHandling": {
+      "id": "fn:packages/core/src/parser/typescript/ts-extractor.ts:TypeScriptExtractor.extractErrorHandling",
+      "name": "TypeScriptExtractor.extractErrorHandling",
+      "file": "packages/core/src/parser/typescript/ts-extractor.ts",
+      "startLine": 354,
+      "endLine": 375,
+      "hash": "ece4add1943d5afe9eec325adceed21417f0c026d850060a81ab5422d57390d2",
+      "calls": [],
+      "calledBy": [],
+      "moduleId": "packages",
+      "purpose": "Extract try-catch blocks or explicit throw statements",
+      "edgeCasesHandled": [],
+      "errorHandling": [],
+      "detailedLines": [
+        {
+          "startLine": 357,
+          "endLine": 363,
+          "blockType": "ControlFlow"
+        },
+        {
+          "startLine": 364,
+          "endLine": 370,
+          "blockType": "ControlFlow"
+        }
+      ]
+    },
+    "fn:packages/core/src/parser/typescript/ts-extractor.ts:TypeScriptExtractor.extractDetailedLines": {
+      "id": "fn:packages/core/src/parser/typescript/ts-extractor.ts:TypeScriptExtractor.extractDetailedLines",
+      "name": "TypeScriptExtractor.extractDetailedLines",
+      "file": "packages/core/src/parser/typescript/ts-extractor.ts",
+      "startLine": 378,
+      "endLine": 400,
+      "hash": "b9a4134e2de9f44f1d78ef75c494e4f95f889d5793248be1e6e93e5cb5956879",
+      "calls": [],
+      "calledBy": [],
+      "moduleId": "packages",
+      "purpose": "Extract detailed line block breakdowns",
+      "edgeCasesHandled": [],
+      "errorHandling": [],
+      "detailedLines": [
+        {
+          "startLine": 381,
+          "endLine": 395,
+          "blockType": "ControlFlow"
+        },
+        {
+          "startLine": 387,
+          "endLine": 395,
+          "blockType": "ControlFlow"
+        },
+        {
+          "startLine": 393,
+          "endLine": 395,
+          "blockType": "ControlFlow"
+        }
+      ]
+    },
+    "fn:packages/core/src/parser/typescript/ts-extractor.ts:TypeScriptExtractor.extractParams": {
+      "id": "fn:packages/core/src/parser/typescript/ts-extractor.ts:TypeScriptExtractor.extractParams",
+      "name": "TypeScriptExtractor.extractParams",
+      "file": "packages/core/src/parser/typescript/ts-extractor.ts",
+      "startLine": 403,
+      "endLine": 410,
+      "hash": "cc8604b31cc6049d04adb1f65d92a19c1cd2f9ae52253e821247024fab852b47",
+      "calls": [],
+      "calledBy": [],
+      "moduleId": "packages",
+      "purpose": "Extract parameters from a function's parameter list",
+      "edgeCasesHandled": [],
+      "errorHandling": [],
+      "detailedLines": []
+    },
+    "fn:packages/core/src/parser/typescript/ts-extractor.ts:TypeScriptExtractor.hasExportModifier": {
+      "id": "fn:packages/core/src/parser/typescript/ts-extractor.ts:TypeScriptExtractor.hasExportModifier",
+      "name": "TypeScriptExtractor.hasExportModifier",
+      "file": "packages/core/src/parser/typescript/ts-extractor.ts",
+      "startLine": 413,
+      "endLine": 416,
+      "hash": "2549caf8e648723287f89ec4efa490c648b9b434b0335f797f7383e015871516",
+      "calls": [],
+      "calledBy": [],
+      "moduleId": "packages",
+      "purpose": "Check if a node has the 'export' modifier",
+      "edgeCasesHandled": [],
+      "errorHandling": [],
+      "detailedLines": []
+    },
+    "fn:packages/core/src/parser/typescript/ts-extractor.ts:TypeScriptExtractor.getLineNumber": {
+      "id": "fn:packages/core/src/parser/typescript/ts-extractor.ts:TypeScriptExtractor.getLineNumber",
+      "name": "TypeScriptExtractor.getLineNumber",
+      "file": "packages/core/src/parser/typescript/ts-extractor.ts",
+      "startLine": 419,
+      "endLine": 421,
+      "hash": "788526b0c5f2d35cf9fecac4e9065b35b7db931b8f92e72b51e225c2864629de",
+      "calls": [],
+      "calledBy": [],
+      "moduleId": "packages",
+      "purpose": "Get 1-indexed line number from a character position",
+      "edgeCasesHandled": [],
+      "errorHandling": [],
+      "detailedLines": []
+    },
+    "fn:packages/core/src/parser/typescript/ts-extractor.ts:TypeScriptExtractor.walkNode": {
+      "id": "fn:packages/core/src/parser/typescript/ts-extractor.ts:TypeScriptExtractor.walkNode",
+      "name": "TypeScriptExtractor.walkNode",
+      "file": "packages/core/src/parser/typescript/ts-extractor.ts",
+      "startLine": 424,
+      "endLine": 428,
+      "hash": "5eae93a2c4d299875fcc4816d8f86992f14a4a98fc1466a945436506da324610",
+      "calls": [],
+      "calledBy": [],
+      "moduleId": "packages",
+      "purpose": "Walk the top-level children of a node (non-recursive — callbacks decide depth)",
+      "edgeCasesHandled": [],
+      "errorHandling": [],
+      "detailedLines": []
+    },
+    "class:packages/core/src/parser/typescript/ts-parser.ts:TypeScriptParser": {
+      "id": "class:packages/core/src/parser/typescript/ts-parser.ts:TypeScriptParser",
+      "name": "TypeScriptParser",
+      "file": "packages/core/src/parser/typescript/ts-parser.ts",
+      "startLine": 11,
+      "endLine": 40,
+      "hash": "",
+      "calls": [],
+      "calledBy": [],
+      "moduleId": "packages"
+    },
+    "fn:packages/core/src/parser/typescript/ts-parser.ts:TypeScriptParser.parse": {
+      "id": "fn:packages/core/src/parser/typescript/ts-parser.ts:TypeScriptParser.parse",
+      "name": "TypeScriptParser.parse",
+      "file": "packages/core/src/parser/typescript/ts-parser.ts",
+      "startLine": 13,
+      "endLine": 25,
+      "hash": "35d183ea8b324c4816f2d294db189686257c45a4dbfce1e6494294328ebce7f5",
+      "calls": [],
+      "calledBy": [],
+      "moduleId": "packages",
+      "purpose": "Parse a single TypeScript file",
+      "edgeCasesHandled": [],
+      "errorHandling": [],
+      "detailedLines": []
+    },
+    "fn:packages/core/src/parser/typescript/ts-parser.ts:TypeScriptParser.resolveImports": {
+      "id": "fn:packages/core/src/parser/typescript/ts-parser.ts:TypeScriptParser.resolveImports",
+      "name": "TypeScriptParser.resolveImports",
+      "file": "packages/core/src/parser/typescript/ts-parser.ts",
+      "startLine": 28,
+      "endLine": 35,
+      "hash": "68212ad3e5c33eabce0360ae5f196485e51baf55dcb489688a2219540aa85c3e",
+      "calls": [],
+      "calledBy": [],
+      "moduleId": "packages",
+      "purpose": "Resolve all import paths in parsed files to absolute project paths",
+      "edgeCasesHandled": [],
+      "errorHandling": [],
+      "detailedLines": []
+    },
+    "fn:packages/core/src/parser/typescript/ts-parser.ts:TypeScriptParser.getSupportedExtensions": {
+      "id": "fn:packages/core/src/parser/typescript/ts-parser.ts:TypeScriptParser.getSupportedExtensions",
+      "name": "TypeScriptParser.getSupportedExtensions",
+      "file": "packages/core/src/parser/typescript/ts-parser.ts",
+      "startLine": 37,
+      "endLine": 39,
+      "hash": "45695fca6e63d6cb31a56324f01373025c6e551cf530d27a3c0c4de23277a9d3",
+      "calls": [],
+      "calledBy": [],
+      "moduleId": "packages",
+      "purpose": "",
+      "edgeCasesHandled": [],
+      "errorHandling": [],
+      "detailedLines": []
+    },
+    "class:packages/core/src/parser/typescript/ts-resolver.ts:TypeScriptResolver": {
+      "id": "class:packages/core/src/parser/typescript/ts-resolver.ts:TypeScriptResolver",
+      "name": "TypeScriptResolver",
+      "file": "packages/core/src/parser/typescript/ts-resolver.ts",
+      "startLine": 12,
+      "endLine": 86,
+      "hash": "",
+      "calls": [],
+      "calledBy": [],
+      "moduleId": "packages"
+    },
+    "fn:packages/core/src/parser/typescript/ts-resolver.ts:TypeScriptResolver.resolve": {
+      "id": "fn:packages/core/src/parser/typescript/ts-resolver.ts:TypeScriptResolver.resolve",
+      "name": "TypeScriptResolver.resolve",
+      "file": "packages/core/src/parser/typescript/ts-resolver.ts",
+      "startLine": 23,
+      "endLine": 31,
+      "hash": "37adc7dde17420d93116837350b2c134676c3167d1a0ca8940a9056ed3d13f86",
+      "calls": [],
+      "calledBy": [],
+      "moduleId": "packages",
+      "purpose": "Resolve a single import relative to the importing file",
+      "edgeCasesHandled": [
+        "!imp.source.startsWith('.') && !imp.source.startsWith('/') && !this.matchesAlias(imp.source)"
+      ],
+      "errorHandling": [],
+      "detailedLines": [
+        {
+          "startLine": 25,
+          "endLine": 27,
+          "blockType": "ControlFlow"
+        }
+      ]
+    },
+    "fn:packages/core/src/parser/typescript/ts-resolver.ts:TypeScriptResolver.resolvePath": {
+      "id": "fn:packages/core/src/parser/typescript/ts-resolver.ts:TypeScriptResolver.resolvePath",
+      "name": "TypeScriptResolver.resolvePath",
+      "file": "packages/core/src/parser/typescript/ts-resolver.ts",
+      "startLine": 33,
+      "endLine": 77,
+      "hash": "43ab89e3fd23669d5c27166c29384f9eef1b72f074c78164c11d963f853cb991",
+      "calls": [],
+      "calledBy": [],
+      "moduleId": "packages",
+      "purpose": "",
+      "edgeCasesHandled": [
+        "resolved.endsWith('.ts') || resolved.endsWith('.tsx')",
+        "allProjectFiles.length === 0 || allProjectFiles.includes(candidate)"
+      ],
+      "errorHandling": [],
+      "detailedLines": [
+        {
+          "startLine": 37,
+          "endLine": 45,
+          "blockType": "Loop"
+        },
+        {
+          "startLine": 39,
+          "endLine": 44,
+          "blockType": "ControlFlow"
+        },
+        {
+          "startLine": 49,
+          "endLine": 54,
+          "blockType": "ControlFlow"
+        },
+        {
+          "startLine": 63,
+          "endLine": 65,
+          "blockType": "ControlFlow"
+        },
+        {
+          "startLine": 68,
+          "endLine": 73,
+          "blockType": "Loop"
+        },
+        {
+          "startLine": 70,
+          "endLine": 72,
+          "blockType": "ControlFlow"
+        }
+      ]
+    },
+    "fn:packages/core/src/parser/typescript/ts-resolver.ts:TypeScriptResolver.matchesAlias": {
+      "id": "fn:packages/core/src/parser/typescript/ts-resolver.ts:TypeScriptResolver.matchesAlias",
+      "name": "TypeScriptResolver.matchesAlias",
+      "file": "packages/core/src/parser/typescript/ts-resolver.ts",
+      "startLine": 79,
+      "endLine": 85,
+      "hash": "4a7801c7bd35dfac4cc30da004a80cdaf8ab8cceffbb005b98f9da953b1207a7",
+      "calls": [],
+      "calledBy": [],
+      "moduleId": "packages",
+      "purpose": "",
+      "edgeCasesHandled": [
+        "source.startsWith(prefix)"
+      ],
+      "errorHandling": [],
+      "detailedLines": [
+        {
+          "startLine": 80,
+          "endLine": 83,
+          "blockType": "Loop"
+        },
+        {
+          "startLine": 82,
+          "endLine": 82,
+          "blockType": "ControlFlow"
+        }
+      ]
+    },
+    "fn:packages/core/tests/fixtures/simple-api/src/auth/middleware.ts:authMiddleware": {
+      "id": "fn:packages/core/tests/fixtures/simple-api/src/auth/middleware.ts:authMiddleware",
+      "name": "authMiddleware",
+      "file": "packages/core/tests/fixtures/simple-api/src/auth/middleware.ts",
+      "startLine": 3,
+      "endLine": 9,
+      "hash": "c120f3c73273efc63c49f692a59005b2df0d074ddce5d7124f526dde41abe7c9",
+      "calls": [
+        "fn:packages/core/tests/fixtures/simple-api/src/auth/verify.ts:verifyToken"
+      ],
+      "calledBy": [],
+      "moduleId": "packages",
+      "purpose": "",
+      "edgeCasesHandled": [
+        "!verifyToken(token)"
+      ],
+      "errorHandling": [],
+      "detailedLines": [
+        {
+          "startLine": 5,
+          "endLine": 7,
+          "blockType": "ControlFlow"
+        }
+      ]
+    },
+    "fn:packages/core/tests/fixtures/simple-api/src/auth/verify.ts:verifyToken": {
+      "id": "fn:packages/core/tests/fixtures/simple-api/src/auth/verify.ts:verifyToken",
+      "name": "verifyToken",
+      "file": "packages/core/tests/fixtures/simple-api/src/auth/verify.ts",
+      "startLine": 3,
+      "endLine": 6,
+      "hash": "fe2b2cf307a86da9ff180833d50aab77f48898fbd04ccc3053b897fc3ca585aa",
+      "calls": [
+        "fn:packages/core/tests/fixtures/simple-api/src/utils/jwt.ts:jwtDecode"
+      ],
+      "calledBy": [
+        "fn:packages/core/tests/fixtures/simple-api/src/auth/middleware.ts:authMiddleware"
+      ],
+      "moduleId": "packages",
+      "purpose": "",
+      "edgeCasesHandled": [],
+      "errorHandling": [],
+      "detailedLines": []
+    },
+    "fn:packages/core/tests/fixtures/simple-api/src/utils/jwt.ts:jwtDecode": {
+      "id": "fn:packages/core/tests/fixtures/simple-api/src/utils/jwt.ts:jwtDecode",
+      "name": "jwtDecode",
+      "file": "packages/core/tests/fixtures/simple-api/src/utils/jwt.ts",
+      "startLine": 1,
+      "endLine": 3,
+      "hash": "3de3bfa0207b2e1f714f03b8317cc191724e3ca36a50bc44cc579ab96d262a02",
+      "calls": [],
+      "calledBy": [
+        "fn:packages/core/tests/fixtures/simple-api/src/auth/verify.ts:verifyToken"
+      ],
+      "moduleId": "packages",
+      "purpose": "",
+      "edgeCasesHandled": [],
+      "errorHandling": [],
+      "detailedLines": []
+    }
+  },
+  "files": {
+    "packages/ai-context/src/context-builder.ts": {
+      "path": "packages/ai-context/src/context-builder.ts",
+      "hash": "af6827e7cdf3bd4caaee86f2ece522b621d761267f5b48d310d8f6f54295ec5b",
+      "moduleId": "packages",
+      "lastModified": "2026-02-28T10:10:53.861Z"
+    },
+    "packages/ai-context/src/index.ts": {
+      "path": "packages/ai-context/src/index.ts",
+      "hash": "2b215f2136f1825b37ae3281053eeef008c7b3027486a4c0f15c31a04d19eb4e",
+      "moduleId": "packages",
+      "lastModified": "2026-02-28T10:10:53.861Z"
+    },
+    "packages/ai-context/src/providers.ts": {
+      "path": "packages/ai-context/src/providers.ts",
+      "hash": "ca10770851c8443a695cc3ed469be5ce7bb1053515b38aa99cedb960c9c0fb8a",
+      "moduleId": "packages",
+      "lastModified": "2026-02-28T10:10:53.861Z"
+    },
+    "packages/ai-context/src/types.ts": {
+      "path": "packages/ai-context/src/types.ts",
+      "hash": "6551829430a99ed52a6f61e05d687f93eb3f833ee3b507e3ee3442a84b9deaa2",
+      "moduleId": "packages",
+      "lastModified": "2026-02-28T10:10:53.861Z"
+    },
+    "packages/cli/src/index.ts": {
+      "path": "packages/cli/src/index.ts",
+      "hash": "bc9fab07bfa4758b1b9196c479ad65793a5115820d3f1dc97d0600bbdd2e31fa",
+      "moduleId": "packages",
+      "lastModified": "2026-02-28T10:10:53.861Z"
+    },
+    "packages/core/src/index.ts": {
+      "path": "packages/core/src/index.ts",
+      "hash": "cdb7d390d8fb9af9e9a5b2d99734ebbf11fd6c55e941c013a1bf9798e926ea0e",
+      "moduleId": "packages",
+      "lastModified": "2026-02-28T10:10:53.861Z"
+    },
+    "packages/core/tests/helpers.ts": {
+      "path": "packages/core/tests/helpers.ts",
+      "hash": "95c2500f9d400c7101d57f8774149fa6b22042693a8ac37332f8858da2157e2e",
+      "moduleId": "packages",
+      "lastModified": "2026-02-28T10:10:53.861Z"
+    },
+    "apps/web/src/index.ts": {
+      "path": "apps/web/src/index.ts",
+      "hash": "1e5d655ea07e9c084b8672bbfc3ebbb53e6f4256ae32e0eeae14cc1fcb7be83a",
+      "moduleId": "apps",
+      "lastModified": "2026-02-28T10:10:53.861Z"
+    },
+    "packages/intent-engine/src/conflict-detector.ts": {
+      "path": "packages/intent-engine/src/conflict-detector.ts",
+      "hash": "15080b1a2f34fc10c7da31b4d29ca860ccfa1cdcc1a08518e4c7c3ba401809a9",
+      "moduleId": "packages",
+      "lastModified": "2026-02-28T10:10:53.861Z"
+    },
+    "packages/intent-engine/src/index.ts": {
+      "path": "packages/intent-engine/src/index.ts",
+      "hash": "d6b06fce5770e0341f4157fdcc2b1cb33a9f4ae81f18a50698ee131086b4b82f",
+      "moduleId": "packages",
+      "lastModified": "2026-02-28T10:10:53.861Z"
+    },
+    "packages/intent-engine/src/interpreter.ts": {
+      "path": "packages/intent-engine/src/interpreter.ts",
+      "hash": "c7f1d6783ad02df03bfe13a5ad65193b78d375d61ca81d50f1358b4c04b96808",
+      "moduleId": "packages",
+      "lastModified": "2026-02-28T10:10:53.861Z"
+    },
+    "packages/intent-engine/src/preflight.ts": {
+      "path": "packages/intent-engine/src/preflight.ts",
+      "hash": "57ded6b9811d9aaed1f771c1e6fafdf0e4300f44dfd7d1d8a2722335655d2d33",
+      "moduleId": "packages",
+      "lastModified": "2026-02-28T10:10:53.861Z"
+    },
+    "packages/intent-engine/src/suggester.ts": {
+      "path": "packages/intent-engine/src/suggester.ts",
+      "hash": "384db7db718826699c946a365c38e4302445aecabfc3e73a7a9e16d27314a322",
+      "moduleId": "packages",
+      "lastModified": "2026-02-28T10:10:53.861Z"
+    },
+    "packages/intent-engine/src/types.ts": {
+      "path": "packages/intent-engine/src/types.ts",
+      "hash": "3cb5b7e4d2efe063a5fe361284503d2ee38ebb5518052261409d04dada7b32a7",
+      "moduleId": "packages",
+      "lastModified": "2026-02-28T10:10:53.861Z"
+    },
+    "packages/diagram-generator/src/index.ts": {
+      "path": "packages/diagram-generator/src/index.ts",
+      "hash": "4e50340c380223c671f6493b2d84d199feda1c1f11c74dc0f51fe687c4abb0d4",
+      "moduleId": "packages",
+      "lastModified": "2026-02-28T10:10:53.861Z"
+    },
+    "packages/diagram-generator/src/orchestrator.ts": {
+      "path": "packages/diagram-generator/src/orchestrator.ts",
+      "hash": "2022adafb5af5b1bb4bc04847427101b3d64359b0d8d3673964ee8d7251e06c6",
+      "moduleId": "packages",
+      "lastModified": "2026-02-28T10:10:53.861Z"
+    },
+    "apps/registry/src/index.ts": {
+      "path": "apps/registry/src/index.ts",
+      "hash": "1f9f94a1e480d2f98aa63689db5b4d4213d431a8cd94f6effaad64a7dc7a9063",
+      "moduleId": "apps",
+      "lastModified": "2026-02-28T10:10:53.861Z"
+    },
+    "packages/watcher/src/daemon.ts": {
+      "path": "packages/watcher/src/daemon.ts",
+      "hash": "bdbd950086a1ed649f68cb5920004bbfc6067aa321f486aeb90790d7307227ea",
+      "moduleId": "packages",
+      "lastModified": "2026-02-28T10:10:53.861Z"
+    },
+    "packages/watcher/src/file-watcher.ts": {
+      "path": "packages/watcher/src/file-watcher.ts",
+      "hash": "400c0a95c36f1ea6866506663c0c2598854c57e9e43c68879934ec19eb0c21a2",
+      "moduleId": "packages",
+      "lastModified": "2026-02-28T10:10:53.861Z"
+    },
+    "packages/watcher/src/incremental-analyzer.ts": {
+      "path": "packages/watcher/src/incremental-analyzer.ts",
+      "hash": "e2ccec658b45c305786697f287bec4aae7ba80d92d8229fde61d1b530c764140",
+      "moduleId": "packages",
+      "lastModified": "2026-02-28T10:10:53.861Z"
+    },
+    "packages/watcher/src/index.ts": {
+      "path": "packages/watcher/src/index.ts",
+      "hash": "fad96198c76601062472af8dab4d932ed4c7e260f6c8812c7d86a9b688c40f11",
+      "moduleId": "packages",
+      "lastModified": "2026-02-28T10:10:53.861Z"
+    },
+    "packages/watcher/src/types.ts": {
+      "path": "packages/watcher/src/types.ts",
+      "hash": "5cb23a71ef16399c0a4a3d6c759b247729003699606992bc89560b3b7779f206",
+      "moduleId": "packages",
+      "lastModified": "2026-02-28T10:10:53.861Z"
+    },
+    "packages/cli/src/commands/analyze.ts": {
+      "path": "packages/cli/src/commands/analyze.ts",
+      "hash": "3ff56949f3d3544e8e24e12e934bcb1b20b12fe6f52213587499c3a0a46bbc56",
+      "moduleId": "packages",
+      "lastModified": "2026-02-28T10:10:53.861Z"
+    },
+    "packages/cli/src/commands/context.ts": {
+      "path": "packages/cli/src/commands/context.ts",
+      "hash": "5299b516bac5c786bb8797b882a3970e03347ba23dcf2fe687c471098002c7b5",
+      "moduleId": "packages",
+      "lastModified": "2026-02-28T10:10:53.861Z"
+    },
+    "packages/cli/src/commands/diff.ts": {
+      "path": "packages/cli/src/commands/diff.ts",
+      "hash": "e27bca605478cb2595e5723b43e16ea8a63e213e7f94a172f55fbd3b95e792a2",
+      "moduleId": "packages",
+      "lastModified": "2026-02-28T10:10:53.861Z"
+    },
+    "packages/cli/src/commands/init.ts": {
+      "path": "packages/cli/src/commands/init.ts",
+      "hash": "51d66205350d0ff0b1fadb5f258a15b2eeb212387ff46ebfa718c6fdb948c0e5",
+      "moduleId": "packages",
+      "lastModified": "2026-02-28T10:10:53.861Z"
+    },
+    "packages/cli/src/commands/intent.ts": {
+      "path": "packages/cli/src/commands/intent.ts",
+      "hash": "061c52b42751d05983d3bd94aefad2a46f988d708610bca7ab65ce30bef91def",
+      "moduleId": "packages",
+      "lastModified": "2026-02-28T10:10:53.861Z"
+    },
+    "packages/cli/src/commands/visualize.ts": {
+      "path": "packages/cli/src/commands/visualize.ts",
+      "hash": "35d27536bd43ece531fd98082ccca6ee6b627439ade7f4fee5ea3af05f6d3eb4",
+      "moduleId": "packages",
+      "lastModified": "2026-02-28T10:10:53.861Z"
+    },
+    "packages/cli/src/commands/watch.ts": {
+      "path": "packages/cli/src/commands/watch.ts",
+      "hash": "41b3f892fd04dfb0be2a8e2f19eeb327fe74e4be726648a640b41a3bce409615",
+      "moduleId": "packages",
+      "lastModified": "2026-02-28T10:10:53.861Z"
+    },
+    "packages/core/src/hash/file-hasher.ts": {
+      "path": "packages/core/src/hash/file-hasher.ts",
+      "hash": "be0a53963b6b9525ae0eb9085f6bc41dd09f4fdb7ba498221c15c1ca711a836b",
+      "moduleId": "packages",
+      "lastModified": "2026-02-28T10:10:53.861Z"
+    },
+    "packages/core/src/hash/index.ts": {
+      "path": "packages/core/src/hash/index.ts",
+      "hash": "94155394cb1c5cf87e2862e24c15ca1e748d99f98a7b719efd7f1744481439f8",
+      "moduleId": "packages",
+      "lastModified": "2026-02-28T10:10:53.861Z"
+    },
+    "packages/core/src/hash/tree-hasher.ts": {
+      "path": "packages/core/src/hash/tree-hasher.ts",
+      "hash": "f2195439b6b9c32b8fe011bc0bf839ff7181e0f137f78be9acd666cea87d28bb",
+      "moduleId": "packages",
+      "lastModified": "2026-02-28T10:10:53.861Z"
+    },
+    "packages/core/src/graph/cluster-detector.ts": {
+      "path": "packages/core/src/graph/cluster-detector.ts",
+      "hash": "dd0cd48e6957662e98da55974f8b9d159210974326ff87bff8e49709bac8c66a",
+      "moduleId": "packages",
+      "lastModified": "2026-02-28T10:10:53.861Z"
+    },
+    "packages/core/src/graph/graph-builder.ts": {
+      "path": "packages/core/src/graph/graph-builder.ts",
+      "hash": "1444a964cf569b6d522bfcbe5b0627a4025f417c2ca9b8f48ab5f351fa04aa75",
+      "moduleId": "packages",
+      "lastModified": "2026-02-28T10:10:53.861Z"
+    },
+    "packages/core/src/graph/impact-analyzer.ts": {
+      "path": "packages/core/src/graph/impact-analyzer.ts",
+      "hash": "a621b1fa8f916456bf3c79244d04cd4a281517137ad97ea1944dfb7592809e0c",
+      "moduleId": "packages",
+      "lastModified": "2026-02-28T10:10:53.861Z"
+    },
+    "packages/core/src/graph/index.ts": {
+      "path": "packages/core/src/graph/index.ts",
+      "hash": "e37b346505f4486ed508321162a730d4190e566d8277dce321706283c6ba7d14",
+      "moduleId": "packages",
+      "lastModified": "2026-02-28T10:10:53.861Z"
+    },
+    "packages/core/src/graph/types.ts": {
+      "path": "packages/core/src/graph/types.ts",
+      "hash": "a61536dfc4bde1f1a796c1336467fa601b9a61a208f93b49df41413a9dbb66b6",
+      "moduleId": "packages",
+      "lastModified": "2026-02-28T10:10:53.861Z"
+    },
+    "packages/core/src/contract/contract-generator.ts": {
+      "path": "packages/core/src/contract/contract-generator.ts",
+      "hash": "311391ba225b77e3aff3db3576626723e995cbb42dde058f5f4c830a2aa45e69",
+      "moduleId": "packages",
+      "lastModified": "2026-02-28T10:10:53.861Z"
+    },
+    "packages/core/src/contract/contract-reader.ts": {
+      "path": "packages/core/src/contract/contract-reader.ts",
+      "hash": "0f3cb3b263d3ac4d74d952fe1c45d680214cd352d96d8325a4e45973d9ae2df6",
+      "moduleId": "packages",
+      "lastModified": "2026-02-28T10:10:53.861Z"
+    },
+    "packages/core/src/contract/contract-writer.ts": {
+      "path": "packages/core/src/contract/contract-writer.ts",
+      "hash": "2a87c507b0600da74e18951068dbbebad635596e4003c86fbf1102bee6be7604",
+      "moduleId": "packages",
+      "lastModified": "2026-02-28T10:10:53.861Z"
+    },
+    "packages/core/src/contract/index.ts": {
+      "path": "packages/core/src/contract/index.ts",
+      "hash": "e1a14399893dd5ef9534cf6d1832f7d931b5cae740b86f9824316e71f59dd26a",
+      "moduleId": "packages",
+      "lastModified": "2026-02-28T10:10:53.861Z"
+    },
+    "packages/core/src/contract/lock-compiler.ts": {
+      "path": "packages/core/src/contract/lock-compiler.ts",
+      "hash": "d6363796763ae4cf456e877849a3dd1c3469f79a6fa9f90fc2b6cdd960da370c",
+      "moduleId": "packages",
+      "lastModified": "2026-02-28T10:10:53.861Z"
+    },
+    "packages/core/src/contract/lock-reader.ts": {
+      "path": "packages/core/src/contract/lock-reader.ts",
+      "hash": "bd490b5bb9b7ca2ea4898fa5f5b4c5568e061e751a1926069b832b5e62131971",
+      "moduleId": "packages",
+      "lastModified": "2026-02-28T10:10:53.861Z"
+    },
+    "packages/core/src/contract/schema.ts": {
+      "path": "packages/core/src/contract/schema.ts",
+      "hash": "4d947309bc40aab559257320181204d46a7b8c93afc5c36e52f5c11c95b2e073",
+      "moduleId": "packages",
+      "lastModified": "2026-02-28T10:10:53.861Z"
+    },
+    "packages/vscode-extension/src/extension.ts": {
+      "path": "packages/vscode-extension/src/extension.ts",
+      "hash": "3671b58b4529760251ba56192dee3480ec123bb126fb0108ec5ef245f14749f1",
+      "moduleId": "packages",
+      "lastModified": "2026-02-28T10:10:53.861Z"
+    },
+    "packages/core/src/parser/base-parser.ts": {
+      "path": "packages/core/src/parser/base-parser.ts",
+      "hash": "740751c7c345850d5a7931a0f17834a0e9c15a55318309b3cfd4c51d4e84455f",
+      "moduleId": "packages",
+      "lastModified": "2026-02-28T10:10:53.862Z"
+    },
+    "packages/core/src/parser/index.ts": {
+      "path": "packages/core/src/parser/index.ts",
+      "hash": "0abfdc66c2687b37a3dcf7480379d82b0a0be561bf821913f457c3d144266c66",
+      "moduleId": "packages",
+      "lastModified": "2026-02-28T10:10:53.862Z"
+    },
+    "packages/core/src/parser/types.ts": {
+      "path": "packages/core/src/parser/types.ts",
+      "hash": "88e60d382ee5c5da2ae4f4bf3a8f387e5be63ff900f15c3ccd4c346f7fac95c0",
+      "moduleId": "packages",
+      "lastModified": "2026-02-28T10:10:53.862Z"
+    },
+    "packages/core/src/utils/errors.ts": {
+      "path": "packages/core/src/utils/errors.ts",
+      "hash": "d10f86ce115b52833372915986f6ed1bc288aa5f02040a5c74781a6a2a4d837a",
+      "moduleId": "packages",
+      "lastModified": "2026-02-28T10:10:53.862Z"
+    },
+    "packages/core/src/utils/fs.ts": {
+      "path": "packages/core/src/utils/fs.ts",
+      "hash": "40c6b11352a5d1b57b99ac64bd196eee49552eee06617069eaa6edb3fcfb8a1e",
+      "moduleId": "packages",
+      "lastModified": "2026-02-28T10:10:53.862Z"
+    },
+    "packages/core/src/utils/logger.ts": {
+      "path": "packages/core/src/utils/logger.ts",
+      "hash": "0737b96e6ce14c4d2023ca195d3df3efc2f51de7a32489cf4f15a5037a1c87dd",
+      "moduleId": "packages",
+      "lastModified": "2026-02-28T10:10:53.862Z"
+    },
+    "packages/core/src/utils/minimatch.ts": {
+      "path": "packages/core/src/utils/minimatch.ts",
+      "hash": "be4acfc69ed63a4c7f7d0280888c72a90eb9491fd6cb1ffdbfb307e605d3b2ec",
+      "moduleId": "packages",
+      "lastModified": "2026-02-28T10:10:53.862Z"
+    },
+    "packages/diagram-generator/src/generators/capsule-diagram.ts": {
+      "path": "packages/diagram-generator/src/generators/capsule-diagram.ts",
+      "hash": "48164387d122ac4c549fa01fc5bea2e7a8a29eaf0afbe4e3b40b40e7cb3f0afd",
+      "moduleId": "packages",
+      "lastModified": "2026-02-28T10:10:53.862Z"
+    },
+    "packages/diagram-generator/src/generators/flow-diagram.ts": {
+      "path": "packages/diagram-generator/src/generators/flow-diagram.ts",
+      "hash": "5db14396eb136cd7f1ccd6bfd70a3ce60b6e9922cdcb49614e6bce941ed2d7fc",
+      "moduleId": "packages",
+      "lastModified": "2026-02-28T10:10:53.862Z"
+    },
+    "packages/diagram-generator/src/generators/health-diagram.ts": {
+      "path": "packages/diagram-generator/src/generators/health-diagram.ts",
+      "hash": "395c02161f0cae6b3290b03209b4c0a47e8d72f5bf15a3fd83efb8288232584e",
+      "moduleId": "packages",
+      "lastModified": "2026-02-28T10:10:53.862Z"
+    },
+    "packages/diagram-generator/src/generators/impact-diagram.ts": {
+      "path": "packages/diagram-generator/src/generators/impact-diagram.ts",
+      "hash": "61d505f0400de6813963481550018b21a0f6cafeaa544dd564004cc64bca4ab2",
+      "moduleId": "packages",
+      "lastModified": "2026-02-28T10:10:53.862Z"
+    },
+    "packages/diagram-generator/src/generators/main-diagram.ts": {
+      "path": "packages/diagram-generator/src/generators/main-diagram.ts",
+      "hash": "6e0580c51e8767723ddee2ccae3da72dd6bffd5ff35e8f417644ea66b8464dfb",
+      "moduleId": "packages",
+      "lastModified": "2026-02-28T10:10:53.862Z"
+    },
+    "packages/diagram-generator/src/generators/module-diagram.ts": {
+      "path": "packages/diagram-generator/src/generators/module-diagram.ts",
+      "hash": "03947fa264ba4a13909ef2966fa010427ae8b2f526ce1c10f04c33b62f99a8cb",
+      "moduleId": "packages",
+      "lastModified": "2026-02-28T10:10:53.862Z"
+    },
+    "packages/cli/src/commands/contract/index.ts": {
+      "path": "packages/cli/src/commands/contract/index.ts",
+      "hash": "5c41fb4f671bfe06f312f429ea3fc58b3a98f44fccf065957bd87ce9aa477766",
+      "moduleId": "packages",
+      "lastModified": "2026-02-28T10:10:53.862Z"
+    },
+    "packages/core/src/parser/typescript/ts-extractor.ts": {
+      "path": "packages/core/src/parser/typescript/ts-extractor.ts",
+      "hash": "f5eb3fa3ff7e239d72d0913db97a722d87b785438b7ec87452fba5cd84da876b",
+      "moduleId": "packages",
+      "lastModified": "2026-02-28T10:10:53.862Z"
+    },
+    "packages/core/src/parser/typescript/ts-parser.ts": {
+      "path": "packages/core/src/parser/typescript/ts-parser.ts",
+      "hash": "6af35076fdf2f6f70e00fabc44460b228b27e7c2ae6e83ac7c597e9ddda1aa67",
+      "moduleId": "packages",
+      "lastModified": "2026-02-28T10:10:53.862Z"
+    },
+    "packages/core/src/parser/typescript/ts-resolver.ts": {
+      "path": "packages/core/src/parser/typescript/ts-resolver.ts",
+      "hash": "5a65b1fde12bce87b448c517411d85a5e438917f8abb90cf626faabbfba15489",
+      "moduleId": "packages",
+      "lastModified": "2026-02-28T10:10:53.862Z"
+    },
+    "packages/core/tests/fixtures/simple-api/src/index.ts": {
+      "path": "packages/core/tests/fixtures/simple-api/src/index.ts",
+      "hash": "7eddc4c49c58305681516bd92af59cc68589c89ab81a677842960a3df8c843bd",
+      "moduleId": "packages",
+      "lastModified": "2026-02-28T10:10:53.862Z"
+    },
+    "packages/core/tests/fixtures/simple-api/src/auth/middleware.ts": {
+      "path": "packages/core/tests/fixtures/simple-api/src/auth/middleware.ts",
+      "hash": "2798fa3d53ae5712e62e747402ace69c6d8c1bb9b44fdb743623a8b7b3206a18",
+      "moduleId": "packages",
+      "lastModified": "2026-02-28T10:10:53.862Z"
+    },
+    "packages/core/tests/fixtures/simple-api/src/auth/verify.ts": {
+      "path": "packages/core/tests/fixtures/simple-api/src/auth/verify.ts",
+      "hash": "2c4a373f7c3d61935946ac5aa4b88ee7f7f228293dd65ab1fa89ee471d1d3024",
+      "moduleId": "packages",
+      "lastModified": "2026-02-28T10:10:53.862Z"
+    },
+    "packages/core/tests/fixtures/simple-api/src/utils/jwt.ts": {
+      "path": "packages/core/tests/fixtures/simple-api/src/utils/jwt.ts",
+      "hash": "bee4234298ceec445e565688b24e30f97857f28bf44238bb99ac38feda5d6aa6",
+      "moduleId": "packages",
+      "lastModified": "2026-02-28T10:10:53.862Z"
+    }
+  },
+  "graph": {
+    "nodes": 248,
+    "edges": 199,
+    "rootHash": "d4c5b4cde1f7d7c7fe28b278a37fff8c58db31c3ea9a87ea87a373e4a68f04a3"
+  }
+}

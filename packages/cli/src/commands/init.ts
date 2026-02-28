@@ -65,6 +65,11 @@ export function registerInitCommand(program: Command) {
                 const lockReader = new LockReader()
                 await lockReader.write(lock, path.join(projectRoot, 'mikk.lock.json'))
 
+                spinner.text = 'Generating Mermaid diagrams...'
+                const { DiagramOrchestrator } = await import('@mikk/diagram-generator')
+                const orchestrator = new DiagramOrchestrator(contract, lock, projectRoot)
+                const { generated } = await orchestrator.generateAll()
+
                 console.log(chalk.green('\n✓ Mikk initialized successfully'))
                 console.log(`  ${chalk.dim('mikk.json')}          — edit this to refine your architecture`)
                 console.log(`  ${chalk.dim('mikk.lock.json')}     — auto-generated, commit this`)

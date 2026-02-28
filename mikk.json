@@ -1,0 +1,110 @@
+{
+  "version": "1.0.0",
+  "project": {
+    "name": "Mesh",
+    "description": "",
+    "language": "typescript",
+    "entryPoints": [
+      "apps/web/src/index.ts",
+      "apps/registry/src/index.ts",
+      "packages/ai-context/src/index.ts",
+      "packages/diagram-generator/src/index.ts",
+      "packages/cli/src/index.ts",
+      "packages/core/src/index.ts",
+      "packages/intent-engine/src/index.ts",
+      "packages/watcher/src/index.ts",
+      "packages/core/src/contract/index.ts",
+      "packages/core/src/hash/index.ts",
+      "packages/core/src/graph/index.ts",
+      "packages/core/src/parser/index.ts",
+      "packages/cli/src/commands/contract/index.ts",
+      "packages/core/tests/fixtures/simple-api/src/index.ts"
+    ]
+  },
+  "declared": {
+    "modules": [
+      {
+        "id": "packages",
+        "name": "Packages",
+        "description": "Contains 64 files with 72 functions",
+        "intent": "",
+        "paths": [
+          "packages/ai-context/src/**",
+          "packages/diagram-generator/src/**",
+          "packages/cli/src/**",
+          "packages/core/tests/**",
+          "packages/core/src/**",
+          "packages/intent-engine/src/**",
+          "packages/vscode-extension/src/**",
+          "packages/watcher/src/**",
+          "packages/diagram-generator/src/generators/**",
+          "packages/cli/src/commands/**",
+          "packages/core/src/contract/**",
+          "packages/core/src/hash/**",
+          "packages/core/src/graph/**",
+          "packages/core/src/parser/**",
+          "packages/core/src/utils/**",
+          "packages/cli/src/commands/contract/**",
+          "packages/core/src/parser/typescript/**",
+          "packages/core/tests/fixtures/simple-api/src/**",
+          "packages/core/tests/fixtures/simple-api/src/auth/**",
+          "packages/core/tests/fixtures/simple-api/src/utils/**"
+        ],
+        "entryFunctions": [
+          "getProvider",
+          "mockParsedFile",
+          "mockFunction",
+          "mockImport",
+          "buildTestGraph",
+          "activate",
+          "deactivate",
+          "registerAnalyzeCommand",
+          "registerContextCommands",
+          "registerDiffCommand",
+          "registerInitCommand",
+          "registerIntentCommand",
+          "registerVisualizeCommands",
+          "registerWatchCommand",
+          "hashContent",
+          "hashFile",
+          "hashFunctionBody",
+          "computeModuleHash",
+          "computeRootHash",
+          "getParser",
+          "parseFiles",
+          "discoverFiles",
+          "readFileContent",
+          "writeFileContent",
+          "fileExists",
+          "setupMikkDirectory",
+          "setLogLevel",
+          "minimatch",
+          "registerContractCommands",
+          "authMiddleware",
+          "verifyToken",
+          "jwtDecode"
+        ]
+      },
+      {
+        "id": "apps",
+        "name": "Apps",
+        "description": "Contains 2 files with 2 functions",
+        "intent": "",
+        "paths": [
+          "apps/web/src/**",
+          "apps/registry/src/**"
+        ],
+        "entryFunctions": [
+          "placeholder",
+          "placeholder"
+        ]
+      }
+    ],
+    "constraints": [],
+    "decisions": []
+  },
+  "overwrite": {
+    "mode": "never",
+    "requireConfirmation": true
+  }
+}

@@ -1,0 +1,91 @@
+graph LR
+    %% Layout tuned for readability across packages
+    %% Only key entry-points and their immediate targets are shown.
+
+    classDef entry fill:#1565c0,stroke:#0d2e4f,color:#ffffff,font-weight:bold
+    classDef iface fill:#1b5e20,stroke:#0d2e12,color:#ffffff
+    classDef core fill:#455a64,stroke:#263238,color:#ffffff
+    classDef gen fill:#6a1b9a,stroke:#311b92,color:#ffffff
+    classDef svc fill:#37474f,stroke:#102027,color:#ffffff
+
+    subgraph Interfaces
+        direction TB
+        cli_analyze["CLI analyze\npackages/cli/src/commands/analyze.ts"]:::iface
+        cli_context["CLI context\npackages/cli/src/commands/context.ts"]:::iface
+        cli_diff["CLI diff\npackages/cli/src/commands/diff.ts"]:::iface
+        cli_intent["CLI intent\npackages/cli/src/commands/intent.ts"]:::iface
+        cli_visualize["CLI visualize\npackages/cli/src/commands/visualize.ts"]:::iface
+        cli_watch["CLI watch\npackages/cli/src/commands/watch.ts"]:::iface
+        vscode_activate["VS Code activate\npackages/vscode-extension/src/extension.ts"]:::iface
+        watcher_start["Watcher daemon start\npackages/watcher/src/daemon.ts"]:::iface
+        app_web["App entry (web)\napps/web/src/index.ts"]:::iface
+        app_registry["App entry (registry)\napps/registry/src/index.ts"]:::iface
+    end
+
+    subgraph Intent_Engine
+        direction TB
+        intent_interpret["IntentInterpreter.interpret\npackages/intent-engine/src/interpreter.ts"]:::entry
+        preflight_run["PreflightPipeline.run\npackages/intent-engine/src/preflight.ts"]:::entry
+        suggester_suggest["Suggester.suggest\npackages/intent-engine/src/suggester.ts"]:::entry
+        conflict_detect["ConflictDetector.detect\npackages/intent-engine/src/conflict-detector.ts"]:::svc
+    end
+
+    subgraph Context_Builder
+        direction TB
+        ctx_build["ContextBuilder.build\npackages/ai-context/src/context-builder.ts"]:::entry
+        ctx_generate_prompt["ContextBuilder.generatePrompt\npackages/ai-context/src/context-builder.ts"]:::svc
+        ctx_provider["getProvider\npackages/ai-context/src/providers.ts"]:::svc
+        ctx_format_claude["ClaudeProvider.formatContext\npackages/ai-context/src/providers.ts"]:::svc
+        ctx_format_generic["GenericProvider.formatContext\npackages/ai-context/src/providers.ts"]:::svc
+    end
+
+    subgraph Diagram_Generation
+        direction TB
+        orch_generate["DiagramOrchestrator.generateAll\npackages/diagram-generator/src/orchestrator.ts"]:::entry
+        flow_entry["FlowDiagramGenerator.generateEntryPoints\npackages/diagram-generator/src/generators/flow-diagram.ts"]:::gen
+        flow_trace["FlowDiagramGenerator.traceFlow\npackages/diagram-generator/src/generators/flow-diagram.ts"]:::gen
+        health_generate["HealthDiagramGenerator.generate\npackages/diagram-generator/src/generators/health-diagram.ts"]:::gen
+        impact_generate["ImpactDiagramGenerator.generate\npackages/diagram-generator/src/generators/impact-diagram.ts"]:::gen
+        main_generate["MainDiagramGenerator.generate\npackages/diagram-generator/src/generators/main-diagram.ts"]:::gen
+        module_generate["ModuleDiagramGenerator.generate\npackages/diagram-generator/src/generators/module-diagram.ts"]:::gen
+    end
+
+    subgraph Core
+        direction TB
+        hash_root["computeRootHash\npackages/core/src/hash/tree-hasher.ts"]:::core
+        hash_file["hashFile\npackages/core/src/hash/file-hasher.ts"]:::core
+        parser_parse["TypeScriptParser.parse\npackages/core/src/parser/typescript/ts-parser.ts"]:::core
+        graph_build["GraphBuilder.build\npackages/core/src/graph/graph-builder.ts"]:::core
+        impact_analyze["ImpactAnalyzer.analyze\npackages/core/src/graph/impact-analyzer.ts"]:::core
+        contract_generate["ContractGenerator.generateFromClusters\npackages/core/src/contract/contract-generator.ts"]:::core
+    end
+
+    %% Flows
+    cli_visualize --> orch_generate
+    cli_analyze --> impact_analyze
+    cli_diff --> contract_generate
+    cli_context --> ctx_build
+    cli_intent --> intent_interpret
+    cli_watch --> watcher_start
+
+    orch_generate --> flow_entry
+    orch_generate --> main_generate
+    orch_generate --> impact_generate
+    orch_generate --> health_generate
+    orch_generate --> module_generate
+
+    intent_interpret --> preflight_run --> suggester_suggest
+    suggester_suggest --> orch_generate
+    intent_interpret --> ctx_build
+    preflight_run --> conflict_detect
+
+    watcher_start --> parser_parse
+    parser_parse --> graph_build --> impact_analyze
+    graph_build --> contract_generate
+    hash_file --> hash_root
+
+    ctx_build --> ctx_generate_prompt --> ctx_provider
+    ctx_provider --> ctx_format_claude
+    ctx_provider --> ctx_format_generic
+
+    class intent_interpret,preflight_run,suggester_suggest,ctx_build,orch_generate,watcher_start,cli_visualize,cli_analyze,cli_diff,cli_context,cli_intent,cli_watch,vscode_activate,app_web,app_registry entry;

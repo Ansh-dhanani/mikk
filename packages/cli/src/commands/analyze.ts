@@ -36,6 +36,11 @@ export function registerAnalyzeCommand(program: Command) {
                 const lockReader = new LockReader()
                 await lockReader.write(lock, path.join(projectRoot, 'mikk.lock.json'))
 
+                spinner.text = 'Generating Mermaid diagrams...'
+                const { DiagramOrchestrator } = await import('@mikk/diagram-generator')
+                const orchestrator = new DiagramOrchestrator(contract, lock, projectRoot)
+                await orchestrator.generateAll()
+
                 const functionCount = Object.keys(lock.functions).length
                 spinner.succeed(`Analyzed ${files.length} files, ${functionCount} functions`)
             } catch (err: any) {
