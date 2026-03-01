@@ -1,12 +1,13 @@
 import * as path from 'node:path'
 import * as fs from 'node:fs/promises'
-import type { MikkContract, MikkLock } from '@mikk/core'
+import type { MikkContract, MikkLock } from '@ansh-dhanani/core'
 import { MainDiagramGenerator } from './generators/main-diagram.js'
 import { ModuleDiagramGenerator } from './generators/module-diagram.js'
 import { ImpactDiagramGenerator } from './generators/impact-diagram.js'
 import { HealthDiagramGenerator } from './generators/health-diagram.js'
 import { FlowDiagramGenerator } from './generators/flow-diagram.js'
 import { CapsuleDiagramGenerator } from './generators/capsule-diagram.js'
+import { DependencyMatrixGenerator } from './generators/dependency-matrix.js'
 
 /**
  * DiagramOrchestrator — generates all diagram types and writes them to
@@ -37,6 +38,11 @@ export class DiagramOrchestrator {
         const flowGen = new FlowDiagramGenerator(this.lock)
         await this.writeDiagram('diagrams/flows/entry-points.mmd', flowGen.generateEntryPoints())
         generated.push('diagrams/flows/entry-points.mmd')
+
+        // Dependency matrix
+        const matrixGen = new DependencyMatrixGenerator(this.contract, this.lock)
+        await this.writeDiagram('diagrams/dependency-matrix.mmd', matrixGen.generate())
+        generated.push('diagrams/dependency-matrix.mmd')
 
         // Per-module diagrams
         for (const module of this.contract.declared.modules) {

@@ -1,4 +1,4 @@
-import type { MikkContract, MikkLock } from '@mikk/core'
+import type { MikkContract, MikkLock } from '@ansh-dhanani/core'
 
 /**
  * FlowDiagramGenerator — generates sequence diagrams for specific
@@ -26,29 +26,48 @@ export class FlowDiagramGenerator {
         return lines.join('\n')
     }
 
-    /** Generate a flow diagram showing all entry points */
+    /** Generate a flow diagram showing all entry points grouped by module */
     generateEntryPoints(): string {
         const lines: string[] = []
         lines.push('graph TD')
         lines.push('')
 
         // Find functions with no callers (entry points)
-        const entryPoints = Object.values(this.lock.functions).filter(fn => fn.calledBy.length === 0)
+        const allFunctions = Object.values(this.lock.functions)
+        const entryPoints = allFunctions.filter(fn => fn.calledBy.length === 0)
 
+        // Group entry points by module
+        const entryByModule = new Map<string, typeof entryPoints>()
         for (const fn of entryPoints) {
-            lines.push(`    ${this.sanitizeId(fn.id)}["🚀 ${fn.name}<br/>${fn.file}"]`)
+            if (!entryByModule.has(fn.moduleId)) {
+                entryByModule.set(fn.moduleId, [])
+            }
+            entryByModule.get(fn.moduleId)!.push(fn)
+        }
 
-            // Show first-level calls
-            for (const callTarget of fn.calls) {
-                const targetFn = this.lock.functions[callTarget]
+        for (const [modId, fns] of entryByModule) {
+            lines.push(`    subgraph mod_${this.sanitizeId(modId)}["📦 ${modId}"]`)
+            for (const fn of fns) {
+                lines.push(`        ${this.sanitizeId(fn.id)}["🚀 ${fn.name}<br/>(Entry)"]`)
+            }
+            lines.push('    end')
+        }
+
+        lines.push('')
+
+        // Show first-level calls from entry points
+        for (const fn of entryPoints) {
+            const outEdges = fn.calls
+            for (const targetId of outEdges) {
+                const targetFn = this.lock.functions[targetId]
                 if (targetFn) {
-                    lines.push(`    ${this.sanitizeId(fn.id)} --> ${this.sanitizeId(callTarget)}["${targetFn.name}"]`)
+                    lines.push(`    ${this.sanitizeId(fn.id)} --> ${this.sanitizeId(targetId)}["${targetFn.name}"]`)
                 }
             }
         }
 
         lines.push('')
-        lines.push('    classDef entry fill:#3498db,stroke:#2c3e50,color:#fff')
+        lines.push('    classDef default fill:#f9f9f9,stroke:#333')
 
         return lines.join('\n')
     }

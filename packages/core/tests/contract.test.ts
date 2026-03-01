@@ -120,7 +120,7 @@ describe('ContractGenerator', () => {
             mockParsedFile('src/auth/middleware.ts', [mockFunction('authMiddleware', [], 'src/auth/middleware.ts', true)]),
         ]
         const graph = new GraphBuilder().build(files)
-        const detector = new ClusterDetector(graph)
+        const detector = new ClusterDetector(graph, 1)
         const clusters = detector.detect()
 
         const generator = new ContractGenerator()

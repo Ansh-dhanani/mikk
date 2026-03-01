@@ -2,7 +2,7 @@
  * Graph types — nodes, edges, and the dependency graph itself.
  */
 
-export type NodeType = 'function' | 'file' | 'module'
+export type NodeType = 'function' | 'file' | 'module' | 'class' | 'generic'
 export type EdgeType = 'calls' | 'imports' | 'exports' | 'contains'
 
 /** A single node in the dependency graph */

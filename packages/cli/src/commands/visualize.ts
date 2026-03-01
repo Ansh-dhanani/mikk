@@ -2,7 +2,7 @@ import type { Command } from 'commander'
 import chalk from 'chalk'
 import * as path from 'node:path'
 import ora from 'ora'
-import { ContractReader, LockReader } from '@mikk/core'
+import { ContractReader, LockReader } from '@ansh-dhanani/core'
 
 async function getOrchestrator() {
     const projectRoot = process.cwd()
@@ -12,7 +12,7 @@ async function getOrchestrator() {
     try {
         const contract = await contractReader.read(path.join(projectRoot, 'mikk.json'))
         const lock = await lockReader.read(path.join(projectRoot, 'mikk.lock.json'))
-        const { DiagramOrchestrator } = await import('@mikk/diagram-generator')
+        const { DiagramOrchestrator } = await import('@ansh-dhanani/diagram-generator')
         return { orchestrator: new DiagramOrchestrator(contract, lock, projectRoot), projectRoot }
     } catch (e) {
         console.error(chalk.red('Error reading mikk.json or mikk.lock.json. Please run "mikk init" or "mikk analyze" first.'))
@@ -52,7 +52,7 @@ export function registerVisualizeCommands(program: Command) {
                 // The orchestrator currently only has generateAll() and generateImpact().
                 // However, generateAll() runs through modules.
                 // Let's import the specific generator to do just one.
-                const { ModuleDiagramGenerator } = await import('@mikk/diagram-generator')
+                const { ModuleDiagramGenerator } = await import('@ansh-dhanani/diagram-generator')
                 const projectRoot = process.cwd()
                 const contractReader = new ContractReader()
                 const lockReader = new LockReader()

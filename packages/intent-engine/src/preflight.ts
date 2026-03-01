@@ -1,4 +1,4 @@
-import type { MikkContract, MikkLock } from '@mikk/core'
+import type { MikkContract, MikkLock } from '@ansh-dhanani/core'
 import { IntentInterpreter } from './interpreter.js'
 import { ConflictDetector } from './conflict-detector.js'
 import { Suggester } from './suggester.js'
@@ -19,7 +19,7 @@ export class PreflightPipeline {
         private lock: MikkLock
     ) {
         this.interpreter = new IntentInterpreter(contract, lock)
-        this.conflictDetector = new ConflictDetector(contract)
+        this.conflictDetector = new ConflictDetector(contract, lock)
         this.suggester = new Suggester(contract, lock)
     }
 

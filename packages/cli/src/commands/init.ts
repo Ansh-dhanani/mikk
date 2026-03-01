@@ -8,7 +8,7 @@ import {
     LockCompiler, ContractWriter, LockReader,
     setupMikkDirectory,
     type MikkContract
-} from '@mikk/core'
+} from '@ansh-dhanani/core'
 
 export function registerInitCommand(program: Command) {
     program
@@ -66,14 +66,25 @@ export function registerInitCommand(program: Command) {
                 await lockReader.write(lock, path.join(projectRoot, 'mikk.lock.json'))
 
                 spinner.text = 'Generating Mermaid diagrams...'
-                const { DiagramOrchestrator } = await import('@mikk/diagram-generator')
+                const { DiagramOrchestrator } = await import('@ansh-dhanani/diagram-generator')
                 const orchestrator = new DiagramOrchestrator(contract, lock, projectRoot)
                 const { generated } = await orchestrator.generateAll()
+
+                // 9. Generate claude.md / AGENTS.md
+                spinner.text = 'Generating AI context files...'
+                const { ClaudeMdGenerator } = await import('@ansh-dhanani/ai-context')
+                const mdGenerator = new ClaudeMdGenerator(contract, lock)
+                const claudeMd = mdGenerator.generate()
+                const fs = await import('node:fs/promises')
+                await fs.writeFile(path.join(projectRoot, 'claude.md'), claudeMd, 'utf-8')
+                await fs.writeFile(path.join(projectRoot, 'AGENTS.md'), claudeMd, 'utf-8')
 
                 console.log(chalk.green('\n✓ Mikk initialized successfully'))
                 console.log(`  ${chalk.dim('mikk.json')}          — edit this to refine your architecture`)
                 console.log(`  ${chalk.dim('mikk.lock.json')}     — auto-generated, commit this`)
                 console.log(`  ${chalk.dim('.mikk/diagrams/')}    — Mermaid diagrams of your codebase`)
+                console.log(`  ${chalk.dim('claude.md')}          — AI context derived from lock file`)
+                console.log(`  ${chalk.dim('AGENTS.md')}          — same, for Codex/Copilot agents`)
                 console.log(`\n  ${chalk.dim('Stats:')} ${files.length} files, ${functionCount} functions, ${clusters.length} modules`)
                 console.log(`\n  ${chalk.dim('Next:')} Review mikk.json and refine module descriptions`)
                 console.log(`  ${chalk.dim('Run:')}  mikk contract validate to check for drift`)

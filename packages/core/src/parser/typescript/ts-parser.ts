@@ -17,6 +17,7 @@ export class TypeScriptParser extends BaseParser {
             language: 'typescript',
             functions: extractor.extractFunctions(),
             classes: extractor.extractClasses(),
+            generics: extractor.extractGenerics(),
             imports: extractor.extractImports(),
             exports: extractor.extractExports(),
             hash: hashContent(content),

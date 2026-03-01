@@ -2,7 +2,9 @@ import type { AIContext, ContextProvider } from './types.js'
 
 /**
  * ClaudeProvider — formats context for Anthropic Claude models.
- * Uses XML tags for structured context delivery.
+ *
+ * Uses structured XML tags so Claude can parse boundaries clearly.
+ * Includes meta block so the model knows how much context was trimmed.
  */
 export class ClaudeProvider implements ContextProvider {
     name = 'claude'
@@ -11,48 +13,87 @@ export class ClaudeProvider implements ContextProvider {
     formatContext(context: AIContext): string {
         const lines: string[] = []
 
-        lines.push('<architecture>')
-        lines.push(`<project name="${context.project.name}" language="${context.project.language}">`)
-        lines.push(`  <description>${context.project.description}</description>`)
-        lines.push(`  <stats modules="${context.project.moduleCount}" functions="${context.project.functionCount}" />`)
+        lines.push('<mikk_context>')
+
+        // ── Project ────────────────────────────────────────────────────────
+        lines.push(`<project name="${esc(context.project.name)}" language="${esc(context.project.language)}">`)
+        lines.push(`  <description>${esc(context.project.description)}</description>`)
+        lines.push(`  <stats modules="${context.project.moduleCount}" functions="${context.project.functionCount}"/>`)
         lines.push('</project>')
+        lines.push('')
 
+        // ── Context quality meta ───────────────────────────────────────────
+        lines.push('<context_meta>')
+        lines.push(`  <task>${esc(context.meta?.keywords?.join(', ') ?? '')}</task>`)
+        lines.push(`  <seeds_found>${context.meta?.seedCount ?? 0}</seeds_found>`)
+        lines.push(`  <functions_selected>${context.meta?.selectedFunctions ?? 0} of ${context.meta?.totalFunctionsConsidered ?? 0}</functions_selected>`)
+        lines.push(`  <estimated_tokens>${context.meta?.estimatedTokens ?? 0}</estimated_tokens>`)
+        lines.push('</context_meta>')
+        lines.push('')
+
+        // ── Modules ────────────────────────────────────────────────────────
         for (const mod of context.modules) {
-            lines.push(`<module id="${mod.id}" name="${mod.name}">`)
-            lines.push(`  <description>${mod.description}</description>`)
-            if (mod.intent) lines.push(`  <intent>${mod.intent}</intent>`)
+            lines.push(`<module id="${esc(mod.id)}" name="${esc(mod.name)}">`)
+            lines.push(`  <description>${esc(mod.description)}</description>`)
+            if (mod.intent) lines.push(`  <intent>${esc(mod.intent)}</intent>`)
+            lines.push(`  <files count="${mod.files.length}">`)
+            for (const f of mod.files) {
+                lines.push(`    <file>${esc(f)}</file>`)
+            }
+            lines.push('  </files>')
 
-            for (const fn of mod.functions) {
-                const calls = fn.calls.length > 0 ? ` calls="${fn.calls.join(',')}"` : ''
-                const calledBy = fn.calledBy.length > 0 ? ` calledBy="${fn.calledBy.join(',')}"` : ''
-                lines.push(`  <function name="${fn.name}" file="${fn.file}" lines="${fn.startLine}-${fn.endLine}"${calls}${calledBy} />`)
+            if (mod.functions.length > 0) {
+                lines.push('  <functions>')
+                for (const fn of mod.functions) {
+                    const calls = fn.calls.length > 0
+                        ? ` calls="${esc(fn.calls.join(','))}"`
+                        : ''
+                    const calledBy = fn.calledBy.length > 0
+                        ? ` calledBy="${esc(fn.calledBy.join(','))}"`
+                        : ''
+                    lines.push(`    <fn name="${esc(fn.name)}" file="${esc(fn.file)}" lines="${fn.startLine}-${fn.endLine}"${calls}${calledBy}>`)
+                    if (fn.purpose) lines.push(`      <purpose>${esc(fn.purpose)}</purpose>`)
+                    if (fn.edgeCases && fn.edgeCases.length > 0) {
+                        lines.push(`      <edge_cases>${esc(fn.edgeCases.join('; '))}</edge_cases>`)
+                    }
+                    if (fn.errorHandling && fn.errorHandling.length > 0) {
+                        lines.push(`      <error_handling>${esc(fn.errorHandling.join('; '))}</error_handling>`)
+                    }
+                    lines.push('    </fn>')
+                }
+                lines.push('  </functions>')
             }
             lines.push('</module>')
+            lines.push('')
         }
 
+        // ── Constraints ────────────────────────────────────────────────────
         if (context.constraints.length > 0) {
             lines.push('<constraints>')
             for (const c of context.constraints) {
-                lines.push(`  <constraint>${c}</constraint>`)
+                lines.push(`  <constraint>${esc(c)}</constraint>`)
             }
             lines.push('</constraints>')
+            lines.push('')
         }
 
+        // ── Decisions ─────────────────────────────────────────────────────
         if (context.decisions.length > 0) {
-            lines.push('<decisions>')
+            lines.push('<architectural_decisions>')
             for (const d of context.decisions) {
-                lines.push(`  <decision title="${d.title}">${d.reason}</decision>`)
+                lines.push(`  <decision title="${esc(d.title)}">${esc(d.reason)}</decision>`)
             }
-            lines.push('</decisions>')
+            lines.push('</architectural_decisions>')
         }
 
-        lines.push('</architecture>')
+        lines.push('</mikk_context>')
         return lines.join('\n')
     }
 }
 
 /**
- * GenericProvider — formats context as plain text for any model.
+ * GenericProvider — clean plain-text format for any model.
+ * Identical to the natural-language prompt generated by ContextBuilder.
  */
 export class GenericProvider implements ContextProvider {
     name = 'generic'
@@ -64,14 +105,51 @@ export class GenericProvider implements ContextProvider {
 }
 
 /**
- * Get the appropriate provider by name.
+ * CompactProvider — ultra-minimal format for small context windows.
+ * One line per function, no XML, no prose.
  */
+export class CompactProvider implements ContextProvider {
+    name = 'compact'
+    maxTokens = 16000
+
+    formatContext(context: AIContext): string {
+        const lines: string[] = [
+            `# ${context.project.name} (${context.project.language})`,
+            `Task keywords: ${context.meta?.keywords?.join(', ') ?? ''}`,
+            '',
+        ]
+        for (const mod of context.modules) {
+            lines.push(`## ${mod.name}`)
+            for (const fn of mod.functions) {
+                const calls = fn.calls.length > 0 ? ` → ${fn.calls.join(',')}` : ''
+                lines.push(`  ${fn.name} [${fn.file}:${fn.startLine}]${calls}`)
+            }
+            lines.push('')
+        }
+        if (context.constraints.length > 0) {
+            lines.push('CONSTRAINTS: ' + context.constraints.join(' | '))
+        }
+        return lines.join('\n')
+    }
+}
+
 export function getProvider(name: string): ContextProvider {
     switch (name.toLowerCase()) {
         case 'claude':
         case 'anthropic':
             return new ClaudeProvider()
+        case 'compact':
+            return new CompactProvider()
         default:
             return new GenericProvider()
     }
+}
+
+/** Minimal XML attribute escaping */
+function esc(s: string): string {
+    return s
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
 }

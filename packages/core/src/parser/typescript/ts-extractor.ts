@@ -1,5 +1,5 @@
 import ts from 'typescript'
-import type { ParsedFunction, ParsedClass, ParsedImport, ParsedExport, ParsedParam } from '../types.js'
+import type { ParsedFunction, ParsedClass, ParsedImport, ParsedExport, ParsedParam, ParsedGeneric } from '../types.js'
 import { hashContent } from '../../hash/file-hasher.js'
 
 /**
@@ -57,6 +57,66 @@ export class TypeScriptExtractor {
             }
         })
         return classes
+    }
+
+    /** Extract generic declarations (interfaces, types, constants with metadata) */
+    extractGenerics(): ParsedGeneric[] {
+        const generics: ParsedGeneric[] = []
+        this.walkNode(this.sourceFile, (node) => {
+            if (ts.isInterfaceDeclaration(node)) {
+                const tp = this.extractTypeParameters(node.typeParameters)
+                generics.push({
+                    id: `intf:${this.filePath}:${node.name.text}`,
+                    name: node.name.text,
+                    type: 'interface',
+                    file: this.filePath,
+                    startLine: this.getLineNumber(node.getStart()),
+                    endLine: this.getLineNumber(node.getEnd()),
+                    isExported: this.hasExportModifier(node),
+                    ...(tp.length > 0 ? { typeParameters: tp } : {}),
+                    purpose: this.extractPurpose(node),
+                })
+            } else if (ts.isTypeAliasDeclaration(node)) {
+                const tp = this.extractTypeParameters(node.typeParameters)
+                generics.push({
+                    id: `type:${this.filePath}:${node.name.text}`,
+                    name: node.name.text,
+                    type: 'type',
+                    file: this.filePath,
+                    startLine: this.getLineNumber(node.getStart()),
+                    endLine: this.getLineNumber(node.getEnd()),
+                    isExported: this.hasExportModifier(node),
+                    ...(tp.length > 0 ? { typeParameters: tp } : {}),
+                    purpose: this.extractPurpose(node),
+                })
+            } else if (ts.isVariableStatement(node) && !this.isVariableFunction(node)) {
+                // top-level constants (not functions)
+                for (const decl of node.declarationList.declarations) {
+                    if (ts.isIdentifier(decl.name)) {
+                        generics.push({
+                            id: `const:${this.filePath}:${decl.name.text}`,
+                            name: decl.name.text,
+                            type: 'const',
+                            file: this.filePath,
+                            startLine: this.getLineNumber(node.getStart()),
+                            endLine: this.getLineNumber(node.getEnd()),
+                            isExported: this.hasExportModifier(node),
+                            purpose: this.extractPurpose(node),
+                        })
+                    }
+                }
+            }
+        })
+        return generics
+    }
+
+    private isVariableFunction(node: ts.VariableStatement): boolean {
+        for (const decl of node.declarationList.declarations) {
+            if (decl.initializer && (ts.isArrowFunction(decl.initializer) || ts.isFunctionExpression(decl.initializer))) {
+                return true
+            }
+        }
+        return false
     }
 
     /** Extract all import statements */
@@ -154,6 +214,8 @@ export class TypeScriptExtractor {
         const params = this.extractParams(node.parameters)
         const returnType = node.type ? node.type.getText(this.sourceFile) : 'void'
         const isAsync = !!node.modifiers?.some(m => m.kind === ts.SyntaxKind.AsyncKeyword)
+        const isGenerator = !!node.asteriskToken
+        const typeParameters = this.extractTypeParameters(node.typeParameters)
         const calls = this.extractCalls(node)
         const bodyText = node.getText(this.sourceFile)
 
@@ -167,6 +229,8 @@ export class TypeScriptExtractor {
             returnType,
             isExported: this.hasExportModifier(node),
             isAsync,
+            ...(isGenerator ? { isGenerator } : {}),
+            ...(typeParameters.length > 0 ? { typeParameters } : {}),
             calls,
             hash: hashContent(bodyText),
             purpose: this.extractPurpose(node),
@@ -187,6 +251,8 @@ export class TypeScriptExtractor {
         const params = this.extractParams(fn.parameters)
         const returnType = fn.type ? fn.type.getText(this.sourceFile) : 'void'
         const isAsync = !!fn.modifiers?.some(m => m.kind === ts.SyntaxKind.AsyncKeyword)
+        const isGenerator = ts.isFunctionExpression(fn) && !!fn.asteriskToken
+        const typeParameters = this.extractTypeParameters(fn.typeParameters)
         const calls = this.extractCalls(fn)
         const bodyText = stmt.getText(this.sourceFile)
 
@@ -200,6 +266,8 @@ export class TypeScriptExtractor {
             returnType,
             isExported: this.hasExportModifier(stmt),
             isAsync,
+            ...(isGenerator ? { isGenerator } : {}),
+            ...(typeParameters.length > 0 ? { typeParameters } : {}),
             calls,
             hash: hashContent(bodyText),
             purpose: this.extractPurpose(stmt),
@@ -214,6 +282,8 @@ export class TypeScriptExtractor {
         const startLine = this.getLineNumber(node.getStart())
         const endLine = this.getLineNumber(node.getEnd())
         const methods: ParsedFunction[] = []
+        const decorators = this.extractDecorators(node)
+        const typeParameters = this.extractTypeParameters(node.typeParameters)
 
         for (const member of node.members) {
             if (ts.isMethodDeclaration(member) && member.name) {
@@ -223,6 +293,8 @@ export class TypeScriptExtractor {
                 const params = this.extractParams(member.parameters)
                 const returnType = member.type ? member.type.getText(this.sourceFile) : 'void'
                 const isAsync = !!member.modifiers?.some(m => m.kind === ts.SyntaxKind.AsyncKeyword)
+                const isGenerator = !!member.asteriskToken
+                const methodTypeParams = this.extractTypeParameters(member.typeParameters)
                 const calls = this.extractCalls(member)
                 const bodyText = member.getText(this.sourceFile)
 
@@ -236,6 +308,8 @@ export class TypeScriptExtractor {
                     returnType,
                     isExported: this.hasExportModifier(node),
                     isAsync,
+                    ...(isGenerator ? { isGenerator } : {}),
+                    ...(methodTypeParams.length > 0 ? { typeParameters: methodTypeParams } : {}),
                     calls,
                     hash: hashContent(bodyText),
                     purpose: this.extractPurpose(member),
@@ -254,6 +328,11 @@ export class TypeScriptExtractor {
             endLine,
             methods,
             isExported: this.hasExportModifier(node),
+            ...(decorators.length > 0 ? { decorators } : {}),
+            ...(typeParameters.length > 0 ? { typeParameters } : {}),
+            purpose: this.extractPurpose(node),
+            edgeCasesHandled: this.extractEdgeCases(node),
+            errorHandling: this.extractErrorHandling(node),
         }
     }
 
@@ -317,16 +396,27 @@ export class TypeScriptExtractor {
     private extractPurpose(node: ts.Node): string {
         const fullText = this.sourceFile.getFullText()
         const commentRanges = ts.getLeadingCommentRanges(fullText, node.getFullStart())
-        if (commentRanges && commentRanges.length > 0) {
-            const lastCommentStr = fullText.slice(commentRanges[commentRanges.length - 1].pos, commentRanges[commentRanges.length - 1].end)
-            if (lastCommentStr.startsWith('/**')) {
-                return lastCommentStr.replace(/[\/\*]/g, '').trim().split('\n')[0].trim()
+        if (!commentRanges || commentRanges.length === 0) return ''
+
+        const meaningfulLines: string[] = []
+        for (const range of commentRanges) {
+            const comment = fullText.slice(range.pos, range.end)
+            let clean = ''
+            if (comment.startsWith('/**') || comment.startsWith('/*')) {
+                clean = comment.replace(/[\/\*]/g, '').trim()
+            } else if (comment.startsWith('//')) {
+                clean = comment.replace(/\/\//g, '').trim()
             }
-            if (lastCommentStr.startsWith('//')) {
-                return lastCommentStr.replace(/\/\//g, '').trim()
-            }
+
+            // Skip divider lines (lines with 3+ repeated special characters)
+            if (/^[─\-_=\*]{3,}$/.test(clean)) continue
+
+            if (clean) meaningfulLines.push(clean)
         }
-        return ''
+
+        // Return the last few meaningful lines or just the one closest to the node
+        // Often the first line of JSDoc or the line right above the node
+        return meaningfulLines.length > 0 ? meaningfulLines[meaningfulLines.length - 1].split('\n')[0].trim() : ''
     }
 
     /** Extract edge cases handled (if statements returning early) */
@@ -397,6 +487,30 @@ export class TypeScriptExtractor {
         }
         ts.forEachChild(node, walkBlocks)
         return blocks
+    }
+
+    /** Extract type parameter names from a generic declaration */
+    private extractTypeParameters(typeParams: ts.NodeArray<ts.TypeParameterDeclaration> | undefined): string[] {
+        if (!typeParams || typeParams.length === 0) return []
+        return typeParams.map(tp => tp.name.text)
+    }
+
+    /** Extract decorator names from a class declaration */
+    private extractDecorators(node: ts.ClassDeclaration): string[] {
+        const decorators: string[] = []
+        const modifiers = ts.canHaveDecorators(node) ? ts.getDecorators(node) : undefined
+        if (modifiers) {
+            for (const decorator of modifiers) {
+                if (ts.isCallExpression(decorator.expression)) {
+                    // @Injectable() — decorator with arguments
+                    decorators.push(decorator.expression.expression.getText(this.sourceFile))
+                } else if (ts.isIdentifier(decorator.expression)) {
+                    // @Sealed — decorator without arguments
+                    decorators.push(decorator.expression.text)
+                }
+            }
+        }
+        return decorators
     }
 
     /** Extract parameters from a function's parameter list */

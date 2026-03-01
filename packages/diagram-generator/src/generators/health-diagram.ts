@@ -1,4 +1,4 @@
-import type { MikkContract, MikkLock } from '@mikk/core'
+import type { MikkContract, MikkLock } from '@ansh-dhanani/core'
 
 /**
  * HealthDiagramGenerator — generates a module health dashboard showing
@@ -16,21 +16,41 @@ export class HealthDiagramGenerator {
         lines.push('graph TD')
         lines.push('')
 
+        const classAssignments: string[] = []
+
         for (const module of this.contract.declared.modules) {
             const metrics = this.computeMetrics(module.id)
             const healthIcon = metrics.health > 0.7 ? '🟢' : metrics.health > 0.4 ? '🟡' : '🔴'
             const healthClass = metrics.health > 0.7 ? 'healthy' : metrics.health > 0.4 ? 'warning' : 'critical'
+            const sid = this.sanitizeId(module.id)
 
-            lines.push(`    ${this.sanitizeId(module.id)}["${healthIcon} ${module.name}<br/>`)
-            lines.push(`        Cohesion: ${(metrics.cohesion * 100).toFixed(0)}%<br/>`)
-            lines.push(`        Coupling: ${metrics.coupling}<br/>`)
-            lines.push(`        Functions: ${metrics.functionCount}"]`)
+            lines.push(`    ${sid}["${healthIcon} ${module.name}<br/>Cohesion: ${(metrics.cohesion * 100).toFixed(0)}%<br/>Coupling: ${metrics.coupling}<br/>Functions: ${metrics.functionCount}"]`)
+            classAssignments.push(`    class ${sid} ${healthClass}`)
+        }
+
+        // Add inter-module dependency edges for context
+        const moduleEdges = new Set<string>()
+        for (const fn of Object.values(this.lock.functions)) {
+            for (const callTarget of fn.calls) {
+                const targetFn = this.lock.functions[callTarget]
+                if (targetFn && fn.moduleId !== targetFn.moduleId) {
+                    const key = `${fn.moduleId}|${targetFn.moduleId}`
+                    if (!moduleEdges.has(key)) {
+                        moduleEdges.add(key)
+                        lines.push(`    ${this.sanitizeId(fn.moduleId)} -.-> ${this.sanitizeId(targetFn.moduleId)}`)
+                    }
+                }
+            }
         }
 
         lines.push('')
         lines.push('    classDef healthy fill:#27ae60,stroke:#2c3e50,color:#fff')
         lines.push('    classDef warning fill:#f39c12,stroke:#2c3e50,color:#fff')
         lines.push('    classDef critical fill:#e74c3c,stroke:#2c3e50,color:#fff')
+        lines.push('')
+        for (const assignment of classAssignments) {
+            lines.push(assignment)
+        }
 
         return lines.join('\n')
     }

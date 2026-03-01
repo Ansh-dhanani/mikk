@@ -87,6 +87,35 @@ export const MikkLockFileSchema = z.object({
     lastModified: z.string(),
 })
 
+export const MikkLockClassSchema = z.object({
+    id: z.string(),
+    name: z.string(),
+    file: z.string(),
+    startLine: z.number(),
+    endLine: z.number(),
+    moduleId: z.string(),
+    isExported: z.boolean(),
+    purpose: z.string().optional(),
+    edgeCasesHandled: z.array(z.string()).optional(),
+    errorHandling: z.array(z.object({
+        line: z.number(),
+        type: z.enum(['try-catch', 'throw']),
+        detail: z.string(),
+    })).optional(),
+})
+
+export const MikkLockGenericSchema = z.object({
+    id: z.string(),
+    name: z.string(),
+    type: z.string(),
+    file: z.string(),
+    startLine: z.number(),
+    endLine: z.number(),
+    moduleId: z.string(),
+    isExported: z.boolean(),
+    purpose: z.string().optional(),
+})
+
 export const MikkLockSchema = z.object({
     version: z.string(),
     generatedAt: z.string(),
@@ -100,6 +129,8 @@ export const MikkLockSchema = z.object({
     }),
     modules: z.record(MikkLockModuleSchema),
     functions: z.record(MikkLockFunctionSchema),
+    classes: z.record(MikkLockClassSchema).optional(),
+    generics: z.record(MikkLockGenericSchema).optional(),
     files: z.record(MikkLockFileSchema),
     graph: z.object({
         nodes: z.number(),
@@ -112,3 +143,5 @@ export type MikkLock = z.infer<typeof MikkLockSchema>
 export type MikkLockFunction = z.infer<typeof MikkLockFunctionSchema>
 export type MikkLockModule = z.infer<typeof MikkLockModuleSchema>
 export type MikkLockFile = z.infer<typeof MikkLockFileSchema>
+export type MikkLockClass = z.infer<typeof MikkLockClassSchema>
+export type MikkLockGeneric = z.infer<typeof MikkLockGenericSchema>

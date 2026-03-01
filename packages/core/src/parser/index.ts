@@ -9,6 +9,7 @@ export { BaseParser } from './base-parser.js'
 export { TypeScriptParser } from './typescript/ts-parser.js'
 export { TypeScriptExtractor } from './typescript/ts-extractor.js'
 export { TypeScriptResolver } from './typescript/ts-resolver.js'
+export { BoundaryChecker } from './boundary-checker.js'
 
 /** Get the appropriate parser for a file based on its extension */
 export function getParser(filePath: string): BaseParser {

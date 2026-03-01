@@ -21,6 +21,8 @@ export class LockCompiler {
         parsedFiles: ParsedFile[]
     ): MikkLock {
         const functions = this.compileFunctions(graph, contract)
+        const classes = this.compileClasses(graph, contract)
+        const generics = this.compileGenerics(graph, contract)
         const modules = this.compileModules(contract, parsedFiles)
         const files = this.compileFiles(parsedFiles, contract)
 
@@ -42,6 +44,8 @@ export class LockCompiler {
             },
             modules,
             functions,
+            classes: Object.keys(classes).length > 0 ? classes : undefined,
+            generics: Object.keys(generics).length > 0 ? generics : undefined,
             files,
             graph: {
                 nodes: graph.nodes.size,
@@ -53,6 +57,8 @@ export class LockCompiler {
         // Compute overall lock hash from the compiled data
         lockData.syncState.lockHash = hashContent(JSON.stringify({
             functions: lockData.functions,
+            classes: lockData.classes,
+            generics: lockData.generics,
             modules: lockData.modules,
             files: lockData.files,
         }))
@@ -91,6 +97,53 @@ export class LockCompiler {
             }
         }
 
+        return result
+    }
+
+    private compileClasses(
+        graph: DependencyGraph,
+        contract: MikkContract
+    ): Record<string, any> {
+        const result: Record<string, any> = {}
+        for (const [id, node] of graph.nodes) {
+            if (node.type !== 'class') continue
+            const moduleId = this.findModule(node.file, contract.declared.modules)
+            result[id] = {
+                id,
+                name: node.label,
+                file: node.file,
+                startLine: node.metadata.startLine ?? 0,
+                endLine: node.metadata.endLine ?? 0,
+                moduleId: moduleId || 'unknown',
+                isExported: node.metadata.isExported ?? false,
+                purpose: node.metadata.purpose,
+                edgeCasesHandled: node.metadata.edgeCasesHandled,
+                errorHandling: node.metadata.errorHandling,
+            }
+        }
+        return result
+    }
+
+    private compileGenerics(
+        graph: DependencyGraph,
+        contract: MikkContract
+    ): Record<string, any> {
+        const result: Record<string, any> = {}
+        for (const [id, node] of graph.nodes) {
+            if (node.type !== 'generic') continue
+            const moduleId = this.findModule(node.file, contract.declared.modules)
+            result[id] = {
+                id,
+                name: node.label,
+                type: node.metadata.hash ?? 'generic', // we stored type name in hash
+                file: node.file,
+                startLine: node.metadata.startLine ?? 0,
+                endLine: node.metadata.endLine ?? 0,
+                moduleId: moduleId || 'unknown',
+                isExported: node.metadata.isExported ?? false,
+                purpose: node.metadata.purpose,
+            }
+        }
         return result
     }
 

@@ -136,12 +136,19 @@ describe('ImpactAnalyzer', () => {
 describe('ClusterDetector', () => {
     it('groups files by directory', () => {
         const files = [
-            mockParsedFile('src/auth/verify.ts', [mockFunction('verifyToken', [], 'src/auth/verify.ts')]),
-            mockParsedFile('src/auth/middleware.ts', [mockFunction('authMiddleware', [], 'src/auth/middleware.ts')]),
+            mockParsedFile('src/auth/verify.ts',
+                [mockFunction('verifyToken', ['authMiddleware'], 'src/auth/verify.ts')],
+                [mockImport('./middleware', ['authMiddleware'], 'src/auth/middleware.ts')]
+            ),
+            mockParsedFile('src/auth/middleware.ts',
+                [mockFunction('authMiddleware', ['verifyToken'], 'src/auth/middleware.ts')],
+                [mockImport('./verify', ['verifyToken'], 'src/auth/verify.ts')]
+            ),
             mockParsedFile('src/payments/charge.ts', [mockFunction('charge', [], 'src/payments/charge.ts')]),
         ]
         const graph = new GraphBuilder().build(files)
-        const detector = new ClusterDetector(graph)
+        // Use minClusterSize=1 so even single-file groups appear
+        const detector = new ClusterDetector(graph, 1)
         const clusters = detector.detect()
         expect(clusters.length).toBeGreaterThanOrEqual(2)
         const authCluster = clusters.find(c => c.id === 'auth')
@@ -154,7 +161,7 @@ describe('ClusterDetector', () => {
             mockParsedFile('src/auth/verify.ts', [mockFunction('verifyToken', [], 'src/auth/verify.ts')]),
         ]
         const graph = new GraphBuilder().build(files)
-        const detector = new ClusterDetector(graph)
+        const detector = new ClusterDetector(graph, 1)
         const score = detector.computeClusterConfidence(['src/auth/verify.ts'])
         expect(score).toBeGreaterThanOrEqual(0)
         expect(score).toBeLessThanOrEqual(1)

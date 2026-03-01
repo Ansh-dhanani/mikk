@@ -1,4 +1,4 @@
-import type { MikkContract, MikkLock } from '@mikk/core'
+import type { MikkContract, MikkLock } from '@ansh-dhanani/core'
 
 /**
  * ImpactDiagramGenerator — generates a Mermaid diagram showing the

@@ -1,8 +1,7 @@
-import type { MikkContract, MikkLock, MikkLockFunction } from '@mikk/core'
+import type { MikkContract, MikkLock, MikkLockFunction } from '@ansh-dhanani/core'
 
 /** The structured context object passed to AI models */
 export interface AIContext {
-    /** Project-level information */
     project: {
         name: string
         language: string
@@ -10,14 +9,18 @@ export interface AIContext {
         moduleCount: number
         functionCount: number
     }
-    /** Relevant modules with their functions */
     modules: ContextModule[]
-    /** Constraints the AI must respect */
     constraints: string[]
-    /** Architectural decisions for context */
     decisions: { title: string; reason: string }[]
-    /** Generated prompt section */
     prompt: string
+    /** Diagnostic info — helpful for debugging context quality */
+    meta: {
+        seedCount: number
+        totalFunctionsConsidered: number
+        selectedFunctions: number
+        estimatedTokens: number
+        keywords: string[]
+    }
 }
 
 export interface ContextModule {
@@ -36,19 +39,26 @@ export interface ContextFunction {
     endLine: number
     calls: string[]
     calledBy: string[]
+    purpose?: string
+    errorHandling?: string[]
+    edgeCases?: string[]
 }
 
 /** Query options for context generation */
 export interface ContextQuery {
-    /** The user's task description */
+    /** The user's task description — the primary relevance signal */
     task: string
-    /** Specific files to focus on */
+    /** Specific files to anchor the graph traversal from */
     focusFiles?: string[]
     /** Specific modules to include */
     focusModules?: string[]
-    /** Maximum number of functions to include */
+    /** Max functions to include in output (hard cap) */
     maxFunctions?: number
-    /** Include call graph details */
+    /** Max BFS hops from seed nodes (default 4) */
+    maxHops?: number
+    /** Approximate token budget for function listings (default 6000) */
+    tokenBudget?: number
+    /** Include call graph arrows (default true) */
     includeCallGraph?: boolean
 }
 

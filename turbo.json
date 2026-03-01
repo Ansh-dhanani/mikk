@@ -18,6 +18,11 @@
             "cache": false,
             "persistent": true
         },
-        "lint": {}
+        "lint": {},
+        "publish": {
+            "dependsOn": [
+                "build"
+            ]
+        }
     }
 }

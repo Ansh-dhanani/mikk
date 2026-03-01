@@ -22,8 +22,11 @@ export class GraphBuilder {
             for (const fn of file.functions) {
                 this.addFunctionNode(graph, fn)
             }
-            for (const cls of file.classes) {
+            for (const cls of file.classes || []) {
                 this.addClassNode(graph, cls, file.path)
+            }
+            for (const gen of file.generics || []) {
+                this.addGenericNode(graph, gen)
             }
         }
 
@@ -74,19 +77,38 @@ export class GraphBuilder {
         // Add a node for the class itself
         graph.nodes.set(cls.id, {
             id: cls.id,
-            type: 'function', // treat classes as function-type nodes
+            type: 'class',
             label: cls.name,
             file: filePath,
             metadata: {
                 startLine: cls.startLine,
                 endLine: cls.endLine,
                 isExported: cls.isExported,
+                purpose: cls.purpose,
+                edgeCasesHandled: cls.edgeCasesHandled,
+                errorHandling: cls.errorHandling,
             },
         })
         // Add nodes for each method
         for (const method of cls.methods) {
             this.addFunctionNode(graph, method)
         }
+    }
+
+    private addGenericNode(graph: DependencyGraph, gen: any): void {
+        graph.nodes.set(gen.id, {
+            id: gen.id,
+            type: 'generic',
+            label: gen.name,
+            file: gen.file,
+            metadata: {
+                startLine: gen.startLine,
+                endLine: gen.endLine,
+                isExported: gen.isExported,
+                purpose: gen.purpose,
+                hash: gen.type, // reusing hash or just storing the type string
+            },
+        })
     }
 
     /** Creates edges for import statements: fileA imports fileB → edge(A, B, 'imports') */

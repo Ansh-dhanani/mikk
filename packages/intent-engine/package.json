@@ -1,6 +1,6 @@
 {
-    "name": "@mikk/intent-engine",
-    "version": "1.0.0",
+    "name": "@ansh-dhanani/intent-engine",
+    "version": "1.1.0",
     "type": "module",
     "main": "./dist/index.js",
     "types": "./dist/index.d.ts",
@@ -13,10 +13,11 @@
     "scripts": {
         "build": "tsc",
         "test": "bun test",
+        "publish": "npm publish --access public",
         "dev": "tsc --watch"
     },
     "dependencies": {
-        "@mikk/core": "workspace:*",
+        "@ansh-dhanani/core": "workspace:*",
         "zod": "^3.22.0"
     },
     "devDependencies": {

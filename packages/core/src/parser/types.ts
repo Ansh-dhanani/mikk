@@ -21,6 +21,8 @@ export interface ParsedFunction {
     returnType: string      // "boolean"
     isExported: boolean     // true
     isAsync: boolean        // false
+    isGenerator?: boolean   // true for function* / async function*
+    typeParameters?: string[] // ["T", "U"] for generic functions
     calls: string[]         // ["jwtDecode", "findUser"]
     hash: string            // SHA-256 of the function body
     purpose: string         // Extracted from JSDoc or comments
@@ -54,6 +56,24 @@ export interface ParsedClass {
     endLine: number
     methods: ParsedFunction[]
     isExported: boolean
+    decorators?: string[]   // ["Injectable", "Controller"]
+    typeParameters?: string[] // ["T"] for generic classes
+    purpose?: string
+    edgeCasesHandled?: string[]
+    errorHandling?: { line: number, type: 'try-catch' | 'throw', detail: string }[]
+}
+
+/** A generic declaration like interface, type, or constant with metadata */
+export interface ParsedGeneric {
+    id: string
+    name: string
+    type: string // "interface" | "type" | "const"
+    file: string
+    startLine: number
+    endLine: number
+    isExported: boolean
+    typeParameters?: string[] // ["T", "K"] for generic interfaces/types
+    purpose?: string
 }
 
 /** Everything extracted from a single file */
@@ -62,6 +82,7 @@ export interface ParsedFile {
     language: 'typescript' | 'python'
     functions: ParsedFunction[]
     classes: ParsedClass[]
+    generics: ParsedGeneric[]
     imports: ParsedImport[]
     exports: ParsedExport[]
     hash: string            // SHA-256 of the entire file content
