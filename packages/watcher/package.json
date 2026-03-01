@@ -1,5 +1,5 @@
 {
-    "name": "@ansh_dhanani/watcher",
+    "name": "@getmikk/watcher",
     "version": "1.2.0",
     "type": "module",
     "main": "./dist/index.js",
@@ -13,11 +13,10 @@
     "scripts": {
         "build": "tsc",
         "test": "bun test",
-        "publish": "npm publish --access public",
         "dev": "tsc --watch"
     },
     "dependencies": {
-        "@ansh_dhanani/core": "workspace:*",
+        "@getmikk/core": "workspace:*",
         "chokidar": "^4.0.0"
     },
     "devDependencies": {

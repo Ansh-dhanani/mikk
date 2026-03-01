@@ -1,7 +1,7 @@
 {
   "version": "1.0.0",
   "generatedAt": "2026-02-28T10:10:53.862Z",
-  "generatorVersion": "mikk-cli@1.0.0",
+  "generatorVersion": "@getmikk/cli@1.2.1",
   "projectRoot": "Mesh",
   "syncState": {
     "status": "clean",

@@ -4,7 +4,7 @@ import {
     GraphBuilder, LockCompiler, LockReader, ContractReader,
     parseFiles, readFileContent, discoverFiles, logger,
     type DependencyGraph, type MikkLock, type MikkContract
-} from '@ansh_dhanani/core'
+} from '@getmikk/core'
 import { FileWatcher } from './file-watcher.js'
 import { IncrementalAnalyzer } from './incremental-analyzer.js'
 import type { WatcherConfig, WatcherEvent, FileChangeEvent } from './types.js'

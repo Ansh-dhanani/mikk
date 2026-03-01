@@ -3,7 +3,7 @@ import * as path from 'node:path'
 import {
     getParser, GraphBuilder, ImpactAnalyzer, LockCompiler, hashFile,
     type ParsedFile, type DependencyGraph, type MikkLock, type MikkContract, type ImpactResult
-} from '@ansh_dhanani/core'
+} from '@getmikk/core'
 import type { FileChangeEvent } from './types.js'
 
 /** Threshold: if batch size exceeds this, run full re-analysis */

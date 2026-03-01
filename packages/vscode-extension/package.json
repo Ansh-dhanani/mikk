@@ -1,5 +1,5 @@
 {
-    "name": "@ansh_dhanani/vscode-extension",
+    "name": "@getmikk/vscode-extension",
     "displayName": "Mikk - Codebase Nervous System",
     "description": "VS Code extension for Mikk — see your architecture, get AI context, detect impact",
     "version": "1.2.0",
@@ -73,9 +73,9 @@
         "package": "npx -y @vscode/vsce package"
     },
     "dependencies": {
-        "@ansh_dhanani/core": "workspace:*",
-        "@ansh_dhanani/diagram-generator": "workspace:*",
-        "@ansh_dhanani/ai-context": "workspace:*"
+        "@getmikk/core": "workspace:*",
+        "@getmikk/diagram-generator": "workspace:*",
+        "@getmikk/ai-context": "workspace:*"
     },
     "devDependencies": {
         "@types/vscode": "^1.85.0",

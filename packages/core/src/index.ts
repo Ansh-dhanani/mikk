@@ -1,5 +1,5 @@
-// @ansh_dhanani/core — Public API
-// Every other package imports from '@ansh_dhanani/core'
+// @getmikk/core — Public API
+// Every other package imports from '@getmikk/core'
 
 export * from './parser/index.js'
 export * from './graph/index.js'

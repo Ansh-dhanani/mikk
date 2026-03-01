@@ -5,7 +5,7 @@ import chalk from 'chalk'
 import {
     discoverFiles, parseFiles, readFileContent,
     GraphBuilder, LockCompiler, ContractReader, LockReader,
-} from '@ansh_dhanani/core'
+} from '@getmikk/core'
 
 export function registerAnalyzeCommand(program: Command) {
     program
@@ -37,13 +37,13 @@ export function registerAnalyzeCommand(program: Command) {
                 await lockReader.write(lock, path.join(projectRoot, 'mikk.lock.json'))
 
                 spinner.text = 'Generating Mermaid diagrams...'
-                const { DiagramOrchestrator } = await import('@ansh_dhanani/diagram-generator')
+                const { DiagramOrchestrator } = await import('@getmikk/diagram-generator')
                 const orchestrator = new DiagramOrchestrator(contract, lock, projectRoot)
                 await orchestrator.generateAll()
 
                 // Generate claude.md / AGENTS.md
                 spinner.text = 'Generating AI context files...'
-                const { ClaudeMdGenerator } = await import('@ansh_dhanani/ai-context')
+                const { ClaudeMdGenerator } = await import('@getmikk/ai-context')
                 const mdGenerator = new ClaudeMdGenerator(contract, lock)
                 const claudeMd = mdGenerator.generate()
                 const fs = await import('node:fs/promises')

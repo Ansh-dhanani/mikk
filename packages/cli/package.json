@@ -1,6 +1,6 @@
 {
-    "name": "mikk-cli",
-    "version": "1.2.0",
+    "name": "@getmikk/cli",
+    "version": "1.2.1",
     "main": "./dist/index.js",
     "bin": {
         "mikk": "bin/mikk.js"
@@ -10,16 +10,15 @@
         "bin"
     ],
     "scripts": {
-        "build": "esbuild src/index.ts --bundle --platform=node --format=cjs --sourcemap --outfile=dist/index.js --banner:js=\"#!/usr/bin/env node\" --define:process.env.MIKK_VERSION='\"1.2.0\"' \"--external:@ansh_dhanani/*\"",
+        "build": "esbuild src/index.ts --bundle --platform=node --format=cjs --sourcemap --outfile=dist/index.js --banner:js=\"#!/usr/bin/env node\" --define:process.env.MIKK_VERSION='\"1.2.1\"' \"--external:@getmikk/*\"",
         "test": "bun test",
-        "publish": "npm publish --access public",
         "dev": "tsc --watch"
     },
     "dependencies": {
-        "@ansh_dhanani/ai-context": "workspace:*",
-        "@ansh_dhanani/core": "workspace:*",
-        "@ansh_dhanani/diagram-generator": "workspace:*",
-        "@ansh_dhanani/intent-engine": "workspace:*",
+        "@getmikk/ai-context": "workspace:*",
+        "@getmikk/core": "workspace:*",
+        "@getmikk/diagram-generator": "workspace:*",
+        "@getmikk/intent-engine": "workspace:*",
         "chalk": "^5.4.0",
         "commander": "^13.0.0",
         "ora": "^8.0.0"

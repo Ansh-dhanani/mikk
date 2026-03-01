@@ -1,6 +1,6 @@
 import type { Command } from 'commander'
 import chalk from 'chalk'
-import { WatcherDaemon } from '@ansh_dhanani/watcher'
+import { WatcherDaemon } from '@getmikk/watcher'
 
 export function registerWatchCommand(program: Command) {
     program

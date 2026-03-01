@@ -1,5 +1,5 @@
 {
-    "name": "@ansh_dhanani/ai-context",
+    "name": "@getmikk/ai-context",
     "version": "1.2.0",
     "type": "module",
     "main": "./dist/index.js",
@@ -13,12 +13,11 @@
     "scripts": {
         "build": "tsc",
         "test": "bun test",
-        "publish": "npm publish --access public",
         "dev": "tsc --watch"
     },
     "dependencies": {
-        "@ansh_dhanani/core": "workspace:*",
-        "@ansh_dhanani/intent-engine": "workspace:*"
+        "@getmikk/core": "workspace:*",
+        "@getmikk/intent-engine": "workspace:*"
     },
     "devDependencies": {
         "typescript": "^5.7.0",

@@ -1,5 +1,5 @@
 {
-    "name": "@ansh_dhanani/web",
+    "name": "@getmikk/web",
     "version": "1.2.0",
     "private": true,
     "type": "module",
@@ -9,9 +9,9 @@
         "start": "echo 'Start the Next.js app'"
     },
     "dependencies": {
-        "@ansh_dhanani/core": "workspace:*",
-        "@ansh_dhanani/diagram-generator": "workspace:*",
-        "@ansh_dhanani/ai-context": "workspace:*"
+        "@getmikk/core": "workspace:*",
+        "@getmikk/diagram-generator": "workspace:*",
+        "@getmikk/ai-context": "workspace:*"
     },
     "devDependencies": {
         "typescript": "^5.7.0",

@@ -1,4 +1,4 @@
-import type { MikkContract, MikkLock, MikkLockFunction } from '@ansh_dhanani/core'
+import type { MikkContract, MikkLock, MikkLockFunction } from '@getmikk/core'
 
 /** Default token budget for claude.md — prevents bloating the context window */
 const DEFAULT_TOKEN_BUDGET = 6000

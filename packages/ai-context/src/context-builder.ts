@@ -1,4 +1,4 @@
-import type { MikkContract, MikkLock, MikkLockFunction } from '@ansh_dhanani/core'
+import type { MikkContract, MikkLock, MikkLockFunction } from '@getmikk/core'
 import type { AIContext, ContextQuery, ContextModule, ContextFunction } from './types.js'
 
 // ---------------------------------------------------------------------------

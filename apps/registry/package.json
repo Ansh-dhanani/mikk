@@ -1,5 +1,5 @@
 {
-    "name": "@ansh_dhanani/registry",
+    "name": "@getmikk/registry",
     "version": "1.2.0",
     "private": true,
     "type": "module",
@@ -9,7 +9,7 @@
         "start": "bun run dist/index.js"
     },
     "dependencies": {
-        "@ansh_dhanani/core": "workspace:*"
+        "@getmikk/core": "workspace:*"
     },
     "devDependencies": {
         "typescript": "^5.7.0",

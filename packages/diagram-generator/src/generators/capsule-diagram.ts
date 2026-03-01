@@ -1,4 +1,4 @@
-import type { MikkContract, MikkLock } from '@ansh_dhanani/core'
+import type { MikkContract, MikkLock } from '@getmikk/core'
 
 /**
  * CapsuleDiagramGenerator — generates capsule diagrams that show

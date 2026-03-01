@@ -12,10 +12,10 @@
       },
     },
     "apps/registry": {
-      "name": "@ansh_dhanani/registry",
+      "name": "@getmikk/registry",
       "version": "1.2.0",
       "dependencies": {
-        "@ansh_dhanani/core": "workspace:*",
+        "@getmikk/core": "workspace:*",
       },
       "devDependencies": {
         "@types/node": "^22.0.0",
@@ -23,12 +23,12 @@
       },
     },
     "apps/web": {
-      "name": "@ansh_dhanani/web",
+      "name": "@getmikk/web",
       "version": "1.2.0",
       "dependencies": {
-        "@ansh_dhanani/ai-context": "workspace:*",
-        "@ansh_dhanani/core": "workspace:*",
-        "@ansh_dhanani/diagram-generator": "workspace:*",
+        "@getmikk/ai-context": "workspace:*",
+        "@getmikk/core": "workspace:*",
+        "@getmikk/diagram-generator": "workspace:*",
       },
       "devDependencies": {
         "@types/node": "^22.0.0",
@@ -36,11 +36,11 @@
       },
     },
     "packages/ai-context": {
-      "name": "@ansh_dhanani/ai-context",
+      "name": "@getmikk/ai-context",
       "version": "1.2.0",
       "dependencies": {
-        "@ansh_dhanani/core": "workspace:*",
-        "@ansh_dhanani/intent-engine": "workspace:*",
+        "@getmikk/core": "workspace:*",
+        "@getmikk/intent-engine": "workspace:*",
       },
       "devDependencies": {
         "@types/node": "^22.0.0",
@@ -48,16 +48,16 @@
       },
     },
     "packages/cli": {
-      "name": "mikk-cli",
-      "version": "1.2.0",
+      "name": "@getmikk/cli",
+      "version": "1.2.1",
       "bin": {
         "mikk": "bin/mikk.js",
       },
       "dependencies": {
-        "@ansh_dhanani/ai-context": "workspace:*",
-        "@ansh_dhanani/core": "workspace:*",
-        "@ansh_dhanani/diagram-generator": "workspace:*",
-        "@ansh_dhanani/intent-engine": "workspace:*",
+        "@getmikk/ai-context": "workspace:*",
+        "@getmikk/core": "workspace:*",
+        "@getmikk/diagram-generator": "workspace:*",
+        "@getmikk/intent-engine": "workspace:*",
         "chalk": "^5.4.0",
         "commander": "^13.0.0",
         "ora": "^8.0.0",
@@ -69,7 +69,7 @@
       },
     },
     "packages/core": {
-      "name": "@ansh_dhanani/core",
+      "name": "@getmikk/core",
       "version": "1.2.0",
       "dependencies": {
         "@types/better-sqlite3": "^7.6.13",
@@ -83,10 +83,10 @@
       },
     },
     "packages/diagram-generator": {
-      "name": "@ansh_dhanani/diagram-generator",
+      "name": "@getmikk/diagram-generator",
       "version": "1.2.0",
       "dependencies": {
-        "@ansh_dhanani/core": "workspace:*",
+        "@getmikk/core": "workspace:*",
       },
       "devDependencies": {
         "@types/node": "^22.0.0",
@@ -94,10 +94,10 @@
       },
     },
     "packages/intent-engine": {
-      "name": "@ansh_dhanani/intent-engine",
+      "name": "@getmikk/intent-engine",
       "version": "1.2.0",
       "dependencies": {
-        "@ansh_dhanani/core": "workspace:*",
+        "@getmikk/core": "workspace:*",
         "zod": "^3.22.0",
       },
       "devDependencies": {
@@ -106,12 +106,12 @@
       },
     },
     "packages/vscode-extension": {
-      "name": "@ansh_dhanani/vscode-extension",
+      "name": "@getmikk/vscode-extension",
       "version": "1.2.0",
       "dependencies": {
-        "@ansh_dhanani/ai-context": "workspace:*",
-        "@ansh_dhanani/core": "workspace:*",
-        "@ansh_dhanani/diagram-generator": "workspace:*",
+        "@getmikk/ai-context": "workspace:*",
+        "@getmikk/core": "workspace:*",
+        "@getmikk/diagram-generator": "workspace:*",
       },
       "devDependencies": {
         "@types/vscode": "^1.85.0",
@@ -119,10 +119,10 @@
       },
     },
     "packages/watcher": {
-      "name": "@ansh_dhanani/watcher",
+      "name": "@getmikk/watcher",
       "version": "1.2.0",
       "dependencies": {
-        "@ansh_dhanani/core": "workspace:*",
+        "@getmikk/core": "workspace:*",
         "chokidar": "^4.0.0",
       },
       "devDependencies": {
@@ -132,22 +132,6 @@
     },
   },
   "packages": {
-    "@ansh_dhanani/ai-context": ["@ansh_dhanani/ai-context@workspace:packages/ai-context"],
-
-    "@ansh_dhanani/core": ["@ansh_dhanani/core@workspace:packages/core"],
-
-    "@ansh_dhanani/diagram-generator": ["@ansh_dhanani/diagram-generator@workspace:packages/diagram-generator"],
-
-    "@ansh_dhanani/intent-engine": ["@ansh_dhanani/intent-engine@workspace:packages/intent-engine"],
-
-    "@ansh_dhanani/registry": ["@ansh_dhanani/registry@workspace:apps/registry"],
-
-    "@ansh_dhanani/vscode-extension": ["@ansh_dhanani/vscode-extension@workspace:packages/vscode-extension"],
-
-    "@ansh_dhanani/watcher": ["@ansh_dhanani/watcher@workspace:packages/watcher"],
-
-    "@ansh_dhanani/web": ["@ansh_dhanani/web@workspace:apps/web"],
-
     "@esbuild/aix-ppc64": ["@esbuild/aix-ppc64@0.21.5", "", { "os": "aix", "cpu": "ppc64" }, "sha512-1SDgH6ZSPTlggy1yI6+Dbkiz8xzpHJEVAlF/AM1tHPLsf5STom9rwtjE4hKAF20FfXXNTFqEYXyJNWh1GiZedQ=="],
 
     "@esbuild/android-arm": ["@esbuild/android-arm@0.21.5", "", { "os": "android", "cpu": "arm" }, "sha512-vCPvzSjpPHEi1siZdlvAlsPxXl7WbOVUBBAowWug4rJHb68Ox8KualB+1ocNvT5fjv6wpkX6o/iEpbDrf68zcg=="],
@@ -193,6 +177,24 @@
     "@esbuild/win32-ia32": ["@esbuild/win32-ia32@0.21.5", "", { "os": "win32", "cpu": "ia32" }, "sha512-SWXFF1CL2RVNMaVs+BBClwtfZSvDgtL//G/smwAc5oVK/UPu2Gu9tIaRgFmYFFKrmg3SyAjSrElf0TiJ1v8fYA=="],
 
     "@esbuild/win32-x64": ["@esbuild/win32-x64@0.21.5", "", { "os": "win32", "cpu": "x64" }, "sha512-tQd/1efJuzPC6rCFwEvLtci/xNFcTZknmXs98FYDfGE4wP9ClFV98nyKrzJKVPMhdDnjzLhdUyMX4PsQAPjwIw=="],
+
+    "@getmikk/ai-context": ["@getmikk/ai-context@workspace:packages/ai-context"],
+
+    "@getmikk/cli": ["@getmikk/cli@workspace:packages/cli"],
+
+    "@getmikk/core": ["@getmikk/core@workspace:packages/core"],
+
+    "@getmikk/diagram-generator": ["@getmikk/diagram-generator@workspace:packages/diagram-generator"],
+
+    "@getmikk/intent-engine": ["@getmikk/intent-engine@workspace:packages/intent-engine"],
+
+    "@getmikk/registry": ["@getmikk/registry@workspace:apps/registry"],
+
+    "@getmikk/vscode-extension": ["@getmikk/vscode-extension@workspace:packages/vscode-extension"],
+
+    "@getmikk/watcher": ["@getmikk/watcher@workspace:packages/watcher"],
+
+    "@getmikk/web": ["@getmikk/web@workspace:apps/web"],
 
     "@nodelib/fs.scandir": ["@nodelib/fs.scandir@2.1.5", "", { "dependencies": { "@nodelib/fs.stat": "2.0.5", "run-parallel": "^1.1.9" } }, "sha512-vq24Bq3ym5HEQm2NKCr3yXDwjc7vTsEThRDnkp2DK9p1uqLR+DHurm/NOTo0KG7HYHU7eppKZj3MyqYuMBf62g=="],
 
@@ -287,8 +289,6 @@
     "merge2": ["merge2@1.4.1", "", {}, "sha512-8q7VEgMJW4J8tcfVPy8g09NcQwZdbwFEqhe/WZkoIzjn/3TGDwtOCYtXGxA3O8tPzpczCCDgv+P2P5y00ZJOOg=="],
 
     "micromatch": ["micromatch@4.0.8", "", { "dependencies": { "braces": "^3.0.3", "picomatch": "^2.3.1" } }, "sha512-PXwfBhYu0hBCPw8Dn0E+WDYb7af3dSLVWKi3HGv84IdF4TyFoC0ysxFd0Goxw7nSv4T/PzEJQxsYsEiFCKo2BA=="],
-
-    "mikk-cli": ["mikk-cli@workspace:packages/cli"],
 
     "mimic-function": ["mimic-function@5.0.1", "", {}, "sha512-VP79XUPxV2CigYP3jWwAUFSku2aKqBH7uTAapFWCBqutsbmDo96KY5o8uh6U+/YSIn5OxJnXp73beVkpqMIGhA=="],
 

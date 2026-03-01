@@ -7,7 +7,7 @@ import { hashContent } from '../hash/file-hasher.js'
 import { computeModuleHash, computeRootHash } from '../hash/tree-hasher.js'
 import { minimatch } from '../utils/minimatch.js'
 
-const VERSION = 'mikk-cli@1.0.0'
+const VERSION = '@getmikk/cli@1.2.1'
 
 /**
  * LockCompiler — takes a DependencyGraph and a MikkContract

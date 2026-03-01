@@ -1,6 +1,6 @@
 import * as path from 'node:path'
 import * as fs from 'node:fs/promises'
-import type { MikkContract, MikkLock } from '@ansh_dhanani/core'
+import type { MikkContract, MikkLock } from '@getmikk/core'
 import { MainDiagramGenerator } from './generators/main-diagram.js'
 import { ModuleDiagramGenerator } from './generators/module-diagram.js'
 import { ImpactDiagramGenerator } from './generators/impact-diagram.js'

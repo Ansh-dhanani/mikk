@@ -3,7 +3,7 @@ import * as path from 'node:path'
 import type { MikkContract } from './schema.js'
 import { hashContent } from '../hash/file-hasher.js'
 
-const VERSION = 'mikk-cli@1.0.0'
+const VERSION = '@getmikk/cli@1.2.1'
 
 export interface UpdateResult {
     updated: boolean

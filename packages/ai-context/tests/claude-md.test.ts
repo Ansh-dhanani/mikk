@@ -1,6 +1,6 @@
 import { describe, test, expect } from 'bun:test'
 import { ClaudeMdGenerator } from '../src/claude-md-generator'
-import type { MikkContract, MikkLock } from '@ansh_dhanani/core'
+import type { MikkContract, MikkLock } from '@getmikk/core'
 
 const mockContract: MikkContract = {
     version: '1.0.0',

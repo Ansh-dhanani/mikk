@@ -1,5 +1,5 @@
 {
-    "name": "@ansh_dhanani/intent-engine",
+    "name": "@getmikk/intent-engine",
     "version": "1.2.0",
     "type": "module",
     "main": "./dist/index.js",
@@ -13,11 +13,10 @@
     "scripts": {
         "build": "tsc",
         "test": "bun test",
-        "publish": "npm publish --access public",
         "dev": "tsc --watch"
     },
     "dependencies": {
-        "@ansh_dhanani/core": "workspace:*",
+        "@getmikk/core": "workspace:*",
         "zod": "^3.22.0"
     },
     "devDependencies": {
