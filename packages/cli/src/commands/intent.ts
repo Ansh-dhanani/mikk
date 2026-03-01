@@ -2,7 +2,7 @@ import * as path from 'node:path'
 import type { Command } from 'commander'
 import chalk from 'chalk'
 import ora from 'ora'
-import { ContractReader, LockReader } from '@ansh-dhanani/core'
+import { ContractReader, LockReader } from '@ansh_dhanani/core'
 
 export function registerIntentCommand(program: Command) {
     program
@@ -22,7 +22,7 @@ export function registerIntentCommand(program: Command) {
                 const lock = await lockReader.read(path.join(projectRoot, 'mikk.lock.json'))
 
                 // Run pipeline
-                const { PreflightPipeline } = await import('@ansh-dhanani/intent-engine')
+                const { PreflightPipeline } = await import('@ansh_dhanani/intent-engine')
                 const pipeline = new PreflightPipeline(contract, lock)
                 const result = await pipeline.run(prompt)
                 spinner.stop()

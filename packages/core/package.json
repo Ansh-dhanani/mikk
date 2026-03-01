@@ -1,6 +1,6 @@
 {
-    "name": "@ansh-dhanani/core",
-    "version": "1.1.0",
+    "name": "@ansh_dhanani/core",
+    "version": "1.2.0",
     "type": "module",
     "main": "./dist/index.js",
     "types": "./dist/index.d.ts",

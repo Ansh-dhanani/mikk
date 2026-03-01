@@ -1,4 +1,4 @@
-import type { MikkContract, MikkLock, MikkLockFunction } from '@ansh-dhanani/core'
+import type { MikkContract, MikkLock, MikkLockFunction } from '@ansh_dhanani/core'
 
 /** The structured context object passed to AI models */
 export interface AIContext {

@@ -1,5 +1,5 @@
 import * as path from 'node:path'
-import type { MikkContract, MikkLock, MikkLockFunction } from '@ansh-dhanani/core'
+import type { MikkContract, MikkLock, MikkLockFunction } from '@ansh_dhanani/core'
 
 // ---------------------------------------------------------------------------
 // Types

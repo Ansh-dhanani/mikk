@@ -1,5 +1,5 @@
 /**
- * @ansh-dhanani/registry — Capsule Registry API
+ * @ansh_dhanani/registry — Capsule Registry API
  *
  * A package registry for Mikk capsules (reusable modules).
  * Scaffold for a Hono + PostgreSQL API server.

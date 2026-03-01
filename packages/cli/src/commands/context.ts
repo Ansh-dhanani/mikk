@@ -5,10 +5,10 @@ import chalk from 'chalk'
 import {
     ContractReader, LockReader, ImpactAnalyzer,
     GraphBuilder, parseFiles, readFileContent, discoverFiles,
-} from '@ansh-dhanani/core'
-import { ContextBuilder } from '@ansh-dhanani/ai-context'
-import { getProvider } from '@ansh-dhanani/ai-context'
-import type { ContextQuery } from '@ansh-dhanani/ai-context'
+} from '@ansh_dhanani/core'
+import { ContextBuilder } from '@ansh_dhanani/ai-context'
+import { getProvider } from '@ansh_dhanani/ai-context'
+import type { ContextQuery } from '@ansh_dhanani/ai-context'
 
 export function registerContextCommands(program: Command) {
     const context = program

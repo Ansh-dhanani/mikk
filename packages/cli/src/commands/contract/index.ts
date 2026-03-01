@@ -2,9 +2,9 @@ import * as path from 'node:path'
 import type { Command } from 'commander'
 import ora from 'ora'
 import chalk from 'chalk'
-import { ContractReader, LockReader, ContractWriter, discoverFiles, hashFile } from '@ansh-dhanani/core'
-import { BoundaryChecker } from '@ansh-dhanani/core'
-import type { MikkContract, MikkLock } from '@ansh-dhanani/core'
+import { ContractReader, LockReader, ContractWriter, discoverFiles, hashFile } from '@ansh_dhanani/core'
+import { BoundaryChecker } from '@ansh_dhanani/core'
+import type { MikkContract, MikkLock } from '@ansh_dhanani/core'
 
 export function registerContractCommands(program: Command) {
     const contract = program

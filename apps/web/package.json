@@ -1,6 +1,6 @@
 {
-    "name": "@ansh-dhanani/web",
-    "version": "1.1.0",
+    "name": "@ansh_dhanani/web",
+    "version": "1.2.0",
     "private": true,
     "type": "module",
     "scripts": {
@@ -9,9 +9,9 @@
         "start": "echo 'Start the Next.js app'"
     },
     "dependencies": {
-        "@ansh-dhanani/core": "workspace:*",
-        "@ansh-dhanani/diagram-generator": "workspace:*",
-        "@ansh-dhanani/ai-context": "workspace:*"
+        "@ansh_dhanani/core": "workspace:*",
+        "@ansh_dhanani/diagram-generator": "workspace:*",
+        "@ansh_dhanani/ai-context": "workspace:*"
     },
     "devDependencies": {
         "typescript": "^5.7.0",

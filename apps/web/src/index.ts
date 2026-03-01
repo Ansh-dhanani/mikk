@@ -1,5 +1,5 @@
 /**
- * @ansh-dhanani/web — Web Dashboard & Contract Generator
+ * @ansh_dhanani/web — Web Dashboard & Contract Generator
  *
  * This is a scaffold for the Mikk web application.
  * To set up the full Next.js app, run:
@@ -14,9 +14,9 @@
  * 5. Health Metrics — module coupling, cohesion, complexity
  *
  * Dependencies available from workspace:
- * - @ansh-dhanani/core — parser, graph, contract APIs
- * - @ansh-dhanani/diagram-generator — Mermaid diagram generation
- * - @ansh-dhanani/ai-context — AI context builder
+ * - @ansh_dhanani/core — parser, graph, contract APIs
+ * - @ansh_dhanani/diagram-generator — Mermaid diagram generation
+ * - @ansh_dhanani/ai-context — AI context builder
  */
 
 export function placeholder() {

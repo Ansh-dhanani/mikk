@@ -1,6 +1,6 @@
 {
-    "name": "@ansh-dhanani/registry",
-    "version": "1.1.0",
+    "name": "@ansh_dhanani/registry",
+    "version": "1.2.0",
     "private": true,
     "type": "module",
     "scripts": {
@@ -9,7 +9,7 @@
         "start": "bun run dist/index.js"
     },
     "dependencies": {
-        "@ansh-dhanani/core": "workspace:*"
+        "@ansh_dhanani/core": "workspace:*"
     },
     "devDependencies": {
         "typescript": "^5.7.0",

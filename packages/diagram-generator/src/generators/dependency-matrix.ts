@@ -1,4 +1,4 @@
-import type { MikkContract, MikkLock } from '@ansh-dhanani/core'
+import type { MikkContract, MikkLock } from '@ansh_dhanani/core'
 
 /**
  * DependencyMatrixGenerator — generates an N×N dependency matrix

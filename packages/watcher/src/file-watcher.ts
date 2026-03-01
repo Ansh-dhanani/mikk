@@ -1,6 +1,6 @@
 import * as path from 'node:path'
 import { watch } from 'chokidar'
-import { hashFile } from '@ansh-dhanani/core'
+import { hashFile } from '@ansh_dhanani/core'
 import type { WatcherConfig, WatcherEvent, FileChangeEvent } from './types.js'
 
 /**

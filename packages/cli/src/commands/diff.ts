@@ -1,7 +1,7 @@
 import * as path from 'node:path'
 import type { Command } from 'commander'
 import chalk from 'chalk'
-import { discoverFiles, hashFile, LockReader } from '@ansh-dhanani/core'
+import { discoverFiles, hashFile, LockReader } from '@ansh_dhanani/core'
 
 interface Change {
     type: 'added' | 'modified' | 'deleted'

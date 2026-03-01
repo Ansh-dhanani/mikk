@@ -1,5 +1,5 @@
 import * as path from 'node:path'
-import type { MikkContract, MikkLock } from '@ansh-dhanani/core'
+import type { MikkContract, MikkLock } from '@ansh_dhanani/core'
 
 /**
  * ModuleDiagramGenerator — generates a detailed Mermaid diagram for a

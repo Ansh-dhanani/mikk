@@ -1,4 +1,4 @@
-import type { MikkContract, MikkLock } from '@ansh-dhanani/core'
+import type { MikkContract, MikkLock } from '@ansh_dhanani/core'
 
 /**
  * FlowDiagramGenerator — generates sequence diagrams for specific

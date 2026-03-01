@@ -12,10 +12,10 @@
       },
     },
     "apps/registry": {
-      "name": "@ansh-dhanani/registry",
-      "version": "1.1.0",
+      "name": "@ansh_dhanani/registry",
+      "version": "1.2.0",
       "dependencies": {
-        "@ansh-dhanani/core": "workspace:*",
+        "@ansh_dhanani/core": "workspace:*",
       },
       "devDependencies": {
         "@types/node": "^22.0.0",
@@ -23,12 +23,12 @@
       },
     },
     "apps/web": {
-      "name": "@ansh-dhanani/web",
-      "version": "1.1.0",
+      "name": "@ansh_dhanani/web",
+      "version": "1.2.0",
       "dependencies": {
-        "@ansh-dhanani/ai-context": "workspace:*",
-        "@ansh-dhanani/core": "workspace:*",
-        "@ansh-dhanani/diagram-generator": "workspace:*",
+        "@ansh_dhanani/ai-context": "workspace:*",
+        "@ansh_dhanani/core": "workspace:*",
+        "@ansh_dhanani/diagram-generator": "workspace:*",
       },
       "devDependencies": {
         "@types/node": "^22.0.0",
@@ -36,11 +36,11 @@
       },
     },
     "packages/ai-context": {
-      "name": "@ansh-dhanani/ai-context",
-      "version": "1.1.0",
+      "name": "@ansh_dhanani/ai-context",
+      "version": "1.2.0",
       "dependencies": {
-        "@ansh-dhanani/core": "workspace:*",
-        "@ansh-dhanani/intent-engine": "workspace:*",
+        "@ansh_dhanani/core": "workspace:*",
+        "@ansh_dhanani/intent-engine": "workspace:*",
       },
       "devDependencies": {
         "@types/node": "^22.0.0",
@@ -49,15 +49,15 @@
     },
     "packages/cli": {
       "name": "mikk-cli",
-      "version": "1.1.0",
+      "version": "1.2.0",
       "bin": {
         "mikk": "bin/mikk.js",
       },
       "dependencies": {
-        "@ansh-dhanani/ai-context": "workspace:*",
-        "@ansh-dhanani/core": "workspace:*",
-        "@ansh-dhanani/diagram-generator": "workspace:*",
-        "@ansh-dhanani/intent-engine": "workspace:*",
+        "@ansh_dhanani/ai-context": "workspace:*",
+        "@ansh_dhanani/core": "workspace:*",
+        "@ansh_dhanani/diagram-generator": "workspace:*",
+        "@ansh_dhanani/intent-engine": "workspace:*",
         "chalk": "^5.4.0",
         "commander": "^13.0.0",
         "ora": "^8.0.0",
@@ -69,8 +69,8 @@
       },
     },
     "packages/core": {
-      "name": "@ansh-dhanani/core",
-      "version": "1.1.0",
+      "name": "@ansh_dhanani/core",
+      "version": "1.2.0",
       "dependencies": {
         "@types/better-sqlite3": "^7.6.13",
         "better-sqlite3": "^12.6.2",
@@ -83,10 +83,10 @@
       },
     },
     "packages/diagram-generator": {
-      "name": "@ansh-dhanani/diagram-generator",
-      "version": "1.1.0",
+      "name": "@ansh_dhanani/diagram-generator",
+      "version": "1.2.0",
       "dependencies": {
-        "@ansh-dhanani/core": "workspace:*",
+        "@ansh_dhanani/core": "workspace:*",
       },
       "devDependencies": {
         "@types/node": "^22.0.0",
@@ -94,10 +94,10 @@
       },
     },
     "packages/intent-engine": {
-      "name": "@ansh-dhanani/intent-engine",
-      "version": "1.1.0",
+      "name": "@ansh_dhanani/intent-engine",
+      "version": "1.2.0",
       "dependencies": {
-        "@ansh-dhanani/core": "workspace:*",
+        "@ansh_dhanani/core": "workspace:*",
         "zod": "^3.22.0",
       },
       "devDependencies": {
@@ -106,12 +106,12 @@
       },
     },
     "packages/vscode-extension": {
-      "name": "@ansh-dhanani/vscode-extension",
-      "version": "1.1.0",
+      "name": "@ansh_dhanani/vscode-extension",
+      "version": "1.2.0",
       "dependencies": {
-        "@ansh-dhanani/ai-context": "workspace:*",
-        "@ansh-dhanani/core": "workspace:*",
-        "@ansh-dhanani/diagram-generator": "workspace:*",
+        "@ansh_dhanani/ai-context": "workspace:*",
+        "@ansh_dhanani/core": "workspace:*",
+        "@ansh_dhanani/diagram-generator": "workspace:*",
       },
       "devDependencies": {
         "@types/vscode": "^1.85.0",
@@ -119,10 +119,10 @@
       },
     },
     "packages/watcher": {
-      "name": "@ansh-dhanani/watcher",
-      "version": "1.1.0",
+      "name": "@ansh_dhanani/watcher",
+      "version": "1.2.0",
       "dependencies": {
-        "@ansh-dhanani/core": "workspace:*",
+        "@ansh_dhanani/core": "workspace:*",
         "chokidar": "^4.0.0",
       },
       "devDependencies": {
@@ -132,21 +132,21 @@
     },
   },
   "packages": {
-    "@ansh-dhanani/ai-context": ["@ansh-dhanani/ai-context@workspace:packages/ai-context"],
+    "@ansh_dhanani/ai-context": ["@ansh_dhanani/ai-context@workspace:packages/ai-context"],
 
-    "@ansh-dhanani/core": ["@ansh-dhanani/core@workspace:packages/core"],
+    "@ansh_dhanani/core": ["@ansh_dhanani/core@workspace:packages/core"],
 
-    "@ansh-dhanani/diagram-generator": ["@ansh-dhanani/diagram-generator@workspace:packages/diagram-generator"],
+    "@ansh_dhanani/diagram-generator": ["@ansh_dhanani/diagram-generator@workspace:packages/diagram-generator"],
 
-    "@ansh-dhanani/intent-engine": ["@ansh-dhanani/intent-engine@workspace:packages/intent-engine"],
+    "@ansh_dhanani/intent-engine": ["@ansh_dhanani/intent-engine@workspace:packages/intent-engine"],
 
-    "@ansh-dhanani/registry": ["@ansh-dhanani/registry@workspace:apps/registry"],
+    "@ansh_dhanani/registry": ["@ansh_dhanani/registry@workspace:apps/registry"],
 
-    "@ansh-dhanani/vscode-extension": ["@ansh-dhanani/vscode-extension@workspace:packages/vscode-extension"],
+    "@ansh_dhanani/vscode-extension": ["@ansh_dhanani/vscode-extension@workspace:packages/vscode-extension"],
 
-    "@ansh-dhanani/watcher": ["@ansh-dhanani/watcher@workspace:packages/watcher"],
+    "@ansh_dhanani/watcher": ["@ansh_dhanani/watcher@workspace:packages/watcher"],
 
-    "@ansh-dhanani/web": ["@ansh-dhanani/web@workspace:apps/web"],
+    "@ansh_dhanani/web": ["@ansh_dhanani/web@workspace:apps/web"],
 
     "@esbuild/aix-ppc64": ["@esbuild/aix-ppc64@0.21.5", "", { "os": "aix", "cpu": "ppc64" }, "sha512-1SDgH6ZSPTlggy1yI6+Dbkiz8xzpHJEVAlF/AM1tHPLsf5STom9rwtjE4hKAF20FfXXNTFqEYXyJNWh1GiZedQ=="],
 
