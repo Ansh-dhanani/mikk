@@ -32,8 +32,8 @@ jobs:
       - name: Build extension
         run: cd packages/vscode-extension && bun run build
 
-      - name: Install vsce
-        run: npm install -g @vscode/vsce
+      - name: Install tools
+        run: npm install -g @vscode/vsce ovsx
 
       - name: Bump version
         id: bump
@@ -46,8 +46,8 @@ jobs:
       - name: Package extension
         run: cd packages/vscode-extension && vsce package --no-dependencies
 
-      - name: Publish to VS Code Marketplace
-        run: cd packages/vscode-extension && vsce publish --no-dependencies --pat ${{ secrets.VSCE_PAT }}
+      - name: Publish to Open VSX
+        run: cd packages/vscode-extension && ovsx publish *.vsix -p ${{ secrets.OVSX_TOKEN }}
 
       - name: Commit version bump
         run: |
