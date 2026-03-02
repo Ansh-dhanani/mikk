@@ -104,6 +104,48 @@ jobs:
       - name: Run tests
         run: bun run test
 
+      - name: Commit version bumps
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add packages/*/package.json
+          git diff --staged --quiet || git commit -m "chore: release v${{ steps.versions.outputs.version }} (${{ inputs.version_bump }})"
+          git push
+
+      - name: Tag release
+        run: |
+          git tag "v${{ steps.versions.outputs.version }}"
+          git push origin "v${{ steps.versions.outputs.version }}"
+
+      - name: Replace workspace:* with real versions
+        run: |
+          node -e "
+            const fs = require('fs');
+            const pkgs = [
+              'packages/core', 'packages/intent-engine', 'packages/diagram-generator',
+              'packages/watcher', 'packages/ai-context', 'packages/cli'
+            ];
+            const versions = {};
+            for (const p of pkgs) {
+              const pkg = JSON.parse(fs.readFileSync(p + '/package.json', 'utf8'));
+              versions[pkg.name] = pkg.version;
+            }
+            for (const p of pkgs) {
+              const path = p + '/package.json';
+              const pkg = JSON.parse(fs.readFileSync(path, 'utf8'));
+              for (const field of ['dependencies', 'devDependencies', 'peerDependencies']) {
+                if (!pkg[field]) continue;
+                for (const [name, ver] of Object.entries(pkg[field])) {
+                  if (ver === 'workspace:*' && versions[name]) {
+                    pkg[field][name] = '^' + versions[name];
+                  }
+                }
+              }
+              fs.writeFileSync(path, JSON.stringify(pkg, null, 4) + '\n');
+            }
+            console.log('Replaced workspace:* with real versions:', versions);
+          "
+
       - name: Dry-run publish (verify package contents)
         run: |
           dry() {
@@ -120,19 +162,6 @@ jobs:
           dry watcher           packages/watcher
           dry ai-context        packages/ai-context
           dry cli               packages/cli
-
-      - name: Commit version bumps
-        run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add packages/*/package.json
-          git diff --staged --quiet || git commit -m "chore: release v${{ steps.versions.outputs.version }} (${{ inputs.version_bump }})"
-          git push
-
-      - name: Tag release
-        run: |
-          git tag "v${{ steps.versions.outputs.version }}"
-          git push origin "v${{ steps.versions.outputs.version }}"
 
       - name: Setup Node.js for npm publish
         uses: actions/setup-node@v4
