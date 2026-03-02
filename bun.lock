@@ -58,6 +58,7 @@
         "@getmikk/core": "workspace:*",
         "@getmikk/diagram-generator": "workspace:*",
         "@getmikk/intent-engine": "workspace:*",
+        "@getmikk/watcher": "workspace:*",
         "chalk": "^5.4.0",
         "commander": "^13.0.0",
         "ora": "^8.0.0",
@@ -108,12 +109,10 @@
     "packages/vscode-extension": {
       "name": "mikk",
       "version": "1.2.0",
-      "dependencies": {
+      "devDependencies": {
         "@getmikk/ai-context": "^1.2.0",
         "@getmikk/core": "^1.2.0",
         "@getmikk/diagram-generator": "^1.2.0",
-      },
-      "devDependencies": {
         "@types/vscode": "^1.85.0",
         "esbuild": "^0.27.3",
         "typescript": "^5.7.0",
