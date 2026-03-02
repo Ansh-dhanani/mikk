@@ -19,7 +19,6 @@ on:
 
 permissions:
   contents: read
-  id-token: write
 
 jobs:
   publish:
@@ -52,36 +51,36 @@ jobs:
       # Publish in dependency order
       - name: Publish @getmikk/core
         if: ${{ inputs.package == 'all' || inputs.package == 'core' }}
-        run: cd packages/core && npm publish --access public --provenance
+        run: cd packages/core && npm publish --access public
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
       - name: Publish @getmikk/intent-engine
         if: ${{ inputs.package == 'all' || inputs.package == 'intent-engine' }}
-        run: cd packages/intent-engine && npm publish --access public --provenance
+        run: cd packages/intent-engine && npm publish --access public
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
       - name: Publish @getmikk/diagram-generator
         if: ${{ inputs.package == 'all' || inputs.package == 'diagram-generator' }}
-        run: cd packages/diagram-generator && npm publish --access public --provenance
+        run: cd packages/diagram-generator && npm publish --access public
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
       - name: Publish @getmikk/watcher
         if: ${{ inputs.package == 'all' || inputs.package == 'watcher' }}
-        run: cd packages/watcher && npm publish --access public --provenance
+        run: cd packages/watcher && npm publish --access public
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
       - name: Publish @getmikk/ai-context
         if: ${{ inputs.package == 'all' || inputs.package == 'ai-context' }}
-        run: cd packages/ai-context && npm publish --access public --provenance
+        run: cd packages/ai-context && npm publish --access public
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
       - name: Publish @getmikk/cli
         if: ${{ inputs.package == 'all' || inputs.package == 'cli' }}
-        run: cd packages/cli && npm publish --access public --provenance
+        run: cd packages/cli && npm publish --access public
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
