@@ -3,7 +3,7 @@
 > Intelligent context distillation for AI coding agents — builds token-budgeted, relevance-scored context payloads from the dependency graph, plus generates `claude.md` / `AGENTS.md` files.
 
 [![npm](https://img.shields.io/npm/v/@getmikk/ai-context)](https://www.npmjs.com/package/@getmikk/ai-context)
-[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](../../LICENSE)
+[![License: Apache-2.0](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](../../LICENSE)
 
 `@getmikk/ai-context` solves the "context window" problem for AI coding assistants. Instead of dumping your entire codebase into a prompt, it uses the dependency graph to trace only the relevant functions, files, and constraints for a given task — then packs them into a token-budgeted payload.
 
@@ -324,4 +324,4 @@ import type {
 
 ## License
 
-[MIT](../../LICENSE)
+[Apache-2.0](../../LICENSE)

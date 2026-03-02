@@ -3,7 +3,7 @@
 > Mermaid.js diagram generation — produces architecture, flow, health, impact, capsule, and dependency matrix visualizations from your codebase's lock file.
 
 [![npm](https://img.shields.io/npm/v/@getmikk/diagram-generator)](https://www.npmjs.com/package/@getmikk/diagram-generator)
-[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](../../LICENSE)
+[![License: Apache-2.0](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](../../LICENSE)
 
 `@getmikk/diagram-generator` turns the `mikk.json` contract and `mikk.lock.json` lock file into rich [Mermaid.js](https://mermaid.js.org/) diagrams. Every diagram is generated entirely from AST-derived data — no manual drawing required. Supports 7 diagram types covering everything from high-level architecture to per-function call flows.
 
@@ -242,4 +242,4 @@ import {
 
 ## License
 
-[MIT](../../LICENSE)
+[Apache-2.0](../../LICENSE)

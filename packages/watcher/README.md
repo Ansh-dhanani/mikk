@@ -3,7 +3,7 @@
 > Chokidar-powered file watcher daemon with incremental analysis, debouncing, race-condition protection, and atomic lock file updates.
 
 [![npm](https://img.shields.io/npm/v/@getmikk/watcher)](https://www.npmjs.com/package/@getmikk/watcher)
-[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](../../LICENSE)
+[![License: Apache-2.0](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](../../LICENSE)
 
 `@getmikk/watcher` keeps the `mikk.lock.json` file in sync with your codebase in real time. When files change, the watcher debounces events, incrementally re-parses only the affected files, updates the dependency graph, recomputes Merkle hashes, and writes the lock file atomically — all without requiring a full re-analysis.
 
@@ -262,4 +262,4 @@ import type {
 
 ## License
 
-[MIT](../../LICENSE)
+[Apache-2.0](../../LICENSE)

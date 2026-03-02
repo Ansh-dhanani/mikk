@@ -3,7 +3,7 @@
 > The command-line interface for Mikk — initialize, analyze, watch, validate, visualize, and query your codebase architecture from the terminal.
 
 [![npm](https://img.shields.io/npm/v/@getmikk/cli)](https://www.npmjs.com/package/@getmikk/cli)
-[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](../../LICENSE)
+[![License: Apache-2.0](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](../../LICENSE)
 
 `@getmikk/cli` (binary: `mikk`) is the primary interface for the Mikk ecosystem. It orchestrates all other packages — parsing, graph building, diagram generation, AI context, intent pre-flight — into a cohesive developer experience.
 
@@ -326,4 +326,4 @@ my-project/
 
 ## License
 
-[MIT](../../LICENSE)
+[Apache-2.0](../../LICENSE)

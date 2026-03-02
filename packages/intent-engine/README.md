@@ -3,7 +3,7 @@
 > AI pre-flight system — parses natural-language prompts into structured intents, detects constraint conflicts, and generates implementation suggestions before any code changes happen.
 
 [![npm](https://img.shields.io/npm/v/@getmikk/intent-engine)](https://www.npmjs.com/package/@getmikk/intent-engine)
-[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](../../LICENSE)
+[![License: Apache-2.0](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](../../LICENSE)
 
 `@getmikk/intent-engine` is the "pre-flight check" layer. Given a developer's natural-language description of what they want to do (e.g., *"add a caching layer to the auth module"*), the engine:
 
@@ -254,4 +254,4 @@ import type {
 
 ## License
 
-[MIT](../../LICENSE)
+[Apache-2.0](../../LICENSE)

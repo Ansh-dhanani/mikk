@@ -11,7 +11,7 @@
 
 <p align="center">
   <a href="https://www.npmjs.com/org/getmikk"><img src="https://img.shields.io/npm/v/@getmikk/core?label=%40getmikk%2Fcore" alt="npm" /></a>
-  <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue.svg" alt="License: MIT" /></a>
+  <a href="LICENSE"><img src="https://img.shields.io/badge/license-Apache%202.0-blue.svg" alt="License: Apache-2.0" /></a>
 </p>
 
 ---
@@ -336,7 +336,7 @@ npx turbo test --filter=@getmikk/core
 
 ## License
 
-MIT — see [LICENSE](LICENSE)
+Apache-2.0 — see [LICENSE](LICENSE)
 
 ---
 
