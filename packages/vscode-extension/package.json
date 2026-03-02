@@ -3,6 +3,7 @@
     "displayName": "Mikk - Codebase Nervous System",
     "description": "VS Code extension for Mikk — see your architecture, get AI context, detect impact",
     "version": "1.2.0",
+    "license": "Apache-2.0",
     "publisher": "mikk-dev",
     "engines": {
         "vscode": "^1.85.0"
