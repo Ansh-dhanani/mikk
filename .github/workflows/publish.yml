@@ -60,19 +60,34 @@ jobs:
       - name: Bump versions
         id: versions
         run: |
-          bump() {
-            local name=$1
-            local dir=$2
-            if [ "${{ inputs.package }}" = "all" ] || [ "${{ inputs.package }}" = "$name" ]; then
-              cd $dir && npm version ${{ inputs.version_bump }} --no-git-tag-version && cd -
-            fi
-          }
-          bump core              packages/core
-          bump intent-engine     packages/intent-engine
-          bump diagram-generator packages/diagram-generator
-          bump watcher           packages/watcher
-          bump ai-context        packages/ai-context
-          bump cli               packages/cli
+          node -e "
+            const fs = require('fs');
+            const bump = '${{ inputs.version_bump }}';
+            const pkgs = [
+              'packages/core', 'packages/intent-engine', 'packages/diagram-generator',
+              'packages/watcher', 'packages/ai-context', 'packages/cli'
+            ];
+            const sel = '${{ inputs.package }}';
+            const names = {
+              'core': 'packages/core',
+              'intent-engine': 'packages/intent-engine',
+              'diagram-generator': 'packages/diagram-generator',
+              'watcher': 'packages/watcher',
+              'ai-context': 'packages/ai-context',
+              'cli': 'packages/cli'
+            };
+            const targets = sel === 'all' ? pkgs : [names[sel]].filter(Boolean);
+            for (const p of targets) {
+              const path = p + '/package.json';
+              const pkg = JSON.parse(fs.readFileSync(path, 'utf8'));
+              const [ma, mi, pa] = pkg.version.split('.').map(Number);
+              if (bump === 'major') pkg.version = (ma+1) + '.0.0';
+              else if (bump === 'minor') pkg.version = ma + '.' + (mi+1) + '.0';
+              else pkg.version = ma + '.' + mi + '.' + (pa+1);
+              fs.writeFileSync(path, JSON.stringify(pkg, null, 4) + '\n');
+              console.log('Bumped', pkg.name, 'to', pkg.version);
+            }
+          "
           VERSION=$(node -p "require('./packages/core/package.json').version")
           echo "version=$VERSION" >> $GITHUB_OUTPUT
 
