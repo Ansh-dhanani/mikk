@@ -15,11 +15,14 @@
         "bin"
     ],
     "scripts": {
-        "build": "esbuild src/index.ts --bundle --platform=node --format=cjs --sourcemap --outfile=dist/index.js --banner:js=\"#!/usr/bin/env node\"",
+        "build": "node esbuild.mjs",
         "test": "bun test",
         "dev": "tsc --watch"
     },
     "dependencies": {
+        "better-sqlite3": "^12.6.2"
+    },
+    "devDependencies": {
         "@getmikk/ai-context": "workspace:*",
         "@getmikk/core": "workspace:*",
         "@getmikk/diagram-generator": "workspace:*",
@@ -27,9 +30,7 @@
         "@getmikk/watcher": "workspace:*",
         "chalk": "^5.4.0",
         "commander": "^13.0.0",
-        "ora": "^8.0.0"
-    },
-    "devDependencies": {
+        "ora": "^8.0.0",
         "@types/node": "^22.0.0",
         "esbuild": "^0.21.4",
         "typescript": "^5.7.0"

@@ -1,5 +1,4 @@
 import { Command } from 'commander'
-import { createRequire } from 'node:module'
 import { registerInitCommand } from './commands/init.js'
 import { registerAnalyzeCommand } from './commands/analyze.js'
 import { registerDiffCommand } from './commands/diff.js'
@@ -9,15 +8,14 @@ import { registerContextCommands } from './commands/context.js'
 import { registerIntentCommand } from './commands/intent.js'
 import { registerVisualizeCommands } from './commands/visualize.js'
 
-const require = createRequire(import.meta.url)
-const { version } = require('../package.json')
+declare const __MIKK_VERSION__: string
 
 const program = new Command()
 
 program
     .name('mikk')
     .description('The structural nervous system of your codebase')
-    .version(version)
+    .version(__MIKK_VERSION__)
 
 // Register all commands
 registerInitCommand(program)
