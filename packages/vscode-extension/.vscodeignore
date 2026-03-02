@@ -1,5 +1,7 @@
 .turbo/
 src/
 tsconfig.json
+esbuild.mjs
 **/*.map
 *.vsix
+node_modules/
