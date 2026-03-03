@@ -19,8 +19,13 @@ export function registerContractCommands(program: Command) {
         .option('--drift-only', 'Skip boundary check, only check file drift')
         .option('--strict', 'Exit 1 on warnings as well as errors')
         .action(async (options) => {
-            const spinner = ora('Validating contract...').start()
             const projectRoot = process.cwd()
+
+            // Guard: mutually exclusive flags
+            if (options.boundariesOnly && options.driftOnly) {
+                console.error(chalk.red('Cannot use --boundaries-only and --drift-only together.'))
+                process.exit(1)
+            }
 
             try {
                 const contractReader = new ContractReader()
@@ -33,7 +38,7 @@ export function registerContractCommands(program: Command) {
 
                 // ── 1. File drift check ────────────────────────────────────
                 if (!options.boundariesOnly) {
-                    spinner.text = 'Checking file drift...'
+                    const driftSpinner = ora('Checking file drift...').start()
                     const files = await discoverFiles(projectRoot)
                     const drifted: string[] = []
                     const added: string[] = []
@@ -55,10 +60,10 @@ export function registerContractCommands(program: Command) {
 
                     const driftTotal = drifted.length + added.length + deleted.length
                     if (driftTotal === 0) {
-                        spinner.succeed(chalk.green('File drift: clean'))
+                        driftSpinner.succeed(chalk.green('File drift: clean'))
                     } else {
                         hasWarnings = true
-                        spinner.warn(chalk.yellow(`File drift: ${driftTotal} file(s) out of sync`))
+                        driftSpinner.warn(chalk.yellow(`File drift: ${driftTotal} file(s) out of sync`))
                         for (const f of drifted) console.log(chalk.yellow(`  ~${f} (modified)`))
                         for (const f of added) console.log(chalk.green(`  + ${f} (new file)`))
                         for (const f of deleted) console.log(chalk.red(`  - ${f} (deleted)`))
@@ -68,7 +73,7 @@ export function registerContractCommands(program: Command) {
 
                 // ── 2. Boundary violation check ───────────────────────────
                 if (!options.driftOnly) {
-                    spinner.text = 'Checking module boundaries...'
+                    const boundarySpinner = ora('Checking module boundaries...').start()
 
                     // Parse rules from constraints
                     const hasRules = mikkContract.declared.constraints.some(c =>
@@ -76,7 +81,7 @@ export function registerContractCommands(program: Command) {
                     )
 
                     if (!hasRules) {
-                        spinner.info(chalk.dim(
+                        boundarySpinner.info(chalk.dim(
                             'Boundaries: no module constraints defined in mikk.json.\n' +
                             '  Add constraints like:\n' +
                             '    "module:cli cannot import module:db"\n' +
@@ -88,23 +93,23 @@ export function registerContractCommands(program: Command) {
                         const result = checker.check()
 
                         if (result.pass) {
-                            spinner.succeed(chalk.green(`Boundaries: ${result.summary} `))
+                            boundarySpinner.succeed(chalk.green(`Boundaries: ${result.summary}`))
                         } else {
                             hasErrors = true
-                            spinner.fail(chalk.red(`Boundaries: ${result.summary} `))
+                            boundarySpinner.fail(chalk.red(`Boundaries: ${result.summary}`))
                             console.log('')
                             for (const v of result.violations) {
                                 const severity = v.severity === 'error'
                                     ? chalk.red('[ERROR]')
                                     : chalk.yellow('[WARN]')
                                 console.log(
-                                    `  ${severity} ${chalk.bold(v.from.moduleName)} → ${chalk.bold(v.to.moduleName)} `
+                                    `  ${severity} ${chalk.bold(v.from.moduleName)} → ${chalk.bold(v.to.moduleName)}`
                                 )
                                 console.log(
-                                    `         ${v.from.functionName} () in ${v.from.file} `
+                                    `         ${v.from.functionName}() in ${v.from.file}`
                                 )
                                 console.log(
-                                    `         calls ${v.to.functionName} () in ${v.to.file} `
+                                    `         calls ${v.to.functionName}() in ${v.to.file}`
                                 )
                                 console.log(chalk.dim(`         Rule: "${v.rule}"\n`))
                             }
@@ -118,26 +123,10 @@ export function registerContractCommands(program: Command) {
                 }
 
             } catch (err: any) {
-                spinner.fail('Validation failed')
-                console.error(chalk.red(err.message))
+                console.error(chalk.red(`Validation failed: ${err.message}`))
+                if (process.env.MIKK_DEBUG) console.error(err.stack)
                 process.exit(1)
             }
-        })
-
-    // ── mikk contract generate ───────────────────────────────────────────
-    contract
-        .command('generate')
-        .description('Regenerate mikk.json skeleton from current analysis')
-        .action(async () => {
-            console.log(chalk.dim('Use "mikk init" to generate a fresh contract.'))
-        })
-
-    // ── mikk contract update ─────────────────────────────────────────────
-    contract
-        .command('update')
-        .description('Update lock file to current state')
-        .action(async () => {
-            console.log(chalk.dim('Run "mikk analyze" to update the lock file.'))
         })
 
     // ── mikk contract show-boundaries ────────────────────────────────────

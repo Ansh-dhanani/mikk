@@ -10,12 +10,24 @@ import { registerVisualizeCommands } from './commands/visualize.js'
 
 declare const __MIKK_VERSION__: string
 
+// ── Global error handlers ───────────────────────────────────────────
+process.on('unhandledRejection', (reason: any) => {
+    console.error(`\nUnhandled error: ${reason?.message ?? reason}`)
+    if (process.env.MIKK_DEBUG) console.error(reason?.stack ?? reason)
+    process.exit(1)
+})
+process.on('uncaughtException', (err) => {
+    console.error(`\nFatal error: ${err.message}`)
+    if (process.env.MIKK_DEBUG) console.error(err.stack)
+    process.exit(1)
+})
+
 const program = new Command()
 
 program
     .name('mikk')
     .description('The structural nervous system of your codebase')
-    .version(__MIKK_VERSION__)
+    .version(typeof __MIKK_VERSION__ !== 'undefined' ? __MIKK_VERSION__ : '0.0.0-dev')
 
 // Register all commands
 registerInitCommand(program)

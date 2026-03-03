@@ -31,14 +31,29 @@ export class PreflightPipeline {
         // 2. Check for conflicts
         const conflicts = this.conflictDetector.detect(intents)
 
-        // 3. Generate suggestions
+        // 3. Low-confidence rejection: if the best intent has very low confidence,
+        //    add a warning so the AI doesn't blindly proceed
+        const maxConfidence = intents.length > 0
+            ? Math.max(...intents.map(i => i.confidence))
+            : 0
+        if (maxConfidence < 0.4 && intents.length > 0) {
+            conflicts.conflicts.push({
+                type: 'low-confidence',
+                severity: 'warning',
+                message: `Low confidence (${(maxConfidence * 100).toFixed(0)}%) — the intent could not be reliably matched to existing code. The suggestion may be inaccurate.`,
+                relatedIntent: intents[0],
+                suggestedFix: 'Be more specific about the function or module name in your prompt.',
+            })
+        }
+
+        // 4. Generate suggestions
         const suggestions = this.suggester.suggest(intents)
 
         return {
             intents,
             conflicts,
             suggestions,
-            approved: !conflicts.hasConflicts,
+            approved: !conflicts.hasConflicts && maxConfidence >= 0.4,
         }
     }
 }

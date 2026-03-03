@@ -22,7 +22,7 @@ export interface ConflictResult {
 }
 
 export interface Conflict {
-    type: 'constraint-violation' | 'ownership-conflict' | 'boundary-crossing' | 'missing-dependency'
+    type: 'constraint-violation' | 'ownership-conflict' | 'boundary-crossing' | 'missing-dependency' | 'low-confidence'
     severity: 'error' | 'warning'
     message: string
     relatedIntent: Intent

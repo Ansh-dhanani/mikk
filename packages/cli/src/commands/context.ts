@@ -2,6 +2,7 @@ import * as path from 'node:path'
 import * as fs from 'node:fs/promises'
 import type { Command } from 'commander'
 import chalk from 'chalk'
+import ora from 'ora'
 import {
     ContractReader, LockReader, ImpactAnalyzer,
     GraphBuilder, parseFiles, readFileContent, discoverFiles,
@@ -9,6 +10,16 @@ import {
 import { ContextBuilder } from '@getmikk/ai-context'
 import { getProvider } from '@getmikk/ai-context'
 import type { ContextQuery } from '@getmikk/ai-context'
+
+/** Parse a numeric CLI option with validation */
+function parseIntOption(value: string, name: string, fallback: number): number {
+    const n = parseInt(value, 10)
+    if (isNaN(n) || n < 0) {
+        console.error(chalk.red(`Invalid value for --${name}: "${value}" (expected a positive integer)`))
+        process.exit(1)
+    }
+    return n
+}
 
 export function registerContextCommands(program: Command) {
     const context = program
@@ -33,8 +44,8 @@ export function registerContextCommands(program: Command) {
 
                 const query: ContextQuery = {
                     task: question,
-                    maxHops: parseInt(options.hops, 10),
-                    tokenBudget: parseInt(options.tokens, 10),
+                    maxHops: parseIntOption(options.hops, 'hops', 4),
+                    tokenBudget: parseIntOption(options.tokens, 'tokens', 6000),
                     includeCallGraph: options.callgraph !== false,
                 }
 
@@ -50,7 +61,7 @@ export function registerContextCommands(program: Command) {
 
                 if (options.out) {
                     await fs.writeFile(options.out, output, 'utf-8')
-                    console.log(chalk.green(`✓ Context written to ${options.out} `))
+                    console.log(chalk.green(`✓ Context written to ${options.out}`))
                 } else {
                     console.log(output)
                 }
@@ -71,36 +82,50 @@ export function registerContextCommands(program: Command) {
             const projectRoot = process.cwd()
 
             try {
+                // Load contract first — fail early if not initialized
+                const { contract, lock } = await loadContractAndLock(projectRoot)
+
+                const spinner = ora('Building dependency graph for impact analysis...').start()
                 const files = await discoverFiles(projectRoot)
                 const parsedFiles = await parseFiles(
                     files, projectRoot, (fp) => readFileContent(fp)
                 )
                 const graph = new GraphBuilder().build(parsedFiles)
+                spinner.succeed('Graph built')
+
                 const analyzer = new ImpactAnalyzer(graph)
 
-                // Find nodes in the specified file
-                const fileNodes = [...graph.nodes.values()].filter(n =>
-                    n.file.includes(file) || file.includes(n.file)
-                )
+                // Find nodes in the specified file — prefer exact match, fall back to substring
+                const normalizedFile = file.replace(/\\/g, '/')
+                let fileNodes = [...graph.nodes.values()].filter(n => n.file === normalizedFile)
+                if (fileNodes.length === 0) {
+                    // Fallback: substring match on basename to avoid false positives
+                    const basename = normalizedFile.split('/').pop() || normalizedFile
+                    fileNodes = [...graph.nodes.values()].filter(n => {
+                        const nodeName = n.file.split('/').pop() || n.file
+                        return nodeName === basename
+                    })
+                }
                 if (fileNodes.length === 0) {
                     console.log(chalk.yellow(`No nodes found matching "${file}"`))
+                    console.log(chalk.dim('  Tip: use the relative path from project root, e.g. src/lib/auth.ts'))
                     return
                 }
 
                 const result = analyzer.analyze(fileNodes.map(n => n.id))
 
                 // Print impact summary
-                console.log(chalk.bold(`\n💥 Impact Analysis: ${file} \n`))
-                console.log(`  ${chalk.dim('Changed nodes:')}  ${result.changed.length} `)
-                console.log(`  ${chalk.dim('Impacted nodes:')} ${result.impacted.length} `)
-                console.log(`  ${chalk.dim('Depth:')}          ${result.depth} `)
-                console.log(`  ${chalk.dim('Confidence:')}     ${result.confidence} `)
+                console.log(chalk.bold(`\n💥 Impact Analysis: ${file}\n`))
+                console.log(`  ${chalk.dim('Changed nodes:')}  ${result.changed.length}`)
+                console.log(`  ${chalk.dim('Impacted nodes:')} ${result.impacted.length}`)
+                console.log(`  ${chalk.dim('Depth:')}          ${result.depth}`)
+                console.log(`  ${chalk.dim('Confidence:')}     ${result.confidence}`)
 
                 if (result.impacted.length > 0) {
-                    console.log(`\n  ${chalk.bold('Impacted functions:')} `)
+                    console.log(`\n  ${chalk.bold('Impacted functions:')}`)
                     for (const id of result.impacted.slice(0, 25)) {
                         const node = graph.nodes.get(id)
-                        console.log(`    ${chalk.yellow('→')} ${node?.label ?? id} ${chalk.dim(`(${node?.file ?? ''})`)} `)
+                        console.log(`    ${chalk.yellow('→')} ${node?.label ?? id} ${chalk.dim(`(${node?.file ?? ''})`)}`)
                     }
                     if (result.impacted.length > 25) {
                         console.log(chalk.dim(`    ... and ${result.impacted.length - 25} more`))
@@ -108,11 +133,10 @@ export function registerContextCommands(program: Command) {
                 }
 
                 // Also build AI context focused on the impacted set
-                const { contract, lock } = await loadContractAndLock(projectRoot)
                 const query: ContextQuery = {
-                    task: `Understanding the impact of changes in ${file} `,
+                    task: `Understanding the impact of changes in ${file}`,
                     focusFiles: [file],
-                    tokenBudget: parseInt(options.tokens, 10),
+                    tokenBudget: parseIntOption(options.tokens, 'tokens', 8000),
                     maxHops: 3,
                 }
                 const builder = new ContextBuilder(contract, lock)
@@ -150,9 +174,11 @@ export function registerContextCommands(program: Command) {
                     task,
                     focusFiles: options.file ? [options.file] : undefined,
                     focusModules: options.module ? [options.module] : undefined,
-                    maxHops: parseInt(options.hops, 10),
-                    tokenBudget: parseInt(options.tokens, 10),
+                    maxHops: parseIntOption(options.hops, 'hops', 4),
+                    tokenBudget: parseIntOption(options.tokens, 'tokens', 6000),
                     includeCallGraph: options.callgraph !== false,
+                    includeBodies: true,
+                    projectRoot,
                 }
 
                 const builder = new ContextBuilder(contract, lock)
@@ -167,7 +193,7 @@ export function registerContextCommands(program: Command) {
 
                 if (options.out) {
                     await fs.writeFile(options.out, output, 'utf-8')
-                    console.log(chalk.green(`✓ Context written to ${options.out} `))
+                    console.log(chalk.green(`✓ Context written to ${options.out}`))
                     console.log(chalk.dim(`  ${ctx.meta.selectedFunctions} functions, ~${ctx.meta.estimatedTokens} tokens`))
                 } else {
                     console.log(output)

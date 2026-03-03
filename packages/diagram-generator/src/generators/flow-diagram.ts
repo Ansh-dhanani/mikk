@@ -13,6 +13,7 @@ export class FlowDiagramGenerator {
     /** Generate a sequence diagram starting from a function */
     generate(startFunctionId: string, maxDepth: number = 5): string {
         const lines: string[] = []
+        lines.push('%%{init: {"theme": "dark"}}%%')
         lines.push('sequenceDiagram')
         lines.push('')
 
@@ -29,6 +30,7 @@ export class FlowDiagramGenerator {
     /** Generate a flow diagram showing all entry points grouped by module */
     generateEntryPoints(): string {
         const lines: string[] = []
+        lines.push('%%{init: {"theme": "base", "themeVariables": {"primaryColor": "#1e293b", "primaryTextColor": "#e2e8f0", "lineColor": "#64748b", "secondaryColor": "#334155", "tertiaryColor": "#475569", "background": "#0f172a", "mainBkg": "#1e293b", "nodeBorder": "#475569"}}}%%')
         lines.push('graph TD')
         lines.push('')
 
@@ -67,7 +69,7 @@ export class FlowDiagramGenerator {
         }
 
         lines.push('')
-        lines.push('    classDef default fill:#f9f9f9,stroke:#333')
+        lines.push('    classDef default fill:#334155,stroke:#64748b,color:#e2e8f0')
 
         return lines.join('\n')
     }

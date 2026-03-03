@@ -115,7 +115,7 @@ export class BoundaryChecker {
     check(): BoundaryCheckResult {
         const violations: BoundaryViolation[] = []
 
-        // Collect all cross-module calls
+        // Pass 1: Check cross-module function calls
         for (const fn of Object.values(this.lock.functions)) {
             for (const calleeId of fn.calls) {
                 const callee = this.lock.functions[calleeId]
@@ -128,11 +128,24 @@ export class BoundaryChecker {
             }
         }
 
+        // Pass 2: Check cross-module file-level imports
+        for (const file of Object.values(this.lock.files)) {
+            if (!file.imports || file.imports.length === 0) continue
+            for (const importedPath of file.imports) {
+                const importedFile = this.lock.files[importedPath]
+                if (!importedFile) continue
+                if (file.moduleId === importedFile.moduleId) continue // same module — fine
+
+                const violation = this.checkFileImport(file, importedFile)
+                if (violation) violations.push(violation)
+            }
+        }
+
         const errorCount = violations.filter(v => v.severity === 'error').length
         const warnCount = violations.filter(v => v.severity === 'warning').length
 
         const summary = violations.length === 0
-            ? `✓ All module boundaries respected (${Object.keys(this.lock.functions).length} functions checked)`
+            ? `✓ All module boundaries respected (${Object.keys(this.lock.functions).length} functions, ${Object.keys(this.lock.files).length} files checked)`
             : `✗ ${errorCount} boundary error(s), ${warnCount} warning(s) found`
 
         return {
@@ -191,9 +204,56 @@ export class BoundaryChecker {
         return null
     }
 
+    /**
+     * Check a single cross-module file import against parsed rules.
+     * Returns a violation if the import is forbidden, null if it's allowed.
+     */
+    private checkFileImport(
+        sourceFile: { path: string; moduleId: string },
+        targetFile: { path: string; moduleId: string }
+    ): BoundaryViolation | null {
+        for (const rule of this.rules) {
+            if (rule.fromModuleId !== sourceFile.moduleId) continue
+
+            let forbidden = false
+
+            if (rule.type === 'isolated') {
+                forbidden = true
+            } else if (rule.type === 'deny') {
+                forbidden = rule.toModuleIds.includes(targetFile.moduleId)
+            } else if (rule.type === 'allow_only') {
+                forbidden = !rule.toModuleIds.includes(targetFile.moduleId)
+            }
+
+            if (forbidden) {
+                return {
+                    from: {
+                        functionId: `file:${sourceFile.path}`,
+                        functionName: path.basename(sourceFile.path),
+                        file: sourceFile.path,
+                        moduleId: sourceFile.moduleId,
+                        moduleName: this.moduleNames.get(sourceFile.moduleId) ?? sourceFile.moduleId,
+                    },
+                    to: {
+                        functionId: `file:${targetFile.path}`,
+                        functionName: path.basename(targetFile.path),
+                        file: targetFile.path,
+                        moduleId: targetFile.moduleId,
+                        moduleName: this.moduleNames.get(targetFile.moduleId) ?? targetFile.moduleId,
+                    },
+                    rule: rule.raw,
+                    severity: 'error',
+                }
+            }
+        }
+        return null
+    }
+
     /** Return all cross-module call pairs (useful for generating allow rules) */
     allCrossModuleCalls(): { from: string; to: string; count: number }[] {
         const counts = new Map<string, number>()
+
+        // Count function-level cross-module calls
         for (const fn of Object.values(this.lock.functions)) {
             for (const calleeId of fn.calls) {
                 const callee = this.lock.functions[calleeId]
@@ -202,6 +262,18 @@ export class BoundaryChecker {
                 counts.set(key, (counts.get(key) ?? 0) + 1)
             }
         }
+
+        // Count file-level cross-module imports
+        for (const file of Object.values(this.lock.files)) {
+            if (!file.imports) continue
+            for (const importedPath of file.imports) {
+                const importedFile = this.lock.files[importedPath]
+                if (!importedFile || file.moduleId === importedFile.moduleId) continue
+                const key = `${file.moduleId}→${importedFile.moduleId}`
+                counts.set(key, (counts.get(key) ?? 0) + 1)
+            }
+        }
+
         return [...counts.entries()]
             .map(([key, count]) => {
                 const [from, to] = key.split('→')

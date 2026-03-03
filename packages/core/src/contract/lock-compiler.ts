@@ -3,11 +3,108 @@ import { createHash } from 'node:crypto'
 import type { MikkContract, MikkLock } from './schema.js'
 import type { DependencyGraph } from '../graph/types.js'
 import type { ParsedFile } from '../parser/types.js'
+import type { ContextFile } from '../utils/fs.js'
 import { hashContent } from '../hash/file-hasher.js'
 import { computeModuleHash, computeRootHash } from '../hash/tree-hasher.js'
 import { minimatch } from '../utils/minimatch.js'
 
 const VERSION = '@getmikk/cli@1.2.1'
+
+// ─── Heuristic purpose inference ────────────────────────────────────
+// When JSDoc is missing we derive a short purpose string from:
+//   1. camelCase / PascalCase function name → natural language
+//   2. parameter names (context clue)
+//   3. return type (if present)
+//
+// Examples:
+//   "getUserProjectRole" + params:["userId","projectId"] → "Get user project role (userId, projectId)"
+//   "DashboardPage"      + returnType:"JSX.Element"       → "Dashboard page component"
+// ────────────────────────────────────────────────────────────────────
+
+/** Split camelCase/PascalCase identifier into lowercase words */
+function splitIdentifier(name: string): string[] {
+    return name
+        .replace(/([a-z0-9])([A-Z])/g, '$1 $2')  // camelCase boundary
+        .replace(/([A-Z]+)([A-Z][a-z])/g, '$1 $2') // ABCDef → ABC Def
+        .split(/[\s_-]+/)
+        .map(w => w.toLowerCase())
+        .filter(Boolean)
+}
+
+const JSX_RETURN_TYPES = new Set([
+    'jsx.element', 'react.reactnode', 'reactnode', 'react.jsx.element',
+    'react.fc', 'reactelement',
+])
+
+const HOOK_PREFIXES = ['use']
+const HANDLER_PREFIXES = ['handle', 'on']
+const GETTER_PREFIXES = ['get', 'fetch', 'load', 'find', 'query', 'retrieve', 'read']
+const SETTER_PREFIXES = ['set', 'update', 'save', 'write', 'put', 'patch', 'create', 'delete', 'remove']
+const CHECKER_PREFIXES = ['is', 'has', 'can', 'should', 'check', 'validate']
+
+/** Infer a short purpose string from function metadata when JSDoc is missing */
+function inferPurpose(
+    name: string,
+    params?: { name: string; type?: string }[],
+    returnType?: string,
+    isAsync?: boolean,
+): string | undefined {
+    if (!name) return undefined
+
+    const words = splitIdentifier(name)
+    if (words.length === 0) return undefined
+    const firstWord = words[0]
+
+    // Check if it's a React component (PascalCase + JSX return)
+    const isComponent = /^[A-Z]/.test(name) &&
+        returnType && JSX_RETURN_TYPES.has(returnType.toLowerCase())
+
+    if (isComponent) {
+        const readable = words.join(' ')
+        return capitalise(`${readable} component`)
+    }
+
+    // Check if it's a hook (React, Vue composables, etc.)
+    if (HOOK_PREFIXES.includes(firstWord) && words.length > 1) {
+        const subject = words.slice(1).join(' ')
+        return capitalise(`Hook for ${subject}`)
+    }
+
+    // Build base description from name words
+    let base: string
+    if (HANDLER_PREFIXES.includes(firstWord)) {
+        const event = words.slice(1).join(' ')
+        base = `Handle ${event}`
+    } else if (GETTER_PREFIXES.includes(firstWord)) {
+        const subject = words.slice(1).join(' ')
+        base = `${capitalise(firstWord)} ${subject}`
+    } else if (SETTER_PREFIXES.includes(firstWord)) {
+        const subject = words.slice(1).join(' ')
+        base = `${capitalise(firstWord)} ${subject}`
+    } else if (CHECKER_PREFIXES.includes(firstWord)) {
+        const subject = words.slice(1).join(' ')
+        base = `Check ${firstWord === 'is' || firstWord === 'has' || firstWord === 'can' ? 'if' : ''} ${subject}`.replace(/  +/g, ' ')
+    } else {
+        // Generic — just humanise the name
+        base = capitalise(words.join(' '))
+    }
+
+    // Append param hint if ≤3 params and they have meaningful names
+    if (params && params.length > 0 && params.length <= 3) {
+        const meaningful = params
+            .map(p => p.name)
+            .filter(n => !['e', 'event', 'ctx', 'props', 'args', '_'].includes(n))
+        if (meaningful.length > 0) {
+            base += ` (${meaningful.join(', ')})`
+        }
+    }
+
+    return base.trim() || undefined
+}
+
+function capitalise(s: string): string {
+    return s.charAt(0).toUpperCase() + s.slice(1)
+}
 
 /**
  * LockCompiler — takes a DependencyGraph and a MikkContract
@@ -18,13 +115,15 @@ export class LockCompiler {
     compile(
         graph: DependencyGraph,
         contract: MikkContract,
-        parsedFiles: ParsedFile[]
+        parsedFiles: ParsedFile[],
+        contextFiles?: ContextFile[]
     ): MikkLock {
         const functions = this.compileFunctions(graph, contract)
         const classes = this.compileClasses(graph, contract)
         const generics = this.compileGenerics(graph, contract)
         const modules = this.compileModules(contract, parsedFiles)
-        const files = this.compileFiles(parsedFiles, contract)
+        const files = this.compileFiles(parsedFiles, contract, graph)
+        const routes = this.compileRoutes(parsedFiles)
 
         const moduleHashes: Record<string, string> = {}
         for (const [id, mod] of Object.entries(modules)) {
@@ -47,6 +146,8 @@ export class LockCompiler {
             classes: Object.keys(classes).length > 0 ? classes : undefined,
             generics: Object.keys(generics).length > 0 ? generics : undefined,
             files,
+            contextFiles: contextFiles && contextFiles.length > 0 ? contextFiles : undefined,
+            routes: routes.length > 0 ? routes : undefined,
             graph: {
                 nodes: graph.nodes.size,
                 edges: graph.edges.length,
@@ -90,7 +191,18 @@ export class LockCompiler {
                 calls: outEdges.filter(e => e.type === 'calls').map(e => e.target),
                 calledBy: inEdges.filter(e => e.type === 'calls').map(e => e.source),
                 moduleId: moduleId || 'unknown',
-                purpose: node.metadata.purpose,
+                ...(node.metadata.params && node.metadata.params.length > 0
+                    ? { params: node.metadata.params }
+                    : {}),
+                ...(node.metadata.returnType ? { returnType: node.metadata.returnType } : {}),
+                ...(node.metadata.isAsync ? { isAsync: true } : {}),
+                ...(node.metadata.isExported ? { isExported: true } : {}),
+                purpose: node.metadata.purpose || inferPurpose(
+                    node.label,
+                    node.metadata.params,
+                    node.metadata.returnType,
+                    node.metadata.isAsync,
+                ),
                 edgeCasesHandled: node.metadata.edgeCasesHandled,
                 errorHandling: node.metadata.errorHandling,
                 detailedLines: node.metadata.detailedLines,
@@ -116,7 +228,7 @@ export class LockCompiler {
                 endLine: node.metadata.endLine ?? 0,
                 moduleId: moduleId || 'unknown',
                 isExported: node.metadata.isExported ?? false,
-                purpose: node.metadata.purpose,
+                purpose: node.metadata.purpose || inferPurpose(node.label),
                 edgeCasesHandled: node.metadata.edgeCasesHandled,
                 errorHandling: node.metadata.errorHandling,
             }
@@ -128,11 +240,14 @@ export class LockCompiler {
         graph: DependencyGraph,
         contract: MikkContract
     ): Record<string, any> {
-        const result: Record<string, any> = {}
+        const raw: Record<string, any> = {}
         for (const [id, node] of graph.nodes) {
             if (node.type !== 'generic') continue
+            // Only include exported generics — non-exported types/interfaces are
+            // internal implementation details that add noise without value.
+            if (!node.metadata.isExported) continue
             const moduleId = this.findModule(node.file, contract.declared.modules)
-            result[id] = {
+            raw[id] = {
                 id,
                 name: node.label,
                 type: node.metadata.hash ?? 'generic', // we stored type name in hash
@@ -141,9 +256,31 @@ export class LockCompiler {
                 endLine: node.metadata.endLine ?? 0,
                 moduleId: moduleId || 'unknown',
                 isExported: node.metadata.isExported ?? false,
-                purpose: node.metadata.purpose,
+                purpose: node.metadata.purpose || inferPurpose(node.label),
             }
         }
+
+        // Dedup: group generics with the same name + type that appear in multiple files.
+        // Keep the first occurrence and add an `alsoIn` array for the duplicate files.
+        const byNameType = new Map<string, { key: string; entry: any; others: string[] }>()
+        for (const [key, entry] of Object.entries(raw)) {
+            const dedup = `${entry.name}::${entry.type}`
+            const existing = byNameType.get(dedup)
+            if (existing) {
+                existing.others.push(entry.file)
+            } else {
+                byNameType.set(dedup, { key, entry, others: [] })
+            }
+        }
+
+        const result: Record<string, any> = {}
+        for (const { key, entry, others } of byNameType.values()) {
+            if (others.length > 0) {
+                entry.alsoIn = others
+            }
+            result[key] = entry
+        }
+
         return result
     }
 
@@ -178,21 +315,50 @@ export class LockCompiler {
     /** Compile file entries */
     private compileFiles(
         parsedFiles: ParsedFile[],
-        contract: MikkContract
+        contract: MikkContract,
+        graph: DependencyGraph
     ): Record<string, MikkLock['files'][string]> {
         const result: Record<string, MikkLock['files'][string]> = {}
 
         for (const file of parsedFiles) {
             const moduleId = this.findModule(file.path, contract.declared.modules)
+
+            // Collect file-level imports from the graph's import edges
+            const outEdges = graph.outEdges.get(file.path) || []
+            const importedFiles = outEdges
+                .filter(e => e.type === 'imports')
+                .map(e => e.target)
+
             result[file.path] = {
                 path: file.path,
                 hash: file.hash,
                 moduleId: moduleId || 'unknown',
                 lastModified: new Date().toISOString(),
+                ...(importedFiles.length > 0 ? { imports: importedFiles } : {}),
             }
         }
 
         return result
+    }
+
+    /** Compile route registrations from all parsed files */
+    private compileRoutes(parsedFiles: ParsedFile[]): MikkLock['routes'] & any[] {
+        const routes: any[] = []
+        for (const file of parsedFiles) {
+            if (file.routes && file.routes.length > 0) {
+                for (const route of file.routes) {
+                    routes.push({
+                        method: route.method,
+                        path: route.path,
+                        handler: route.handler,
+                        middlewares: route.middlewares,
+                        file: route.file,
+                        line: route.line,
+                    })
+                }
+            }
+        }
+        return routes
     }
 
     /** Find which module a file belongs to based on path patterns */

@@ -8,7 +8,6 @@ export function registerIntentCommand(program: Command) {
     program
         .command('intent <prompt>')
         .description('Full preflight — interpret, suggest, confirm')
-        .option('--no-confirm', 'Skip confirmation, just show suggestions')
         .option('--json', 'Output raw JSON result')
         .action(async (prompt: string, options) => {
             const projectRoot = process.cwd()
@@ -25,7 +24,7 @@ export function registerIntentCommand(program: Command) {
                 const { PreflightPipeline } = await import('@getmikk/intent-engine')
                 const pipeline = new PreflightPipeline(contract, lock)
                 const result = await pipeline.run(prompt)
-                spinner.stop()
+                spinner.succeed('Preflight complete')
 
                 // JSON mode — dump and exit
                 if (options.json) {

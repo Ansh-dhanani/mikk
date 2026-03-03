@@ -54,6 +54,21 @@ export class Suggester {
             case 'delete': {
                 if (intent.target.filePath) {
                     affectedFiles.push(intent.target.filePath)
+                } else if (intent.target.type === 'function') {
+                    // Only delete the specific function, not the whole module
+                    const fn = Object.values(this.lock.functions).find(
+                        f => f.name === intent.target.name
+                    )
+                    if (fn) {
+                        affectedFiles.push(fn.file)
+                        // Add callers that will need updating
+                        for (const callerId of fn.calledBy) {
+                            const caller = this.lock.functions[callerId]
+                            if (caller && !affectedFiles.includes(caller.file)) {
+                                affectedFiles.push(caller.file)
+                            }
+                        }
+                    }
                 }
                 break
             }

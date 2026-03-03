@@ -14,8 +14,10 @@ export function mockParsedFile(
         language: 'typescript',
         functions,
         classes: [],
+        generics: [],
         imports,
         exports: [],
+        routes: [],
         hash: hashContent(filePath),
         parsedAt: Date.now(),
     }
@@ -40,6 +42,10 @@ export function mockFunction(
         isAsync: false,
         calls,
         hash: hashContent(name),
+        purpose: '',
+        edgeCasesHandled: [],
+        errorHandling: [],
+        detailedLines: [],
     }
 }
 

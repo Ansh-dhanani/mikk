@@ -1,0 +1,44 @@
+%%{init: {"theme": "base", "themeVariables": {"primaryColor": "#1e293b", "primaryTextColor": "#e2e8f0", "lineColor": "#64748b", "secondaryColor": "#334155", "tertiaryColor": "#475569", "background": "#0f172a", "mainBkg": "#1e293b", "nodeBorder": "#475569"}}}%%
+graph TD
+    subgraph mod_packages_intent_engine["📦 Module: Search (Intent Engine)"]
+        subgraph file_packages_intent_engine_src_conflict_detector_ts["📄 conflict-detector.ts"]
+            fn_packages_intent_engine_src_conflict_detector_ts_ConflictDetector_constructor["⚡ ConflictDetector.constructor"]
+            fn_packages_intent_engine_src_conflict_detector_ts_ConflictDetector_detect["⚡ ConflictDetector.detect"]
+            fn_packages_intent_engine_src_conflict_detector_ts_ConflictDetector_classifyConstraint["⚡ ConflictDetector.classifyConstraint"]
+            fn_packages_intent_engine_src_conflict_detector_ts_ConflictDetector_checkConstraint["⚡ ConflictDetector.checkConstraint"]
+            fn_packages_intent_engine_src_conflict_detector_ts_ConflictDetector_checkNoImport["⚡ ConflictDetector.checkNoImport"]
+            fn_packages_intent_engine_src_conflict_detector_ts_ConflictDetector_checkMustUse["⚡ ConflictDetector.checkMustUse"]
+            fn_packages_intent_engine_src_conflict_detector_ts_ConflictDetector_checkNoCall["⚡ ConflictDetector.checkNoCall"]
+            fn_packages_intent_engine_src_conflict_detector_ts_ConflictDetector_checkLayer["⚡ ConflictDetector.checkLayer"]
+            fn_packages_intent_engine_src_conflict_detector_ts_ConflictDetector_checkNaming["⚡ ConflictDetector.checkNaming"]
+            fn_packages_intent_engine_src_conflict_detector_ts_ConflictDetector_checkComplex["⚡ ConflictDetector.checkComplex"]
+            fn_packages_intent_engine_src_conflict_detector_ts_ConflictDetector_makeConflict["⚡ ConflictDetector.makeConflict"]
+            fn_packages_intent_engine_src_conflict_detector_ts_ConflictDetector_extractKeywords["⚡ ConflictDetector.extractKeywords"]
+            fn_packages_intent_engine_src_conflict_detector_ts_ConflictDetector_toCamelCase["⚡ ConflictDetector.toCamelCase"]
+        end
+        subgraph file_packages_intent_engine_src_interpreter_ts["📄 interpreter.ts"]
+            fn_packages_intent_engine_src_interpreter_ts_IntentInterpreter_constructor["⚡ IntentInterpreter.constructor"]
+            fn_packages_intent_engine_src_interpreter_ts_IntentInterpreter_interpret["⚡ IntentInterpreter.interpret"]
+            fn_packages_intent_engine_src_interpreter_ts_IntentInterpreter_findMatchingFunctions["⚡ IntentInterpreter.findMatchingFunctions"]
+            fn_packages_intent_engine_src_interpreter_ts_IntentInterpreter_findMatchingModule["⚡ IntentInterpreter.findMatchingModule"]
+            fn_packages_intent_engine_src_interpreter_ts_IntentInterpreter_findMatchingClasses["⚡ IntentInterpreter.findMatchingClasses"]
+            fn_packages_intent_engine_src_interpreter_ts_IntentInterpreter_inferTargetType["⚡ IntentInterpreter.inferTargetType"]
+            fn_packages_intent_engine_src_interpreter_ts_IntentInterpreter_extractName["⚡ IntentInterpreter.extractName"]
+            fn_packages_intent_engine_src_interpreter_ts_IntentInterpreter_extractKeywords["⚡ IntentInterpreter.extractKeywords"]
+            fn_packages_intent_engine_src_interpreter_ts_IntentInterpreter_splitCamelCase["⚡ IntentInterpreter.splitCamelCase"]
+        end
+        subgraph file_packages_intent_engine_src_preflight_ts["📄 preflight.ts"]
+            fn_packages_intent_engine_src_preflight_ts_PreflightPipeline_constructor["⚡ PreflightPipeline.constructor"]
+            fn_packages_intent_engine_src_preflight_ts_PreflightPipeline_run["⚡ PreflightPipeline.run"]
+        end
+        subgraph file_packages_intent_engine_src_suggester_ts["📄 suggester.ts"]
+            fn_packages_intent_engine_src_suggester_ts_Suggester_constructor["⚡ Suggester.constructor"]
+            fn_packages_intent_engine_src_suggester_ts_Suggester_suggest["⚡ Suggester.suggest"]
+            fn_packages_intent_engine_src_suggester_ts_Suggester_suggestForIntent["⚡ Suggester.suggestForIntent"]
+            fn_packages_intent_engine_src_suggester_ts_Suggester_generateDescription["⚡ Suggester.generateDescription"]
+        end
+    end
+
+
+    classDef default fill:#334155,stroke:#64748b,color:#e2e8f0,stroke-width:1px
+    classDef external fill:#1e293b,stroke:#475569,color:#94a3b8,stroke-dasharray: 5 5

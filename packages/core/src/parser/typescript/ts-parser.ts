@@ -12,14 +12,41 @@ export class TypeScriptParser extends BaseParser {
     /** Parse a single TypeScript file */
     parse(filePath: string, content: string): ParsedFile {
         const extractor = new TypeScriptExtractor(filePath, content)
+        const functions = extractor.extractFunctions()
+        const classes = extractor.extractClasses()
+        const generics = extractor.extractGenerics()
+        const imports = extractor.extractImports()
+        const exports = extractor.extractExports()
+        const routes = extractor.extractRoutes()
+
+        // Cross-reference: if a function/class/generic is named in an export { Name }
+        // or export default declaration, mark it as exported.
+        const exportedNames = new Set(exports.map(e => e.name))
+        for (const fn of functions) {
+            if (!fn.isExported && exportedNames.has(fn.name)) {
+                fn.isExported = true
+            }
+        }
+        for (const cls of classes) {
+            if (!cls.isExported && exportedNames.has(cls.name)) {
+                cls.isExported = true
+            }
+        }
+        for (const gen of generics) {
+            if (!gen.isExported && exportedNames.has(gen.name)) {
+                gen.isExported = true
+            }
+        }
+
         return {
             path: filePath,
             language: 'typescript',
-            functions: extractor.extractFunctions(),
-            classes: extractor.extractClasses(),
-            generics: extractor.extractGenerics(),
-            imports: extractor.extractImports(),
-            exports: extractor.extractExports(),
+            functions,
+            classes,
+            generics,
+            imports,
+            exports,
+            routes,
             hash: hashContent(content),
             parsedAt: Date.now(),
         }

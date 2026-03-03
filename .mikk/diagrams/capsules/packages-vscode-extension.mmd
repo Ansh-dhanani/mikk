@@ -1,0 +1,20 @@
+%%{init: {"theme": "base", "themeVariables": {"primaryColor": "#1e293b", "primaryTextColor": "#e2e8f0", "lineColor": "#64748b", "secondaryColor": "#334155", "tertiaryColor": "#475569", "background": "#0f172a", "mainBkg": "#1e293b", "nodeBorder": "#475569"}}}%%
+graph LR
+
+    subgraph packages_vscode_extension["📦 Providers (Vscode Extension)"]
+        direction TB
+        subgraph internal["🔒 Internal"]
+            fn_packages_vscode_extension_src_extension_ts_activate["activate"]
+            fn_packages_vscode_extension_src_extension_ts_deactivate["deactivate"]
+            fn_packages_vscode_extension_src_extension_ts_ModulesTreeProvider_getTreeItem["ModulesTreeProvider.getTreeItem"]
+            fn_packages_vscode_extension_src_extension_ts_ModulesTreeProvider_getChildren["ModulesTreeProvider.getChildren"]
+        end
+    end
+
+
+    classDef publicApi fill:#22c55e,stroke:#4ade80,color:#f0fdf4
+    classDef internalApi fill:#64748b,stroke:#94a3b8,color:#f1f5f9
+    class fn_packages_vscode_extension_src_extension_ts_activate internalApi
+    class fn_packages_vscode_extension_src_extension_ts_deactivate internalApi
+    class fn_packages_vscode_extension_src_extension_ts_ModulesTreeProvider_getTreeItem internalApi
+    class fn_packages_vscode_extension_src_extension_ts_ModulesTreeProvider_getChildren internalApi

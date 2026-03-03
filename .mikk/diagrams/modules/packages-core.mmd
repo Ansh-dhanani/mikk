@@ -1,0 +1,73 @@
+%%{init: {"theme": "base", "themeVariables": {"primaryColor": "#1e293b", "primaryTextColor": "#e2e8f0", "lineColor": "#64748b", "secondaryColor": "#334155", "tertiaryColor": "#475569", "background": "#0f172a", "mainBkg": "#1e293b", "nodeBorder": "#475569"}}}%%
+graph TD
+    subgraph mod_packages_core["📦 Module: Utils & Storage (104 internal functions collapsed)"]
+        subgraph file_packages_core_src_graph_cluster_detector_ts["📄 cluster-detector.ts"]
+            fn_packages_core_src_graph_cluster_detector_ts_ClusterDetector_constructor["⚡ ClusterDetector.constructor"]
+            fn_packages_core_src_graph_cluster_detector_ts_ClusterDetector_detect["⚡ ClusterDetector.detect"]
+            fn_packages_core_src_graph_cluster_detector_ts_ClusterDetector_computeCouplingMatrix["⚡ ClusterDetector.computeCouplingMatrix"]
+            fn_packages_core_src_graph_cluster_detector_ts_ClusterDetector_incrementPair["⚡ ClusterDetector.incrementPair"]
+            fn_packages_core_src_graph_cluster_detector_ts_ClusterDetector_computeClusterAffinity["⚡ ClusterDetector.computeClusterAffinity"]
+            fn_packages_core_src_graph_cluster_detector_ts_ClusterDetector_computeBestOutsideAffinity["⚡ ClusterDetector.computeBestOutsideAffinity"]
+            fn_packages_core_src_graph_cluster_detector_ts_ClusterDetector_computeClusterConfidence["⚡ ClusterDetector.computeClusterConfidence"]
+            fn_packages_core_src_graph_cluster_detector_ts_ClusterDetector_getTotalEdges["⚡ ClusterDetector.getTotalEdges"]
+            fn_packages_core_src_graph_cluster_detector_ts_ClusterDetector_getFileForNode["⚡ ClusterDetector.getFileForNode"]
+            fn_packages_core_src_graph_cluster_detector_ts_ClusterDetector_getNodeFile["⚡ ClusterDetector.getNodeFile"]
+            fn_packages_core_src_graph_cluster_detector_ts_ClusterDetector_getFunctionIdsForFiles["⚡ ClusterDetector.getFunctionIdsForFiles"]
+            fn_packages_core_src_graph_cluster_detector_ts_ClusterDetector_inferClusterId["⚡ ClusterDetector.inferClusterId"]
+            fn_packages_core_src_graph_cluster_detector_ts_ClusterDetector_getDirSegments["⚡ ClusterDetector.getDirSegments"]
+            fn_packages_core_src_graph_cluster_detector_ts_ClusterDetector_mergeSiblingClusters["⚡ ClusterDetector.mergeSiblingClusters"]
+            fn_packages_core_src_graph_cluster_detector_ts_ClusterDetector_getBaseDir["⚡ ClusterDetector.getBaseDir"]
+            fn_packages_core_src_graph_cluster_detector_ts_ClusterDetector_inferSemanticName["⚡ ClusterDetector.inferSemanticName"]
+            fn_packages_core_src_graph_cluster_detector_ts_ClusterDetector_inferClusterNameFromDir["⚡ ClusterDetector.inferClusterNameFromDir"]
+            fn_packages_core_src_graph_cluster_detector_ts_ClusterDetector_buildWordBag["⚡ ClusterDetector.buildWordBag"]
+        end
+        subgraph file_packages_core_src_contract_contract_generator_ts["📄 contract-generator.ts"]
+            fn_packages_core_src_contract_contract_generator_ts_ContractGenerator_generateFromClusters["⚡ ContractGenerator.generateFromClusters"]
+        end
+        subgraph file_packages_core_src_contract_lock_compiler_ts["📄 lock-compiler.ts"]
+            fn_packages_core_src_contract_lock_compiler_ts_LockCompiler_compileFunctions["⚡ LockCompiler.compileFunctions"]
+            fn_packages_core_src_contract_lock_compiler_ts_LockCompiler_compileClasses["⚡ LockCompiler.compileClasses"]
+            fn_packages_core_src_contract_lock_compiler_ts_LockCompiler_compileGenerics["⚡ LockCompiler.compileGenerics"]
+        end
+        subgraph file_packages_core_src_contract_lock_reader_ts["📄 lock-reader.ts"]
+            fn_packages_core_src_contract_lock_reader_ts_LockReader_read["⚡ LockReader.read"]
+            fn_packages_core_src_contract_lock_reader_ts_LockReader_write["⚡ LockReader.write"]
+        end
+        subgraph file_packages_core_src_hash_file_hasher_ts["📄 file-hasher.ts"]
+            fn_packages_core_src_hash_file_hasher_ts_hashContent["λ hashContent"]
+            fn_packages_core_src_hash_file_hasher_ts_hashFile["⚡ hashFile"]
+            fn_packages_core_src_hash_file_hasher_ts_hashFunctionBody["⚡ hashFunctionBody"]
+        end
+        subgraph file_packages_core_src_utils_fs_ts["📄 fs.ts"]
+            fn_packages_core_src_utils_fs_ts_readMikkIgnore["λ readMikkIgnore"]
+            fn_packages_core_src_utils_fs_ts_parseMikkIgnore["λ parseMikkIgnore"]
+            fn_packages_core_src_utils_fs_ts_discoverContextFiles["⚡ discoverContextFiles"]
+            fn_packages_core_src_utils_fs_ts_discoverFiles["⚡ discoverFiles"]
+            fn_packages_core_src_utils_fs_ts_fileExists["λ fileExists"]
+            fn_packages_core_src_utils_fs_ts_setupMikkDirectory["⚡ setupMikkDirectory"]
+            fn_packages_core_src_utils_fs_ts_generateMikkIgnore["⚡ generateMikkIgnore"]
+        end
+        subgraph file_packages_core_src_utils_fuzzy_match_ts["📄 fuzzy-match.ts"]
+            fn_packages_core_src_utils_fuzzy_match_ts_scoreFunctions["⚡ scoreFunctions"]
+            fn_packages_core_src_utils_fuzzy_match_ts_findFuzzyMatches["⚡ findFuzzyMatches"]
+            fn_packages_core_src_utils_fuzzy_match_ts_levenshtein["λ levenshtein"]
+            fn_packages_core_src_utils_fuzzy_match_ts_splitCamelCase["λ splitCamelCase"]
+            fn_packages_core_src_utils_fuzzy_match_ts_extractKeywords["λ extractKeywords"]
+        end
+        subgraph file_packages_core_src_utils_logger_ts["📄 logger.ts"]
+            fn_packages_core_src_utils_logger_ts_log["⚡ log"]
+        end
+    end
+
+    fn_packages_core_src_hash_file_hasher_ts_hashFile --> fn_packages_core_src_hash_file_hasher_ts_hashContent
+    fn_packages_core_src_hash_file_hasher_ts_hashFunctionBody --> fn_packages_core_src_hash_file_hasher_ts_hashContent
+    fn_packages_core_src_utils_fs_ts_readMikkIgnore --> fn_packages_core_src_utils_fs_ts_parseMikkIgnore
+    fn_packages_core_src_utils_fs_ts_discoverContextFiles --> fn_packages_core_src_utils_fs_ts_readMikkIgnore
+    fn_packages_core_src_utils_fs_ts_discoverFiles --> fn_packages_core_src_utils_fs_ts_readMikkIgnore
+    fn_packages_core_src_utils_fs_ts_setupMikkDirectory --> fn_packages_core_src_utils_fs_ts_fileExists
+    fn_packages_core_src_utils_fs_ts_generateMikkIgnore --> fn_packages_core_src_utils_fs_ts_fileExists
+    fn_packages_core_src_utils_fuzzy_match_ts_scoreFunctions --> fn_packages_core_src_utils_fuzzy_match_ts_extractKeywords
+    fn_packages_core_src_utils_fuzzy_match_ts_findFuzzyMatches --> fn_packages_core_src_utils_fuzzy_match_ts_levenshtein
+
+    classDef default fill:#334155,stroke:#64748b,color:#e2e8f0,stroke-width:1px
+    classDef external fill:#1e293b,stroke:#475569,color:#94a3b8,stroke-dasharray: 5 5

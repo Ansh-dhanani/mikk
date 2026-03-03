@@ -1,5 +1,5 @@
 import ts from 'typescript'
-import type { ParsedFunction, ParsedClass, ParsedImport, ParsedExport, ParsedParam, ParsedGeneric } from '../types.js'
+import type { ParsedFunction, ParsedClass, ParsedImport, ParsedExport, ParsedParam, ParsedGeneric, ParsedRoute } from '../types.js'
 import { hashContent } from '../../hash/file-hasher.js'
 
 /**
@@ -18,8 +18,16 @@ export class TypeScriptExtractor {
             content,
             ts.ScriptTarget.Latest,
             true, // setParentNodes
-            filePath.endsWith('.tsx') ? ts.ScriptKind.TSX : ts.ScriptKind.TS
+            this.inferScriptKind(filePath)
         )
+    }
+
+    /** Infer TypeScript ScriptKind from file extension (supports JS/JSX/TS/TSX) */
+    private inferScriptKind(filePath: string): ts.ScriptKind {
+        if (filePath.endsWith('.tsx')) return ts.ScriptKind.TSX
+        if (filePath.endsWith('.jsx')) return ts.ScriptKind.JSX
+        if (filePath.endsWith('.js') || filePath.endsWith('.mjs') || filePath.endsWith('.cjs')) return ts.ScriptKind.JS
+        return ts.ScriptKind.TS
     }
 
     /** Extract all top-level and variable-assigned functions */
@@ -119,7 +127,7 @@ export class TypeScriptExtractor {
         return false
     }
 
-    /** Extract all import statements */
+    /** Extract all import statements (static and dynamic) */
     extractImports(): ParsedImport[] {
         const imports: ParsedImport[] = []
         this.walkNode(this.sourceFile, (node) => {
@@ -128,6 +136,25 @@ export class TypeScriptExtractor {
                 if (parsed) imports.push(parsed)
             }
         })
+
+        // Also detect dynamic import() calls: await import('./path')
+        const walkDynamic = (n: ts.Node) => {
+            if (ts.isCallExpression(n) && n.expression.kind === ts.SyntaxKind.ImportKeyword) {
+                const arg = n.arguments[0]
+                if (arg && ts.isStringLiteral(arg)) {
+                    imports.push({
+                        source: arg.text,
+                        resolvedPath: '', // Filled in by resolver
+                        names: [],
+                        isDefault: false,
+                        isDynamic: true,
+                    })
+                }
+            }
+            ts.forEachChild(n, walkDynamic)
+        }
+        ts.forEachChild(this.sourceFile, walkDynamic)
+
         return imports
     }
 
@@ -203,6 +230,83 @@ export class TypeScriptExtractor {
             }
         })
         return exports
+    }
+
+    /**
+     * Extract HTTP route registrations.
+     * Detects Express/Koa/Hono patterns like:
+     *   router.get("/path", handler)
+     *   app.post("/path", middleware, handler)
+     *   app.use("/prefix", subrouter)
+     *   router.use(middleware)
+     */
+    extractRoutes(): ParsedRoute[] {
+        const routes: ParsedRoute[] = []
+        const HTTP_METHODS = new Set(['get', 'post', 'put', 'delete', 'patch', 'head', 'options', 'all', 'use'])
+        // Only detect routes on receiver objects that look like routers/apps
+        const ROUTER_NAMES = new Set(['app', 'router', 'server', 'route', 'api', 'express'])
+
+        const walk = (node: ts.Node) => {
+            if (
+                ts.isCallExpression(node) &&
+                ts.isPropertyAccessExpression(node.expression)
+            ) {
+                const methodName = node.expression.name.text.toLowerCase()
+                if (HTTP_METHODS.has(methodName)) {
+                    // Check if the receiver is a known router/app-like identifier
+                    const receiver = node.expression.expression
+                    let receiverName = ''
+                    if (ts.isIdentifier(receiver)) {
+                        receiverName = receiver.text.toLowerCase()
+                    } else if (ts.isPropertyAccessExpression(receiver) && ts.isIdentifier(receiver.expression)) {
+                        receiverName = receiver.expression.text.toLowerCase()
+                    }
+
+                    // Skip if receiver doesn't look like a router (e.g. prisma.file.delete)
+                    if (!ROUTER_NAMES.has(receiverName)) {
+                        ts.forEachChild(node, walk)
+                        return
+                    }
+
+                    const args = node.arguments
+                    let routePath = ''
+                    const middlewares: string[] = []
+                    let handler = 'anonymous'
+
+                    for (let i = 0; i < args.length; i++) {
+                        const arg = args[i]
+                        // First string literal is the route path
+                        if (ts.isStringLiteral(arg) && !routePath) {
+                            routePath = arg.text
+                        } else if (ts.isIdentifier(arg)) {
+                            // Last identifier is the handler; earlier ones are middleware
+                            if (i === args.length - 1) {
+                                handler = arg.text
+                            } else {
+                                middlewares.push(arg.text)
+                            }
+                        } else if (ts.isCallExpression(arg)) {
+                            // e.g. upload.single("file") — middleware call
+                            middlewares.push(arg.expression.getText(this.sourceFile))
+                        } else if (ts.isArrowFunction(arg) || ts.isFunctionExpression(arg)) {
+                            handler = 'anonymous'
+                        }
+                    }
+
+                    routes.push({
+                        method: methodName.toUpperCase(),
+                        path: routePath || '*',
+                        handler,
+                        middlewares,
+                        file: this.filePath,
+                        line: this.getLineNumber(node.getStart()),
+                    })
+                }
+            }
+            ts.forEachChild(node, walk)
+        }
+        ts.forEachChild(this.sourceFile, walk)
+        return routes
     }
 
     // ─── Private Helpers ──────────────────────────────────────
@@ -286,7 +390,32 @@ export class TypeScriptExtractor {
         const typeParameters = this.extractTypeParameters(node.typeParameters)
 
         for (const member of node.members) {
-            if (ts.isMethodDeclaration(member) && member.name) {
+            if (ts.isConstructorDeclaration(member)) {
+                // Track class constructors as methods
+                const mStartLine = this.getLineNumber(member.getStart())
+                const mEndLine = this.getLineNumber(member.getEnd())
+                const params = this.extractParams(member.parameters)
+                const calls = this.extractCalls(member)
+                const bodyText = member.getText(this.sourceFile)
+
+                methods.push({
+                    id: `fn:${this.filePath}:${name}.constructor`,
+                    name: `${name}.constructor`,
+                    file: this.filePath,
+                    startLine: mStartLine,
+                    endLine: mEndLine,
+                    params,
+                    returnType: name,
+                    isExported: this.hasExportModifier(node),
+                    isAsync: false,
+                    calls,
+                    hash: hashContent(bodyText),
+                    purpose: this.extractPurpose(member),
+                    edgeCasesHandled: this.extractEdgeCases(member),
+                    errorHandling: this.extractErrorHandling(member),
+                    detailedLines: this.extractDetailedLines(member),
+                })
+            } else if (ts.isMethodDeclaration(member) && member.name) {
                 const methodName = member.name.getText(this.sourceFile)
                 const mStartLine = this.getLineNumber(member.getStart())
                 const mEndLine = this.getLineNumber(member.getEnd())
@@ -373,7 +502,7 @@ export class TypeScriptExtractor {
         }
     }
 
-    /** Extract function/method call expressions from a node */
+    /** Extract function/method call expressions from a node (including new Foo()) */
     private extractCalls(node: ts.Node): string[] {
         const calls: string[] = []
         const walkCalls = (n: ts.Node) => {
@@ -383,6 +512,15 @@ export class TypeScriptExtractor {
                     calls.push(callee.text)
                 } else if (ts.isPropertyAccessExpression(callee)) {
                     // e.g., obj.method() — we capture the full dotted name
+                    calls.push(callee.getText(this.sourceFile))
+                }
+            }
+            // Track constructor calls: new Foo(...) → "Foo"
+            if (ts.isNewExpression(n)) {
+                const callee = n.expression
+                if (ts.isIdentifier(callee)) {
+                    calls.push(callee.text)
+                } else if (ts.isPropertyAccessExpression(callee)) {
                     calls.push(callee.getText(this.sourceFile))
                 }
             }
@@ -414,9 +552,9 @@ export class TypeScriptExtractor {
             if (clean) meaningfulLines.push(clean)
         }
 
-        // Return the last few meaningful lines or just the one closest to the node
-        // Often the first line of JSDoc or the line right above the node
-        return meaningfulLines.length > 0 ? meaningfulLines[meaningfulLines.length - 1].split('\n')[0].trim() : ''
+        // Return the first meaningful line — in JSDoc, the first line is the summary.
+        // e.g. "Decrypt data using AES-256-GCM" (not a later detail line)
+        return meaningfulLines.length > 0 ? meaningfulLines[0].split('\n')[0].trim() : ''
     }
 
     /** Extract edge cases handled (if statements returning early) */

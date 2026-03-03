@@ -1,0 +1,40 @@
+%%{init: {"theme": "base", "themeVariables": {"primaryColor": "#1e293b", "primaryTextColor": "#e2e8f0", "lineColor": "#64748b", "secondaryColor": "#334155", "tertiaryColor": "#475569", "background": "#0f172a", "mainBkg": "#1e293b", "nodeBorder": "#475569"}}}%%
+graph TD
+    subgraph mod_packages_cli["📦 Module: CLI"]
+        subgraph file_packages_cli_src_commands_analyze_ts["📄 analyze.ts"]
+            fn_packages_cli_src_commands_analyze_ts_registerAnalyzeCommand["⚡ registerAnalyzeCommand"]
+        end
+        subgraph file_packages_cli_src_commands_context_ts["📄 context.ts"]
+            fn_packages_cli_src_commands_context_ts_parseIntOption["λ parseIntOption"]
+            fn_packages_cli_src_commands_context_ts_registerContextCommands["⚡ registerContextCommands"]
+            fn_packages_cli_src_commands_context_ts_loadContractAndLock["λ loadContractAndLock"]
+            fn_packages_cli_src_commands_context_ts_printMeta["λ printMeta"]
+        end
+        subgraph file_packages_cli_src_commands_diff_ts["📄 diff.ts"]
+            fn_packages_cli_src_commands_diff_ts_registerDiffCommand["⚡ registerDiffCommand"]
+        end
+        subgraph file_packages_cli_src_commands_init_ts["📄 init.ts"]
+            fn_packages_cli_src_commands_init_ts_registerInitCommand["⚡ registerInitCommand"]
+        end
+        subgraph file_packages_cli_src_commands_intent_ts["📄 intent.ts"]
+            fn_packages_cli_src_commands_intent_ts_registerIntentCommand["⚡ registerIntentCommand"]
+        end
+        subgraph file_packages_cli_src_commands_visualize_ts["📄 visualize.ts"]
+            fn_packages_cli_src_commands_visualize_ts_loadProjectContext["λ loadProjectContext"]
+            fn_packages_cli_src_commands_visualize_ts_registerVisualizeCommands["⚡ registerVisualizeCommands"]
+        end
+        subgraph file_packages_cli_src_commands_watch_ts["📄 watch.ts"]
+            fn_packages_cli_src_commands_watch_ts_registerWatchCommand["⚡ registerWatchCommand"]
+        end
+        subgraph file_packages_cli_src_commands_contract_index_ts["📄 index.ts"]
+            fn_packages_cli_src_commands_contract_index_ts_registerContractCommands["⚡ registerContractCommands"]
+        end
+    end
+
+    fn_packages_cli_src_commands_context_ts_registerContextCommands --> fn_packages_cli_src_commands_context_ts_loadContractAndLock
+    fn_packages_cli_src_commands_context_ts_registerContextCommands --> fn_packages_cli_src_commands_context_ts_parseIntOption
+    fn_packages_cli_src_commands_context_ts_registerContextCommands --> fn_packages_cli_src_commands_context_ts_printMeta
+    fn_packages_cli_src_commands_visualize_ts_registerVisualizeCommands --> fn_packages_cli_src_commands_visualize_ts_loadProjectContext
+
+    classDef default fill:#334155,stroke:#64748b,color:#e2e8f0,stroke-width:1px
+    classDef external fill:#1e293b,stroke:#475569,color:#94a3b8,stroke-dasharray: 5 5

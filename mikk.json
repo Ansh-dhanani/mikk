@@ -1,63 +1,74 @@
 {
   "version": "1.0.0",
   "project": {
-    "name": "Mesh",
+    "name": "mikk",
     "description": "",
     "language": "typescript",
     "entryPoints": [
-      "apps/web/src/index.ts",
       "apps/registry/src/index.ts",
+      "apps/web/src/index.ts",
       "packages/ai-context/src/index.ts",
-      "packages/diagram-generator/src/index.ts",
       "packages/cli/src/index.ts",
       "packages/core/src/index.ts",
+      "packages/diagram-generator/src/index.ts",
       "packages/intent-engine/src/index.ts",
       "packages/watcher/src/index.ts",
+      "packages/core/src/graph/index.ts",
       "packages/core/src/contract/index.ts",
       "packages/core/src/hash/index.ts",
-      "packages/core/src/graph/index.ts",
       "packages/core/src/parser/index.ts",
-      "packages/cli/src/commands/contract/index.ts",
-      "packages/core/tests/fixtures/simple-api/src/index.ts"
+      "packages/cli/src/commands/contract/index.ts"
     ]
   },
   "declared": {
     "modules": [
       {
-        "id": "packages",
-        "name": "Packages",
-        "description": "Contains 64 files with 72 functions",
+        "id": "apps-registry",
+        "name": "Search (Registry)",
+        "description": "primarily placeholder operations across 1 files",
         "intent": "",
         "paths": [
-          "packages/ai-context/src/**",
-          "packages/diagram-generator/src/**",
-          "packages/cli/src/**",
-          "packages/core/tests/**",
-          "packages/core/src/**",
-          "packages/intent-engine/src/**",
-          "packages/vscode-extension/src/**",
-          "packages/watcher/src/**",
-          "packages/diagram-generator/src/generators/**",
-          "packages/cli/src/commands/**",
-          "packages/core/src/contract/**",
-          "packages/core/src/hash/**",
-          "packages/core/src/graph/**",
-          "packages/core/src/parser/**",
-          "packages/core/src/utils/**",
-          "packages/cli/src/commands/contract/**",
-          "packages/core/src/parser/typescript/**",
-          "packages/core/tests/fixtures/simple-api/src/**",
-          "packages/core/tests/fixtures/simple-api/src/auth/**",
-          "packages/core/tests/fixtures/simple-api/src/utils/**"
+          "apps/registry/src/**"
         ],
         "entryFunctions": [
-          "getProvider",
-          "mockParsedFile",
-          "mockFunction",
-          "mockImport",
-          "buildTestGraph",
-          "activate",
-          "deactivate",
+          "placeholder"
+        ]
+      },
+      {
+        "id": "apps-web",
+        "name": "Search (Web)",
+        "description": "@getmikkweb — Web Dashboard & Contract Generator",
+        "intent": "",
+        "paths": [
+          "apps/web/src/**"
+        ],
+        "entryFunctions": [
+          "placeholder"
+        ]
+      },
+      {
+        "id": "packages-ai-context",
+        "name": "Providers (Ai Context)",
+        "description": "Rough token estimation: ~4 chars per token; Rough token estimator: 1 token ≈ 4 chars for codeidentifiers; Graph traversal helpers",
+        "intent": "",
+        "paths": [
+          "packages/ai-context/src/**"
+        ],
+        "entryFunctions": [
+          "getProvider"
+        ]
+      },
+      {
+        "id": "packages-cli",
+        "name": "CLI",
+        "description": "Parse a numeric CLI option with validation; ── Helpers ──────────────────────────────────────────────...; Load contract + lock + diagram orchestrator",
+        "intent": "",
+        "paths": [
+          "packages/cli/src/**",
+          "packages/cli/src/commands/**",
+          "packages/cli/src/commands/contract/**"
+        ],
+        "entryFunctions": [
           "registerAnalyzeCommand",
           "registerContextCommands",
           "registerDiffCommand",
@@ -65,6 +76,24 @@
           "registerIntentCommand",
           "registerVisualizeCommands",
           "registerWatchCommand",
+          "registerContractCommands"
+        ]
+      },
+      {
+        "id": "packages-core",
+        "name": "Utils & Storage",
+        "description": "Infer the project language from the file extensions present; ─── Heuristic purpose inference ─────────────────────────...; Infer a short purpose string from function metadata when ...",
+        "intent": "",
+        "paths": [
+          "packages/core/src/**",
+          "packages/core/src/graph/**",
+          "packages/core/src/contract/**",
+          "packages/core/src/hash/**",
+          "packages/core/src/parser/**",
+          "packages/core/src/utils/**",
+          "packages/core/src/parser/typescript/**"
+        ],
+        "entryFunctions": [
           "hashContent",
           "hashFile",
           "hashFunctionBody",
@@ -72,32 +101,69 @@
           "computeRootHash",
           "getParser",
           "parseFiles",
+          "readMikkIgnore",
+          "parseMikkIgnore",
+          "discoverContextFiles",
+          "detectProjectLanguage",
+          "getDiscoveryPatterns",
           "discoverFiles",
           "readFileContent",
           "writeFileContent",
           "fileExists",
           "setupMikkDirectory",
+          "generateMikkIgnore",
+          "scoreFunctions",
+          "findFuzzyMatches",
+          "levenshtein",
+          "splitCamelCase",
+          "extractKeywords",
           "setLogLevel",
-          "minimatch",
-          "registerContractCommands",
-          "authMiddleware",
-          "verifyToken",
-          "jwtDecode"
+          "minimatch"
         ]
       },
       {
-        "id": "apps",
-        "name": "Apps",
-        "description": "Contains 2 files with 2 functions",
+        "id": "packages-diagram-generator",
+        "name": "Search (Diagram Generator)",
+        "description": "9 files, 0 functions",
         "intent": "",
         "paths": [
-          "apps/web/src/**",
-          "apps/registry/src/**"
+          "packages/diagram-generator/src/**",
+          "packages/diagram-generator/src/generators/**"
+        ],
+        "entryFunctions": []
+      },
+      {
+        "id": "packages-intent-engine",
+        "name": "Search (Intent Engine)",
+        "description": "6 files, 0 functions",
+        "intent": "",
+        "paths": [
+          "packages/intent-engine/src/**"
+        ],
+        "entryFunctions": []
+      },
+      {
+        "id": "packages-vscode-extension",
+        "name": "Providers (Vscode Extension)",
+        "description": "VS Code Extension entry point for Mikk",
+        "intent": "",
+        "paths": [
+          "packages/vscode-extension/src/**"
         ],
         "entryFunctions": [
-          "placeholder",
-          "placeholder"
+          "activate",
+          "deactivate"
         ]
+      },
+      {
+        "id": "packages-watcher",
+        "name": "Storage",
+        "description": "5 files, 0 functions",
+        "intent": "",
+        "paths": [
+          "packages/watcher/src/**"
+        ],
+        "entryFunctions": []
       }
     ],
     "constraints": [],

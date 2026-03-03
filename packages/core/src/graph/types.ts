@@ -19,6 +19,8 @@ export interface GraphNode {
         isAsync?: boolean
         hash?: string
         purpose?: string
+        params?: { name: string; type: string; optional?: boolean }[]
+        returnType?: string
         edgeCasesHandled?: string[]
         errorHandling?: { line: number; type: 'try-catch' | 'throw'; detail: string }[]
         detailedLines?: { startLine: number; endLine: number; blockType: string }[]

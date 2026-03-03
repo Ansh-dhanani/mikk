@@ -16,6 +16,7 @@ export class CapsuleDiagramGenerator {
         if (!module) return `%% Module "${moduleId}" not found`
 
         const lines: string[] = []
+        lines.push('%%{init: {"theme": "base", "themeVariables": {"primaryColor": "#1e293b", "primaryTextColor": "#e2e8f0", "lineColor": "#64748b", "secondaryColor": "#334155", "tertiaryColor": "#475569", "background": "#0f172a", "mainBkg": "#1e293b", "nodeBorder": "#475569"}}}%%')
         lines.push('graph LR')
         lines.push('')
 
@@ -67,8 +68,22 @@ export class CapsuleDiagramGenerator {
         }
 
         lines.push('')
-        lines.push('    classDef publicApi fill:#27ae60,stroke:#2c3e50,color:#fff')
-        lines.push('    classDef internalApi fill:#7f8c8d,stroke:#2c3e50,color:#fff')
+        lines.push('    classDef publicApi fill:#22c55e,stroke:#4ade80,color:#f0fdf4')
+        lines.push('    classDef internalApi fill:#64748b,stroke:#94a3b8,color:#f1f5f9')
+
+        // Apply classes to nodes
+        for (const fn of exportedFns) {
+            lines.push(`    class ${this.sanitizeId(fn.id)} publicApi`)
+        }
+        for (const fn of internalFns) {
+            if (internalFns.length <= 10) {
+                lines.push(`    class ${this.sanitizeId(fn.id)} internalApi`)
+            }
+        }
+        // Apply to the summary node if used
+        if (internalFns.length > 10) {
+            lines.push('    class internal internalApi')
+        }
 
         return lines.join('\n')
     }

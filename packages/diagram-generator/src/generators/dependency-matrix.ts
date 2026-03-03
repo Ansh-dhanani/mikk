@@ -23,6 +23,7 @@ export class DependencyMatrixGenerator {
         const matrix = this.computeMatrix()
         const lines: string[] = []
 
+        lines.push('%%{init: {"theme": "base", "themeVariables": {"primaryColor": "#1e293b", "primaryTextColor": "#e2e8f0", "lineColor": "#64748b", "secondaryColor": "#334155", "tertiaryColor": "#475569", "background": "#0f172a", "mainBkg": "#1e293b", "nodeBorder": "#475569"}}}%%')
         lines.push('graph LR')
         lines.push('')
 
@@ -44,7 +45,7 @@ export class DependencyMatrixGenerator {
         }
 
         lines.push('')
-        lines.push('    classDef default fill:#ecf0f1,stroke:#34495e,color:#2c3e50')
+        lines.push('    classDef default fill:#334155,stroke:#64748b,color:#e2e8f0')
 
         return lines.join('\n')
     }
@@ -78,11 +79,24 @@ export class DependencyMatrixGenerator {
     private computeMatrix(): Map<string, number> {
         const counts = new Map<string, number>()
 
+        // Count function-level cross-module calls
         for (const fn of Object.values(this.lock.functions)) {
             for (const callTarget of fn.calls) {
                 const targetFn = this.lock.functions[callTarget]
                 if (targetFn && fn.moduleId !== targetFn.moduleId) {
                     const key = `${fn.moduleId}|${targetFn.moduleId}`
+                    counts.set(key, (counts.get(key) || 0) + 1)
+                }
+            }
+        }
+
+        // Count file-level cross-module imports
+        for (const file of Object.values(this.lock.files)) {
+            if (!file.imports) continue
+            for (const importedPath of file.imports) {
+                const importedFile = this.lock.files[importedPath]
+                if (importedFile && file.moduleId !== importedFile.moduleId) {
+                    const key = `${file.moduleId}|${importedFile.moduleId}`
                     counts.set(key, (counts.get(key) || 0) + 1)
                 }
             }

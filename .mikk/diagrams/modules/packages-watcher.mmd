@@ -1,0 +1,38 @@
+%%{init: {"theme": "base", "themeVariables": {"primaryColor": "#1e293b", "primaryTextColor": "#e2e8f0", "lineColor": "#64748b", "secondaryColor": "#334155", "tertiaryColor": "#475569", "background": "#0f172a", "mainBkg": "#1e293b", "nodeBorder": "#475569"}}}%%
+graph TD
+    subgraph mod_packages_watcher["📦 Module: Storage"]
+        subgraph file_packages_watcher_src_daemon_ts["📄 daemon.ts"]
+            fn_packages_watcher_src_daemon_ts_WatcherDaemon_constructor["⚡ WatcherDaemon.constructor"]
+            fn_packages_watcher_src_daemon_ts_WatcherDaemon_start["⚡ WatcherDaemon.start"]
+            fn_packages_watcher_src_daemon_ts_WatcherDaemon_stop["⚡ WatcherDaemon.stop"]
+            fn_packages_watcher_src_daemon_ts_WatcherDaemon_on["⚡ WatcherDaemon.on"]
+            fn_packages_watcher_src_daemon_ts_WatcherDaemon_enqueueChange["⚡ WatcherDaemon.enqueueChange"]
+            fn_packages_watcher_src_daemon_ts_WatcherDaemon_flushPendingEvents["⚡ WatcherDaemon.flushPendingEvents"]
+            fn_packages_watcher_src_daemon_ts_WatcherDaemon_processBatch["⚡ WatcherDaemon.processBatch"]
+            fn_packages_watcher_src_daemon_ts_WatcherDaemon_writeSyncState["⚡ WatcherDaemon.writeSyncState"]
+            fn_packages_watcher_src_daemon_ts_WatcherDaemon_writePidFile["⚡ WatcherDaemon.writePidFile"]
+            fn_packages_watcher_src_daemon_ts_WatcherDaemon_removePidFile["⚡ WatcherDaemon.removePidFile"]
+        end
+        subgraph file_packages_watcher_src_file_watcher_ts["📄 file-watcher.ts"]
+            fn_packages_watcher_src_file_watcher_ts_FileWatcher_constructor["⚡ FileWatcher.constructor"]
+            fn_packages_watcher_src_file_watcher_ts_FileWatcher_start["⚡ FileWatcher.start"]
+            fn_packages_watcher_src_file_watcher_ts_FileWatcher_stop["⚡ FileWatcher.stop"]
+            fn_packages_watcher_src_file_watcher_ts_FileWatcher_on["⚡ FileWatcher.on"]
+            fn_packages_watcher_src_file_watcher_ts_FileWatcher_setHash["⚡ FileWatcher.setHash"]
+            fn_packages_watcher_src_file_watcher_ts_FileWatcher_handleChange["⚡ FileWatcher.handleChange"]
+            fn_packages_watcher_src_file_watcher_ts_FileWatcher_emit["⚡ FileWatcher.emit"]
+        end
+        subgraph file_packages_watcher_src_incremental_analyzer_ts["📄 incremental-analyzer.ts"]
+            fn_packages_watcher_src_incremental_analyzer_ts_IncrementalAnalyzer_constructor["⚡ IncrementalAnalyzer.constructor"]
+            fn_packages_watcher_src_incremental_analyzer_ts_IncrementalAnalyzer_analyzeBatch["⚡ IncrementalAnalyzer.analyzeBatch"]
+            fn_packages_watcher_src_incremental_analyzer_ts_IncrementalAnalyzer_analyze["⚡ IncrementalAnalyzer.analyze"]
+            fn_packages_watcher_src_incremental_analyzer_ts_IncrementalAnalyzer_addParsedFile["⚡ IncrementalAnalyzer.addParsedFile"]
+            fn_packages_watcher_src_incremental_analyzer_ts_IncrementalAnalyzer_parseWithRaceCheck["⚡ IncrementalAnalyzer.parseWithRaceCheck"]
+            fn_packages_watcher_src_incremental_analyzer_ts_IncrementalAnalyzer_runFullAnalysis["⚡ IncrementalAnalyzer.runFullAnalysis"]
+            fn_packages_watcher_src_incremental_analyzer_ts_IncrementalAnalyzer_findAffectedNodes["⚡ IncrementalAnalyzer.findAffectedNodes"]
+        end
+    end
+
+
+    classDef default fill:#334155,stroke:#64748b,color:#e2e8f0,stroke-width:1px
+    classDef external fill:#1e293b,stroke:#475569,color:#94a3b8,stroke-dasharray: 5 5

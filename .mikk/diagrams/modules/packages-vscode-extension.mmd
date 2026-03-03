@@ -1,0 +1,14 @@
+%%{init: {"theme": "base", "themeVariables": {"primaryColor": "#1e293b", "primaryTextColor": "#e2e8f0", "lineColor": "#64748b", "secondaryColor": "#334155", "tertiaryColor": "#475569", "background": "#0f172a", "mainBkg": "#1e293b", "nodeBorder": "#475569"}}}%%
+graph TD
+    subgraph mod_packages_vscode_extension["📦 Module: Providers (Vscode Extension)"]
+        subgraph file_packages_vscode_extension_src_extension_ts["📄 extension.ts"]
+            fn_packages_vscode_extension_src_extension_ts_activate["⚡ activate"]
+            fn_packages_vscode_extension_src_extension_ts_deactivate["⚡ deactivate"]
+            fn_packages_vscode_extension_src_extension_ts_ModulesTreeProvider_getTreeItem["⚡ ModulesTreeProvider.getTreeItem"]
+            fn_packages_vscode_extension_src_extension_ts_ModulesTreeProvider_getChildren["⚡ ModulesTreeProvider.getChildren"]
+        end
+    end
+
+
+    classDef default fill:#334155,stroke:#64748b,color:#e2e8f0,stroke-width:1px
+    classDef external fill:#1e293b,stroke:#475569,color:#94a3b8,stroke-dasharray: 5 5

@@ -13,6 +13,7 @@ export class HealthDiagramGenerator {
 
     generate(): string {
         const lines: string[] = []
+        lines.push('%%{init: {"theme": "base", "themeVariables": {"primaryColor": "#1e293b", "primaryTextColor": "#e2e8f0", "lineColor": "#64748b", "secondaryColor": "#334155", "tertiaryColor": "#475569", "background": "#0f172a", "mainBkg": "#1e293b", "nodeBorder": "#475569"}}}%%')
         lines.push('graph TD')
         lines.push('')
 
@@ -28,7 +29,7 @@ export class HealthDiagramGenerator {
             classAssignments.push(`    class ${sid} ${healthClass}`)
         }
 
-        // Add inter-module dependency edges for context
+        // Add inter-module dependency edges for context (function calls + file imports)
         const moduleEdges = new Set<string>()
         for (const fn of Object.values(this.lock.functions)) {
             for (const callTarget of fn.calls) {
@@ -42,11 +43,24 @@ export class HealthDiagramGenerator {
                 }
             }
         }
+        for (const file of Object.values(this.lock.files)) {
+            if (!file.imports) continue
+            for (const importedPath of file.imports) {
+                const importedFile = this.lock.files[importedPath]
+                if (importedFile && file.moduleId !== importedFile.moduleId) {
+                    const key = `${file.moduleId}|${importedFile.moduleId}`
+                    if (!moduleEdges.has(key)) {
+                        moduleEdges.add(key)
+                        lines.push(`    ${this.sanitizeId(file.moduleId)} -.-> ${this.sanitizeId(importedFile.moduleId)}`)
+                    }
+                }
+            }
+        }
 
         lines.push('')
-        lines.push('    classDef healthy fill:#27ae60,stroke:#2c3e50,color:#fff')
-        lines.push('    classDef warning fill:#f39c12,stroke:#2c3e50,color:#fff')
-        lines.push('    classDef critical fill:#e74c3c,stroke:#2c3e50,color:#fff')
+        lines.push('    classDef healthy fill:#22c55e,stroke:#4ade80,color:#f0fdf4')
+        lines.push('    classDef warning fill:#f59e0b,stroke:#fbbf24,color:#1e293b')
+        lines.push('    classDef critical fill:#ef4444,stroke:#f87171,color:#fef2f2')
         lines.push('')
         for (const assignment of classAssignments) {
             lines.push(assignment)
@@ -57,9 +71,10 @@ export class HealthDiagramGenerator {
 
     private computeMetrics(moduleId: string) {
         const moduleFunctions = Object.values(this.lock.functions).filter(f => f.moduleId === moduleId)
+        const moduleFiles = Object.values(this.lock.files).filter(f => f.moduleId === moduleId)
         const functionCount = moduleFunctions.length
 
-        // Coupling: count of external calls
+        // Coupling: count of external calls + external file imports
         let externalCalls = 0
         let internalCalls = 0
         for (const fn of moduleFunctions) {
@@ -67,6 +82,16 @@ export class HealthDiagramGenerator {
                 const target = this.lock.functions[call]
                 if (target) {
                     if (target.moduleId === moduleId) internalCalls++
+                    else externalCalls++
+                }
+            }
+        }
+        for (const file of moduleFiles) {
+            if (!file.imports) continue
+            for (const importedPath of file.imports) {
+                const importedFile = this.lock.files[importedPath]
+                if (importedFile) {
+                    if (importedFile.moduleId === moduleId) internalCalls++
                     else externalCalls++
                 }
             }

@@ -12,6 +12,10 @@ export interface AIContext {
     modules: ContextModule[]
     constraints: string[]
     decisions: { title: string; reason: string }[]
+    /** Discovered schema/config/model files included verbatim */
+    contextFiles?: { path: string; content: string; type: string }[]
+    /** Detected HTTP route registrations */
+    routes?: { method: string; path: string; handler: string; middlewares: string[]; file: string; line: number }[]
     prompt: string
     /** Diagnostic info — helpful for debugging context quality */
     meta: {
@@ -39,9 +43,15 @@ export interface ContextFunction {
     endLine: number
     calls: string[]
     calledBy: string[]
+    params?: { name: string; type: string; optional?: boolean }[]
+    returnType?: string
+    isAsync?: boolean
+    isExported?: boolean
     purpose?: string
     errorHandling?: string[]
     edgeCases?: string[]
+    /** The actual source code body (only included for top-scored functions) */
+    body?: string
 }
 
 /** Query options for context generation */
@@ -60,6 +70,10 @@ export interface ContextQuery {
     tokenBudget?: number
     /** Include call graph arrows (default true) */
     includeCallGraph?: boolean
+    /** Include function bodies for top-scored functions (default true) */
+    includeBodies?: boolean
+    /** Absolute filesystem path to the project root (needed for body reading) */
+    projectRoot?: string
 }
 
 /** Context provider interface for different AI platforms */

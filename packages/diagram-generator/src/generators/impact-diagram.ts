@@ -12,6 +12,7 @@ export class ImpactDiagramGenerator {
 
     generate(changedNodeIds: string[], impactedNodeIds: string[]): string {
         const lines: string[] = []
+        lines.push('%%{init: {"theme": "base", "themeVariables": {"primaryColor": "#1e293b", "primaryTextColor": "#e2e8f0", "lineColor": "#64748b", "secondaryColor": "#334155", "tertiaryColor": "#475569", "background": "#0f172a", "mainBkg": "#1e293b", "nodeBorder": "#475569"}}}%%')
         lines.push('graph LR')
         lines.push('')
 
@@ -46,8 +47,8 @@ export class ImpactDiagramGenerator {
         }
 
         lines.push('')
-        lines.push('    classDef changed fill:#e74c3c,stroke:#c0392b,color:#fff')
-        lines.push('    classDef impacted fill:#e67e22,stroke:#d35400,color:#fff')
+        lines.push('    classDef changed fill:#ef4444,stroke:#f87171,color:#fef2f2')
+        lines.push('    classDef impacted fill:#f59e0b,stroke:#fbbf24,color:#1e293b')
 
         for (const id of changedNodeIds) {
             lines.push(`    class ${this.sanitizeId(id)} changed`)

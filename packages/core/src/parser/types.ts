@@ -63,6 +63,16 @@ export interface ParsedClass {
     errorHandling?: { line: number, type: 'try-catch' | 'throw', detail: string }[]
 }
 
+/** A detected HTTP route registration (Express/Koa/Hono style) */
+export interface ParsedRoute {
+    method: string            // "GET", "POST", "PUT", "DELETE", "USE", etc.
+    path: string              // "/upload", "/:shortId", "/api"
+    handler: string           // "createZap" or "anonymous"
+    middlewares: string[]     // ["uploadLimiter", "upload.single"]
+    file: string              // "src/Routes/zap.routes.ts"
+    line: number              // 15
+}
+
 /** A generic declaration like interface, type, or constant with metadata */
 export interface ParsedGeneric {
     id: string
@@ -85,6 +95,7 @@ export interface ParsedFile {
     generics: ParsedGeneric[]
     imports: ParsedImport[]
     exports: ParsedExport[]
+    routes: ParsedRoute[]    // Detected HTTP route registrations
     hash: string            // SHA-256 of the entire file content
     parsedAt: number        // Date.now()
 }

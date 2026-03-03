@@ -66,6 +66,8 @@ export class GraphBuilder {
                 isAsync: fn.isAsync,
                 hash: fn.hash,
                 purpose: fn.purpose,
+                params: fn.params?.map(p => ({ name: p.name, type: p.type, ...(p.optional ? { optional: true } : {}) })),
+                returnType: fn.returnType !== 'void' ? fn.returnType : undefined,
                 edgeCasesHandled: fn.edgeCasesHandled,
                 errorHandling: fn.errorHandling,
                 detailedLines: fn.detailedLines,

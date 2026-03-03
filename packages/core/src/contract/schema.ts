@@ -59,6 +59,14 @@ export const MikkLockFunctionSchema = z.object({
     calls: z.array(z.string()),
     calledBy: z.array(z.string()),
     moduleId: z.string(),
+    params: z.array(z.object({
+        name: z.string(),
+        type: z.string(),
+        optional: z.boolean().optional(),
+    })).optional(),
+    returnType: z.string().optional(),
+    isAsync: z.boolean().optional(),
+    isExported: z.boolean().optional(),
     purpose: z.string().optional(),
     edgeCasesHandled: z.array(z.string()).optional(),
     errorHandling: z.array(z.object({
@@ -85,6 +93,7 @@ export const MikkLockFileSchema = z.object({
     hash: z.string(),
     moduleId: z.string(),
     lastModified: z.string(),
+    imports: z.array(z.string()).optional(),
 })
 
 export const MikkLockClassSchema = z.object({
@@ -114,6 +123,24 @@ export const MikkLockGenericSchema = z.object({
     moduleId: z.string(),
     isExported: z.boolean(),
     purpose: z.string().optional(),
+    /** Other files that contain an identical generic (same name + type). Dedup. */
+    alsoIn: z.array(z.string()).optional(),
+})
+
+export const MikkLockContextFileSchema = z.object({
+    path: z.string(),
+    content: z.string(),
+    type: z.enum(['schema', 'model', 'types', 'routes', 'config', 'api-spec', 'migration', 'docker']),
+    size: z.number(),
+})
+
+export const MikkLockRouteSchema = z.object({
+    method: z.string(),
+    path: z.string(),
+    handler: z.string(),
+    middlewares: z.array(z.string()),
+    file: z.string(),
+    line: z.number(),
 })
 
 export const MikkLockSchema = z.object({
@@ -132,6 +159,8 @@ export const MikkLockSchema = z.object({
     classes: z.record(MikkLockClassSchema).optional(),
     generics: z.record(MikkLockGenericSchema).optional(),
     files: z.record(MikkLockFileSchema),
+    contextFiles: z.array(MikkLockContextFileSchema).optional(),
+    routes: z.array(MikkLockRouteSchema).optional(),
     graph: z.object({
         nodes: z.number(),
         edges: z.number(),
@@ -145,3 +174,5 @@ export type MikkLockModule = z.infer<typeof MikkLockModuleSchema>
 export type MikkLockFile = z.infer<typeof MikkLockFileSchema>
 export type MikkLockClass = z.infer<typeof MikkLockClassSchema>
 export type MikkLockGeneric = z.infer<typeof MikkLockGenericSchema>
+export type MikkLockContextFile = z.infer<typeof MikkLockContextFileSchema>
+export type MikkLockRoute = z.infer<typeof MikkLockRouteSchema>

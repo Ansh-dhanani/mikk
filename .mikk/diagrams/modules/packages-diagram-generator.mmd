@@ -1,0 +1,57 @@
+%%{init: {"theme": "base", "themeVariables": {"primaryColor": "#1e293b", "primaryTextColor": "#e2e8f0", "lineColor": "#64748b", "secondaryColor": "#334155", "tertiaryColor": "#475569", "background": "#0f172a", "mainBkg": "#1e293b", "nodeBorder": "#475569"}}}%%
+graph TD
+    subgraph mod_packages_diagram_generator["📦 Module: Search (Diagram Generator)"]
+        subgraph file_packages_diagram_generator_src_orchestrator_ts["📄 orchestrator.ts"]
+            fn_packages_diagram_generator_src_orchestrator_ts_DiagramOrchestrator_constructor["⚡ DiagramOrchestrator.constructor"]
+            fn_packages_diagram_generator_src_orchestrator_ts_DiagramOrchestrator_generateAll["⚡ DiagramOrchestrator.generateAll"]
+            fn_packages_diagram_generator_src_orchestrator_ts_DiagramOrchestrator_generateImpact["⚡ DiagramOrchestrator.generateImpact"]
+            fn_packages_diagram_generator_src_orchestrator_ts_DiagramOrchestrator_writeDiagram["⚡ DiagramOrchestrator.writeDiagram"]
+        end
+        subgraph file_packages_diagram_generator_src_generators_capsule_diagram_ts["📄 capsule-diagram.ts"]
+            fn_packages_diagram_generator_src_generators_capsule_diagram_ts_CapsuleDiagramGenerator_constructor["⚡ CapsuleDiagramGenerator.constructor"]
+            fn_packages_diagram_generator_src_generators_capsule_diagram_ts_CapsuleDiagramGenerator_generate["⚡ CapsuleDiagramGenerator.generate"]
+            fn_packages_diagram_generator_src_generators_capsule_diagram_ts_CapsuleDiagramGenerator_sanitizeId["⚡ CapsuleDiagramGenerator.sanitizeId"]
+        end
+        subgraph file_packages_diagram_generator_src_generators_dependency_matrix_ts["📄 dependency-matrix.ts"]
+            fn_packages_diagram_generator_src_generators_dependency_matrix_ts_DependencyMatrixGenerator_constructor["⚡ DependencyMatrixGenerator.constructor"]
+            fn_packages_diagram_generator_src_generators_dependency_matrix_ts_DependencyMatrixGenerator_generate["⚡ DependencyMatrixGenerator.generate"]
+            fn_packages_diagram_generator_src_generators_dependency_matrix_ts_DependencyMatrixGenerator_generateTable["⚡ DependencyMatrixGenerator.generateTable"]
+            fn_packages_diagram_generator_src_generators_dependency_matrix_ts_DependencyMatrixGenerator_computeMatrix["⚡ DependencyMatrixGenerator.computeMatrix"]
+            fn_packages_diagram_generator_src_generators_dependency_matrix_ts_DependencyMatrixGenerator_sanitizeId["⚡ DependencyMatrixGenerator.sanitizeId"]
+        end
+        subgraph file_packages_diagram_generator_src_generators_flow_diagram_ts["📄 flow-diagram.ts"]
+            fn_packages_diagram_generator_src_generators_flow_diagram_ts_FlowDiagramGenerator_constructor["⚡ FlowDiagramGenerator.constructor"]
+            fn_packages_diagram_generator_src_generators_flow_diagram_ts_FlowDiagramGenerator_generate["⚡ FlowDiagramGenerator.generate"]
+            fn_packages_diagram_generator_src_generators_flow_diagram_ts_FlowDiagramGenerator_generateEntryPoints["⚡ FlowDiagramGenerator.generateEntryPoints"]
+            fn_packages_diagram_generator_src_generators_flow_diagram_ts_FlowDiagramGenerator_traceFlow["⚡ FlowDiagramGenerator.traceFlow"]
+            fn_packages_diagram_generator_src_generators_flow_diagram_ts_FlowDiagramGenerator_getParticipantName["⚡ FlowDiagramGenerator.getParticipantName"]
+            fn_packages_diagram_generator_src_generators_flow_diagram_ts_FlowDiagramGenerator_sanitizeId["⚡ FlowDiagramGenerator.sanitizeId"]
+        end
+        subgraph file_packages_diagram_generator_src_generators_health_diagram_ts["📄 health-diagram.ts"]
+            fn_packages_diagram_generator_src_generators_health_diagram_ts_HealthDiagramGenerator_constructor["⚡ HealthDiagramGenerator.constructor"]
+            fn_packages_diagram_generator_src_generators_health_diagram_ts_HealthDiagramGenerator_generate["⚡ HealthDiagramGenerator.generate"]
+            fn_packages_diagram_generator_src_generators_health_diagram_ts_HealthDiagramGenerator_computeMetrics["⚡ HealthDiagramGenerator.computeMetrics"]
+            fn_packages_diagram_generator_src_generators_health_diagram_ts_HealthDiagramGenerator_sanitizeId["⚡ HealthDiagramGenerator.sanitizeId"]
+        end
+        subgraph file_packages_diagram_generator_src_generators_impact_diagram_ts["📄 impact-diagram.ts"]
+            fn_packages_diagram_generator_src_generators_impact_diagram_ts_ImpactDiagramGenerator_constructor["⚡ ImpactDiagramGenerator.constructor"]
+            fn_packages_diagram_generator_src_generators_impact_diagram_ts_ImpactDiagramGenerator_generate["⚡ ImpactDiagramGenerator.generate"]
+            fn_packages_diagram_generator_src_generators_impact_diagram_ts_ImpactDiagramGenerator_sanitizeId["⚡ ImpactDiagramGenerator.sanitizeId"]
+        end
+        subgraph file_packages_diagram_generator_src_generators_main_diagram_ts["📄 main-diagram.ts"]
+            fn_packages_diagram_generator_src_generators_main_diagram_ts_MainDiagramGenerator_constructor["⚡ MainDiagramGenerator.constructor"]
+            fn_packages_diagram_generator_src_generators_main_diagram_ts_MainDiagramGenerator_generate["⚡ MainDiagramGenerator.generate"]
+            fn_packages_diagram_generator_src_generators_main_diagram_ts_MainDiagramGenerator_generateModuleLevelView["⚡ MainDiagramGenerator.generateModuleLevelView"]
+            fn_packages_diagram_generator_src_generators_main_diagram_ts_MainDiagramGenerator_generateFileLevelView["⚡ MainDiagramGenerator.generateFileLevelView"]
+            fn_packages_diagram_generator_src_generators_main_diagram_ts_MainDiagramGenerator_sanitizeId["⚡ MainDiagramGenerator.sanitizeId"]
+        end
+        subgraph file_packages_diagram_generator_src_generators_module_diagram_ts["📄 module-diagram.ts"]
+            fn_packages_diagram_generator_src_generators_module_diagram_ts_ModuleDiagramGenerator_constructor["⚡ ModuleDiagramGenerator.constructor"]
+            fn_packages_diagram_generator_src_generators_module_diagram_ts_ModuleDiagramGenerator_generate["⚡ ModuleDiagramGenerator.generate"]
+            fn_packages_diagram_generator_src_generators_module_diagram_ts_ModuleDiagramGenerator_sanitizeId["⚡ ModuleDiagramGenerator.sanitizeId"]
+        end
+    end
+
+
+    classDef default fill:#334155,stroke:#64748b,color:#e2e8f0,stroke-width:1px
+    classDef external fill:#1e293b,stroke:#475569,color:#94a3b8,stroke-dasharray: 5 5
