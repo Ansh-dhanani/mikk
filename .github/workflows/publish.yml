@@ -42,7 +42,7 @@ jobs:
 
       - uses: oven-sh/setup-bun@v2
         with:
-          bun-version: latest
+          bun-version: 1.3.5
 
       - name: Cache bun dependencies
         uses: actions/cache@v4
@@ -55,7 +55,9 @@ jobs:
         run: bun install --frozen-lockfile
 
       - name: Ensure clean git state
-        run: git diff --quiet || (echo "Uncommitted changes detected" && exit 1)
+        run: |
+          git checkout -- bun.lock 2>/dev/null || true
+          git diff --quiet || (echo "Uncommitted changes detected:" && git diff --name-only && exit 1)
 
       - name: Bump versions
         id: versions
