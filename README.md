@@ -19,7 +19,7 @@
 Mikk is the ultimate tool for codebase comprehension and safe refactoring. It acts as your project's **nervous system** — mapping out dependencies, enforcing architectural contracts, generating Mermaid diagrams, and giving your AI tools the exact context they need.
 
 ```
-Instant Context · Mermaid Architecture Diagrams · Impact Analysis · Intent Pre-flight · VS Code Extension
+Instant Context · Mermaid Architecture Diagrams · Impact Analysis · Intent Pre-flight · MCP Server · VS Code Extension
 ```
 
 ---
@@ -33,6 +33,7 @@ Instant Context · Mermaid Architecture Diagrams · Impact Analysis · Intent Pr
 - **Strict Contracts** — Enforce module boundaries via `mikk.json`. CI fails if an import violates your defined architecture. Supports `no-import`, `must-use`, `no-call`, `layer`, `naming`, and `max-files` constraints.
 - **Live Watcher** — Incremental, debounced file watching with atomic lock file updates. Your `mikk.lock.json` stays in sync as you code.
 - **Merkle-Tree Hashing** — SHA-256 hashes at function → file → module → root level. Detect drift instantly without diffing.
+- **MCP Server** — Expose your project's architectural intelligence to AI assistants (Claude, Cursor, VS Code) via the Model Context Protocol. 12 tools, 3 resources, zero config.
 - **Lightning Fast** — Built on Bun and Turborepo. Everything is cached, incremental, and highly optimized.
 
 ---
@@ -89,6 +90,9 @@ mikk intent "Add a caching layer to the auth module"
 # Generate all diagrams
 mikk visualize all
 
+# Start MCP server for AI assistants
+mikk mcp
+
 # Start live watcher
 mikk watch
 ```
@@ -97,7 +101,7 @@ mikk watch
 
 ## Packages
 
-Mikk is a Turborepo monorepo with 7 packages:
+Mikk is a Turborepo monorepo with 8 packages:
 
 | Package | npm | Description |
 |---------|-----|-------------|
@@ -106,6 +110,7 @@ Mikk is a Turborepo monorepo with 7 packages:
 | [`@getmikk/diagram-generator`](packages/diagram-generator/) | [![npm](https://img.shields.io/npm/v/@getmikk/diagram-generator)](https://www.npmjs.com/package/@getmikk/diagram-generator) | Mermaid.js chart generation — 7 diagram types: architecture, module detail, health, impact, call flow, capsule, and dependency matrix |
 | [`@getmikk/watcher`](packages/watcher/) | [![npm](https://img.shields.io/npm/v/@getmikk/watcher)](https://www.npmjs.com/package/@getmikk/watcher) | Chokidar-powered file watcher daemon — debouncing, incremental analysis, race-condition protection, atomic lock file updates, PID-based single instance |
 | [`@getmikk/ai-context`](packages/ai-context/) | [![npm](https://img.shields.io/npm/v/@getmikk/ai-context)](https://www.npmjs.com/package/@getmikk/ai-context) | Token-budgeted AI context builder — BFS graph tracing, relevance scoring, `claude.md`/`AGENTS.md` generation with tiered output |
+| [`@getmikk/mcp-server`](packages/mcp-server/) | [![npm](https://img.shields.io/npm/v/@getmikk/mcp-server)](https://www.npmjs.com/package/@getmikk/mcp-server) | MCP (Model Context Protocol) server — exposes 12 tools and 3 resources to AI assistants (Claude, Cursor, VS Code) for architecture-aware coding |
 | [`@getmikk/cli`](packages/cli/) | [![npm](https://img.shields.io/npm/v/@getmikk/cli)](https://www.npmjs.com/package/@getmikk/cli) | Command-line interface — 15+ commands for init, analyze, diff, watch, contract management, context queries, intent pre-flight, and diagram generation |
 | [`@getmikk/vscode-extension`](apps/vscode-extension/) | *Marketplace* | VS Code extension — module tree view, architecture diagrams, AI context, impact analysis, status bar sync indicator |
 
@@ -119,8 +124,9 @@ Mikk is a Turborepo monorepo with 7 packages:
 @getmikk/ai-context        ← depends on core + intent-engine
 @getmikk/diagram-generator ← depends on core
 @getmikk/watcher           ← depends on core
+@getmikk/mcp-server        ← depends on core + ai-context + intent-engine
     ↑
-@getmikk/cli               ← depends on core + ai-context + diagram-generator + intent-engine
+@getmikk/cli               ← depends on core + ai-context + diagram-generator + intent-engine + mcp-server
 @getmikk/vscode-extension  ← depends on core + diagram-generator + ai-context
 ```
 
@@ -225,6 +231,65 @@ Before writing code, run `mikk intent "your prompt"`:
 2. **Detect** — Check against all 6 constraint types + boundary rules
 3. **Suggest** — Generate affected files list, new files list, and impact estimate
 
+### 8. MCP Server — AI Integration
+
+The MCP server exposes your project intelligence to any MCP-compatible AI assistant. Run `mikk mcp` or connect directly via `mikk-mcp`.
+
+**12 Tools:**
+
+| Tool | Purpose |
+|------|---------|
+| `mikk_get_project_overview` | Modules, function counts, tech stack, constraints |
+| `mikk_query_context` | Ask an architecture question — returns graph-traced context |
+| `mikk_impact_analysis` | Blast radius of changing a specific file |
+| `mikk_before_edit` | Call before editing any file — exported functions at risk, constraints, blast radius |
+| `mikk_find_usages` | Every function that calls a specific function |
+| `mikk_list_modules` | All declared modules with file/function counts |
+| `mikk_get_module_detail` | Functions, files, exported API, internal call graph for a module |
+| `mikk_get_function_detail` | Params, return type, call graph, source body for a function |
+| `mikk_search_functions` | Substring search across all function names |
+| `mikk_get_constraints` | All architectural constraints and design decisions |
+| `mikk_get_file` | Read raw source of any project file |
+| `mikk_get_routes` | Detected HTTP routes (Express / Koa / Hono) |
+
+**3 Resources:** `mikk://contract`, `mikk://lock`, `mikk://context`
+
+**Connect to Claude Desktop** (`claude_desktop_config.json`):
+```json
+{
+  "mcpServers": {
+    "mikk": {
+      "command": "npx",
+      "args": ["-y", "@getmikk/mcp-server", "/path/to/your/project"]
+    }
+  }
+}
+```
+
+**Connect to Cursor** (`.cursor/mcp.json`):
+```json
+{
+  "mcpServers": {
+    "mikk": {
+      "command": "npx",
+      "args": ["-y", "@getmikk/mcp-server", "/path/to/your/project"]
+    }
+  }
+}
+```
+
+**Connect to VS Code** (`.vscode/settings.json`):
+```json
+{
+  "mcp.servers": {
+    "mikk": {
+      "command": "npx",
+      "args": ["-y", "@getmikk/mcp-server", "/path/to/your/project"]
+    }
+  }
+}
+```
+
 ---
 
 ## Contract Management
@@ -317,6 +382,7 @@ npx turbo test --filter=@getmikk/core
 | **fast-glob** | File discovery |
 | **Commander** | CLI framework |
 | **chalk** + **ora** | Terminal UI |
+| **@modelcontextprotocol/sdk** | MCP server protocol |
 | **esbuild** | CLI bundling |
 
 ---
@@ -329,6 +395,7 @@ npx turbo test --filter=@getmikk/core
 - [Package: @getmikk/diagram-generator](packages/diagram-generator/README.md) — Mermaid diagram generation
 - [Package: @getmikk/watcher](packages/watcher/README.md) — File watcher daemon
 - [Package: @getmikk/ai-context](packages/ai-context/README.md) — AI context builder
+- [Package: @getmikk/mcp-server](packages/mcp-server/README.md) — MCP server for AI assistants
 - [Package: @getmikk/cli](packages/cli/README.md) — CLI commands reference
 - [VS Code Extension](apps/vscode-extension/README.md) — Extension features and usage
 
