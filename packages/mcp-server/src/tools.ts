@@ -5,7 +5,7 @@ import { z } from 'zod'
 import {
     ContractReader, LockReader,
     ImpactAnalyzer,
-    type MikkContract, type MikkLock, type MikkLockFunction,
+    type MikkContract, type MikkLock,
     type DependencyGraph, type GraphNode, type GraphEdge,
 } from '@getmikk/core'
 import { ContextBuilder, getProvider } from '@getmikk/ai-context'
@@ -65,8 +65,9 @@ export function registerTools(server: McpServer, projectRoot: string) {
             tokenBudget: z.number().optional().default(6000).describe('Max tokens for function bodies (default: 6000)'),
             focusFile: z.string().optional().describe('Anchor traversal from a specific file path'),
             focusModule: z.string().optional().describe('Anchor traversal from a specific module ID'),
+            provider: z.enum(['claude', 'generic', 'compact']).optional().default('generic').describe('AI provider format: claude (XML tags), generic (plain), compact (minimal tokens)'),
         },
-        async ({ question, maxHops, tokenBudget, focusFile, focusModule }) => {
+        async ({ question, maxHops, tokenBudget, focusFile, focusModule, provider }) => {
             const { contract, lock } = await loadContractAndLock(projectRoot)
 
             const query: ContextQuery = {
@@ -82,8 +83,8 @@ export function registerTools(server: McpServer, projectRoot: string) {
 
             const builder = new ContextBuilder(contract, lock)
             const ctx = builder.build(query)
-            const provider = getProvider('claude')
-            const output = provider.formatContext(ctx)
+            const formatter = getProvider(provider ?? 'generic')
+            const output = formatter.formatContext(ctx)
 
             return {
                 content: [{ type: 'text' as const, text: output }],
@@ -118,7 +119,7 @@ export function registerTools(server: McpServer, projectRoot: string) {
 
             if (fileNodes.length === 0) {
                 return {
-                    content: [{ type: 'text' as const, text: `No functions found in "${file}". Check the file path.` }],
+                    content: [{ type: 'text' as const, text: `No functions found in "${file}". Use mikk_search_functions to look up the correct path, or mikk_list_modules to explore by module.` }],
                     isError: true,
                 }
             }
@@ -161,7 +162,8 @@ export function registerTools(server: McpServer, projectRoot: string) {
             const fileReports: Record<string, any> = {}
 
             for (const file of filesToEdit) {
-                const normalizedFile = file.replace(/\\/g, '/')
+                // Normalize: backslashes → forward slash, strip leading ./
+                const normalizedFile = file.replace(/\\/g, '/').replace(/^\.\//, '')
 
                 // Functions defined in this file
                 const fileFns = Object.values(lock.functions).filter(
@@ -169,7 +171,9 @@ export function registerTools(server: McpServer, projectRoot: string) {
                 )
 
                 if (fileFns.length === 0) {
-                    fileReports[file] = { warning: 'No tracked functions found — file may not be analyzed yet. Run `mikk analyze` first.' }
+                    fileReports[file] = {
+                        warning: 'No tracked functions found in this file. Run `mikk analyze` to update the lock, or use mikk_search_functions to verify the file path.',
+                    }
                     continue
                 }
 
@@ -186,11 +190,8 @@ export function registerTools(server: McpServer, projectRoot: string) {
                     calledBy: fn.calledBy.map(id => lock.functions[id]?.name).filter(Boolean),
                 }))
 
-                // Applicable constraints (check if any constraint mentions this file's module)
-                const fileModuleId = fileFns[0]?.moduleId
-                const constraints = contract.declared.constraints.filter(
-                    c => !fileModuleId || c.scope === fileModuleId || c.scope === '*' || !c.scope,
-                )
+                // Constraints are project-wide architectural rules (plain strings)
+                const constraints = contract.declared.constraints
 
                 fileReports[file] = {
                     functionsInFile: fileFns.map(fn => fn.name),
@@ -200,7 +201,7 @@ export function registerTools(server: McpServer, projectRoot: string) {
                     confidence: result.confidence,
                     impacted: impactedDetails,
                     truncated: result.impacted.length > 20,
-                    constraints: constraints.slice(0, 5),
+                    constraints,
                 }
             }
 
@@ -413,17 +414,28 @@ export function registerTools(server: McpServer, projectRoot: string) {
         async ({ file }) => {
             try {
                 const absPath = path.isAbsolute(file) ? file : path.join(projectRoot, file)
-                const content = await fs.readFile(absPath, 'utf-8')
-                const lines = content.split('\n').length
+
+                // Guard against path traversal (e.g. ../../etc/passwd)
+                const resolved = path.resolve(absPath)
+                const rootResolved = path.resolve(projectRoot)
+                if (!resolved.startsWith(rootResolved + path.sep) && resolved !== rootResolved) {
+                    return {
+                        content: [{ type: 'text' as const, text: `Access denied: "${file}" is outside the project root.` }],
+                        isError: true,
+                    }
+                }
+
+                const content = await fs.readFile(resolved, 'utf-8')
+                const lineCount = content.split('\n').length
                 return {
                     content: [{
                         type: 'text' as const,
-                        text: `// ${file} (${lines} lines)\n${content}`,
+                        text: `// ${file} (${lineCount} lines)\n${content}`,
                     }],
                 }
             } catch (err: any) {
                 return {
-                    content: [{ type: 'text' as const, text: `Cannot read "${file}": ${err.message}` }],
+                    content: [{ type: 'text' as const, text: `Cannot read "${file}": ${err.message}. Use mikk_search_functions to find the correct path.` }],
                     isError: true,
                 }
             }
@@ -439,7 +451,7 @@ export function registerTools(server: McpServer, projectRoot: string) {
         {},
         async () => {
             const { lock } = await loadContractAndLock(projectRoot)
-            const routes = (lock as any).routes ?? []
+            const routes = lock.routes ?? []
 
             if (routes.length === 0) {
                 return { content: [{ type: 'text' as const, text: 'No HTTP routes detected in this project.' }] }

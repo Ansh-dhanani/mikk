@@ -1,0 +1,105 @@
+{
+  "version": "1.0.0",
+  "generatedAt": "2025-01-01T00:00:00.000Z",
+  "generatorVersion": "@getmikk/cli@1.5.0",
+  "projectRoot": "/fixtures/project",
+  "syncState": {
+    "status": "clean",
+    "lastSyncAt": "2025-01-01T00:00:00.000Z",
+    "lockHash": "abc123def456",
+    "contractHash": "fed654cba321"
+  },
+  "modules": {
+    "auth": {
+      "id": "auth",
+      "files": ["src/auth.ts"],
+      "hash": "modulehash001",
+      "fragmentPath": ".mikk/fragments/auth.json"
+    }
+  },
+  "functions": {
+    "fn:src/auth.ts:login": {
+      "id": "fn:src/auth.ts:login",
+      "name": "login",
+      "file": "src/auth.ts",
+      "startLine": 1,
+      "endLine": 7,
+      "hash": "fnhash001",
+      "calls": ["fn:src/auth.ts:hashPassword", "fn:src/auth.ts:generateToken"],
+      "calledBy": [],
+      "moduleId": "auth",
+      "params": [
+        { "name": "username", "type": "string" },
+        { "name": "password", "type": "string" }
+      ],
+      "returnType": "Promise<string>",
+      "isAsync": true,
+      "isExported": true,
+      "purpose": "Authenticate a user and return a session token",
+      "edgeCasesHandled": ["invalid credentials", "empty password"],
+      "errorHandling": [
+        { "line": 4, "type": "throw", "detail": "Throws on invalid credentials" }
+      ]
+    },
+    "fn:src/auth.ts:hashPassword": {
+      "id": "fn:src/auth.ts:hashPassword",
+      "name": "hashPassword",
+      "file": "src/auth.ts",
+      "startLine": 9,
+      "endLine": 11,
+      "hash": "fnhash002",
+      "calls": [],
+      "calledBy": ["fn:src/auth.ts:login"],
+      "moduleId": "auth",
+      "params": [
+        { "name": "password", "type": "string" }
+      ],
+      "returnType": "Promise<string>",
+      "isAsync": false,
+      "isExported": false,
+      "purpose": "Hash a password for secure storage or comparison"
+    },
+    "fn:src/auth.ts:generateToken": {
+      "id": "fn:src/auth.ts:generateToken",
+      "name": "generateToken",
+      "file": "src/auth.ts",
+      "startLine": 13,
+      "endLine": 15,
+      "hash": "fnhash003",
+      "calls": [],
+      "calledBy": ["fn:src/auth.ts:login"],
+      "moduleId": "auth",
+      "params": [
+        { "name": "username", "type": "string" }
+      ],
+      "returnType": "string",
+      "isAsync": false,
+      "isExported": false,
+      "purpose": "Generate an auth token for a given username"
+    }
+  },
+  "files": {
+    "src/auth.ts": {
+      "path": "src/auth.ts",
+      "hash": "filehash001",
+      "moduleId": "auth",
+      "lastModified": "2025-01-01T00:00:00.000Z",
+      "imports": []
+    }
+  },
+  "routes": [
+    {
+      "method": "POST",
+      "path": "/auth/login",
+      "handler": "login",
+      "middlewares": ["rateLimiter"],
+      "file": "src/auth.ts",
+      "line": 1
+    }
+  ],
+  "graph": {
+    "nodes": 4,
+    "edges": 2,
+    "rootHash": "graphhash001"
+  }
+}
