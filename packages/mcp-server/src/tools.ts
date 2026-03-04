@@ -3,12 +3,12 @@ import * as fs from 'node:fs/promises'
 import type { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js'
 import { z } from 'zod'
 import {
-    ContractReader, LockReader, LockCompiler, GraphBuilder,
-    ImpactAnalyzer, parseFiles, readFileContent, discoverFiles,
-    discoverContextFiles, detectProjectLanguage, getDiscoveryPatterns,
-    type MikkContract, type MikkLock,
+    ContractReader, LockReader,
+    ImpactAnalyzer,
+    type MikkContract, type MikkLock, type MikkLockFunction,
+    type DependencyGraph, type GraphNode, type GraphEdge,
 } from '@getmikk/core'
-import { ContextBuilder, ClaudeMdGenerator, getProvider } from '@getmikk/ai-context'
+import { ContextBuilder, getProvider } from '@getmikk/ai-context'
 import type { ContextQuery } from '@getmikk/ai-context'
 
 /**
@@ -92,66 +92,6 @@ export function registerTools(server: McpServer, projectRoot: string) {
     )
 
     // ─────────────────────────────────────────────────────────────────────
-    // TOOL: mikk_analyze
-    // ─────────────────────────────────────────────────────────────────────
-    server.tool(
-        'mikk_analyze',
-        'Re-analyze the codebase: parse all source files, rebuild the dependency graph, update the lock file, regenerate diagrams and AI context. Use after code changes.',
-        {},
-        async () => {
-            const contractReader = new ContractReader()
-            const contract = await contractReader.read(path.join(projectRoot, 'mikk.json'))
-
-            const language = await detectProjectLanguage(projectRoot)
-            const { patterns, ignore } = getDiscoveryPatterns(language)
-            const files = await discoverFiles(projectRoot, patterns, ignore)
-
-            if (files.length === 0) {
-                return {
-                    content: [{ type: 'text' as const, text: 'No source files found. Check .mikkignore.' }],
-                    isError: true,
-                }
-            }
-
-            const parsedFiles = await parseFiles(files, projectRoot, (fp: string) => readFileContent(fp))
-            const graph = new GraphBuilder().build(parsedFiles)
-            const contextFiles = await discoverContextFiles(projectRoot)
-            const lock = new LockCompiler().compile(graph, contract, parsedFiles, contextFiles)
-
-            const lockReader = new LockReader()
-            await lockReader.write(lock, path.join(projectRoot, 'mikk.lock.json'))
-
-            // Regenerate AI context files
-            try {
-                let pkgJson: any = {}
-                try {
-                    pkgJson = JSON.parse(await fs.readFile(path.join(projectRoot, 'package.json'), 'utf-8'))
-                } catch { /* no package.json is fine */ }
-
-                const meta = {
-                    description: pkgJson.description,
-                    scripts: pkgJson.scripts,
-                    dependencies: pkgJson.dependencies,
-                    devDependencies: pkgJson.devDependencies,
-                }
-
-                const mdGen = new ClaudeMdGenerator(contract, lock, undefined, meta)
-                const claudeMd = mdGen.generate()
-                await fs.writeFile(path.join(projectRoot, 'claude.md'), claudeMd, 'utf-8')
-                await fs.writeFile(path.join(projectRoot, 'AGENTS.md'), claudeMd, 'utf-8')
-            } catch { /* non-fatal */ }
-
-            const fnCount = Object.keys(lock.functions).length
-            return {
-                content: [{
-                    type: 'text' as const,
-                    text: `Analysis complete: ${files.length} files, ${fnCount} functions. Lock file and AI context updated.`,
-                }],
-            }
-        },
-    )
-
-    // ─────────────────────────────────────────────────────────────────────
     // TOOL: mikk_impact_analysis
     // ─────────────────────────────────────────────────────────────────────
     server.tool(
@@ -161,10 +101,8 @@ export function registerTools(server: McpServer, projectRoot: string) {
             file: z.string().describe('The file path (relative to project root) to analyze impact for'),
         },
         async ({ file }) => {
-            const { contract, lock } = await loadContractAndLock(projectRoot)
-            const files = await discoverFiles(projectRoot)
-            const parsedFiles = await parseFiles(files, projectRoot, (fp: string) => readFileContent(fp))
-            const graph = new GraphBuilder().build(parsedFiles)
+            const { lock } = await loadContractAndLock(projectRoot)
+            const graph = buildGraphFromLock(lock)
             const analyzer = new ImpactAnalyzer(graph)
 
             const normalizedFile = file.replace(/\\/g, '/')
@@ -200,6 +138,79 @@ export function registerTools(server: McpServer, projectRoot: string) {
                 confidence: result.confidence,
                 impacted: impactedDetails,
                 truncated: result.impacted.length > 30,
+            }
+
+            return { content: [{ type: 'text' as const, text: JSON.stringify(response, null, 2) }] }
+        },
+    )
+
+    // ─────────────────────────────────────────────────────────────────────
+    // TOOL: mikk_before_edit
+    // ─────────────────────────────────────────────────────────────────────
+    server.tool(
+        'mikk_before_edit',
+        'Call this BEFORE editing any file. Returns the blast radius (what depends on this file), exported functions at risk, and architectural constraints that apply. This is your safety check.',
+        {
+            files: z.array(z.string()).describe('The file paths (relative to project root) you are about to edit'),
+        },
+        async ({ files: filesToEdit }) => {
+            const { contract, lock } = await loadContractAndLock(projectRoot)
+            const graph = buildGraphFromLock(lock)
+            const analyzer = new ImpactAnalyzer(graph)
+
+            const fileReports: Record<string, any> = {}
+
+            for (const file of filesToEdit) {
+                const normalizedFile = file.replace(/\\/g, '/')
+
+                // Functions defined in this file
+                const fileFns = Object.values(lock.functions).filter(
+                    fn => fn.file === normalizedFile || fn.file.endsWith('/' + normalizedFile),
+                )
+
+                if (fileFns.length === 0) {
+                    fileReports[file] = { warning: 'No tracked functions found — file may not be analyzed yet. Run `mikk analyze` first.' }
+                    continue
+                }
+
+                // Impact analysis
+                const result = analyzer.analyze(fileFns.map(fn => fn.id))
+                const impactedDetails = result.impacted.slice(0, 20).map(id => {
+                    const node = graph.nodes.get(id)
+                    return { function: node?.label ?? id, file: node?.file ?? '', module: node?.moduleId ?? '' }
+                })
+
+                // Exported functions being changed (callers outside this file are at risk)
+                const exportedAtRisk = fileFns.filter(fn => fn.isExported).map(fn => ({
+                    name: fn.name,
+                    calledBy: fn.calledBy.map(id => lock.functions[id]?.name).filter(Boolean),
+                }))
+
+                // Applicable constraints (check if any constraint mentions this file's module)
+                const fileModuleId = fileFns[0]?.moduleId
+                const constraints = contract.declared.constraints.filter(
+                    c => !fileModuleId || c.scope === fileModuleId || c.scope === '*' || !c.scope,
+                )
+
+                fileReports[file] = {
+                    functionsInFile: fileFns.map(fn => fn.name),
+                    exportedAtRisk,
+                    impactedNodes: result.impacted.length,
+                    depth: result.depth,
+                    confidence: result.confidence,
+                    impacted: impactedDetails,
+                    truncated: result.impacted.length > 20,
+                    constraints: constraints.slice(0, 5),
+                }
+            }
+
+            const totalImpact = Object.values(fileReports)
+                .filter(r => typeof r.impactedNodes === 'number')
+                .reduce((sum, r) => sum + r.impactedNodes, 0)
+
+            const response = {
+                summary: `Editing ${filesToEdit.length} file(s). Estimated blast radius: ${totalImpact} dependent node(s) across the codebase.`,
+                files: fileReports,
             }
 
             return { content: [{ type: 'text' as const, text: JSON.stringify(response, null, 2) }] }
@@ -303,21 +314,34 @@ export function registerTools(server: McpServer, projectRoot: string) {
                 }
             }
 
-            const results = matches.map(fn => ({
-                id: fn.id,
-                name: fn.name,
-                file: fn.file,
-                lines: `${fn.startLine}-${fn.endLine}`,
-                module: fn.moduleId,
-                isExported: fn.isExported,
-                isAsync: fn.isAsync,
-                params: fn.params,
-                returnType: fn.returnType,
-                purpose: fn.purpose,
-                calls: fn.calls.map(id => lock.functions[id]?.name).filter(Boolean),
-                calledBy: fn.calledBy.map(id => lock.functions[id]?.name).filter(Boolean),
-                errorHandling: fn.errorHandling,
-                edgeCases: fn.edgeCasesHandled,
+            const results = await Promise.all(matches.map(async fn => {
+                let body: string | undefined
+                try {
+                    const absPath = path.isAbsolute(fn.file)
+                        ? fn.file
+                        : path.join(projectRoot, fn.file)
+                    const fileContent = await fs.readFile(absPath, 'utf-8')
+                    const lines = fileContent.split('\n')
+                    body = lines.slice(fn.startLine - 1, fn.endLine).join('\n')
+                } catch { /* non-fatal — body may not be available */ }
+
+                return {
+                    id: fn.id,
+                    name: fn.name,
+                    file: fn.file,
+                    lines: `${fn.startLine}-${fn.endLine}`,
+                    module: fn.moduleId,
+                    isExported: fn.isExported,
+                    isAsync: fn.isAsync,
+                    params: fn.params,
+                    returnType: fn.returnType,
+                    purpose: fn.purpose,
+                    body,
+                    calls: fn.calls.map(id => lock.functions[id]?.name).filter(Boolean),
+                    calledBy: fn.calledBy.map(id => lock.functions[id]?.name).filter(Boolean),
+                    errorHandling: fn.errorHandling,
+                    edgeCases: fn.edgeCasesHandled,
+                }
             }))
 
             return { content: [{ type: 'text' as const, text: JSON.stringify(results, null, 2) }] }
@@ -378,6 +402,35 @@ export function registerTools(server: McpServer, projectRoot: string) {
     )
 
     // ─────────────────────────────────────────────────────────────────────
+    // TOOL: mikk_get_file
+    // ─────────────────────────────────────────────────────────────────────
+    server.tool(
+        'mikk_get_file',
+        'Read the raw source content of any file in the project. Use this to see the actual code before editing.',
+        {
+            file: z.string().describe('File path relative to project root (e.g., "src/auth/verify.ts")'),
+        },
+        async ({ file }) => {
+            try {
+                const absPath = path.isAbsolute(file) ? file : path.join(projectRoot, file)
+                const content = await fs.readFile(absPath, 'utf-8')
+                const lines = content.split('\n').length
+                return {
+                    content: [{
+                        type: 'text' as const,
+                        text: `// ${file} (${lines} lines)\n${content}`,
+                    }],
+                }
+            } catch (err: any) {
+                return {
+                    content: [{ type: 'text' as const, text: `Cannot read "${file}": ${err.message}` }],
+                    isError: true,
+                }
+            }
+        },
+    )
+
+    // ─────────────────────────────────────────────────────────────────────
     // TOOL: mikk_get_routes
     // ─────────────────────────────────────────────────────────────────────
     server.tool(
@@ -404,4 +457,71 @@ async function loadContractAndLock(projectRoot: string) {
     const contract = await contractReader.read(path.join(projectRoot, 'mikk.json'))
     const lock = await lockReader.read(path.join(projectRoot, 'mikk.lock.json'))
     return { contract, lock }
+}
+
+/**
+ * Build a DependencyGraph from the lock file in O(n) time.
+ * This is used by mikk_impact_analysis and mikk_before_edit instead of the
+ * expensive discoverFiles + parseFiles + GraphBuilder.build pipeline (4-8s).
+ * The lock already has fn.calls and fn.calledBy arrays — we just wire them up.
+ */
+function buildGraphFromLock(lock: MikkLock): DependencyGraph {
+    const nodes = new Map<string, GraphNode>()
+    const edges: GraphEdge[] = []
+    const outEdges = new Map<string, GraphEdge[]>()
+    const inEdges = new Map<string, GraphEdge[]>()
+
+    // Add function nodes
+    for (const fn of Object.values(lock.functions)) {
+        nodes.set(fn.id, {
+            id: fn.id,
+            type: 'function',
+            label: fn.name,
+            file: fn.file,
+            moduleId: fn.moduleId,
+            metadata: {
+                startLine: fn.startLine,
+                endLine: fn.endLine,
+                isExported: fn.isExported,
+                isAsync: fn.isAsync,
+                hash: fn.hash,
+                purpose: fn.purpose,
+                params: fn.params,
+                returnType: fn.returnType,
+                edgeCasesHandled: fn.edgeCasesHandled,
+                errorHandling: fn.errorHandling,
+            },
+        })
+    }
+
+    // Add file nodes
+    for (const file of Object.values(lock.files)) {
+        nodes.set(file.path, {
+            id: file.path,
+            type: 'file',
+            label: path.basename(file.path),
+            file: file.path,
+            moduleId: file.moduleId,
+            metadata: {},
+        })
+    }
+
+    // Build edges from fn.calls (caller → callee, type: 'calls')
+    for (const fn of Object.values(lock.functions)) {
+        for (const calleeId of fn.calls) {
+            if (!nodes.has(calleeId)) continue
+            const edge: GraphEdge = { source: fn.id, target: calleeId, type: 'calls' }
+            edges.push(edge)
+
+            const out = outEdges.get(fn.id) ?? []
+            out.push(edge)
+            outEdges.set(fn.id, out)
+
+            const inE = inEdges.get(calleeId) ?? []
+            inE.push(edge)
+            inEdges.set(calleeId, inE)
+        }
+    }
+
+    return { nodes, edges, outEdges, inEdges }
 }
