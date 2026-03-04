@@ -60,6 +60,11 @@ jobs:
           git checkout -- bun.lock 2>/dev/null || true
           git diff --quiet || (echo "Uncommitted changes detected:" && git diff --name-only && exit 1)
 
+      - name: Save pre-release state
+        id: pre_release
+        run: |
+          echo "sha=$(git rev-parse HEAD)" >> $GITHUB_OUTPUT
+
       - name: Bump versions
         id: versions
         run: |
@@ -92,8 +97,15 @@ jobs:
               console.log('Bumped', pkg.name, 'to', pkg.version);
             }
           "
-          VERSION=$(node -p "require('./packages/core/package.json').version")
+          if [ "${{ inputs.package }}" = "all" ]; then
+            VERSION=$(node -p "require('./packages/core/package.json').version")
+          else
+            NAMES='{"core":"packages/core","intent-engine":"packages/intent-engine","diagram-generator":"packages/diagram-generator","watcher":"packages/watcher","ai-context":"packages/ai-context","mcp-server":"packages/mcp-server","cli":"packages/cli"}'
+            DIR=$(echo "$NAMES" | node -p "JSON.parse(require('fs').readFileSync('/dev/stdin','utf8'))['${{ inputs.package }}']")
+            VERSION=$(node -p "require('./${DIR}/package.json').version")
+          fi
           echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "package=${{ inputs.package }}" >> $GITHUB_OUTPUT
 
       - name: Check for duplicate versions
         run: |
@@ -134,8 +146,13 @@ jobs:
 
       - name: Tag release
         run: |
-          git tag "v${{ steps.versions.outputs.version }}"
-          git push origin "v${{ steps.versions.outputs.version }}"
+          if [ "${{ inputs.package }}" = "all" ]; then
+            TAG="v${{ steps.versions.outputs.version }}"
+          else
+            TAG="${{ inputs.package }}/v${{ steps.versions.outputs.version }}"
+          fi
+          git tag "$TAG"
+          git push origin "$TAG"
 
       - name: Replace workspace:* with real versions
         run: |
@@ -232,8 +249,45 @@ jobs:
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
+      - name: Rollback on failure
+        if: failure()
+        run: |
+          echo "⚠️ Publish failed — rolling back version bump and tag..."
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+          ORIGINAL_SHA="${{ steps.pre_release.outputs.sha }}"
+          CURRENT_SHA=$(git rev-parse HEAD)
+
+          # Revert the version bump commit if it was pushed
+          if [ "$ORIGINAL_SHA" != "$CURRENT_SHA" ]; then
+            echo "Reverting commit to original SHA: $ORIGINAL_SHA"
+            git revert --no-edit HEAD 2>/dev/null || git reset --hard "$ORIGINAL_SHA"
+            git push --force-with-lease origin HEAD
+            echo "✅ Version bump commit reverted"
+          else
+            echo "ℹ️ No version bump commit to revert"
+          fi
+
+          # Delete the tag if it was pushed
+          if [ "${{ inputs.package }}" = "all" ]; then
+            TAG="v${{ steps.versions.outputs.version }}"
+          else
+            TAG="${{ inputs.package }}/v${{ steps.versions.outputs.version }}"
+          fi
+          if git ls-remote --tags origin | grep -q "refs/tags/$TAG$"; then
+            git push origin ":refs/tags/$TAG"
+            echo "✅ Tag $TAG deleted from remote"
+          else
+            echo "ℹ️ Tag $TAG not found on remote, nothing to delete"
+          fi
+
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "## ❌ Publish failed — rolled back" >> $GITHUB_STEP_SUMMARY
+          echo "Reverted to commit: \`$ORIGINAL_SHA\`" >> $GITHUB_STEP_SUMMARY
+
       - name: Release summary
-        if: always()
+        if: success()
         run: |
           echo "## 🚀 Release v${{ steps.versions.outputs.version }}" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
@@ -245,4 +299,8 @@ jobs:
             echo "| \`$name\` | \`$ver\` |" >> $GITHUB_STEP_SUMMARY
           done
           echo "" >> $GITHUB_STEP_SUMMARY
-          echo "🏷️ Git tag: \`v${{ steps.versions.outputs.version }}\`" >> $GITHUB_STEP_SUMMARY
+          if [ "${{ inputs.package }}" = "all" ]; then
+            echo "🏷️ Git tag: \`v${{ steps.versions.outputs.version }}\`" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "🏷️ Git tag: \`${{ inputs.package }}/v${{ steps.versions.outputs.version }}\`" >> $GITHUB_STEP_SUMMARY
+          fi
