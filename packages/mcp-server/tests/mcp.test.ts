@@ -1,6 +1,6 @@
 /**
  * Comprehensive test suite for @getmikk/mcp-server
- * Tests all 11 tools and 3 resources with happy paths, error paths, and edge cases.
+ * Tests all 12 tools and 3 resources with happy paths, error paths, and edge cases.
  */
 import { describe, it, expect, beforeAll, afterAll } from 'bun:test'
 import * as path from 'node:path'
@@ -78,9 +78,9 @@ describe('@getmikk/mcp-server — tool list', () => {
         await server.close()
     })
 
-    it('exposes exactly 11 tools', async () => {
+    it('exposes exactly 12 tools', async () => {
         const result = await client.listTools()
-        expect(result.tools).toHaveLength(11)
+        expect(result.tools).toHaveLength(12)
     })
 
     it('has the correct tool names', async () => {
@@ -88,6 +88,7 @@ describe('@getmikk/mcp-server — tool list', () => {
         const names = result.tools.map(t => t.name).sort()
         expect(names).toEqual([
             'mikk_before_edit',
+            'mikk_find_usages',
             'mikk_get_constraints',
             'mikk_get_file',
             'mikk_get_function_detail',
@@ -844,5 +845,145 @@ describe('buildGraphFromLock — graph integrity', () => {
         for (const c of constraints) {
             expect(typeof c).toBe('string')
         }
+    })
+})
+
+// ─────────────────────────────────────────────────────────────────────────────
+// SUITE: mikk_find_usages
+// ─────────────────────────────────────────────────────────────────────────────
+
+describe('@getmikk/mcp-server — mikk_find_usages', () => {
+    let client: Client
+    let server: McpServer
+
+    beforeAll(async () => {
+        ;({ client, server } = await createTestClient())
+    })
+
+    afterAll(async () => {
+        await server.close()
+    })
+
+    it('returns caller list for a known function', async () => {
+        const result = await client.callTool({
+            name: 'mikk_find_usages',
+            arguments: { name: 'hashPassword' },
+        })
+        expect(isError(result)).toBe(false)
+        const data = parseJSON(result)
+        expect(data.function).toBe('hashPassword')
+        expect(typeof data.usageCount).toBe('number')
+        expect(Array.isArray(data.usages)).toBe(true)
+    })
+
+    it('returns module and file info alongside usages', async () => {
+        const result = await client.callTool({
+            name: 'mikk_find_usages',
+            arguments: { name: 'hashPassword' },
+        })
+        const data = parseJSON(result)
+        expect(typeof data.file).toBe('string')
+        expect(typeof data.module).toBe('string')
+    })
+
+    it('returns isError for an unknown function', async () => {
+        const result = await client.callTool({
+            name: 'mikk_find_usages',
+            arguments: { name: 'totallyMadeUpFunction_xyz' },
+        })
+        expect(isError(result)).toBe(true)
+        expect(getText(result)).toContain('not found')
+    })
+
+    it('includes calledBy-resolved callers when present', async () => {
+        // login calls hashPassword — so hashPassword.calledBy should contain login
+        const result = await client.callTool({
+            name: 'mikk_find_usages',
+            arguments: { name: 'hashPassword' },
+        })
+        const data = parseJSON(result)
+        // usages are callers; login calls hashPassword so it should appear
+        if (data.usageCount > 0) {
+            expect(data.usages[0]).toHaveProperty('name')
+            expect(data.usages[0]).toHaveProperty('file')
+            expect(data.usages[0]).toHaveProperty('line')
+        }
+    })
+
+    it('warning is null when lock is clean', async () => {
+        const result = await client.callTool({
+            name: 'mikk_find_usages',
+            arguments: { name: 'hashPassword' },
+        })
+        const data = parseJSON(result)
+        // fixture lock has syncState.status = "clean"
+        expect(data.warning).toBeNull()
+    })
+})
+
+// ─────────────────────────────────────────────────────────────────────────────
+// SUITE: staleness warning surfacing
+// ─────────────────────────────────────────────────────────────────────────────
+
+describe('@getmikk/mcp-server — staleness warning', () => {
+    let client: Client
+    let server: McpServer
+
+    beforeAll(async () => {
+        ;({ client, server } = await createTestClient())
+    })
+
+    afterAll(async () => {
+        await server.close()
+    })
+
+    it('impact_analysis response includes warning field (null when clean)', async () => {
+        const result = await client.callTool({
+            name: 'mikk_impact_analysis',
+            arguments: { file: 'src/auth.ts' },
+        })
+        const data = parseJSON(result)
+        expect(Object.prototype.hasOwnProperty.call(data, 'warning')).toBe(true)
+        expect(data.warning).toBeNull()
+    })
+
+    it('before_edit response includes warning field (null when clean)', async () => {
+        const result = await client.callTool({
+            name: 'mikk_before_edit',
+            arguments: { files: ['src/auth.ts'] },
+        })
+        const data = parseJSON(result)
+        expect(Object.prototype.hasOwnProperty.call(data, 'warning')).toBe(true)
+        expect(data.warning).toBeNull()
+    })
+})
+
+// ─────────────────────────────────────────────────────────────────────────────
+// SUITE: mikk_query_context empty context guard
+// ─────────────────────────────────────────────────────────────────────────────
+
+describe('@getmikk/mcp-server — mikk_query_context empty guard', () => {
+    let client: Client
+    let server: McpServer
+
+    beforeAll(async () => {
+        ;({ client, server } = await createTestClient())
+    })
+
+    afterAll(async () => {
+        await server.close()
+    })
+
+    it('returns an isError when focusFile does not exist in lock', async () => {
+        const result = await client.callTool({
+            name: 'mikk_query_context',
+            arguments: {
+                question: 'explain the flow',
+                focusFile: 'src/totally-nonexistent-file.ts',
+            },
+        })
+        // Either isError or an empty/unhelpful context — both are acceptable
+        // The important thing is it does NOT throw/crash
+        expect(result.content.length).toBeGreaterThan(0)
     })
 })

@@ -83,6 +83,21 @@ export function registerTools(server: McpServer, projectRoot: string) {
 
             const builder = new ContextBuilder(contract, lock)
             const ctx = builder.build(query)
+
+            if (ctx.modules.length === 0) {
+                return {
+                    content: [{
+                        type: 'text' as const,
+                        text: `No context found for "${question}". ${
+                            focusFile
+                                ? `The file "${focusFile}" may not exist in the lock.`
+                                : 'The project may have no analyzed functions.'
+                        } Run \`mikk analyze\` or check the file path.`,
+                    }],
+                    isError: true,
+                }
+            }
+
             const formatter = getProvider(provider ?? 'generic')
             const output = formatter.formatContext(ctx)
 
@@ -102,7 +117,7 @@ export function registerTools(server: McpServer, projectRoot: string) {
             file: z.string().describe('The file path (relative to project root) to analyze impact for'),
         },
         async ({ file }) => {
-            const { lock } = await loadContractAndLock(projectRoot)
+            const { lock, staleness } = await loadContractAndLock(projectRoot)
             const graph = buildGraphFromLock(lock)
             const analyzer = new ImpactAnalyzer(graph)
 
@@ -139,6 +154,7 @@ export function registerTools(server: McpServer, projectRoot: string) {
                 confidence: result.confidence,
                 impacted: impactedDetails,
                 truncated: result.impacted.length > 30,
+                warning: staleness,
             }
 
             return { content: [{ type: 'text' as const, text: JSON.stringify(response, null, 2) }] }
@@ -155,7 +171,7 @@ export function registerTools(server: McpServer, projectRoot: string) {
             files: z.array(z.string()).describe('The file paths (relative to project root) you are about to edit'),
         },
         async ({ files: filesToEdit }) => {
-            const { contract, lock } = await loadContractAndLock(projectRoot)
+            const { contract, lock, staleness } = await loadContractAndLock(projectRoot)
             const graph = buildGraphFromLock(lock)
             const analyzer = new ImpactAnalyzer(graph)
 
@@ -212,6 +228,7 @@ export function registerTools(server: McpServer, projectRoot: string) {
             const response = {
                 summary: `Editing ${filesToEdit.length} file(s). Estimated blast radius: ${totalImpact} dependent node(s) across the codebase.`,
                 files: fileReports,
+                warning: staleness,
             }
 
             return { content: [{ type: 'text' as const, text: JSON.stringify(response, null, 2) }] }
@@ -443,6 +460,52 @@ export function registerTools(server: McpServer, projectRoot: string) {
     )
 
     // ─────────────────────────────────────────────────────────────────────
+    // TOOL: mikk_find_usages
+    // ─────────────────────────────────────────────────────────────────────
+    server.tool(
+        'mikk_find_usages',
+        'Find everything that calls a specific function. Essential before renaming or changing a function signature.',
+        {
+            name: z.string().describe('Function name to find callers of'),
+        },
+        async ({ name }) => {
+            const { lock, staleness } = await loadContractAndLock(projectRoot)
+
+            const fn = Object.values(lock.functions).find(
+                f => f.name === name || f.name.endsWith(`.${name}`) || f.id.includes(name),
+            )
+
+            if (!fn) {
+                return {
+                    content: [{ type: 'text' as const, text: `Function "${name}" not found. Use mikk_search_functions to verify the name.` }],
+                    isError: true,
+                }
+            }
+
+            const usages = fn.calledBy
+                .map(id => lock.functions[id])
+                .filter(Boolean)
+                .map(caller => ({
+                    name: caller.name,
+                    file: caller.file,
+                    module: caller.moduleId,
+                    line: caller.startLine,
+                }))
+
+            const response = {
+                function: fn.name,
+                file: fn.file,
+                module: fn.moduleId,
+                usageCount: usages.length,
+                usages,
+                warning: staleness,
+            }
+
+            return { content: [{ type: 'text' as const, text: JSON.stringify(response, null, 2) }] }
+        },
+    )
+
+    // ─────────────────────────────────────────────────────────────────────
     // TOOL: mikk_get_routes
     // ─────────────────────────────────────────────────────────────────────
     server.tool(
@@ -462,13 +525,18 @@ export function registerTools(server: McpServer, projectRoot: string) {
     )
 }
 
-/** Helper — read contract + lock from disk */
+/** Helper — read contract + lock from disk, and surface staleness warning if lock is drifted/conflicted */
 async function loadContractAndLock(projectRoot: string) {
     const contractReader = new ContractReader()
     const lockReader = new LockReader()
     const contract = await contractReader.read(path.join(projectRoot, 'mikk.json'))
     const lock = await lockReader.read(path.join(projectRoot, 'mikk.lock.json'))
-    return { contract, lock }
+    const syncStatus = lock.syncState?.status ?? 'unknown'
+    const isStale = syncStatus === 'drifted' || syncStatus === 'conflict'
+    const staleness = isStale
+        ? `⚠️ Lock file is ${syncStatus}. Run \`mikk analyze\` for accurate results.`
+        : null
+    return { contract, lock, staleness }
 }
 
 /**
