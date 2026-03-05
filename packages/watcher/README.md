@@ -1,11 +1,15 @@
 # @getmikk/watcher
 
-> Chokidar-powered file watcher daemon with incremental analysis, debouncing, race-condition protection, and atomic lock file updates.
+> Your architecture map, always in sync — zero manual re-analysis.
 
 [![npm](https://img.shields.io/npm/v/@getmikk/watcher)](https://www.npmjs.com/package/@getmikk/watcher)
 [![License: Apache-2.0](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](../../LICENSE)
 
-`@getmikk/watcher` keeps the `mikk.lock.json` file in sync with your codebase in real time. When files change, the watcher debounces events, incrementally re-parses only the affected files, updates the dependency graph, recomputes Merkle hashes, and writes the lock file atomically — all without requiring a full re-analysis.
+`@getmikk/watcher` keeps `mikk.lock.json` in sync with your source code in real time. It uses Chokidar to watch for file events, batches and debounces changes (so saving 20 files triggers one re-analysis, not twenty), incrementally re-parses only affected files, patches the dependency graph, recomputes Merkle hashes, and writes the lock file atomically — all with a PID-based singleton that prevents duplicate daemon processes.
+
+The result: your AI context, impact analysis, and contract validation are always based on the current state of your codebase, not a stale snapshot.
+
+> Part of [Mikk](../../README.md) — the codebase nervous system for AI-assisted development.
 
 ---
 

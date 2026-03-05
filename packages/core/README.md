@@ -1,11 +1,15 @@
 # @getmikk/core
 
-> AST parsing, dependency graph construction, Merkle-tree hashing, contract management, and foundational utilities for the Mikk ecosystem.
+> The foundation of the Mikk ecosystem — TypeScript AST parsing, dependency graph construction, Merkle-tree hashing, contract management, and lock file compilation.
 
 [![npm](https://img.shields.io/npm/v/@getmikk/core)](https://www.npmjs.com/package/@getmikk/core)
 [![License: Apache-2.0](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](../../LICENSE)
 
-`@getmikk/core` is the foundation package that every other Mikk package depends on. It provides the complete pipeline for understanding a TypeScript codebase: parsing source files into structured ASTs, building a full dependency graph, computing Merkle-tree hashes for drift detection, and managing the `mikk.json` contract and `mikk.lock.json` lock file.
+`@getmikk/core` is the foundation every other Mikk package builds on. It owns the complete pipeline for turning raw TypeScript source into structured, queryable intelligence: parsing source files into real ASTs (not regex), building a two-pass dependency graph with O(1) adjacency lookups, computing Merkle-tree SHA-256 hashes at function → file → module → root level, and compiling everything into a `mikk.lock.json` snapshot that every other package reads from.
+
+Every AI context query, impact analysis, contract validation, and diagram generation ultimately runs on the graph and lock file produced here.
+
+> Part of [Mikk](../../README.md) — the codebase nervous system for AI-assisted development.
 
 ---
 

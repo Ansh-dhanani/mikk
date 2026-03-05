@@ -1,13 +1,15 @@
 # @getmikk/ai-context
 
-> Intelligent context distillation for AI coding agents — builds token-budgeted, relevance-scored context payloads from the dependency graph, plus generates `claude.md` / `AGENTS.md` files.
+> Token-budgeted, graph-traced AI context — the difference between an LLM that guesses your architecture and one that actually knows it.
 
 [![npm](https://img.shields.io/npm/v/@getmikk/ai-context)](https://www.npmjs.com/package/@getmikk/ai-context)
 [![License: Apache-2.0](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](../../LICENSE)
 
-`@getmikk/ai-context` solves the "context window" problem for AI coding assistants. Instead of dumping your entire codebase into a prompt, it uses the dependency graph to trace only the relevant functions, files, and constraints for a given task — then packs them into a token-budgeted payload.
+`@getmikk/ai-context` solves the AI context window problem at the architectural level. Instead of dumping your entire codebase into a prompt and hoping the LLM figures it out, it walks the dependency graph from task-relevant seed functions, scores every reachable function by relevance, and packs the highest-signal functions into a token budget — giving your AI exactly what it needs and nothing it doesn't.
 
-It also generates tiered `claude.md` and `AGENTS.md` files that give AI agents a structured understanding of your project architecture.
+It also generates `claude.md` and `AGENTS.md` — tiered architecture summaries that let AI agents understand your entire project structure from a single file.
+
+> Part of [Mikk](../../README.md) — the codebase nervous system for AI-assisted development.
 
 ---
 

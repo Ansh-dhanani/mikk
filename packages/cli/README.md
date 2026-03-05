@@ -1,11 +1,13 @@
 # @getmikk/cli
 
-> The command-line interface for Mikk — initialize, analyze, watch, validate, visualize, and query your codebase architecture from the terminal.
+> The `mikk` command — one binary to initialize, analyze, watch, validate, query, and serve your codebase architecture.
 
 [![npm](https://img.shields.io/npm/v/@getmikk/cli)](https://www.npmjs.com/package/@getmikk/cli)
 [![License: Apache-2.0](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](../../LICENSE)
 
-`@getmikk/cli` (binary: `mikk`) is the primary interface for the Mikk ecosystem. It orchestrates all other packages — parsing, graph building, diagram generation, AI context, intent pre-flight — into a cohesive developer experience.
+`@getmikk/cli` is the primary interface to the Mikk ecosystem. It wires together all packages — AST parsing, graph building, Merkle hashing, diagram generation, AI context, intent pre-flight, MCP server — into a single cohesive developer workflow. 15+ commands, one install.
+
+> Part of [Mikk](../../README.md) — the codebase nervous system for AI-assisted development.
 
 ---
 

@@ -1,8 +1,17 @@
 # @getmikk/mcp-server
 
-MCP (Model Context Protocol) server for [Mikk](https://github.com/Ansh-dhanani/mikk) — plugs your project's architectural intelligence directly into AI assistants like Claude, Cursor, and any MCP-compatible client.
+> Give your AI assistant real architectural intelligence — not guesses.
 
-Once connected, your AI assistant can answer questions like *"what breaks if I change this file?"*, *"who calls `parseToken`?"*, and *"what are the architectural constraints for this project?"* — all grounded in the actual call graph, not guesses.
+[![npm](https://img.shields.io/npm/v/@getmikk/mcp-server)](https://www.npmjs.com/package/@getmikk/mcp-server)
+[![License: Apache-2.0](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](../../LICENSE)
+
+MCP (Model Context Protocol) server for [Mikk](../../README.md) — connects your project's full architectural graph directly to AI assistants like Claude Desktop, Cursor, and any MCP-compatible client.
+
+Once connected, your AI assistant can answer questions like *"what breaks if I change this file?"*, *"who calls `parseToken`?"*, and *"what are the architectural constraints for this project?"* — all grounded in the actual call graph, real export surfaces, and real constraint definitions. Not hallucinated. Not guessed.
+
+Every tool reads from `mikk.lock.json` — no re-parsing, millisecond response times.
+
+> Part of [Mikk](../../README.md) — the codebase nervous system for AI-assisted development.
 
 ---
 

@@ -1,11 +1,13 @@
 # @getmikk/vscode-extension
 
-> VS Code extension for Mikk — visualize your architecture, get AI context, and detect impact right from your editor.
+> Full architectural intelligence inside VS Code — module tree, impact analysis, AI context, and real-time sync without leaving your editor.
 
 [![License: Apache-2.0](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](../../LICENSE)
 [![VS Code](https://img.shields.io/badge/VS%20Code-%5E1.85.0-blue)](https://code.visualstudio.com/)
 
-The Mikk VS Code extension brings the "Codebase Nervous System" into your editor. It provides an activity bar sidebar for browsing modules, commands for running analysis, and quick access to architecture diagrams and AI context — all without leaving VS Code.
+The Mikk VS Code extension brings the full Mikk workflow into your editor. Browse your module tree in the Activity Bar, run impact analysis on the active file with one command, generate AI context for any task, and see your lock file sync status live in the status bar — all without switching to a terminal.
+
+> Part of [Mikk](../../README.md) — the codebase nervous system for AI-assisted development.
 
 ---
 

@@ -1,17 +1,15 @@
 # @getmikk/intent-engine
 
-> AI pre-flight system — parses natural-language prompts into structured intents, detects constraint conflicts, and generates implementation suggestions before any code changes happen.
+> Architectural pre-flight — check if your idea is safe before writing a single line.
 
 [![npm](https://img.shields.io/npm/v/@getmikk/intent-engine)](https://www.npmjs.com/package/@getmikk/intent-engine)
 [![License: Apache-2.0](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](../../LICENSE)
 
-`@getmikk/intent-engine` is the "pre-flight check" layer. Given a developer's natural-language description of what they want to do (e.g., *"add a caching layer to the auth module"*), the engine:
+`@getmikk/intent-engine` is the pre-flight check layer. You describe what you want to build in plain English — *"add a caching layer to the auth module"* — and before any code is written, the engine interprets your intent into structured objects, checks it against every architectural constraint in `mikk.json`, detects conflicts and layer violations, and generates a concrete implementation plan with which files to touch and what to create.
 
-1. **Interprets** the prompt into structured `Intent` objects
-2. **Detects** conflicts against architectural constraints defined in `mikk.json`
-3. **Suggests** which files to touch, what to create, and the estimated blast radius
+For AI coding agents, this is the guardrail that prevents architecturally unsafe code generation. For human developers, it's the equivalent of running your idea past a senior architect who knows every constraint in the codebase.
 
-All of this happens *before* any code is written — giving AI coding agents (or human developers) a guardrail system.
+> Part of [Mikk](../../README.md) — the codebase nervous system for AI-assisted development.
 
 ---
 
