@@ -10,3 +10,5 @@ export { ContractWriter, type UpdateResult } from './contract-writer.js'
 export { ContractReader } from './contract-reader.js'
 export { LockReader } from './lock-reader.js'
 export { ContractGenerator } from './contract-generator.js'
+export { AdrManager } from './adr-manager.js'
+

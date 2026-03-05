@@ -121,6 +121,7 @@ export class GraphBuilder {
                     source: file.path,
                     target: imp.resolvedPath,
                     type: 'imports',
+                    confidence: 1.0, // Import edges are always deterministic from AST
                 })
             }
         }
@@ -145,24 +146,27 @@ export class GraphBuilder {
                 // Try to resolve: first check imported names, then local functions
                 const simpleName = call.includes('.') ? call.split('.').pop()! : call
 
-                // Check if it's an imported function
+                // Check if it's an imported function (confidence 0.8 — resolved via import names)
                 const importedId = importedNames.get(simpleName) || importedNames.get(call)
                 if (importedId && graph.nodes.has(importedId)) {
                     graph.edges.push({
                         source: fn.id,
                         target: importedId,
                         type: 'calls',
+                        confidence: 0.8, // Resolved through import names, not direct AST binding
                     })
                     continue
                 }
 
-                // Check if it's a local function in the same file
+                // Check if it's a local function in the same file (confidence 1.0 for exact, 0.5 for fuzzy)
                 const localId = `fn:${file.path}:${simpleName}`
                 if (graph.nodes.has(localId) && localId !== fn.id) {
+                    // Direct local match — high confidence
                     graph.edges.push({
                         source: fn.id,
                         target: localId,
                         type: 'calls',
+                        confidence: simpleName === call ? 1.0 : 0.5, // exact name = 1.0, dot-access strip = 0.5
                     })
                 }
             }

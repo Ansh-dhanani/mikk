@@ -4,7 +4,7 @@ import type { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js'
 import { z } from 'zod'
 import {
     ContractReader, LockReader,
-    ImpactAnalyzer,
+    ImpactAnalyzer, DeadCodeDetector, AdrManager,
     type MikkContract, type MikkLock,
     type DependencyGraph, type GraphNode, type GraphEdge,
 } from '@getmikk/core'
@@ -47,6 +47,7 @@ export function registerTools(server: McpServer, projectRoot: string) {
                 modules,
                 constraints: contract.declared.constraints,
                 decisions: contract.declared.decisions,
+                hint: 'Next: Use mikk_query_context with your task description, or mikk_list_modules to explore the architecture.',
             }
 
             return { content: [{ type: 'text' as const, text: JSON.stringify(overview, null, 2) }] }
@@ -88,11 +89,10 @@ export function registerTools(server: McpServer, projectRoot: string) {
                 return {
                     content: [{
                         type: 'text' as const,
-                        text: `No context found for "${question}". ${
-                            focusFile
+                        text: `No context found for "${question}". ${focusFile
                                 ? `The file "${focusFile}" may not exist in the lock.`
                                 : 'The project may have no analyzed functions.'
-                        } Run \`mikk analyze\` or check the file path.`,
+                            } Run \`mikk analyze\` or check the file path.`,
                     }],
                     isError: true,
                 }
@@ -102,7 +102,7 @@ export function registerTools(server: McpServer, projectRoot: string) {
             const output = formatter.formatContext(ctx)
 
             return {
-                content: [{ type: 'text' as const, text: output }],
+                content: [{ type: 'text' as const, text: output + '\n\n---\nHint: Use mikk_before_edit on any files you plan to modify, then mikk_impact_analysis to see the full blast radius.' }],
             }
         },
     )
@@ -152,9 +152,18 @@ export function registerTools(server: McpServer, projectRoot: string) {
                 impactedNodes: result.impacted.length,
                 depth: result.depth,
                 confidence: result.confidence,
+                classified: {
+                    critical: result.classified.critical.length,
+                    high: result.classified.high.length,
+                    medium: result.classified.medium.length,
+                    low: result.classified.low.length,
+                    criticalItems: result.classified.critical.slice(0, 10),
+                    highItems: result.classified.high.slice(0, 10),
+                },
                 impacted: impactedDetails,
                 truncated: result.impacted.length > 30,
                 warning: staleness,
+                hint: 'Next: Use mikk_get_function_detail on critical/high items to review them. Then mikk_before_edit to validate your planned changes.',
             }
 
             return { content: [{ type: 'text' as const, text: JSON.stringify(response, null, 2) }] }
@@ -229,6 +238,7 @@ export function registerTools(server: McpServer, projectRoot: string) {
                 summary: `Editing ${filesToEdit.length} file(s). Estimated blast radius: ${totalImpact} dependent node(s) across the codebase.`,
                 files: fileReports,
                 warning: staleness,
+                hint: 'Next: If safe, proceed with your edits. If violations appear, use mikk_get_constraints for full context on the rules.',
             }
 
             return { content: [{ type: 'text' as const, text: JSON.stringify(response, null, 2) }] }
@@ -521,6 +531,101 @@ export function registerTools(server: McpServer, projectRoot: string) {
             }
 
             return { content: [{ type: 'text' as const, text: JSON.stringify(routes, null, 2) }] }
+        },
+    )
+
+    // ─────────────────────────────────────────────────────────────────────
+    // TOOL: mikk_dead_code
+    // ─────────────────────────────────────────────────────────────────────
+    server.tool(
+        'mikk_dead_code',
+        'Detect dead code — functions with zero callers after exempting exports, entry points, route handlers, tests, and constructors. Use this before refactoring or cleanup.',
+        {
+            moduleId: z.string().optional().describe('Filter results to a specific module ID'),
+        },
+        async ({ moduleId }) => {
+            const { lock, staleness } = await loadContractAndLock(projectRoot)
+            const graph = buildGraphFromLock(lock)
+            const detector = new DeadCodeDetector(graph, lock)
+            const result = detector.detect()
+
+            const filtered = moduleId
+                ? {
+                    ...result,
+                    deadFunctions: result.deadFunctions.filter(f => f.moduleId === moduleId),
+                    deadCount: result.deadFunctions.filter(f => f.moduleId === moduleId).length,
+                    byModule: { [moduleId]: result.byModule[moduleId] ?? { dead: 0, total: 0, items: [] } },
+                }
+                : result
+
+            const response = {
+                ...filtered,
+                warning: staleness,
+                hint: 'Next: Review dead functions and consider removing them. Use mikk_get_function_detail on any function to see its full context before removing.',
+            }
+
+            return { content: [{ type: 'text' as const, text: JSON.stringify(response, null, 2) }] }
+        },
+    )
+
+    // ─────────────────────────────────────────────────────────────────────
+    // TOOL: mikk_manage_adr
+    // ─────────────────────────────────────────────────────────────────────
+    server.tool(
+        'mikk_manage_adr',
+        'Manage Architectural Decision Records (ADRs) in mikk.json. Actions: list, get, add, update, remove. ADRs document WHY architectural constraints exist.',
+        {
+            action: z.enum(['list', 'get', 'add', 'update', 'remove']).describe('The CRUD action to perform'),
+            id: z.string().optional().describe('ADR id (required for get, update, remove)'),
+            title: z.string().optional().describe('ADR title (required for add)'),
+            reason: z.string().optional().describe('ADR reason/description (required for add)'),
+            date: z.string().optional().describe('ADR date string (defaults to today for add)'),
+        },
+        async ({ action, id, title, reason, date }) => {
+            const contractPath = path.join(projectRoot, 'mikk.json')
+            const manager = new AdrManager(contractPath)
+
+            try {
+                switch (action) {
+                    case 'list': {
+                        const decisions = await manager.list()
+                        return {
+                            content: [{
+                                type: 'text' as const, text: JSON.stringify({
+                                    decisions,
+                                    count: decisions.length,
+                                    hint: 'Next: Use "get" with an ADR id for details, or "add" to create a new decision.',
+                                }, null, 2)
+                            }],
+                        }
+                    }
+                    case 'get': {
+                        if (!id) return { content: [{ type: 'text' as const, text: 'Error: "id" is required for get action.' }], isError: true }
+                        const decision = await manager.get(id)
+                        if (!decision) return { content: [{ type: 'text' as const, text: `ADR "${id}" not found.` }], isError: true }
+                        return { content: [{ type: 'text' as const, text: JSON.stringify(decision, null, 2) }] }
+                    }
+                    case 'add': {
+                        if (!id || !title || !reason) {
+                            return { content: [{ type: 'text' as const, text: 'Error: "id", "title", and "reason" are required for add action.' }], isError: true }
+                        }
+                        await manager.add({ id, title, reason, date: date ?? new Date().toISOString().split('T')[0] })
+                        return { content: [{ type: 'text' as const, text: `ADR "${id}" added to mikk.json. This decision will now surface in all AI context queries.` }] }
+                    }
+                    case 'update': {
+                        if (!id) return { content: [{ type: 'text' as const, text: 'Error: "id" is required for update action.' }], isError: true }
+                        await manager.update(id, { ...(title ? { title } : {}), ...(reason ? { reason } : {}), ...(date ? { date } : {}) })
+                        return { content: [{ type: 'text' as const, text: `ADR "${id}" updated.` }] }
+                    }
+                    case 'remove': {
+                        if (!id) return { content: [{ type: 'text' as const, text: 'Error: "id" is required for remove action.' }], isError: true }
+                        const removed = await manager.remove(id)
+                        return { content: [{ type: 'text' as const, text: removed ? `ADR "${id}" removed.` : `ADR "${id}" not found.` }] }
+                    }
+                }
+            } catch (err: any) {
+                return { content: [{ type: 'text' as const, text: `ADR operation failed: ${err.message}` }], isError: true }
+            }
         },
     )
 }

@@ -20,9 +20,9 @@
 <p align="center">
   <em>The codebase nervous system — parses your architecture, maps every dependency,<br/>and delivers the exact context your AI needs. Zero cloud. Zero config. Zero hallucination.</em>
 </p>
-
+ 
 <br />
-
+ 
 <!-- 🖼️ SCREENSHOT: Place a terminal recording or hero screenshot here showing `mikk init` running on a project -->
 <!-- Recommended: Use https://asciinema.org or https://github.com/faressoft/terminalizer for a GIF -->
 <!-- <p align="center"><img src="./assets/hero-demo.gif" alt="Mikk Demo" width="720" /></p> -->

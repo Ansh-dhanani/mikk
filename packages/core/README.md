@@ -139,7 +139,8 @@ const impact = analyzer.analyze(['src/utils/math.ts::calculateTotal'])
 console.log(impact.changed)    // string[] — directly changed node IDs
 console.log(impact.impacted)   // string[] — transitively affected nodes
 console.log(impact.depth)      // number — max propagation depth
-console.log(impact.confidence) // number — 0-1 confidence score
+console.log(impact.confidence) // 'high' | 'medium' | 'low'
+console.log(impact.classified) // { critical: [], high: [], medium: [], low: [] }
 ```
 
 #### ClusterDetector
@@ -418,7 +419,7 @@ import type {
   // Parser
   ParsedFile, ParsedFunction, ParsedClass, ParsedImport, ParsedExport, ParsedParam, ParsedGeneric,
   // Graph
-  DependencyGraph, GraphNode, GraphEdge, ImpactResult, NodeType, EdgeType, ModuleCluster,
+  DependencyGraph, GraphNode, GraphEdge, ImpactResult, NodeType, EdgeType, ModuleCluster, ClassifiedImpact, RiskLevel,
   // Contract
   MikkContract, MikkLock, MikkModule, MikkDecision, MikkLockFunction, MikkLockModule, MikkLockFile,
   // Boundary

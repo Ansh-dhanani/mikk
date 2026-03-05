@@ -177,6 +177,12 @@ export class IncrementalAnalyzer {
             impactResult: {
                 changed: changedPaths,
                 impacted: [],
+                classified: {
+                    critical: [],
+                    high: [],
+                    medium: [],
+                    low: [],
+                },
                 depth: 0,
                 confidence: 'low', // Full rebuild = can't determine precise impact
             },

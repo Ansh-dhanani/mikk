@@ -33,6 +33,7 @@ export interface GraphEdge {
     target: string          // "fn:src/utils/jwt.ts:jwtDecode"
     type: EdgeType
     weight?: number         // How often this call happens (for coupling metrics)
+    confidence?: number     // 0.0–1.0: 1.0 = direct AST call, 0.8 = via interface, 0.5 = fuzzy/inferred
 }
 
 /** The full dependency graph */
@@ -43,12 +44,32 @@ export interface DependencyGraph {
     inEdges: Map<string, GraphEdge[]>    // node → [edges coming in]
 }
 
+/** Risk level for an impacted node */
+export type RiskLevel = 'critical' | 'high' | 'medium' | 'low'
+
+/** A single node in the classified impact result */
+export interface ClassifiedImpact {
+    nodeId: string
+    label: string
+    file: string
+    moduleId?: string
+    risk: RiskLevel
+    depth: number           // hops from change
+}
+
 /** Result of impact analysis */
 export interface ImpactResult {
     changed: string[]        // The directly changed nodes
     impacted: string[]       // Everything that depends on changed nodes
     depth: number            // How many hops from change to furthest impact
     confidence: 'high' | 'medium' | 'low'
+    /** Risk-classified breakdown of impacted nodes */
+    classified: {
+        critical: ClassifiedImpact[]
+        high: ClassifiedImpact[]
+        medium: ClassifiedImpact[]
+        low: ClassifiedImpact[]
+    }
 }
 
 /** A cluster of files that naturally belong together */

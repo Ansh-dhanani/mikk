@@ -164,7 +164,7 @@ name: string   # function name (e.g. "parseToken")
 file: string   # relative path to the file being changed
 ```
 
-Returns `changedNodes`, `impactedNodes`, depth, confidence, and the top 30 impacted functions.
+Returns `changedNodes`, `impactedNodes`, depth, confidence, `classified` risk breakdown, and the top 30 impacted functions.
 
 ---
 

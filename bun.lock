@@ -37,7 +37,7 @@
     },
     "packages/ai-context": {
       "name": "@getmikk/ai-context",
-      "version": "1.5.0",
+      "version": "1.5.1",
       "dependencies": {
         "@getmikk/core": "workspace:*",
         "@getmikk/intent-engine": "workspace:*",
@@ -49,7 +49,7 @@
     },
     "packages/cli": {
       "name": "@getmikk/cli",
-      "version": "1.5.0",
+      "version": "1.5.1",
       "bin": {
         "mikk": "bin/mikk.js",
       },
@@ -74,7 +74,7 @@
     },
     "packages/core": {
       "name": "@getmikk/core",
-      "version": "1.5.0",
+      "version": "1.5.1",
       "dependencies": {
         "@types/better-sqlite3": "^7.6.13",
         "better-sqlite3": "^12.6.2",
@@ -82,13 +82,14 @@
         "zod": "^3.22.0",
       },
       "devDependencies": {
+        "@types/bun": "^1.3.10",
         "@types/node": "^22.0.0",
         "typescript": "^5.7.0",
       },
     },
     "packages/diagram-generator": {
       "name": "@getmikk/diagram-generator",
-      "version": "1.5.0",
+      "version": "1.5.1",
       "dependencies": {
         "@getmikk/core": "workspace:*",
       },
@@ -99,19 +100,20 @@
     },
     "packages/intent-engine": {
       "name": "@getmikk/intent-engine",
-      "version": "1.5.0",
+      "version": "1.5.1",
       "dependencies": {
         "@getmikk/core": "workspace:*",
         "zod": "^3.22.0",
       },
       "devDependencies": {
+        "@types/bun": "^1.3.10",
         "@types/node": "^22.0.0",
         "typescript": "^5.7.0",
       },
     },
     "packages/mcp-server": {
       "name": "@getmikk/mcp-server",
-      "version": "1.5.0",
+      "version": "1.6.0",
       "bin": {
         "mikk-mcp": "bin/mikk-mcp.js",
       },
@@ -143,7 +145,7 @@
     },
     "packages/watcher": {
       "name": "@getmikk/watcher",
-      "version": "1.5.0",
+      "version": "1.5.1",
       "dependencies": {
         "@getmikk/core": "workspace:*",
         "chokidar": "^4.0.0",
@@ -585,9 +587,17 @@
 
     "zod-to-json-schema": ["zod-to-json-schema@3.25.1", "", { "peerDependencies": { "zod": "^3.25 || ^4" } }, "sha512-pM/SU9d3YAggzi6MtR4h7ruuQlqKtad8e9S0fmxcMi+ueAK5Korys/aWcV9LIIHTVbj01NdzxcnXSN+O74ZIVA=="],
 
+    "@getmikk/core/@types/bun": ["@types/bun@1.3.10", "", { "dependencies": { "bun-types": "1.3.10" } }, "sha512-0+rlrUrOrTSskibryHbvQkDOWRJwJZqZlxrUs1u4oOoTln8+WIXBPmAuCF35SWB2z4Zl3E84Nl/D0P7803nigQ=="],
+
+    "@getmikk/intent-engine/@types/bun": ["@types/bun@1.3.10", "", { "dependencies": { "bun-types": "1.3.10" } }, "sha512-0+rlrUrOrTSskibryHbvQkDOWRJwJZqZlxrUs1u4oOoTln8+WIXBPmAuCF35SWB2z4Zl3E84Nl/D0P7803nigQ=="],
+
     "log-symbols/is-unicode-supported": ["is-unicode-supported@1.3.0", "", {}, "sha512-43r2mRvz+8JRIKnWJ+3j8JtjRKZ6GmjzfaE/qiBJnikNnYv/6bagRJ1kUhNk8R5EX/GkobD+r+sfxCPJsiKBLQ=="],
 
     "mikk/esbuild": ["esbuild@0.27.3", "", { "optionalDependencies": { "@esbuild/aix-ppc64": "0.27.3", "@esbuild/android-arm": "0.27.3", "@esbuild/android-arm64": "0.27.3", "@esbuild/android-x64": "0.27.3", "@esbuild/darwin-arm64": "0.27.3", "@esbuild/darwin-x64": "0.27.3", "@esbuild/freebsd-arm64": "0.27.3", "@esbuild/freebsd-x64": "0.27.3", "@esbuild/linux-arm": "0.27.3", "@esbuild/linux-arm64": "0.27.3", "@esbuild/linux-ia32": "0.27.3", "@esbuild/linux-loong64": "0.27.3", "@esbuild/linux-mips64el": "0.27.3", "@esbuild/linux-ppc64": "0.27.3", "@esbuild/linux-riscv64": "0.27.3", "@esbuild/linux-s390x": "0.27.3", "@esbuild/linux-x64": "0.27.3", "@esbuild/netbsd-arm64": "0.27.3", "@esbuild/netbsd-x64": "0.27.3", "@esbuild/openbsd-arm64": "0.27.3", "@esbuild/openbsd-x64": "0.27.3", "@esbuild/openharmony-arm64": "0.27.3", "@esbuild/sunos-x64": "0.27.3", "@esbuild/win32-arm64": "0.27.3", "@esbuild/win32-ia32": "0.27.3", "@esbuild/win32-x64": "0.27.3" }, "bin": { "esbuild": "bin/esbuild" } }, "sha512-8VwMnyGCONIs6cWue2IdpHxHnAjzxnw2Zr7MkVxB2vjmQ2ivqGFb4LEG3SMnv0Gb2F/G/2yA8zUaiL1gywDCCg=="],
+
+    "@getmikk/core/@types/bun/bun-types": ["bun-types@1.3.10", "", { "dependencies": { "@types/node": "*" } }, "sha512-tcpfCCl6XWo6nCVnpcVrxQ+9AYN1iqMIzgrSKYMB/fjLtV2eyAVEg7AxQJuCq/26R6HpKWykQXuSOq/21RYcbg=="],
+
+    "@getmikk/intent-engine/@types/bun/bun-types": ["bun-types@1.3.10", "", { "dependencies": { "@types/node": "*" } }, "sha512-tcpfCCl6XWo6nCVnpcVrxQ+9AYN1iqMIzgrSKYMB/fjLtV2eyAVEg7AxQJuCq/26R6HpKWykQXuSOq/21RYcbg=="],
 
     "mikk/esbuild/@esbuild/aix-ppc64": ["@esbuild/aix-ppc64@0.27.3", "", { "os": "aix", "cpu": "ppc64" }, "sha512-9fJMTNFTWZMh5qwrBItuziu834eOCUcEqymSH7pY+zoMVEZg3gcPuBNxH1EvfVYe9h0x/Ptw8KBzv7qxb7l8dg=="],
 
