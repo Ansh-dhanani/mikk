@@ -210,6 +210,63 @@ for (const s of suggestions) {
 
 ---
 
+### SemanticSearcher
+
+Finds functions semantically similar to a natural-language query using local embeddings via [`@xenova/transformers`](https://github.com/xenova/transformers.js). No API key required — the model runs entirely offline.
+
+**Model:** `Xenova/all-MiniLM-L6-v2` (~22 MB, downloaded once to `~/.cache/huggingface` on first use)  
+**Optional peer dependency:** `@xenova/transformers >= 2`
+
+```bash
+bun add @xenova/transformers   # only needed if you use SemanticSearcher
+```
+
+```typescript
+import { SemanticSearcher } from '@getmikk/intent-engine'
+
+// Check if @xenova/transformers is installed before using
+if (await SemanticSearcher.isAvailable()) {
+  const searcher = new SemanticSearcher(projectRoot)
+
+  // index() builds embeddings; subsequent calls are O(1) cache hits
+  await searcher.index(lock)
+
+  // search() returns the topK most relevant functions
+  const results = await searcher.search('validate JWT and return user payload', lock, 5)
+  for (const r of results) {
+    console.log(`${r.name} (${r.file}:${r.lines}) — score: ${r.score}`)
+    console.log(`  ${r.purpose}`)
+  }
+}
+```
+
+**Cache behaviour:** Embeddings are persisted to `{projectRoot}/.mikk/embeddings.json` and fingerprinted by function count + first 20 sorted IDs. Re-indexing only re-embeds when the lock actually changes (e.g. after `mikk sync`). A cache hit costs a single disk read.
+
+**`SemanticMatch`:**
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `id` | `string` | Function ID (`fn:module:name`) |
+| `name` | `string` | Function name |
+| `file` | `string` | Source file path |
+| `moduleId` | `string` | Owning module |
+| `purpose` | `string` | One-line purpose from the lock |
+| `lines` | `string` | Line range, e.g. `"12-34"` |
+| `score` | `number` | Cosine similarity `[0, 1]` — higher is more relevant |
+
+**API:**
+
+| Method | Description |
+|--------|-------------|
+| `SemanticSearcher.isAvailable()` | Returns `true` if `@xenova/transformers` is importable |
+| `new SemanticSearcher(projectRoot)` | Creates an instance scoped to a project root |
+| `.index(lock)` | Builds/loads embeddings for all functions in the lock |
+| `.search(query, lock, topK?)` | Returns top `topK` (default 10) semantically similar functions |
+
+> **Note:** Call `index()` before `search()`, otherwise `search()` throws `"Call index() before search()"`. The MCP server keeps a per-project singleton to avoid repeated model loads.
+
+---
+
 ## Usage with AI Agents
 
 The intent engine is designed to be called by AI coding agents as a pre-flight check:

@@ -277,6 +277,53 @@ mikk visualize impact
 
 ---
 
+### `mikk mcp` — MCP Server for AI Assistants
+
+Connect your project architecture to Claude Desktop, Cursor, VS Code, or any MCP-compatible AI tool. The MCP server exposes 15 tools and 3 resources for your assistant, all powered by the Mikk lock file.
+
+#### `mikk mcp` (default: start server)
+
+Start the MCP (Model Context Protocol) stdio server.
+
+```bash
+# Start server
+mikk mcp
+
+# Start with custom project root
+mikk mcp start --project /path/to/project
+```
+
+#### `mikk mcp install`
+
+Auto-detect and install Mikk as an MCP server into Claude Desktop, Cursor, or VS Code configurations. Handles platform-specific config paths automatically.
+
+```bash
+# Install into all detected tools
+mikk mcp install
+
+# Install into specific tool
+mikk mcp install --tool claude
+mikk mcp install --tool cursor
+mikk mcp install --tool vscode
+
+# Preview what would be installed without making changes
+mikk mcp install --dry-run
+
+# Install with custom project path
+mikk mcp install --project /path/to/project
+```
+
+**Platform-specific config paths:**
+- **Claude Desktop**: `~/Library/Application Support/Claude/claude_desktop_config.json` (macOS) or `%APPDATA%\Claude\claude_desktop_config.json` (Windows/Linux)
+- **Cursor**: `~/Library/Application Support/Cursor/User/globalStorage/cursor.mcp/settings.json` (macOS) or `%APPDATA%\Cursor\User\globalStorage\cursor.mcp\settings.json`
+- **VS Code**: `.vscode/mcp.json` in your project root
+
+**Error handling:**
+- If a config file is malformed JSON, the installer will report the error and skip that tool (unless `--dry-run` is used to inspect without side effects)
+- If no supported tools are detected, the installer prints the known targets and suggested next steps
+
+---
+
 ## Global Options
 
 | Flag | Description |

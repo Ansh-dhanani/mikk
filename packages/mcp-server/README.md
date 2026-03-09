@@ -85,6 +85,7 @@ All tools read from the lock file (`mikk.lock.json`) — fast, no re-parsing.
 | `mikk_get_module_detail` | Functions, files, exported API, and internal call graph for a module |
 | `mikk_get_function_detail` | Params, return type, call graph, source body, error handling for a function |
 | `mikk_search_functions` | Substring search across all function names |
+| `mikk_semantic_search` | **Natural-language semantic search** using local vector embeddings (Xenova/all-MiniLM-L6-v2). Query: *"validate a JWT token"* returns functions ranked by semantic similarity (e.g. `verifyToken`, `validateJwt`). Requires optional `@xenova/transformers` package. |
 | `mikk_get_constraints` | All architectural constraints and design decisions |
 | `mikk_get_file` | Read raw source of any project file (with path traversal guard) |
 | `mikk_get_routes` | Detected HTTP routes (Express / Koa / Hono style) |
@@ -158,6 +159,30 @@ name: string   # function name (e.g. "parseToken")
 
 ---
 
+### `mikk_semantic_search`
+
+Find functions by **natural-language meaning**, not just name matching. Uses local vector embeddings (Xenova/all-MiniLM-L6-v2) to rank functions by semantic similarity.
+
+```
+query:  string   # natural-language description (e.g. "validate JWT token", "send email notification")
+topK:   number   # max results to return (default 10)
+```
+
+**Example queries**:
+- `"validate JWT token"` → ranks `verifyToken`, `validateJwt`, `checkToken` highest
+- `"send an email notification"` → ranks `sendWelcomeEmail`, `notifyUser`, `emailAlert` highest
+- `"database persistence"` → ranks `saveUser`, `storeRecord`, `commitTransaction` highest
+
+**Advantages over `mikk_search_functions`**:
+- Keyword search: exact substring match (very fast, narrow results)
+- Semantic search: meaning match (slower, broader understanding, finds related functions)
+
+**Requirements**: `@xenova/transformers` must be installed in your project (`npm install @xenova/transformers`). The first query will download the model (~22 MB) to `~/.cache/huggingface/` and cache it locally.
+
+**Availability check**: If `@xenova/transformers` is not installed, the tool returns a helpful error message with installation instructions.
+
+---
+
 ### `mikk_impact_analysis`
 
 ```
@@ -172,8 +197,9 @@ Returns `changedNodes`, `impactedNodes`, depth, confidence, `classified` risk br
 
 1. **Before editing** → call `mikk_before_edit` with the files you plan to touch
 2. **Understanding a flow** → call `mikk_query_context` with your question
-3. **Renaming a function** → call `mikk_find_usages` first
-4. **Exploring the project** → `mikk_get_project_overview` → `mikk_get_module_detail`
+3. **Searching by meaning** → call `mikk_semantic_search` for natural-language queries
+4. **Renaming a function** → call `mikk_find_usages` first
+5. **Exploring the project** → `mikk_get_project_overview` → `mikk_get_module_detail`
 
 ---
 

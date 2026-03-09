@@ -78,9 +78,9 @@ describe('@getmikk/mcp-server — tool list', () => {
         await server.close()
     })
 
-    it('exposes exactly 12 tools', async () => {
+    it('exposes exactly 15 tools', async () => {
         const result = await client.listTools()
-        expect(result.tools).toHaveLength(12)
+        expect(result.tools).toHaveLength(15)
     })
 
     it('has the correct tool names', async () => {
@@ -88,6 +88,7 @@ describe('@getmikk/mcp-server — tool list', () => {
         const names = result.tools.map(t => t.name).sort()
         expect(names).toEqual([
             'mikk_before_edit',
+            'mikk_dead_code',
             'mikk_find_usages',
             'mikk_get_constraints',
             'mikk_get_file',
@@ -97,8 +98,10 @@ describe('@getmikk/mcp-server — tool list', () => {
             'mikk_get_routes',
             'mikk_impact_analysis',
             'mikk_list_modules',
+            'mikk_manage_adr',
             'mikk_query_context',
             'mikk_search_functions',
+            'mikk_semantic_search',
         ])
     })
 
@@ -186,21 +189,21 @@ describe('mikk_list_modules', () => {
         const result = await client.callTool({ name: 'mikk_list_modules', arguments: {} })
         expect(isError(result)).toBe(false)
         const data = parseJSON(result)
-        expect(data).toHaveLength(1)
-        expect(data[0].id).toBe('auth')
+        expect(data.modules).toHaveLength(1)
+        expect(data.modules[0].id).toBe('auth')
     })
 
     it('includes function and file counts per module', async () => {
         const result = await client.callTool({ name: 'mikk_list_modules', arguments: {} })
         const data = parseJSON(result)
-        expect(data[0].functions).toBe(3)
-        expect(data[0].files).toBe(1)
+        expect(data.modules[0].functions).toBe(3)
+        expect(data.modules[0].files).toBe(1)
     })
 
     it('includes entry functions', async () => {
         const result = await client.callTool({ name: 'mikk_list_modules', arguments: {} })
         const data = parseJSON(result)
-        expect(data[0].entryFunctions).toContain('login')
+        expect(data.modules[0].entryFunctions).toContain('login')
     })
 })
 
@@ -366,19 +369,19 @@ describe('mikk_search_functions', () => {
         const result = await client.callTool({ name: 'mikk_search_functions', arguments: { query: 'login' } })
         expect(isError(result)).toBe(false)
         const data = parseJSON(result)
-        expect(data.some((f: any) => f.name === 'login')).toBe(true)
+        expect(data.matches.some((f: any) => f.name === 'login')).toBe(true)
     })
 
     it('finds by substring, case-insensitive', async () => {
         const result = await client.callTool({ name: 'mikk_search_functions', arguments: { query: 'HASH' } })
         const data = parseJSON(result)
-        expect(data.some((f: any) => f.name === 'hashPassword')).toBe(true)
+        expect(data.matches.some((f: any) => f.name === 'hashPassword')).toBe(true)
     })
 
     it('finds by partial name (camelCase fragment)', async () => {
         const result = await client.callTool({ name: 'mikk_search_functions', arguments: { query: 'Token' } })
         const data = parseJSON(result)
-        expect(data.some((f: any) => f.name === 'generateToken')).toBe(true)
+        expect(data.matches.some((f: any) => f.name === 'generateToken')).toBe(true)
     })
 
     it('returns no-match message for unknown query', async () => {
@@ -390,13 +393,13 @@ describe('mikk_search_functions', () => {
     it('respects limit parameter', async () => {
         const result = await client.callTool({ name: 'mikk_search_functions', arguments: { query: '', limit: 1 } })
         const data = parseJSON(result)
-        expect(data).toHaveLength(1)
+        expect(data.matches).toHaveLength(1)
     })
 
     it('result includes file, module, exported flag, and line range', async () => {
         const result = await client.callTool({ name: 'mikk_search_functions', arguments: { query: 'login' } })
         const data = parseJSON(result)
-        const fn = data.find((f: any) => f.name === 'login')
+        const fn = data.matches.find((f: any) => f.name === 'login')
         expect(fn.file).toBe('src/auth.ts')
         expect(fn.module).toBe('auth')
         expect(fn.exported).toBe(true)
@@ -406,7 +409,7 @@ describe('mikk_search_functions', () => {
     it('empty query returns all functions (up to limit)', async () => {
         const result = await client.callTool({ name: 'mikk_search_functions', arguments: { query: '' } })
         const data = parseJSON(result)
-        expect(data).toHaveLength(3) // all 3 fixture functions
+        expect(data.matches).toHaveLength(3) // all 3 fixture functions
     })
 })
 
@@ -675,8 +678,8 @@ describe('mikk_get_routes', () => {
         const result = await client.callTool({ name: 'mikk_get_routes', arguments: {} })
         expect(isError(result)).toBe(false)
         const data = parseJSON(result)
-        expect(data).toHaveLength(1)
-        const route = data[0]
+        expect(data.routes).toHaveLength(1)
+        const route = data.routes[0]
         expect(route.method).toBe('POST')
         expect(route.path).toBe('/auth/login')
         expect(route.handler).toBe('login')
@@ -687,7 +690,7 @@ describe('mikk_get_routes', () => {
     it('includes middleware array', async () => {
         const result = await client.callTool({ name: 'mikk_get_routes', arguments: {} })
         const data = parseJSON(result)
-        expect(data[0].middlewares).toContain('rateLimiter')
+        expect(data.routes[0].middlewares).toContain('rateLimiter')
     })
 })
 
@@ -937,6 +940,55 @@ describe('@getmikk/mcp-server — staleness warning', () => {
         await server.close()
     })
 
+    it('mikk_get_project_overview includes warning field (null when clean)', async () => {
+        const result = await client.callTool({ name: 'mikk_get_project_overview', arguments: {} })
+        const data = parseJSON(result)
+        expect(Object.prototype.hasOwnProperty.call(data, 'warning')).toBe(true)
+        expect(data.warning).toBeNull()
+    })
+
+    it('mikk_list_modules includes warning field (null when clean)', async () => {
+        const result = await client.callTool({ name: 'mikk_list_modules', arguments: {} })
+        const data = parseJSON(result)
+        expect(Object.prototype.hasOwnProperty.call(data, 'warning')).toBe(true)
+        expect(data.warning).toBeNull()
+    })
+
+    it('mikk_get_module_detail includes warning field (null when clean)', async () => {
+        const result = await client.callTool({ name: 'mikk_get_module_detail', arguments: { moduleId: 'auth' } })
+        const data = parseJSON(result)
+        expect(Object.prototype.hasOwnProperty.call(data, 'warning')).toBe(true)
+        expect(data.warning).toBeNull()
+    })
+
+    it('mikk_get_function_detail includes warning field (null when clean)', async () => {
+        const result = await client.callTool({ name: 'mikk_get_function_detail', arguments: { name: 'login' } })
+        const data = parseJSON(result)
+        expect(Object.prototype.hasOwnProperty.call(data[0], 'warning')).toBe(true)
+        expect(data[0].warning).toBeNull()
+    })
+
+    it('mikk_search_functions includes warning field (null when clean)', async () => {
+        const result = await client.callTool({ name: 'mikk_search_functions', arguments: { query: 'login' } })
+        const data = parseJSON(result)
+        expect(Object.prototype.hasOwnProperty.call(data, 'warning')).toBe(true)
+        expect(data.warning).toBeNull()
+    })
+
+    it('mikk_get_constraints includes warning field (null when clean)', async () => {
+        const result = await client.callTool({ name: 'mikk_get_constraints', arguments: {} })
+        const data = parseJSON(result)
+        expect(Object.prototype.hasOwnProperty.call(data, 'warning')).toBe(true)
+        expect(data.warning).toBeNull()
+    })
+
+    it('mikk_get_routes includes warning field (null when clean)', async () => {
+        const result = await client.callTool({ name: 'mikk_get_routes', arguments: {} })
+        const data = parseJSON(result)
+        expect(Object.prototype.hasOwnProperty.call(data, 'warning')).toBe(true)
+        expect(data.warning).toBeNull()
+    })
+
     it('impact_analysis response includes warning field (null when clean)', async () => {
         const result = await client.callTool({
             name: 'mikk_impact_analysis',
@@ -951,6 +1003,16 @@ describe('@getmikk/mcp-server — staleness warning', () => {
         const result = await client.callTool({
             name: 'mikk_before_edit',
             arguments: { files: ['src/auth.ts'] },
+        })
+        const data = parseJSON(result)
+        expect(Object.prototype.hasOwnProperty.call(data, 'warning')).toBe(true)
+        expect(data.warning).toBeNull()
+    })
+
+    it('find_usages response includes warning field (null when clean)', async () => {
+        const result = await client.callTool({
+            name: 'mikk_find_usages',
+            arguments: { name: 'hashPassword' },
         })
         const data = parseJSON(result)
         expect(Object.prototype.hasOwnProperty.call(data, 'warning')).toBe(true)

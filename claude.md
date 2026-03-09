@@ -4,15 +4,15 @@
 - **Search (Registry)** (`apps-registry`): 1 functions — primarily placeholder operations across 1 files
 - **Search (Web)** (`apps-web`): 1 functions — @getmikkweb — Web Dashboard & Contract Generator
 - **Providers (Ai Context)** (`packages-ai-context`): 43 functions — Rough token estimation: ~4 chars per token; Rough token estimator: 1 token ≈ 4 chars for codeidentifiers; Graph traversal helpers
-- **CLI** (`packages-cli`): 12 functions — Parse a numeric CLI option with validation; ── Helpers ──────────────────────────────────────────────...; Load contract + lock + diagram orchestrator
-- **Utils & Storage** (`packages-core`): 144 functions — Infer the project language from the file extensions present; ─── Heuristic purpose inference ─────────────────────────...; Infer a short purpose string from function metadata when ...
+- **CLI** (`packages-cli`): 15 functions — Parse a numeric CLI option with validation; ── Helpers ──────────────────────────────────────────────...; Load contract + lock + diagram orchestrator
+- **Utils & Storage** (`packages-core`): 157 functions — Infer the project language from the file extensions present; ─── Heuristic purpose inference ─────────────────────────...; Infer a short purpose string from function metadata when ...
 - **Search (Diagram Generator)** (`packages-diagram-generator`): 33 functions — 9 files, 0 functions
 - **Search (Intent Engine)** (`packages-intent-engine`): 28 functions — 6 files, 0 functions
 - **Providers (Vscode Extension)** (`packages-vscode-extension`): 4 functions — VS Code Extension entry point for Mikk
 - **Storage** (`packages-watcher`): 24 functions — 5 files, 0 functions
 
 ## Stats
-- 66 files, 290 functions, 9 modules
+- 75 files, 313 functions, 9 modules
 - Language: typescript
 
 ## Tech Stack
@@ -62,15 +62,16 @@ Turborepo
 
 **Entry points:**
   - `registerContextCommands(program) [packages/cli/src/commands/context.ts:24]` — Register context commands (program)
+  - `registerDeadCodeCommand(program) [packages/cli/src/commands/dead-code.ts:9]` — Register dead code command (program)
   - `registerVisualizeCommands(program) [packages/cli/src/commands/visualize.ts:22]` — Register visualize commands (program)
   - `registerAnalyzeCommand(program) [packages/cli/src/commands/analyze.ts:11]` — Register analyze command (program)
   - `registerDiffCommand(program) [packages/cli/src/commands/diff.ts:11]` — Register diff command (program)
-  - `registerInitCommand(program) [packages/cli/src/commands/init.ts:14]` — Register init command (program)
 
 **Key internal functions:**
   - `parseIntOption` (called by 1) — Parse a numeric CLI option with validation
   - `loadContractAndLock` (called by 1) — ── Helpers ──────────────────────────────────────────────────────────────────
   - `printMeta` (called by 1) — Print meta (meta, task)
+  - `buildGraphFromLock` (called by 1) — Build DependencyGraph from lock — same logic as mcp-servertools.ts
   - `loadProjectContext` (called by 1) — Load contract + lock + diagram orchestrator.
 
 ## Utils & Storage module
@@ -355,6 +356,7 @@ export interface GraphEdge {
     target: string          // "fn:src/utils/jwt.ts:jwtDecode"
     type: EdgeType
     weight?: number         // How often this call happens (for coupling metrics)
+    confidence?: number     // 0.0–1.0: 1.0 = direct AST call, 0.8 = via interface, 0.5 = fuzzy/inferred
 }
 
 /** The full dependency graph */
@@ -365,12 +367,32 @@ export interface DependencyGraph {
     inEdges: Map<string, GraphEdge[]>    // node → [edges coming in]
 }
 
+/** Risk level for an impacted node */
+export type RiskLevel = 'critical' | 'high' | 'medium' | 'low'
+
+/** A single node in the classified impact result */
+export interface ClassifiedImpact {
+    nodeId: string
+    label: string
+    file: string
+    moduleId?: string
+    risk: RiskLevel
+    depth: number           // hops from change
+}
+
 /** Result of impact analysis */
 export interface ImpactResult {
     changed: string[]        // The directly changed nodes
     impacted: string[]       // Everything that depends on changed nodes
     depth: number            // How many hops from change to furthest impact
     confidence: 'high' | 'medium' | 'low'
+    /** Risk-classified breakdown of impacted nodes */
+    classified: {
+        critical: ClassifiedImpact[]
+        high: ClassifiedImpact[]
+        medium: ClassifiedImpact[]
+        low: ClassifiedImpact[]
+    }
 }
 
 /** A cluster of files that naturally belong together */

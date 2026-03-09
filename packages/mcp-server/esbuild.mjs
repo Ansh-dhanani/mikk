@@ -11,7 +11,7 @@ await esbuild.build({
     format: 'cjs',
     outfile: 'dist/index.cjs',
     sourcemap: true,
-    external: ['better-sqlite3'],
+    external: ['better-sqlite3', '@xenova/transformers'],
     define: {
         __MCP_VERSION__: JSON.stringify(pkg.version),
     },

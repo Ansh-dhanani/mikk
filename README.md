@@ -150,7 +150,9 @@ Incremental, debounced file watching with atomic lock file writes and PID-based 
 <td width="50%">
 
 ### Full AST Parsing
-TypeScript Compiler API extracts functions, classes, generics, imports (with tsconfig alias resolution), decorators, and type parameters. Not regex — real compiler-grade parsing. Every function gets its **exact file path, start line, and end line** stored in the lock file.
+TypeScript Compiler API extracts functions, classes, generics, imports (with tsconfig alias resolution), decorators, and type parameters. Not regex — real compiler-grade parsing. Go files are parsed with regex + stateful scanning (no Go toolchain needed). Every function gets its **exact file path, start line, and end line** stored in the lock file.
+
+**Supported languages:** TypeScript/TSX · **Go**
 
 </td>
 </tr>
@@ -324,6 +326,7 @@ mikk watch
 | `mikk_get_module_detail` | Functions, files, exported API, internal call graph for a module |
 | `mikk_get_function_detail` | Params, return type, call graph, **exact file + start/end line + full source body** for a function |
 | `mikk_search_functions` | Substring search across all function names |
+| `mikk_semantic_search` | **Natural-language search** — find functions by meaning via local vector embeddings (Xenova/all-MiniLM-L6-v2). E.g. *"validate JWT token"* ranks `verifyToken` highest. Requires `@xenova/transformers` (optional). |
 | `mikk_get_constraints` | All architectural constraints and design decisions |
 | `mikk_get_file` | Read raw source of any project file |
 | `mikk_get_routes` | Detected HTTP routes (Express / Koa / Hono) |

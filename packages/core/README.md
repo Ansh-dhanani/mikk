@@ -5,7 +5,7 @@
 [![npm](https://img.shields.io/npm/v/@getmikk/core)](https://www.npmjs.com/package/@getmikk/core)
 [![License: Apache-2.0](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](../../LICENSE)
 
-`@getmikk/core` is the foundation every other Mikk package builds on. It owns the complete pipeline for turning raw TypeScript source into structured, queryable intelligence: parsing source files into real ASTs (not regex), building a two-pass dependency graph with O(1) adjacency lookups, computing Merkle-tree SHA-256 hashes at function → file → module → root level, and compiling everything into a `mikk.lock.json` snapshot that every other package reads from.
+`@getmikk/core` is the foundation every other Mikk package builds on. It owns the complete pipeline for turning raw **TypeScript and Go** source into structured, queryable intelligence: parsing source files into real ASTs (TS Compiler API for TypeScript; regex + stateful scanning for Go; no external toolchain required), building a two-pass dependency graph with O(1) adjacency lookups, computing Merkle-tree SHA-256 hashes at function → file → module → root level, and compiling everything into a `mikk.lock.json` snapshot that every other package reads from.
 
 Every AI context query, impact analysis, contract validation, and diagram generation ultimately runs on the graph and lock file produced here.
 
@@ -26,11 +26,11 @@ bun add @getmikk/core
 ## Architecture Overview
 
 ```
-Source Files (.ts/.tsx)
+Source Files (.ts/.tsx/.go)
         │
         ▼
    ┌─────────┐
-   │  Parser  │  ← TypeScriptParser + TypeScriptExtractor
+   │  Parser  │  ← TypeScriptParser / GoParser
    └────┬────┘
         │  ParsedFile[]
         ▼
@@ -98,6 +98,39 @@ import { TypeScriptResolver } from '@getmikk/core'
 const resolver = new TypeScriptResolver()
 // Resolves: relative paths, path aliases (tsconfig paths), index files, extension inference (.ts/.tsx/.js)
 const resolved = resolver.resolve(importDecl, fromFilePath, allProjectFiles)
+```
+
+#### Go Parser
+
+Parses `.go` files without requiring the Go toolchain:
+
+```typescript
+import { GoParser } from '@getmikk/core'
+
+const parser = new GoParser()
+const parsed = parser.parse('service.go', fileContent)
+
+console.log(parsed.functions)  // ParsedFunction[] — name, params with types, return type, calls[]
+console.log(parsed.classes)    // ParsedClass[] — receiver-based methods grouped by type name
+console.log(parsed.imports)    // ParsedImport[] — resolved against go.mod module path
+console.log(parsed.exports)    // ParsedExport[] — uppercase identifiers (Go convention)
+console.log(parsed.routes)     // ParsedRoute[] — Gin, Echo, Chi, Mux, net/http routes
+```
+
+**Features**:
+- Stateful line/character scanning (handles strings, comments, nested braces correctly)
+- Receiver methods grouped with struct types as classes
+- HTTP route detection (Gin/Echo/Chi/Mux/net.http/Fiber patterns)
+- Error handling detection (`if err != nil` patterns)
+- Function call extraction from bodies
+- Grouped parameter expansion (`first, last string` → both typed as `string`)
+- Import resolution via `go.mod` module path
+
+#### Auto-detection by file extension
+
+```typescript
+const parser = getParser('file.ts')    // → TypeScriptParser
+const parser = getParser('service.go') // → GoParser
 ```
 
 ---

@@ -9,7 +9,19 @@ import {
     type DependencyGraph, type GraphNode, type GraphEdge,
 } from '@getmikk/core'
 import { ContextBuilder, getProvider } from '@getmikk/ai-context'
+import { SemanticSearcher } from '@getmikk/intent-engine'
 import type { ContextQuery } from '@getmikk/ai-context'
+
+// Singleton per projectRoot — pipeline load is ~1-2s, must not repeat per request
+const semanticSearchers = new Map<string, SemanticSearcher>()
+function getSemanticSearcher(projectRoot: string): SemanticSearcher {
+    let s = semanticSearchers.get(projectRoot)
+    if (!s) {
+        s = new SemanticSearcher(projectRoot)
+        semanticSearchers.set(projectRoot, s)
+    }
+    return s
+}
 
 /**
  * Register all MCP tools — actions an AI assistant can invoke.
@@ -24,7 +36,7 @@ export function registerTools(server: McpServer, projectRoot: string) {
         'Get a high-level overview of the project: modules, function counts, file counts, tech stack',
         {},
         async () => {
-            const { contract, lock } = await loadContractAndLock(projectRoot)
+            const { contract, lock, staleness } = await loadContractAndLock(projectRoot)
 
             const modules = contract.declared.modules.map(mod => {
                 const fns = Object.values(lock.functions).filter(f => f.moduleId === mod.id)
@@ -47,6 +59,7 @@ export function registerTools(server: McpServer, projectRoot: string) {
                 modules,
                 constraints: contract.declared.constraints,
                 decisions: contract.declared.decisions,
+                warning: staleness,
                 hint: 'Next: Use mikk_query_context with your task description, or mikk_list_modules to explore the architecture.',
             }
 
@@ -69,7 +82,7 @@ export function registerTools(server: McpServer, projectRoot: string) {
             provider: z.enum(['claude', 'generic', 'compact']).optional().default('generic').describe('AI provider format: claude (XML tags), generic (plain), compact (minimal tokens)'),
         },
         async ({ question, maxHops, tokenBudget, focusFile, focusModule, provider }) => {
-            const { contract, lock } = await loadContractAndLock(projectRoot)
+            const { contract, lock, staleness } = await loadContractAndLock(projectRoot)
 
             const query: ContextQuery = {
                 task: question,
@@ -100,9 +113,10 @@ export function registerTools(server: McpServer, projectRoot: string) {
 
             const formatter = getProvider(provider ?? 'generic')
             const output = formatter.formatContext(ctx)
+            const warning = staleness ? `\n\n${staleness}` : ''
 
             return {
-                content: [{ type: 'text' as const, text: output + '\n\n---\nHint: Use mikk_before_edit on any files you plan to modify, then mikk_impact_analysis to see the full blast radius.' }],
+                content: [{ type: 'text' as const, text: output + warning + '\n\n---\nHint: Use mikk_before_edit on any files you plan to modify, then mikk_impact_analysis to see the full blast radius.' }],
             }
         },
     )
@@ -253,7 +267,7 @@ export function registerTools(server: McpServer, projectRoot: string) {
         'List all declared modules with their file/function counts and descriptions',
         {},
         async () => {
-            const { contract, lock } = await loadContractAndLock(projectRoot)
+            const { contract, lock, staleness } = await loadContractAndLock(projectRoot)
 
             const modules = contract.declared.modules.map(mod => {
                 const fns = Object.values(lock.functions).filter(f => f.moduleId === mod.id)
@@ -269,7 +283,12 @@ export function registerTools(server: McpServer, projectRoot: string) {
                 }
             })
 
-            return { content: [{ type: 'text' as const, text: JSON.stringify(modules, null, 2) }] }
+            const response = {
+                modules,
+                warning: staleness,
+            }
+
+            return { content: [{ type: 'text' as const, text: JSON.stringify(response, null, 2) }] }
         },
     )
 
@@ -283,7 +302,7 @@ export function registerTools(server: McpServer, projectRoot: string) {
             moduleId: z.string().describe('The module ID (e.g., "packages-core", "lib-auth")'),
         },
         async ({ moduleId }) => {
-            const { contract, lock } = await loadContractAndLock(projectRoot)
+            const { contract, lock, staleness } = await loadContractAndLock(projectRoot)
             const mod = contract.declared.modules.find(m => m.id === moduleId)
 
             if (!mod) {
@@ -313,6 +332,7 @@ export function registerTools(server: McpServer, projectRoot: string) {
                 })),
                 exported: fns.filter(f => f.isExported).map(f => f.name),
                 internal: fns.filter(f => !f.isExported).map(f => f.name),
+                warning: staleness,
             }
 
             return { content: [{ type: 'text' as const, text: JSON.stringify(detail, null, 2) }] }
@@ -329,7 +349,7 @@ export function registerTools(server: McpServer, projectRoot: string) {
             name: z.string().describe('Function name to search for (e.g., "parseFiles", "GraphBuilder.build")'),
         },
         async ({ name }) => {
-            const { lock } = await loadContractAndLock(projectRoot)
+            const { lock, staleness } = await loadContractAndLock(projectRoot)
 
             const matches = Object.values(lock.functions).filter(
                 f => f.name === name || f.name.endsWith(`.${name}`) || f.id.includes(name),
@@ -369,6 +389,7 @@ export function registerTools(server: McpServer, projectRoot: string) {
                     calledBy: fn.calledBy.map(id => lock.functions[id]?.name).filter(Boolean),
                     errorHandling: fn.errorHandling,
                     edgeCases: fn.edgeCasesHandled,
+                    warning: staleness,
                 }
             }))
 
@@ -387,7 +408,7 @@ export function registerTools(server: McpServer, projectRoot: string) {
             limit: z.number().optional().default(20).describe('Max results to return (default: 20)'),
         },
         async ({ query, limit }) => {
-            const { lock } = await loadContractAndLock(projectRoot)
+            const { lock, staleness } = await loadContractAndLock(projectRoot)
             const queryLower = query.toLowerCase()
 
             const matches = Object.values(lock.functions)
@@ -405,7 +426,63 @@ export function registerTools(server: McpServer, projectRoot: string) {
                 return { content: [{ type: 'text' as const, text: `No functions matching "${query}" found.` }] }
             }
 
-            return { content: [{ type: 'text' as const, text: JSON.stringify(matches, null, 2) }] }
+            const response = {
+                matches,
+                warning: staleness,
+            }
+
+            return { content: [{ type: 'text' as const, text: JSON.stringify(response, null, 2) }] }
+        },
+    )
+
+    // ─────────────────────────────────────────────────────────────────────
+    // TOOL: mikk_semantic_search
+    // ─────────────────────────────────────────────────────────────────────
+    server.tool(
+        'mikk_semantic_search',
+        'Find functions by meaning, not by name. Uses local vector embeddings (Xenova/all-MiniLM-L6-v2) to rank functions by semantic similarity to a natural-language query. Requires @xenova/transformers to be installed.',
+        {
+            query: z.string().describe('Natural-language description of what you are looking for (e.g. "validate a JWT token", "send an email notification")'),
+            topK: z.number().optional().default(10).describe('Number of results to return (default: 10)'),
+        },
+        async ({ query, topK }) => {
+            // Fail fast if @xenova/transformers is not installed
+            const available = await SemanticSearcher.isAvailable()
+            if (!available) {
+                return {
+                    content: [{
+                        type: 'text' as const,
+                        text: [
+                            '❌ Semantic search requires @xenova/transformers.',
+                            '',
+                            'Install it in your project root:',
+                            '  npm install @xenova/transformers',
+                            '  # or: pnpm add @xenova/transformers',
+                            '',
+                            'Tip: mikk_search_functions works right now for exact keyword search.',
+                        ].join('\n'),
+                    }],
+                    isError: true,
+                }
+            }
+
+            const { lock, staleness } = await loadContractAndLock(projectRoot)
+            const searcher = getSemanticSearcher(projectRoot)
+
+            // index() is cheap on cache hit (~1ms disk read)
+            await searcher.index(lock)
+            const matches = await searcher.search(query, lock, topK)
+
+            const response = {
+                query,
+                method: 'semantic (vector similarity)',
+                model: SemanticSearcher.MODEL,
+                matches,
+                tip: 'Use mikk_search_functions for exact substring search instead.',
+                warning: staleness,
+            }
+
+            return { content: [{ type: 'text' as const, text: JSON.stringify(response, null, 2) }] }
         },
     )
 
@@ -417,12 +494,13 @@ export function registerTools(server: McpServer, projectRoot: string) {
         'Get all declared architectural constraints and design decisions for this project',
         {},
         async () => {
-            const { contract } = await loadContractAndLock(projectRoot)
+            const { contract, staleness } = await loadContractAndLock(projectRoot)
 
             const result = {
                 constraints: contract.declared.constraints,
                 decisions: contract.declared.decisions,
                 overwrite: contract.overwrite,
+                warning: staleness,
             }
 
             return { content: [{ type: 'text' as const, text: JSON.stringify(result, null, 2) }] }
@@ -523,14 +601,19 @@ export function registerTools(server: McpServer, projectRoot: string) {
         'Get all detected HTTP routes (Express/Koa/Hono style) with their methods, paths, handlers, and middlewares',
         {},
         async () => {
-            const { lock } = await loadContractAndLock(projectRoot)
+            const { lock, staleness } = await loadContractAndLock(projectRoot)
             const routes = lock.routes ?? []
 
             if (routes.length === 0) {
                 return { content: [{ type: 'text' as const, text: 'No HTTP routes detected in this project.' }] }
             }
 
-            return { content: [{ type: 'text' as const, text: JSON.stringify(routes, null, 2) }] }
+            const response = {
+                routes,
+                warning: staleness,
+            }
+
+            return { content: [{ type: 'text' as const, text: JSON.stringify(response, null, 2) }] }
         },
     )
 

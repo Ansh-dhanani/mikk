@@ -1,18 +1,18 @@
 {
   "version": "1.0.0",
-  "generatedAt": "2026-03-03T06:47:30.930Z",
+  "generatedAt": "2026-03-07T14:13:45.768Z",
   "generatorVersion": "@getmikk/cli@1.2.1",
   "projectRoot": "mikk",
   "syncState": {
     "status": "clean",
-    "lastSyncAt": "2026-03-03T06:47:30.930Z",
-    "lockHash": "c1e1544d58392897055aaadc8fb1d830a24ca463edbd6a506828411c0a1a370c",
+    "lastSyncAt": "2026-03-07T14:13:45.768Z",
+    "lockHash": "8ee10cbcaf4002e078166034ed8ad2f2ad9471a9fbafc4160c091961fa4146b7",
     "contractHash": "778942dd9a5dd9317f6fd252233fb40ff1816067d49e18e0ee16cdce6bf664a2"
   },
   "graph": {
-    "nodes": 496,
-    "edges": 377,
-    "rootHash": "44fc67ce9a29479c5187867dbbb6f8d42131b9df2d30671093c13c5c69c65175"
+    "nodes": 538,
+    "edges": 406,
+    "rootHash": "a0fa41b8cc441ff6d2f7809c5d01563bafe318df451c17c6053f8bba77ab09c3"
   },
   "functions": {
     "fn:apps/registry/src/index.ts:placeholder": {
@@ -3539,6 +3539,289 @@
         ]
       ]
     },
+    "fn:packages/mcp-server/src/resources.ts:registerResources": {
+      "lines": [
+        8,
+        57
+      ],
+      "hash": "daab83aff3eba5cd7abf86805ccf7ea19c647de6a2d5b58e63905d0578ffccbb",
+      "calls": [
+        "fn:packages/mcp-server/src/resources.ts:safeRead"
+      ],
+      "params": [
+        {
+          "name": "server",
+          "type": "McpServer"
+        },
+        {
+          "name": "projectRoot",
+          "type": "string"
+        }
+      ],
+      "isExported": true,
+      "purpose": "Register all MCP resources — structured data an AI assistant can read."
+    },
+    "fn:packages/mcp-server/src/resources.ts:safeRead": {
+      "lines": [
+        59,
+        65
+      ],
+      "hash": "9d76ac053683027bd0d82ea50044a11bc873f7383f14a294eeac85b305a17fa8",
+      "calledBy": [
+        "fn:packages/mcp-server/src/resources.ts:registerResources"
+      ],
+      "params": [
+        {
+          "name": "filePath",
+          "type": "string"
+        }
+      ],
+      "returnType": "Promise<string>",
+      "isAsync": true,
+      "purpose": "Safe read (filePath)",
+      "errors": [
+        [
+          60,
+          "try-catch",
+          "try-catch block"
+        ],
+        [
+          63,
+          "throw",
+          "new Error(`File not found: ${filePath}. Run 'mikk init' or 'mikk analyze' first.`)"
+        ]
+      ]
+    },
+    "fn:packages/mcp-server/src/server.ts:createMikkMcpServer": {
+      "lines": [
+        12,
+        22
+      ],
+      "hash": "5af168a7b631da3a3cbd9a86fe15d95b04196270ef10712b77a9bb423edbd5bb",
+      "params": [
+        {
+          "name": "projectRoot",
+          "type": "string"
+        }
+      ],
+      "isExported": true,
+      "purpose": "Create a Mikk MCP server instance with all tools and resources registered."
+    },
+    "fn:packages/mcp-server/src/stdio.ts:startStdioServer": {
+      "lines": [
+        8,
+        13
+      ],
+      "hash": "a8fafcb8e0470101deb44b961ab6556848d85e82a78da6217863c2d67676a927",
+      "isAsync": true,
+      "isExported": true,
+      "purpose": "Start the MCP server with stdio transport."
+    },
+    "fn:packages/mcp-server/src/tools.ts:registerTools": {
+      "lines": [
+        17,
+        631
+      ],
+      "hash": "9a1e899ef35646cc9e2d548cb16b302dc0996dde805d88e343fa98f257f7b3bd",
+      "calls": [
+        "fn:packages/mcp-server/src/tools.ts:loadContractAndLock",
+        "fn:packages/mcp-server/src/tools.ts:buildGraphFromLock"
+      ],
+      "params": [
+        {
+          "name": "server",
+          "type": "McpServer"
+        },
+        {
+          "name": "projectRoot",
+          "type": "string"
+        }
+      ],
+      "isExported": true,
+      "purpose": "Register all MCP tools — actions an AI assistant can invoke.",
+      "edgeCases": [
+        "ctx.modules.length === 0",
+        "fileNodes.length === 0",
+        "!mod",
+        "matches.length === 0",
+        "matches.length === 0",
+        "!resolved.startsWith(rootResolved + path.sep) && resolved !== rootResolved",
+        "!fn",
+        "routes.length === 0",
+        "!id",
+        "!decision",
+        "!id || !title || !reason",
+        "!id",
+        "!id"
+      ],
+      "errors": [
+        [
+          347,
+          "try-catch",
+          "try-catch block"
+        ],
+        [
+          442,
+          "try-catch",
+          "try-catch block"
+        ],
+        [
+          588,
+          "try-catch",
+          "try-catch block"
+        ]
+      ],
+      "details": [
+        [
+          88,
+          99,
+          "ControlFlow"
+        ],
+        [
+          127,
+          133,
+          "ControlFlow"
+        ],
+        [
+          135,
+          140,
+          "ControlFlow"
+        ],
+        [
+          189,
+          231,
+          "Loop"
+        ],
+        [
+          198,
+          203,
+          "ControlFlow"
+        ],
+        [
+          289,
+          294,
+          "ControlFlow"
+        ],
+        [
+          338,
+          343,
+          "ControlFlow"
+        ],
+        [
+          404,
+          406,
+          "ControlFlow"
+        ],
+        [
+          448,
+          453,
+          "ControlFlow"
+        ],
+        [
+          488,
+          493,
+          "ControlFlow"
+        ],
+        [
+          529,
+          531,
+          "ControlFlow"
+        ],
+        [
+          589,
+          625,
+          "ControlFlow"
+        ],
+        [
+          603,
+          603,
+          "ControlFlow"
+        ],
+        [
+          605,
+          605,
+          "ControlFlow"
+        ],
+        [
+          609,
+          611,
+          "ControlFlow"
+        ],
+        [
+          616,
+          616,
+          "ControlFlow"
+        ],
+        [
+          621,
+          621,
+          "ControlFlow"
+        ]
+      ]
+    },
+    "fn:packages/mcp-server/src/tools.ts:loadContractAndLock": {
+      "lines": [
+        634,
+        645
+      ],
+      "hash": "496199c4a8b094e8f4d8d7d969eb0f6182762e41b292e8b4e00f9c5e6b9d2cb7",
+      "calledBy": [
+        "fn:packages/mcp-server/src/tools.ts:registerTools"
+      ],
+      "params": [
+        {
+          "name": "projectRoot",
+          "type": "string"
+        }
+      ],
+      "isAsync": true,
+      "purpose": "Helper — read contract + lock from disk, and surface staleness warning if lock is driftedconflicted"
+    },
+    "fn:packages/mcp-server/src/tools.ts:buildGraphFromLock": {
+      "lines": [
+        653,
+        712
+      ],
+      "hash": "defacb73ec12c392237bb30d5336a21a52fd7af199ad4a2d5ccde3cc42307c6d",
+      "calledBy": [
+        "fn:packages/mcp-server/src/tools.ts:registerTools"
+      ],
+      "params": [
+        {
+          "name": "lock",
+          "type": "MikkLock"
+        }
+      ],
+      "returnType": "DependencyGraph",
+      "purpose": "Build a DependencyGraph from the lock file in O(n) time.",
+      "details": [
+        [
+          660,
+          680,
+          "Loop"
+        ],
+        [
+          683,
+          692,
+          "Loop"
+        ],
+        [
+          695,
+          709,
+          "Loop"
+        ],
+        [
+          696,
+          708,
+          "Loop"
+        ],
+        [
+          697,
+          697,
+          "ControlFlow"
+        ]
+      ]
+    },
     "fn:packages/vscode-extension/src/extension.ts:activate": {
       "lines": [
         9,
@@ -4194,9 +4477,9 @@
     "fn:packages/watcher/src/incremental-analyzer.ts:IncrementalAnalyzer.runFullAnalysis": {
       "lines": [
         142,
-        185
+        191
       ],
-      "hash": "34edf25ecebc5ff50c6decb527925001784c9e945ee12b3b7c7f8c7f9fe9522d",
+      "hash": "a436d2da3ce9071e5df9b1854e20c9f3c149d2d125c02665d5ccada34aa6d85f",
       "moduleId": "packages-watcher",
       "params": [
         {
@@ -4228,8 +4511,8 @@
     },
     "fn:packages/watcher/src/incremental-analyzer.ts:IncrementalAnalyzer.findAffectedNodes": {
       "lines": [
-        187,
-        191
+        193,
+        197
       ],
       "hash": "4dfba3f1fdfd0ededa3315a1337430e447fbf040dc5df4475355ed835ee3a71b",
       "moduleId": "packages-watcher",
@@ -4471,6 +4754,119 @@
       ],
       "purpose": "Print meta (meta, task)"
     },
+    "fn:packages/cli/src/commands/dead-code.ts:registerDeadCodeCommand": {
+      "lines": [
+        9,
+        82
+      ],
+      "hash": "7c09f3d8fb74b26f363346524905d83962b267fe9ce15b19aafaf9cd7b925962",
+      "moduleId": "packages-cli",
+      "calls": [
+        "fn:packages/cli/src/commands/dead-code.ts:buildGraphFromLock"
+      ],
+      "params": [
+        {
+          "name": "program",
+          "type": "Command"
+        }
+      ],
+      "isExported": true,
+      "purpose": "Register dead code command (program)",
+      "edgeCases": [
+        "opts.json",
+        "deadItems.length === 0"
+      ],
+      "errors": [
+        [
+          21,
+          "try-catch",
+          "try-catch block"
+        ]
+      ],
+      "details": [
+        [
+          40,
+          43,
+          "ControlFlow"
+        ],
+        [
+          54,
+          58,
+          "ControlFlow"
+        ],
+        [
+          62,
+          66,
+          "Loop"
+        ],
+        [
+          64,
+          64,
+          "ControlFlow"
+        ],
+        [
+          68,
+          80,
+          "Loop"
+        ],
+        [
+          71,
+          75,
+          "Loop"
+        ],
+        [
+          76,
+          78,
+          "ControlFlow"
+        ]
+      ]
+    },
+    "fn:packages/cli/src/commands/dead-code.ts:buildGraphFromLock": {
+      "lines": [
+        85,
+        139
+      ],
+      "hash": "b1e49378176e3bd5ca7fd160374e1032809738e4019ac6f6f091fce729d4b4a6",
+      "moduleId": "packages-cli",
+      "calledBy": [
+        "fn:packages/cli/src/commands/dead-code.ts:registerDeadCodeCommand"
+      ],
+      "params": [
+        {
+          "name": "lock",
+          "type": "MikkLock"
+        }
+      ],
+      "returnType": "DependencyGraph",
+      "purpose": "Build DependencyGraph from lock — same logic as mcp-servertools.ts",
+      "details": [
+        [
+          91,
+          109,
+          "Loop"
+        ],
+        [
+          111,
+          120,
+          "Loop"
+        ],
+        [
+          122,
+          136,
+          "Loop"
+        ],
+        [
+          123,
+          135,
+          "Loop"
+        ],
+        [
+          124,
+          124,
+          "ControlFlow"
+        ]
+      ]
+    },
     "fn:packages/cli/src/commands/diff.ts:registerDiffCommand": {
       "lines": [
         11,
@@ -4692,6 +5088,22 @@
         ]
       ]
     },
+    "fn:packages/cli/src/commands/mcp.ts:registerMcpCommand": {
+      "lines": [
+        6,
+        18
+      ],
+      "hash": "5373b2436690d5aaa878abab7dff3dea82d2a4c6aeff70ed7782c56402e3f47e",
+      "moduleId": "packages-cli",
+      "params": [
+        {
+          "name": "program",
+          "type": "Command"
+        }
+      ],
+      "isExported": true,
+      "purpose": "Register the `mikk mcp` command — starts the MCP server."
+    },
     "fn:packages/cli/src/commands/visualize.ts:loadProjectContext": {
       "lines": [
         12,
@@ -4789,1108 +5201,1265 @@
         ]
       ]
     },
-    "fn:packages/core/src/graph/cluster-detector.ts:ClusterDetector.constructor": {
+    "fn:packages/diagram-generator/src/generators/capsule-diagram.ts:CapsuleDiagramGenerator.constructor": {
       "lines": [
-        83,
-        87
+        9,
+        12
       ],
-      "hash": "853832d5f625a58fa97a0ad5f305eacd1d320ba9193e41843b717c0ceb24d17c",
-      "moduleId": "packages-core",
+      "hash": "822332c5a207ffd20f4e5260789a15d016c09d4e6137a1a7b5d644a240a3a72a",
+      "moduleId": "packages-diagram-generator",
       "params": [
         {
-          "name": "graph",
-          "type": "DependencyGraph"
+          "name": "contract",
+          "type": "MikkContract"
         },
         {
-          "name": "minClusterSize",
-          "type": "number",
-          "optional": true
-        },
-        {
-          "name": "minCouplingScore",
-          "type": "number",
-          "optional": true
+          "name": "lock",
+          "type": "MikkLock"
         }
       ],
-      "returnType": "ClusterDetector",
+      "returnType": "CapsuleDiagramGenerator",
       "isExported": true,
-      "purpose": "Cluster detector.constructor (graph, minClusterSize, minCouplingScore)"
+      "purpose": "Capsule diagram generator.constructor (contract, lock)"
     },
-    "fn:packages/core/src/graph/cluster-detector.ts:ClusterDetector.detect": {
+    "fn:packages/diagram-generator/src/generators/capsule-diagram.ts:CapsuleDiagramGenerator.generate": {
       "lines": [
-        90,
-        212
+        14,
+        89
       ],
-      "hash": "537bbe3e019c81b4bcbf10fc2c8a7e81a5fb98a46d7c0b506f8308b30cee1506",
-      "moduleId": "packages-core",
-      "returnType": "ModuleCluster[]",
-      "isExported": true,
-      "purpose": "Returns groups of files that naturally belong together, sorted by confidence",
-      "edgeCases": [
-        "fileNodes.length === 0"
-      ],
-      "details": [
-        [
-          92,
-          92,
-          "ControlFlow"
-        ],
-        [
-          104,
-          153,
-          "Loop"
-        ],
-        [
-          105,
-          105,
-          "ControlFlow"
-        ],
-        [
-          113,
-          138,
-          "Loop"
-        ],
-        [
-          116,
-          137,
-          "Loop"
-        ],
-        [
-          119,
-          136,
-          "Loop"
-        ],
-        [
-          120,
-          120,
-          "ControlFlow"
-        ],
-        [
-          121,
-          121,
-          "ControlFlow"
-        ],
-        [
-          131,
-          135,
-          "ControlFlow"
-        ],
-        [
-          140,
-          152,
-          "ControlFlow"
-        ],
-        [
-          142,
-          142,
-          "Loop"
-        ],
-        [
-          156,
-          168,
-          "Loop"
-        ],
-        [
-          157,
-          167,
-          "ControlFlow"
-        ],
-        [
-          177,
-          184,
-          "Loop"
-        ],
-        [
-          181,
-          183,
-          "ControlFlow"
-        ],
-        [
-          190,
-          194,
-          "Loop"
-        ],
-        [
-          195,
-          209,
-          "Loop"
-        ],
-        [
-          196,
-          196,
-          "ControlFlow"
-        ],
-        [
-          197,
-          208,
-          "Loop"
-        ],
-        [
-          205,
-          207,
-          "ControlFlow"
-        ]
-      ]
-    },
-    "fn:packages/core/src/graph/cluster-detector.ts:ClusterDetector.computeCouplingMatrix": {
-      "lines": [
-        220,
-        260
-      ],
-      "hash": "6e0dcb90c024c83c670bc85d162b00132f0eec360ad97492e1054796b5faec8e",
-      "moduleId": "packages-core",
+      "hash": "ea364c735e2807574926f53117472a5d45e14afcb39dcb9cc109e5ab0f0e21b5",
+      "moduleId": "packages-diagram-generator",
       "params": [
         {
-          "name": "files",
-          "type": "string[]"
-        }
-      ],
-      "returnType": "Map<string, Map<string, number>>",
-      "isExported": true,
-      "purpose": "─── Coupling Matrix ──────────────────────────────────────────",
-      "details": [
-        [
-          226,
-          230,
-          "Loop"
-        ],
-        [
-          235,
-          247,
-          "Loop"
-        ],
-        [
-          236,
-          236,
-          "ControlFlow"
-        ],
-        [
-          241,
-          241,
-          "ControlFlow"
-        ],
-        [
-          242,
-          242,
-          "ControlFlow"
-        ],
-        [
-          250,
-          257,
-          "Loop"
-        ],
-        [
-          252,
-          256,
-          "Loop"
-        ]
-      ]
-    },
-    "fn:packages/core/src/graph/cluster-detector.ts:ClusterDetector.incrementPair": {
-      "lines": [
-        262,
-        266
-      ],
-      "hash": "7b3d2812a675a5580f85515c6d2cef9965fc0a815bba48fa7c80e59326b48351",
-      "moduleId": "packages-core",
-      "params": [
-        {
-          "name": "matrix",
-          "type": "Map<string, Map<string, number>>"
-        },
-        {
-          "name": "a",
-          "type": "string"
-        },
-        {
-          "name": "b",
-          "type": "string"
-        }
-      ],
-      "isExported": true,
-      "purpose": "Cluster detector.increment pair (matrix, a, b)",
-      "details": [
-        [
-          263,
-          263,
-          "ControlFlow"
-        ]
-      ]
-    },
-    "fn:packages/core/src/graph/cluster-detector.ts:ClusterDetector.computeClusterAffinity": {
-      "lines": [
-        271,
-        285
-      ],
-      "hash": "b918dd279a16811fc044939422875978505255631d4f02524f77ddad00bc9c2f",
-      "moduleId": "packages-core",
-      "params": [
-        {
-          "name": "candidate",
-          "type": "string"
-        },
-        {
-          "name": "cluster",
-          "type": "string[]"
-        },
-        {
-          "name": "couplingMatrix",
-          "type": "Map<string, Map<string, number>>"
-        }
-      ],
-      "returnType": "number",
-      "isExported": true,
-      "purpose": "─── Affinity Computation ─────────────────────────────────────",
-      "details": [
-        [
-          279,
-          283,
-          "Loop"
-        ]
-      ]
-    },
-    "fn:packages/core/src/graph/cluster-detector.ts:ClusterDetector.computeBestOutsideAffinity": {
-      "lines": [
-        288,
-        302
-      ],
-      "hash": "15e32f5acb58262476ebc8aa7c636d2b7432cf20b1c57059b3faf2547e7a98e0",
-      "moduleId": "packages-core",
-      "params": [
-        {
-          "name": "candidate",
-          "type": "string"
-        },
-        {
-          "name": "cluster",
-          "type": "string[]"
-        },
-        {
-          "name": "couplingMatrix",
-          "type": "Map<string, Map<string, number>>"
-        },
-        {
-          "name": "assigned",
-          "type": "Set<string>"
-        }
-      ],
-      "returnType": "number",
-      "isExported": true,
-      "purpose": "Best coupling score of a candidate to any file NOT in the cluster and not yet assigned",
-      "details": [
-        [
-          297,
-          300,
-          "Loop"
-        ],
-        [
-          298,
-          298,
-          "ControlFlow"
-        ],
-        [
-          299,
-          299,
-          "ControlFlow"
-        ]
-      ]
-    },
-    "fn:packages/core/src/graph/cluster-detector.ts:ClusterDetector.computeClusterConfidence": {
-      "lines": [
-        311,
-        352
-      ],
-      "hash": "f02e3b8e864d00d25a90739929112b49f656f76de4f5667cacf5e62cb907768f",
-      "moduleId": "packages-core",
-      "params": [
-        {
-          "name": "files",
-          "type": "string[]"
-        }
-      ],
-      "returnType": "number",
-      "isExported": true,
-      "purpose": "─── Confidence ───────────────────────────────────────────────",
-      "edgeCases": [
-        "total === 0"
-      ],
-      "details": [
-        [
-          316,
-          327,
-          "Loop"
-        ],
-        [
-          318,
-          326,
-          "Loop"
-        ],
-        [
-          319,
-          325,
-          "ControlFlow"
-        ],
-        [
-          320,
-          324,
-          "ControlFlow"
-        ],
-        [
-          330,
-          347,
-          "Loop"
-        ],
-        [
-          332,
-          346,
-          "Loop"
-        ],
-        [
-          333,
-          345,
-          "ControlFlow"
-        ],
-        [
-          335,
-          344,
-          "Loop"
-        ],
-        [
-          336,
-          343,
-          "ControlFlow"
-        ],
-        [
-          338,
-          342,
-          "ControlFlow"
-        ],
-        [
-          340,
-          342,
-          "ControlFlow"
-        ],
-        [
-          350,
-          350,
-          "ControlFlow"
-        ]
-      ]
-    },
-    "fn:packages/core/src/graph/cluster-detector.ts:ClusterDetector.getTotalEdges": {
-      "lines": [
-        357,
-        360
-      ],
-      "hash": "da16039c2499d7493b953cc8b63f153d044b2ad30d8d90eb526cb8fcd23f1921",
-      "moduleId": "packages-core",
-      "params": [
-        {
-          "name": "nodeId",
-          "type": "string"
-        }
-      ],
-      "returnType": "number",
-      "isExported": true,
-      "purpose": "─── Helpers ──────────────────────────────────────────────────"
-    },
-    "fn:packages/core/src/graph/cluster-detector.ts:ClusterDetector.getFileForNode": {
-      "lines": [
-        363,
-        369
-      ],
-      "hash": "5b2fd6b86e34007dc58928c156aec5c30b4196170793a6fb9c7e82d4245c91e5",
-      "moduleId": "packages-core",
-      "params": [
-        {
-          "name": "nodeId",
-          "type": "string"
-        }
-      ],
-      "returnType": "string | null",
-      "isExported": true,
-      "purpose": "Get the file path a node belongs to (for functionclass nodes, return their file)",
-      "edgeCases": [
-        "!node",
-        "node.type === 'file'"
-      ],
-      "details": [
-        [
-          365,
-          365,
-          "ControlFlow"
-        ],
-        [
-          366,
-          366,
-          "ControlFlow"
-        ]
-      ]
-    },
-    "fn:packages/core/src/graph/cluster-detector.ts:ClusterDetector.getNodeFile": {
-      "lines": [
-        372,
-        375
-      ],
-      "hash": "1a2294869989772fcd8632e5bf6cb9ddcf522d3e79d9da040ef2cdf13fb6d716",
-      "moduleId": "packages-core",
-      "params": [
-        {
-          "name": "fileNodeId",
+          "name": "moduleId",
           "type": "string"
         }
       ],
       "returnType": "string",
       "isExported": true,
-      "purpose": "Get the file path from a file node ID (the node's .file property)"
-    },
-    "fn:packages/core/src/graph/cluster-detector.ts:ClusterDetector.getFunctionIdsForFiles": {
-      "lines": [
-        378,
-        385
-      ],
-      "hash": "448eb7cd5894405037fc3f2cbc4afb578a9393453fbf25fe25d9635e1452aea4",
-      "moduleId": "packages-core",
-      "params": [
-        {
-          "name": "fileNodeIds",
-          "type": "string[]"
-        }
-      ],
-      "returnType": "string[]",
-      "isExported": true,
-      "purpose": "Get all function IDs contained in a set of file node IDs"
-    },
-    "fn:packages/core/src/graph/cluster-detector.ts:ClusterDetector.inferClusterId": {
-      "lines": [
-        388,
-        406
-      ],
-      "hash": "2688aa8012426429d5aa557f513c44c43be90f9c6ca5e21d1257a0b62ae29b67",
-      "moduleId": "packages-core",
-      "params": [
-        {
-          "name": "filePaths",
-          "type": "string[]"
-        }
-      ],
-      "returnType": "string",
-      "isExported": true,
-      "purpose": "Infer a module ID from file paths (common directory prefix)",
+      "purpose": "Capsule diagram generator.generate (moduleId)",
       "edgeCases": [
-        "filePaths.length === 0",
-        "filePaths.length === 1"
+        "!module"
       ],
       "details": [
         [
-          389,
-          389,
+          16,
+          16,
           "ControlFlow"
         ],
         [
-          390,
-          392,
+          39,
+          45,
           "ControlFlow"
         ],
         [
-          397,
-          403,
+          41,
+          43,
           "Loop"
         ],
         [
-          398,
-          402,
+          47,
+          55,
+          "ControlFlow"
+        ],
+        [
+          49,
+          51,
+          "Loop"
+        ],
+        [
+          53,
+          55,
+          "ControlFlow"
+        ],
+        [
+          61,
+          68,
+          "Loop"
+        ],
+        [
+          62,
+          67,
+          "Loop"
+        ],
+        [
+          64,
+          66,
+          "ControlFlow"
+        ],
+        [
+          75,
+          77,
+          "Loop"
+        ],
+        [
+          78,
+          82,
+          "Loop"
+        ],
+        [
+          79,
+          81,
+          "ControlFlow"
+        ],
+        [
+          84,
+          86,
           "ControlFlow"
         ]
       ]
     },
-    "fn:packages/core/src/graph/cluster-detector.ts:ClusterDetector.getDirSegments": {
+    "fn:packages/diagram-generator/src/generators/capsule-diagram.ts:CapsuleDiagramGenerator.sanitizeId": {
       "lines": [
-        415,
-        428
+        91,
+        93
       ],
-      "hash": "7b89446f6435a25e35c461a31acc9758289085a79d265f15ff197ed56da22293",
-      "moduleId": "packages-core",
+      "hash": "5f1b05ae7275ed337d8f4758d601859793c0b5d088c29902bc1edabe913ddf0e",
+      "moduleId": "packages-diagram-generator",
       "params": [
         {
-          "name": "filePath",
+          "name": "id",
           "type": "string"
         }
       ],
       "returnType": "string",
       "isExported": true,
-      "purpose": "Build a hyphenated module ID from the meaningful directory segments.",
-      "edgeCases": [
-        "meaningful.length === 0"
-      ],
-      "details": [
-        [
-          421,
-          425,
-          "ControlFlow"
-        ]
-      ]
+      "purpose": "Capsule diagram generator.sanitize id (id)"
     },
-    "fn:packages/core/src/graph/cluster-detector.ts:ClusterDetector.mergeSiblingClusters": {
+    "fn:packages/diagram-generator/src/generators/dependency-matrix.ts:DependencyMatrixGenerator.constructor": {
       "lines": [
-        437,
-        471
+        12,
+        15
       ],
-      "hash": "edec029a3a25d1007d6a391bd8367980070027d1af57906678fd33db5b6db3d9",
-      "moduleId": "packages-core",
+      "hash": "822332c5a207ffd20f4e5260789a15d016c09d4e6137a1a7b5d644a240a3a72a",
+      "moduleId": "packages-diagram-generator",
       "params": [
         {
-          "name": "clusters",
-          "type": "ModuleCluster[]"
-        }
-      ],
-      "returnType": "ModuleCluster[]",
-      "isExported": true,
-      "purpose": "─── Cluster Merging ──────────────────────────────────────────",
-      "details": [
-        [
-          440,
-          445,
-          "Loop"
-        ],
-        [
-          448,
-          468,
-          "Loop"
-        ],
-        [
-          449,
-          452,
-          "ControlFlow"
-        ]
-      ]
-    },
-    "fn:packages/core/src/graph/cluster-detector.ts:ClusterDetector.getBaseDir": {
-      "lines": [
-        474,
-        491
-      ],
-      "hash": "ec7902bb06c168133bf95d7a614663b973948626e9c9312cb127ec4616cda24e",
-      "moduleId": "packages-core",
-      "params": [
-        {
-          "name": "files",
-          "type": "string[]"
-        }
-      ],
-      "returnType": "string",
-      "isExported": true,
-      "purpose": "Get the base directory (first meaningful segment) for a set of files",
-      "edgeCases": [
-        "files.length === 0"
-      ],
-      "details": [
-        [
-          475,
-          475,
-          "ControlFlow"
-        ],
-        [
-          480,
-          486,
-          "Loop"
-        ],
-        [
-          481,
-          485,
-          "ControlFlow"
-        ]
-      ]
-    },
-    "fn:packages/core/src/graph/cluster-detector.ts:ClusterDetector.inferSemanticName": {
-      "lines": [
-        505,
-        555
-      ],
-      "hash": "b9b98ece543df8a139145df4bfc787749fa641c3a9a7d6104a6b76ddf3f66b22",
-      "moduleId": "packages-core",
-      "params": [
-        {
-          "name": "filePaths",
-          "type": "string[]"
+          "name": "contract",
+          "type": "MikkContract"
         },
         {
-          "name": "functionIds",
-          "type": "string[]"
+          "name": "lock",
+          "type": "MikkLock"
         }
       ],
+      "returnType": "DependencyMatrixGenerator",
+      "isExported": true,
+      "purpose": "Dependency matrix generator.constructor (contract, lock)"
+    },
+    "fn:packages/diagram-generator/src/generators/dependency-matrix.ts:DependencyMatrixGenerator.generate": {
+      "lines": [
+        21,
+        51
+      ],
+      "hash": "cbe263d815b0b9951b448bc69d9366c9047dc40b4325fd87b6024eb4d882c970",
+      "moduleId": "packages-diagram-generator",
       "returnType": "string",
       "isExported": true,
-      "purpose": "─── Semantic Naming ──────────────────────────────────────────",
-      "edgeCases": [
-        "scores.length >= 2 && scores[0][1] > 1 && scores[1][1] > 1 &&\r\n            scores[1][1] >= scores[0][1] * 0.5",
-        "scores.length >= 1 && scores[0][1] > 0"
-      ],
+      "purpose": "Generate a Mermaid diagram showing the dependency matrix.",
       "details": [
         [
-          528,
-          540,
-          "Loop"
-        ],
-        [
-          530,
-          538,
-          "Loop"
-        ],
-        [
-          531,
-          537,
-          "Loop"
-        ],
-        [
-          534,
-          536,
-          "ControlFlow"
-        ],
-        [
-          539,
-          539,
-          "ControlFlow"
-        ],
-        [
-          544,
-          548,
-          "ControlFlow"
-        ],
-        [
-          549,
-          551,
-          "ControlFlow"
-        ]
-      ]
-    },
-    "fn:packages/core/src/graph/cluster-detector.ts:ClusterDetector.inferClusterNameFromDir": {
-      "lines": [
-        558,
-        563
-      ],
-      "hash": "5e0bee3cde4f07a872a2d7aa5c59b9b74ae96ad00be045e8f6b7f58979328832",
-      "moduleId": "packages-core",
-      "params": [
-        {
-          "name": "filePaths",
-          "type": "string[]"
-        }
-      ],
-      "returnType": "string",
-      "isExported": true,
-      "purpose": "Fallback: infer a human-readable cluster name from directory paths"
-    },
-    "fn:packages/core/src/graph/cluster-detector.ts:ClusterDetector.buildWordBag": {
-      "lines": [
-        566,
-        579
-      ],
-      "hash": "9c2698eb4ae85aa14b74a942261020adfcd5b52e6f02b1d0e9e4825dd0d28686",
-      "moduleId": "packages-core",
-      "params": [
-        {
-          "name": "identifiers",
-          "type": "string[]"
-        }
-      ],
-      "returnType": "string[]",
-      "isExported": true,
-      "purpose": "Split identifiers and file names into lowercase words",
-      "details": [
-        [
-          568,
-          577,
-          "Loop"
-        ]
-      ]
-    },
-    "fn:packages/core/src/graph/graph-builder.ts:GraphBuilder.build": {
-      "lines": [
-        11,
-        44
-      ],
-      "hash": "52189f5ac9ef9c296422286c146e504f9c10fa029900c12495a40f451176f724",
-      "moduleId": "packages-core",
-      "params": [
-        {
-          "name": "files",
-          "type": "ParsedFile[]"
-        }
-      ],
-      "returnType": "DependencyGraph",
-      "isExported": true,
-      "purpose": "Main entry point — takes all parsed files and returns the complete graph",
-      "details": [
-        [
-          20,
           31,
+          35,
           "Loop"
         ],
+        [
+          39,
+          45,
+          "Loop"
+        ],
+        [
+          41,
+          44,
+          "ControlFlow"
+        ]
+      ]
+    },
+    "fn:packages/diagram-generator/src/generators/dependency-matrix.ts:DependencyMatrixGenerator.generateTable": {
+      "lines": [
+        57,
+        77
+      ],
+      "hash": "4f469cebea3c4a21a519da4d33358e4f09c4d2ec4612da5b826588051d249574",
+      "moduleId": "packages-diagram-generator",
+      "returnType": "string",
+      "isExported": true,
+      "purpose": "Generate a markdown table showing the N×N dependency matrix.",
+      "edgeCases": [
+        "fromMod.id === toMod.id"
+      ],
+      "details": [
+        [
+          67,
+          74,
+          "Loop"
+        ],
+        [
+          69,
+          69,
+          "ControlFlow"
+        ]
+      ]
+    },
+    "fn:packages/diagram-generator/src/generators/dependency-matrix.ts:DependencyMatrixGenerator.computeMatrix": {
+      "lines": [
+        79,
+        106
+      ],
+      "hash": "2388af403c4f1623b1e5eb80c4176e41a4fd68dafcd0da6152b54ad0a8a386eb",
+      "moduleId": "packages-diagram-generator",
+      "returnType": "Map<string, number>",
+      "isExported": true,
+      "purpose": "Dependency matrix generator.compute matrix",
+      "details": [
+        [
+          83,
+          91,
+          "Loop"
+        ],
+        [
+          84,
+          90,
+          "Loop"
+        ],
+        [
+          86,
+          89,
+          "ControlFlow"
+        ],
+        [
+          94,
+          103,
+          "Loop"
+        ],
+        [
+          95,
+          95,
+          "ControlFlow"
+        ],
+        [
+          96,
+          102,
+          "Loop"
+        ],
+        [
+          98,
+          101,
+          "ControlFlow"
+        ]
+      ]
+    },
+    "fn:packages/diagram-generator/src/generators/dependency-matrix.ts:DependencyMatrixGenerator.sanitizeId": {
+      "lines": [
+        108,
+        110
+      ],
+      "hash": "5f1b05ae7275ed337d8f4758d601859793c0b5d088c29902bc1edabe913ddf0e",
+      "moduleId": "packages-diagram-generator",
+      "params": [
+        {
+          "name": "id",
+          "type": "string"
+        }
+      ],
+      "returnType": "string",
+      "isExported": true,
+      "purpose": "Dependency matrix generator.sanitize id (id)"
+    },
+    "fn:packages/diagram-generator/src/generators/flow-diagram.ts:FlowDiagramGenerator.constructor": {
+      "lines": [
+        9,
+        11
+      ],
+      "hash": "e18d68f37144a05aa2818d42dbb2aaaaadd2a3cf8f09a92f90d6a67ea4bf640c",
+      "moduleId": "packages-diagram-generator",
+      "params": [
+        {
+          "name": "lock",
+          "type": "MikkLock"
+        }
+      ],
+      "returnType": "FlowDiagramGenerator",
+      "isExported": true,
+      "purpose": "Flow diagram generator.constructor (lock)"
+    },
+    "fn:packages/diagram-generator/src/generators/flow-diagram.ts:FlowDiagramGenerator.generate": {
+      "lines": [
+        14,
+        28
+      ],
+      "hash": "f3abccfd5cfadd4f1bfcaef8c060664dfcaa810f121d3926d9df9811d7c14e80",
+      "moduleId": "packages-diagram-generator",
+      "params": [
+        {
+          "name": "startFunctionId",
+          "type": "string"
+        },
+        {
+          "name": "maxDepth",
+          "type": "number",
+          "optional": true
+        }
+      ],
+      "returnType": "string",
+      "isExported": true,
+      "purpose": "Generate a sequence diagram starting from a function",
+      "details": [
+        [
+          23,
+          25,
+          "ControlFlow"
+        ]
+      ]
+    },
+    "fn:packages/diagram-generator/src/generators/flow-diagram.ts:FlowDiagramGenerator.generateEntryPoints": {
+      "lines": [
+        31,
+        75
+      ],
+      "hash": "0f6fae0afc265032666e5e3eddc5216f80d06e45e88aabbd67c66114a7378a7a",
+      "moduleId": "packages-diagram-generator",
+      "returnType": "string",
+      "isExported": true,
+      "purpose": "Generate a flow diagram showing all entry points grouped by module",
+      "details": [
+        [
+          43,
+          48,
+          "Loop"
+        ],
+        [
+          44,
+          46,
+          "ControlFlow"
+        ],
+        [
+          50,
+          56,
+          "Loop"
+        ],
+        [
+          52,
+          54,
+          "Loop"
+        ],
+        [
+          61,
+          69,
+          "Loop"
+        ],
+        [
+          63,
+          68,
+          "Loop"
+        ],
+        [
+          65,
+          67,
+          "ControlFlow"
+        ]
+      ]
+    },
+    "fn:packages/diagram-generator/src/generators/flow-diagram.ts:FlowDiagramGenerator.traceFlow": {
+      "lines": [
+        77,
+        101
+      ],
+      "hash": "3a7b6d51111b796ffd60e9423813947be719d7d6fef96e49e2d7b6aa927c037f",
+      "moduleId": "packages-diagram-generator",
+      "params": [
+        {
+          "name": "fnId",
+          "type": "string"
+        },
+        {
+          "name": "lines",
+          "type": "string[]"
+        },
+        {
+          "name": "visited",
+          "type": "Set<string>"
+        },
+        {
+          "name": "depth",
+          "type": "number"
+        },
+        {
+          "name": "maxDepth",
+          "type": "number"
+        }
+      ],
+      "isExported": true,
+      "purpose": "Flow diagram generator.trace flow",
+      "edgeCases": [
+        "depth >= maxDepth || visited.has(fnId)",
+        "!fn"
+      ],
+      "details": [
+        [
+          84,
+          84,
+          "ControlFlow"
+        ],
+        [
+          88,
+          88,
+          "ControlFlow"
+        ],
+        [
+          92,
+          100,
+          "Loop"
+        ],
+        [
+          94,
+          94,
+          "ControlFlow"
+        ]
+      ]
+    },
+    "fn:packages/diagram-generator/src/generators/flow-diagram.ts:FlowDiagramGenerator.getParticipantName": {
+      "lines": [
+        103,
+        105
+      ],
+      "hash": "f34c54c3ff2805234d065c28de4e9fe02a1f80ec412c3b1e13556a39fa2d3ba0",
+      "moduleId": "packages-diagram-generator",
+      "params": [
+        {
+          "name": "moduleId",
+          "type": "string"
+        },
+        {
+          "name": "fnName",
+          "type": "string"
+        }
+      ],
+      "returnType": "string",
+      "isExported": true,
+      "purpose": "Flow diagram generator.get participant name (moduleId, fnName)"
+    },
+    "fn:packages/diagram-generator/src/generators/flow-diagram.ts:FlowDiagramGenerator.sanitizeId": {
+      "lines": [
+        107,
+        109
+      ],
+      "hash": "5f1b05ae7275ed337d8f4758d601859793c0b5d088c29902bc1edabe913ddf0e",
+      "moduleId": "packages-diagram-generator",
+      "params": [
+        {
+          "name": "id",
+          "type": "string"
+        }
+      ],
+      "returnType": "string",
+      "isExported": true,
+      "purpose": "Flow diagram generator.sanitize id (id)"
+    },
+    "fn:packages/diagram-generator/src/generators/health-diagram.ts:HealthDiagramGenerator.constructor": {
+      "lines": [
+        9,
+        12
+      ],
+      "hash": "822332c5a207ffd20f4e5260789a15d016c09d4e6137a1a7b5d644a240a3a72a",
+      "moduleId": "packages-diagram-generator",
+      "params": [
+        {
+          "name": "contract",
+          "type": "MikkContract"
+        },
+        {
+          "name": "lock",
+          "type": "MikkLock"
+        }
+      ],
+      "returnType": "HealthDiagramGenerator",
+      "isExported": true,
+      "purpose": "Health diagram generator.constructor (contract, lock)"
+    },
+    "fn:packages/diagram-generator/src/generators/health-diagram.ts:HealthDiagramGenerator.generate": {
+      "lines": [
+        14,
+        70
+      ],
+      "hash": "caa7b984d7a17c4b16893efabd53f00006af1c87f3f8717d750ea781663f64d0",
+      "moduleId": "packages-diagram-generator",
+      "returnType": "string",
+      "isExported": true,
+      "purpose": "Health diagram generator.generate",
+      "details": [
         [
           22,
-          24,
-          "Loop"
-        ],
-        [
-          25,
-          27,
-          "Loop"
-        ],
-        [
-          28,
           30,
           "Loop"
         ],
         [
           34,
-          38,
+          45,
+          "Loop"
+        ],
+        [
+          35,
+          44,
+          "Loop"
+        ],
+        [
+          37,
+          43,
+          "ControlFlow"
+        ],
+        [
+          39,
+          42,
+          "ControlFlow"
+        ],
+        [
+          46,
+          58,
+          "Loop"
+        ],
+        [
+          47,
+          47,
+          "ControlFlow"
+        ],
+        [
+          48,
+          57,
+          "Loop"
+        ],
+        [
+          50,
+          56,
+          "ControlFlow"
+        ],
+        [
+          52,
+          55,
+          "ControlFlow"
+        ],
+        [
+          65,
+          67,
           "Loop"
         ]
       ]
     },
-    "fn:packages/core/src/graph/graph-builder.ts:GraphBuilder.addFileNode": {
+    "fn:packages/diagram-generator/src/generators/health-diagram.ts:HealthDiagramGenerator.computeMetrics": {
       "lines": [
-        46,
-        54
+        72,
+        108
       ],
-      "hash": "a4ab1e745bb119c55af32ddcaccbc155281d7251564c51ef458028dfe2cc6162",
-      "moduleId": "packages-core",
+      "hash": "70e68d29c2127879e6ceba4e169dfa836e789a94c980e42e12ae99215de8be07",
+      "moduleId": "packages-diagram-generator",
       "params": [
         {
-          "name": "graph",
-          "type": "DependencyGraph"
-        },
-        {
-          "name": "file",
-          "type": "ParsedFile"
-        }
-      ],
-      "isExported": true,
-      "purpose": "Graph builder.add file node (graph, file)"
-    },
-    "fn:packages/core/src/graph/graph-builder.ts:GraphBuilder.addFunctionNode": {
-      "lines": [
-        56,
-        76
-      ],
-      "hash": "bde2c082010ed0ee518dd3eb854d014916ff0228f4cd503c467543573d8650cb",
-      "moduleId": "packages-core",
-      "params": [
-        {
-          "name": "graph",
-          "type": "DependencyGraph"
-        },
-        {
-          "name": "fn",
-          "type": "ParsedFunction"
-        }
-      ],
-      "isExported": true,
-      "purpose": "Graph builder.add function node (graph, fn)"
-    },
-    "fn:packages/core/src/graph/graph-builder.ts:GraphBuilder.addClassNode": {
-      "lines": [
-        78,
-        98
-      ],
-      "hash": "4708bf7b25c651ec8d0230bd2034afc8971157b283f2c611941087ac8e8457c7",
-      "moduleId": "packages-core",
-      "params": [
-        {
-          "name": "graph",
-          "type": "DependencyGraph"
-        },
-        {
-          "name": "cls",
-          "type": "ParsedClass"
-        },
-        {
-          "name": "filePath",
+          "name": "moduleId",
           "type": "string"
         }
       ],
       "isExported": true,
-      "purpose": "Graph builder.add class node (graph, cls, filePath)",
+      "purpose": "Health diagram generator.compute metrics (moduleId)",
       "details": [
         [
-          95,
+          80,
+          88,
+          "Loop"
+        ],
+        [
+          81,
+          87,
+          "Loop"
+        ],
+        [
+          83,
+          86,
+          "ControlFlow"
+        ],
+        [
+          84,
+          85,
+          "ControlFlow"
+        ],
+        [
+          89,
+          98,
+          "Loop"
+        ],
+        [
+          90,
+          90,
+          "ControlFlow"
+        ],
+        [
+          91,
           97,
           "Loop"
-        ]
-      ]
-    },
-    "fn:packages/core/src/graph/graph-builder.ts:GraphBuilder.addGenericNode": {
-      "lines": [
-        100,
-        114
-      ],
-      "hash": "1c477a3e3b6c097f524a5037c1974582eaca28fb8afff7b27d8da236d1950e7f",
-      "moduleId": "packages-core",
-      "params": [
-        {
-          "name": "graph",
-          "type": "DependencyGraph"
-        },
-        {
-          "name": "gen",
-          "type": "any"
-        }
-      ],
-      "isExported": true,
-      "purpose": "Graph builder.add generic node (graph, gen)"
-    },
-    "fn:packages/core/src/graph/graph-builder.ts:GraphBuilder.addImportEdges": {
-      "lines": [
-        117,
-        127
-      ],
-      "hash": "f113807d7d6440e065558bc41fbc88c0f4c211e2ec77459248958f66d2c5f5c0",
-      "moduleId": "packages-core",
-      "params": [
-        {
-          "name": "graph",
-          "type": "DependencyGraph"
-        },
-        {
-          "name": "file",
-          "type": "ParsedFile"
-        }
-      ],
-      "isExported": true,
-      "purpose": "Creates edges for import statements: fileA imports fileB → edge(A, B, 'imports')",
-      "details": [
-        [
-          118,
-          126,
-          "Loop"
         ],
         [
-          119,
-          125,
+          93,
+          96,
+          "ControlFlow"
+        ],
+        [
+          94,
+          95,
           "ControlFlow"
         ]
       ]
     },
-    "fn:packages/core/src/graph/graph-builder.ts:GraphBuilder.addCallEdges": {
+    "fn:packages/diagram-generator/src/generators/health-diagram.ts:HealthDiagramGenerator.sanitizeId": {
       "lines": [
-        130,
-        170
+        110,
+        112
       ],
-      "hash": "af7f4c5ece46c9f9bfadd2d5f94d5cc962249611f41739cc6fa07684ca0c2d89",
-      "moduleId": "packages-core",
+      "hash": "5f1b05ae7275ed337d8f4758d601859793c0b5d088c29902bc1edabe913ddf0e",
+      "moduleId": "packages-diagram-generator",
       "params": [
         {
-          "name": "graph",
-          "type": "DependencyGraph"
-        },
-        {
-          "name": "file",
-          "type": "ParsedFile"
+          "name": "id",
+          "type": "string"
         }
       ],
+      "returnType": "string",
       "isExported": true,
-      "purpose": "Creates edges for function calls: fnA calls fnB → edge(A, B, 'calls')",
-      "details": [
-        [
-          133,
-          139,
-          "Loop"
-        ],
-        [
-          134,
-          138,
-          "ControlFlow"
-        ],
-        [
-          135,
-          137,
-          "Loop"
-        ],
-        [
-          143,
-          169,
-          "Loop"
-        ],
-        [
-          144,
-          168,
-          "Loop"
-        ],
-        [
-          150,
-          157,
-          "ControlFlow"
-        ],
-        [
-          161,
-          167,
-          "ControlFlow"
-        ]
-      ]
+      "purpose": "Health diagram generator.sanitize id (id)"
     },
-    "fn:packages/core/src/graph/graph-builder.ts:GraphBuilder.addContainmentEdges": {
-      "lines": [
-        173,
-        195
-      ],
-      "hash": "bfdf12fca7f565e5e7fa2bffe7e288222939123117da5f675b27a8b330bb83a2",
-      "moduleId": "packages-core",
-      "params": [
-        {
-          "name": "graph",
-          "type": "DependencyGraph"
-        },
-        {
-          "name": "file",
-          "type": "ParsedFile"
-        }
-      ],
-      "isExported": true,
-      "purpose": "Creates containment edges: file contains function → edge(file, fn, 'contains')",
-      "details": [
-        [
-          174,
-          180,
-          "Loop"
-        ],
-        [
-          181,
-          194,
-          "Loop"
-        ],
-        [
-          187,
-          193,
-          "Loop"
-        ]
-      ]
-    },
-    "fn:packages/core/src/graph/graph-builder.ts:GraphBuilder.buildAdjacencyMaps": {
-      "lines": [
-        198,
-        212
-      ],
-      "hash": "3cc61a59d7cb4a8897c959e077cbd5fd00301dc882747933215c630e9dd41e3b",
-      "moduleId": "packages-core",
-      "params": [
-        {
-          "name": "graph",
-          "type": "DependencyGraph"
-        }
-      ],
-      "isExported": true,
-      "purpose": "Build adjacency maps from edge list for O(1) lookups",
-      "details": [
-        [
-          199,
-          211,
-          "Loop"
-        ],
-        [
-          201,
-          203,
-          "ControlFlow"
-        ],
-        [
-          207,
-          209,
-          "ControlFlow"
-        ]
-      ]
-    },
-    "fn:packages/core/src/graph/impact-analyzer.ts:ImpactAnalyzer.constructor": {
+    "fn:packages/diagram-generator/src/generators/impact-diagram.ts:ImpactDiagramGenerator.constructor": {
       "lines": [
         9,
-        9
+        11
       ],
-      "hash": "e3082901897e1fa00d95fdc3829862910db11227d339fa2f73b72e4ba00348b4",
-      "moduleId": "packages-core",
+      "hash": "e18d68f37144a05aa2818d42dbb2aaaaadd2a3cf8f09a92f90d6a67ea4bf640c",
+      "moduleId": "packages-diagram-generator",
       "params": [
         {
-          "name": "graph",
-          "type": "DependencyGraph"
+          "name": "lock",
+          "type": "MikkLock"
         }
       ],
-      "returnType": "ImpactAnalyzer",
+      "returnType": "ImpactDiagramGenerator",
       "isExported": true,
-      "purpose": "Impact analyzer.constructor (graph)"
+      "purpose": "Impact diagram generator.constructor (lock)"
     },
-    "fn:packages/core/src/graph/impact-analyzer.ts:ImpactAnalyzer.analyze": {
+    "fn:packages/diagram-generator/src/generators/impact-diagram.ts:ImpactDiagramGenerator.generate": {
       "lines": [
-        12,
-        40
+        13,
+        61
       ],
-      "hash": "7d053dd078f93d51758d039785d26260c15f62a633dbfd040606e02503878167",
-      "moduleId": "packages-core",
+      "hash": "5fbdcb51f76b70d21489523a23d81a73152b8449c67641f6e3c28d6f9d031bd2",
+      "moduleId": "packages-diagram-generator",
       "params": [
         {
           "name": "changedNodeIds",
           "type": "string[]"
+        },
+        {
+          "name": "impactedNodeIds",
+          "type": "string[]"
         }
       ],
-      "returnType": "ImpactResult",
+      "returnType": "string",
       "isExported": true,
-      "purpose": "Given a list of changed node IDs, find everything impacted",
+      "purpose": "Impact diagram generator.generate (changedNodeIds, impactedNodeIds)",
       "details": [
         [
-          17,
-          30,
+          20,
+          25,
           "Loop"
         ],
         [
-          19,
-          19,
+          22,
+          24,
           "ControlFlow"
         ],
         [
-          25,
-          29,
+          28,
+          33,
           "Loop"
         ],
         [
-          26,
-          28,
+          30,
+          32,
+          "ControlFlow"
+        ],
+        [
+          39,
+          47,
+          "Loop"
+        ],
+        [
+          41,
+          41,
+          "ControlFlow"
+        ],
+        [
+          42,
+          46,
+          "Loop"
+        ],
+        [
+          43,
+          45,
+          "ControlFlow"
+        ],
+        [
+          53,
+          55,
+          "Loop"
+        ],
+        [
+          56,
+          58,
+          "Loop"
+        ]
+      ]
+    },
+    "fn:packages/diagram-generator/src/generators/impact-diagram.ts:ImpactDiagramGenerator.sanitizeId": {
+      "lines": [
+        63,
+        65
+      ],
+      "hash": "5f1b05ae7275ed337d8f4758d601859793c0b5d088c29902bc1edabe913ddf0e",
+      "moduleId": "packages-diagram-generator",
+      "params": [
+        {
+          "name": "id",
+          "type": "string"
+        }
+      ],
+      "returnType": "string",
+      "isExported": true,
+      "purpose": "Impact diagram generator.sanitize id (id)"
+    },
+    "fn:packages/diagram-generator/src/generators/main-diagram.ts:MainDiagramGenerator.constructor": {
+      "lines": [
+        11,
+        14
+      ],
+      "hash": "822332c5a207ffd20f4e5260789a15d016c09d4e6137a1a7b5d644a240a3a72a",
+      "moduleId": "packages-diagram-generator",
+      "params": [
+        {
+          "name": "contract",
+          "type": "MikkContract"
+        },
+        {
+          "name": "lock",
+          "type": "MikkLock"
+        }
+      ],
+      "returnType": "MainDiagramGenerator",
+      "isExported": true,
+      "purpose": "Main diagram generator.constructor (contract, lock)"
+    },
+    "fn:packages/diagram-generator/src/generators/main-diagram.ts:MainDiagramGenerator.generate": {
+      "lines": [
+        16,
+        25
+      ],
+      "hash": "2a4afa57266c16e948d92b05bcd299b1300aadaca09e18fd285ed7b0b3379c25",
+      "moduleId": "packages-diagram-generator",
+      "returnType": "string",
+      "isExported": true,
+      "purpose": "Main diagram generator.generate",
+      "edgeCases": [
+        "modules.length <= 1"
+      ],
+      "details": [
+        [
+          20,
+          22,
           "ControlFlow"
         ]
       ]
     },
-    "fn:packages/core/src/graph/impact-analyzer.ts:ImpactAnalyzer.computeConfidence": {
+    "fn:packages/diagram-generator/src/generators/main-diagram.ts:MainDiagramGenerator.generateModuleLevelView": {
       "lines": [
-        47,
-        54
+        28,
+        91
       ],
-      "hash": "6c1515f487c6085255f0d209535a84308cd39b8c8af32b2fbf3a6c58d398f2c9",
-      "moduleId": "packages-core",
-      "params": [
-        {
-          "name": "impactedCount",
-          "type": "number"
-        },
-        {
-          "name": "depth",
-          "type": "number"
-        }
-      ],
-      "returnType": "'high' | 'medium' | 'low'",
+      "hash": "f53197672a89b1fc4f9e41b54a10771d49dd31e637426ae67c97a3a2749bc722",
+      "moduleId": "packages-diagram-generator",
+      "returnType": "string",
       "isExported": true,
-      "purpose": "How confident are we in this impact analysis?",
-      "edgeCases": [
-        "impactedCount < 5 && depth < 3",
-        "impactedCount < 20 && depth < 6"
-      ],
+      "purpose": "Standard multi-module view — modules as nodes, inter-module calls as edges",
       "details": [
         [
+          35,
+          40,
+          "Loop"
+        ],
+        [
+          48,
+          59,
+          "Loop"
+        ],
+        [
+          49,
+          58,
+          "Loop"
+        ],
+        [
           51,
-          51,
+          57,
           "ControlFlow"
         ],
         [
-          52,
-          52,
+          53,
+          55,
+          "ControlFlow"
+        ],
+        [
+          62,
+          76,
+          "Loop"
+        ],
+        [
+          63,
+          63,
+          "ControlFlow"
+        ],
+        [
+          64,
+          75,
+          "Loop"
+        ],
+        [
+          66,
+          74,
+          "ControlFlow"
+        ],
+        [
+          68,
+          70,
+          "ControlFlow"
+        ],
+        [
+          78,
+          81,
+          "Loop"
+        ],
+        [
+          86,
+          88,
+          "Loop"
+        ]
+      ]
+    },
+    "fn:packages/diagram-generator/src/generators/main-diagram.ts:MainDiagramGenerator.generateFileLevelView": {
+      "lines": [
+        98,
+        160
+      ],
+      "hash": "9c56b756c81ac1e3fb330f683d68316d01251d3333e434ae064bc12f610c33d8",
+      "moduleId": "packages-diagram-generator",
+      "returnType": "string",
+      "isExported": true,
+      "purpose": "File-level view — for single-module or no-module projects.",
+      "details": [
+        [
+          121,
+          126,
+          "Loop"
+        ],
+        [
+          124,
+          124,
+          "ControlFlow"
+        ],
+        [
+          128,
+          137,
+          "Loop"
+        ],
+        [
+          131,
+          135,
+          "Loop"
+        ],
+        [
+          139,
+          141,
+          "ControlFlow"
+        ],
+        [
+          146,
+          153,
+          "Loop"
+        ],
+        [
+          147,
+          147,
+          "ControlFlow"
+        ],
+        [
+          148,
+          152,
+          "Loop"
+        ],
+        [
+          149,
+          151,
           "ControlFlow"
         ]
       ]
+    },
+    "fn:packages/diagram-generator/src/generators/main-diagram.ts:MainDiagramGenerator.sanitizeId": {
+      "lines": [
+        162,
+        164
+      ],
+      "hash": "5f1b05ae7275ed337d8f4758d601859793c0b5d088c29902bc1edabe913ddf0e",
+      "moduleId": "packages-diagram-generator",
+      "params": [
+        {
+          "name": "id",
+          "type": "string"
+        }
+      ],
+      "returnType": "string",
+      "isExported": true,
+      "purpose": "Main diagram generator.sanitize id (id)"
+    },
+    "fn:packages/diagram-generator/src/generators/module-diagram.ts:ModuleDiagramGenerator.constructor": {
+      "lines": [
+        17,
+        20
+      ],
+      "hash": "822332c5a207ffd20f4e5260789a15d016c09d4e6137a1a7b5d644a240a3a72a",
+      "moduleId": "packages-diagram-generator",
+      "params": [
+        {
+          "name": "contract",
+          "type": "MikkContract"
+        },
+        {
+          "name": "lock",
+          "type": "MikkLock"
+        }
+      ],
+      "returnType": "ModuleDiagramGenerator",
+      "isExported": true,
+      "purpose": "Module diagram generator.constructor (contract, lock)"
+    },
+    "fn:packages/diagram-generator/src/generators/module-diagram.ts:ModuleDiagramGenerator.generate": {
+      "lines": [
+        22,
+        152
+      ],
+      "hash": "31ec87610357c224e96bec6f2dd6ead7a73ed53abdb45182374576ad8bc841cc",
+      "moduleId": "packages-diagram-generator",
+      "params": [
+        {
+          "name": "moduleId",
+          "type": "string"
+        }
+      ],
+      "returnType": "string",
+      "isExported": true,
+      "purpose": "Module diagram generator.generate (moduleId)",
+      "edgeCases": [
+        "!module"
+      ],
+      "details": [
+        [
+          24,
+          24,
+          "ControlFlow"
+        ],
+        [
+          36,
+          83,
+          "ControlFlow"
+        ],
+        [
+          39,
+          57,
+          "Loop"
+        ],
+        [
+          54,
+          56,
+          "ControlFlow"
+        ],
+        [
+          60,
+          68,
+          "ControlFlow"
+        ],
+        [
+          67,
+          67,
+          "Loop"
+        ],
+        [
+          71,
+          79,
+          "ControlFlow"
+        ],
+        [
+          75,
+          78,
+          "Loop"
+        ],
+        [
+          76,
+          76,
+          "ControlFlow"
+        ],
+        [
+          92,
+          97,
+          "Loop"
+        ],
+        [
+          93,
+          95,
+          "ControlFlow"
+        ],
+        [
+          102,
+          113,
+          "ControlFlow"
+        ],
+        [
+          116,
+          124,
+          "Loop"
+        ],
+        [
+          119,
+          122,
+          "Loop"
+        ],
+        [
+          131,
+          145,
+          "Loop"
+        ],
+        [
+          132,
+          144,
+          "Loop"
+        ],
+        [
+          134,
+          143,
+          "ControlFlow"
+        ],
+        [
+          135,
+          142,
+          "ControlFlow"
+        ],
+        [
+          138,
+          142,
+          "ControlFlow"
+        ]
+      ]
+    },
+    "fn:packages/diagram-generator/src/generators/module-diagram.ts:ModuleDiagramGenerator.sanitizeId": {
+      "lines": [
+        154,
+        156
+      ],
+      "hash": "5f1b05ae7275ed337d8f4758d601859793c0b5d088c29902bc1edabe913ddf0e",
+      "moduleId": "packages-diagram-generator",
+      "params": [
+        {
+          "name": "id",
+          "type": "string"
+        }
+      ],
+      "returnType": "string",
+      "isExported": true,
+      "purpose": "Module diagram generator.sanitize id (id)"
+    },
+    "fn:packages/core/src/contract/adr-manager.ts:AdrManager.constructor": {
+      "lines": [
+        13,
+        13
+      ],
+      "hash": "69d835c8156c9a2e3ccfc37de8d2454847afc2159752389fb7744c5f2a33569b",
+      "moduleId": "packages-core",
+      "params": [
+        {
+          "name": "contractPath",
+          "type": "string"
+        }
+      ],
+      "returnType": "AdrManager",
+      "isExported": true,
+      "purpose": "Adr manager.constructor (contractPath)"
+    },
+    "fn:packages/core/src/contract/adr-manager.ts:AdrManager.list": {
+      "lines": [
+        17,
+        20
+      ],
+      "hash": "252c4df039ba12dcb7e447a9a3fb2efd49bfcaaca51ab071fd832b7f22a180a3",
+      "moduleId": "packages-core",
+      "returnType": "Promise<MikkDecision[]>",
+      "isAsync": true,
+      "isExported": true,
+      "purpose": "─── Read ──────────────────────────────────────────────────────"
+    },
+    "fn:packages/core/src/contract/adr-manager.ts:AdrManager.get": {
+      "lines": [
+        22,
+        25
+      ],
+      "hash": "e1abb134a1517ec5ed70e8bc020a6a6958eb5dca7959309f3f161b75809eb383",
+      "moduleId": "packages-core",
+      "params": [
+        {
+          "name": "id",
+          "type": "string"
+        }
+      ],
+      "returnType": "Promise<MikkDecision | null>",
+      "isAsync": true,
+      "isExported": true,
+      "purpose": "Adr manager.get (id)"
+    },
+    "fn:packages/core/src/contract/adr-manager.ts:AdrManager.add": {
+      "lines": [
+        29,
+        40
+      ],
+      "hash": "3dad0a69d468efcf4257e5441b6c82ec93fb15f857b7752bc5fb5fda8b0794b1",
+      "moduleId": "packages-core",
+      "params": [
+        {
+          "name": "decision",
+          "type": "MikkDecision"
+        }
+      ],
+      "returnType": "Promise<void>",
+      "isAsync": true,
+      "isExported": true,
+      "purpose": "─── Write ─────────────────────────────────────────────────────",
+      "edgeCases": [
+        "contract.declared.decisions.some(d => d.id === decision.id)"
+      ],
+      "errors": [
+        [
+          36,
+          "throw",
+          "new Error(`ADR with id \"${decision.id}\" already exists. Use update() instead.`)"
+        ]
+      ],
+      "details": [
+        [
+          31,
+          33,
+          "ControlFlow"
+        ],
+        [
+          35,
+          37,
+          "ControlFlow"
+        ]
+      ]
+    },
+    "fn:packages/core/src/contract/adr-manager.ts:AdrManager.update": {
+      "lines": [
+        42,
+        52
+      ],
+      "hash": "1a26de6f21a62946b05651d3b6c34a18bdc395b94578769c876a97ca3a0e0815",
+      "moduleId": "packages-core",
+      "params": [
+        {
+          "name": "id",
+          "type": "string"
+        },
+        {
+          "name": "fields",
+          "type": "Partial<Omit<MikkDecision, 'id'>>"
+        }
+      ],
+      "returnType": "Promise<void>",
+      "isAsync": true,
+      "isExported": true,
+      "purpose": "Adr manager.update (id, fields)",
+      "edgeCases": [
+        "idx === -1"
+      ],
+      "errors": [
+        [
+          47,
+          "throw",
+          "new Error(`ADR \"${id}\" not found. Use add() to create a new decision.`)"
+        ]
+      ],
+      "details": [
+        [
+          46,
+          48,
+          "ControlFlow"
+        ]
+      ]
+    },
+    "fn:packages/core/src/contract/adr-manager.ts:AdrManager.remove": {
+      "lines": [
+        54,
+        63
+      ],
+      "hash": "b681d86f7ffbcb19cbb44b738e85d8aeb8c56c9d89b568c88bd8b0e67f8001d2",
+      "moduleId": "packages-core",
+      "params": [
+        {
+          "name": "id",
+          "type": "string"
+        }
+      ],
+      "returnType": "Promise<boolean>",
+      "isAsync": true,
+      "isExported": true,
+      "purpose": "Adr manager.remove (id)",
+      "edgeCases": [
+        "idx === -1"
+      ],
+      "details": [
+        [
+          58,
+          58,
+          "ControlFlow"
+        ]
+      ]
+    },
+    "fn:packages/core/src/contract/adr-manager.ts:AdrManager.readContract": {
+      "lines": [
+        67,
+        70
+      ],
+      "hash": "977b0ea99a753fa37b911d7221d517ec74ed44a45db0f83da82c11b51c008c33",
+      "moduleId": "packages-core",
+      "returnType": "Promise<MikkContract>",
+      "isAsync": true,
+      "isExported": true,
+      "purpose": "─── Helpers ───────────────────────────────────────────────────"
+    },
+    "fn:packages/core/src/contract/adr-manager.ts:AdrManager.writeContract": {
+      "lines": [
+        72,
+        74
+      ],
+      "hash": "524201c769d61b9d6490a6ff65bb6ce6ef965ebc4f37d55a0f9b25ea92e81fb1",
+      "moduleId": "packages-core",
+      "params": [
+        {
+          "name": "contract",
+          "type": "MikkContract"
+        }
+      ],
+      "returnType": "Promise<void>",
+      "isAsync": true,
+      "isExported": true,
+      "purpose": "Adr manager.write contract (contract)"
     },
     "fn:packages/core/src/contract/contract-generator.ts:inferLanguageFromFiles": {
       "lines": [
@@ -7840,6 +8409,1336 @@
         ]
       ]
     },
+    "fn:packages/core/src/graph/cluster-detector.ts:ClusterDetector.constructor": {
+      "lines": [
+        83,
+        87
+      ],
+      "hash": "853832d5f625a58fa97a0ad5f305eacd1d320ba9193e41843b717c0ceb24d17c",
+      "moduleId": "packages-core",
+      "params": [
+        {
+          "name": "graph",
+          "type": "DependencyGraph"
+        },
+        {
+          "name": "minClusterSize",
+          "type": "number",
+          "optional": true
+        },
+        {
+          "name": "minCouplingScore",
+          "type": "number",
+          "optional": true
+        }
+      ],
+      "returnType": "ClusterDetector",
+      "isExported": true,
+      "purpose": "Cluster detector.constructor (graph, minClusterSize, minCouplingScore)"
+    },
+    "fn:packages/core/src/graph/cluster-detector.ts:ClusterDetector.detect": {
+      "lines": [
+        90,
+        212
+      ],
+      "hash": "537bbe3e019c81b4bcbf10fc2c8a7e81a5fb98a46d7c0b506f8308b30cee1506",
+      "moduleId": "packages-core",
+      "returnType": "ModuleCluster[]",
+      "isExported": true,
+      "purpose": "Returns groups of files that naturally belong together, sorted by confidence",
+      "edgeCases": [
+        "fileNodes.length === 0"
+      ],
+      "details": [
+        [
+          92,
+          92,
+          "ControlFlow"
+        ],
+        [
+          104,
+          153,
+          "Loop"
+        ],
+        [
+          105,
+          105,
+          "ControlFlow"
+        ],
+        [
+          113,
+          138,
+          "Loop"
+        ],
+        [
+          116,
+          137,
+          "Loop"
+        ],
+        [
+          119,
+          136,
+          "Loop"
+        ],
+        [
+          120,
+          120,
+          "ControlFlow"
+        ],
+        [
+          121,
+          121,
+          "ControlFlow"
+        ],
+        [
+          131,
+          135,
+          "ControlFlow"
+        ],
+        [
+          140,
+          152,
+          "ControlFlow"
+        ],
+        [
+          142,
+          142,
+          "Loop"
+        ],
+        [
+          156,
+          168,
+          "Loop"
+        ],
+        [
+          157,
+          167,
+          "ControlFlow"
+        ],
+        [
+          177,
+          184,
+          "Loop"
+        ],
+        [
+          181,
+          183,
+          "ControlFlow"
+        ],
+        [
+          190,
+          194,
+          "Loop"
+        ],
+        [
+          195,
+          209,
+          "Loop"
+        ],
+        [
+          196,
+          196,
+          "ControlFlow"
+        ],
+        [
+          197,
+          208,
+          "Loop"
+        ],
+        [
+          205,
+          207,
+          "ControlFlow"
+        ]
+      ]
+    },
+    "fn:packages/core/src/graph/cluster-detector.ts:ClusterDetector.computeCouplingMatrix": {
+      "lines": [
+        220,
+        260
+      ],
+      "hash": "6e0dcb90c024c83c670bc85d162b00132f0eec360ad97492e1054796b5faec8e",
+      "moduleId": "packages-core",
+      "params": [
+        {
+          "name": "files",
+          "type": "string[]"
+        }
+      ],
+      "returnType": "Map<string, Map<string, number>>",
+      "isExported": true,
+      "purpose": "─── Coupling Matrix ──────────────────────────────────────────",
+      "details": [
+        [
+          226,
+          230,
+          "Loop"
+        ],
+        [
+          235,
+          247,
+          "Loop"
+        ],
+        [
+          236,
+          236,
+          "ControlFlow"
+        ],
+        [
+          241,
+          241,
+          "ControlFlow"
+        ],
+        [
+          242,
+          242,
+          "ControlFlow"
+        ],
+        [
+          250,
+          257,
+          "Loop"
+        ],
+        [
+          252,
+          256,
+          "Loop"
+        ]
+      ]
+    },
+    "fn:packages/core/src/graph/cluster-detector.ts:ClusterDetector.incrementPair": {
+      "lines": [
+        262,
+        266
+      ],
+      "hash": "7b3d2812a675a5580f85515c6d2cef9965fc0a815bba48fa7c80e59326b48351",
+      "moduleId": "packages-core",
+      "params": [
+        {
+          "name": "matrix",
+          "type": "Map<string, Map<string, number>>"
+        },
+        {
+          "name": "a",
+          "type": "string"
+        },
+        {
+          "name": "b",
+          "type": "string"
+        }
+      ],
+      "isExported": true,
+      "purpose": "Cluster detector.increment pair (matrix, a, b)",
+      "details": [
+        [
+          263,
+          263,
+          "ControlFlow"
+        ]
+      ]
+    },
+    "fn:packages/core/src/graph/cluster-detector.ts:ClusterDetector.computeClusterAffinity": {
+      "lines": [
+        271,
+        285
+      ],
+      "hash": "b918dd279a16811fc044939422875978505255631d4f02524f77ddad00bc9c2f",
+      "moduleId": "packages-core",
+      "params": [
+        {
+          "name": "candidate",
+          "type": "string"
+        },
+        {
+          "name": "cluster",
+          "type": "string[]"
+        },
+        {
+          "name": "couplingMatrix",
+          "type": "Map<string, Map<string, number>>"
+        }
+      ],
+      "returnType": "number",
+      "isExported": true,
+      "purpose": "─── Affinity Computation ─────────────────────────────────────",
+      "details": [
+        [
+          279,
+          283,
+          "Loop"
+        ]
+      ]
+    },
+    "fn:packages/core/src/graph/cluster-detector.ts:ClusterDetector.computeBestOutsideAffinity": {
+      "lines": [
+        288,
+        302
+      ],
+      "hash": "15e32f5acb58262476ebc8aa7c636d2b7432cf20b1c57059b3faf2547e7a98e0",
+      "moduleId": "packages-core",
+      "params": [
+        {
+          "name": "candidate",
+          "type": "string"
+        },
+        {
+          "name": "cluster",
+          "type": "string[]"
+        },
+        {
+          "name": "couplingMatrix",
+          "type": "Map<string, Map<string, number>>"
+        },
+        {
+          "name": "assigned",
+          "type": "Set<string>"
+        }
+      ],
+      "returnType": "number",
+      "isExported": true,
+      "purpose": "Best coupling score of a candidate to any file NOT in the cluster and not yet assigned",
+      "details": [
+        [
+          297,
+          300,
+          "Loop"
+        ],
+        [
+          298,
+          298,
+          "ControlFlow"
+        ],
+        [
+          299,
+          299,
+          "ControlFlow"
+        ]
+      ]
+    },
+    "fn:packages/core/src/graph/cluster-detector.ts:ClusterDetector.computeClusterConfidence": {
+      "lines": [
+        311,
+        352
+      ],
+      "hash": "f02e3b8e864d00d25a90739929112b49f656f76de4f5667cacf5e62cb907768f",
+      "moduleId": "packages-core",
+      "params": [
+        {
+          "name": "files",
+          "type": "string[]"
+        }
+      ],
+      "returnType": "number",
+      "isExported": true,
+      "purpose": "─── Confidence ───────────────────────────────────────────────",
+      "edgeCases": [
+        "total === 0"
+      ],
+      "details": [
+        [
+          316,
+          327,
+          "Loop"
+        ],
+        [
+          318,
+          326,
+          "Loop"
+        ],
+        [
+          319,
+          325,
+          "ControlFlow"
+        ],
+        [
+          320,
+          324,
+          "ControlFlow"
+        ],
+        [
+          330,
+          347,
+          "Loop"
+        ],
+        [
+          332,
+          346,
+          "Loop"
+        ],
+        [
+          333,
+          345,
+          "ControlFlow"
+        ],
+        [
+          335,
+          344,
+          "Loop"
+        ],
+        [
+          336,
+          343,
+          "ControlFlow"
+        ],
+        [
+          338,
+          342,
+          "ControlFlow"
+        ],
+        [
+          340,
+          342,
+          "ControlFlow"
+        ],
+        [
+          350,
+          350,
+          "ControlFlow"
+        ]
+      ]
+    },
+    "fn:packages/core/src/graph/cluster-detector.ts:ClusterDetector.getTotalEdges": {
+      "lines": [
+        357,
+        360
+      ],
+      "hash": "da16039c2499d7493b953cc8b63f153d044b2ad30d8d90eb526cb8fcd23f1921",
+      "moduleId": "packages-core",
+      "params": [
+        {
+          "name": "nodeId",
+          "type": "string"
+        }
+      ],
+      "returnType": "number",
+      "isExported": true,
+      "purpose": "─── Helpers ──────────────────────────────────────────────────"
+    },
+    "fn:packages/core/src/graph/cluster-detector.ts:ClusterDetector.getFileForNode": {
+      "lines": [
+        363,
+        369
+      ],
+      "hash": "5b2fd6b86e34007dc58928c156aec5c30b4196170793a6fb9c7e82d4245c91e5",
+      "moduleId": "packages-core",
+      "params": [
+        {
+          "name": "nodeId",
+          "type": "string"
+        }
+      ],
+      "returnType": "string | null",
+      "isExported": true,
+      "purpose": "Get the file path a node belongs to (for functionclass nodes, return their file)",
+      "edgeCases": [
+        "!node",
+        "node.type === 'file'"
+      ],
+      "details": [
+        [
+          365,
+          365,
+          "ControlFlow"
+        ],
+        [
+          366,
+          366,
+          "ControlFlow"
+        ]
+      ]
+    },
+    "fn:packages/core/src/graph/cluster-detector.ts:ClusterDetector.getNodeFile": {
+      "lines": [
+        372,
+        375
+      ],
+      "hash": "1a2294869989772fcd8632e5bf6cb9ddcf522d3e79d9da040ef2cdf13fb6d716",
+      "moduleId": "packages-core",
+      "params": [
+        {
+          "name": "fileNodeId",
+          "type": "string"
+        }
+      ],
+      "returnType": "string",
+      "isExported": true,
+      "purpose": "Get the file path from a file node ID (the node's .file property)"
+    },
+    "fn:packages/core/src/graph/cluster-detector.ts:ClusterDetector.getFunctionIdsForFiles": {
+      "lines": [
+        378,
+        385
+      ],
+      "hash": "448eb7cd5894405037fc3f2cbc4afb578a9393453fbf25fe25d9635e1452aea4",
+      "moduleId": "packages-core",
+      "params": [
+        {
+          "name": "fileNodeIds",
+          "type": "string[]"
+        }
+      ],
+      "returnType": "string[]",
+      "isExported": true,
+      "purpose": "Get all function IDs contained in a set of file node IDs"
+    },
+    "fn:packages/core/src/graph/cluster-detector.ts:ClusterDetector.inferClusterId": {
+      "lines": [
+        388,
+        406
+      ],
+      "hash": "2688aa8012426429d5aa557f513c44c43be90f9c6ca5e21d1257a0b62ae29b67",
+      "moduleId": "packages-core",
+      "params": [
+        {
+          "name": "filePaths",
+          "type": "string[]"
+        }
+      ],
+      "returnType": "string",
+      "isExported": true,
+      "purpose": "Infer a module ID from file paths (common directory prefix)",
+      "edgeCases": [
+        "filePaths.length === 0",
+        "filePaths.length === 1"
+      ],
+      "details": [
+        [
+          389,
+          389,
+          "ControlFlow"
+        ],
+        [
+          390,
+          392,
+          "ControlFlow"
+        ],
+        [
+          397,
+          403,
+          "Loop"
+        ],
+        [
+          398,
+          402,
+          "ControlFlow"
+        ]
+      ]
+    },
+    "fn:packages/core/src/graph/cluster-detector.ts:ClusterDetector.getDirSegments": {
+      "lines": [
+        415,
+        428
+      ],
+      "hash": "7b89446f6435a25e35c461a31acc9758289085a79d265f15ff197ed56da22293",
+      "moduleId": "packages-core",
+      "params": [
+        {
+          "name": "filePath",
+          "type": "string"
+        }
+      ],
+      "returnType": "string",
+      "isExported": true,
+      "purpose": "Build a hyphenated module ID from the meaningful directory segments.",
+      "edgeCases": [
+        "meaningful.length === 0"
+      ],
+      "details": [
+        [
+          421,
+          425,
+          "ControlFlow"
+        ]
+      ]
+    },
+    "fn:packages/core/src/graph/cluster-detector.ts:ClusterDetector.mergeSiblingClusters": {
+      "lines": [
+        437,
+        471
+      ],
+      "hash": "edec029a3a25d1007d6a391bd8367980070027d1af57906678fd33db5b6db3d9",
+      "moduleId": "packages-core",
+      "params": [
+        {
+          "name": "clusters",
+          "type": "ModuleCluster[]"
+        }
+      ],
+      "returnType": "ModuleCluster[]",
+      "isExported": true,
+      "purpose": "─── Cluster Merging ──────────────────────────────────────────",
+      "details": [
+        [
+          440,
+          445,
+          "Loop"
+        ],
+        [
+          448,
+          468,
+          "Loop"
+        ],
+        [
+          449,
+          452,
+          "ControlFlow"
+        ]
+      ]
+    },
+    "fn:packages/core/src/graph/cluster-detector.ts:ClusterDetector.getBaseDir": {
+      "lines": [
+        474,
+        491
+      ],
+      "hash": "ec7902bb06c168133bf95d7a614663b973948626e9c9312cb127ec4616cda24e",
+      "moduleId": "packages-core",
+      "params": [
+        {
+          "name": "files",
+          "type": "string[]"
+        }
+      ],
+      "returnType": "string",
+      "isExported": true,
+      "purpose": "Get the base directory (first meaningful segment) for a set of files",
+      "edgeCases": [
+        "files.length === 0"
+      ],
+      "details": [
+        [
+          475,
+          475,
+          "ControlFlow"
+        ],
+        [
+          480,
+          486,
+          "Loop"
+        ],
+        [
+          481,
+          485,
+          "ControlFlow"
+        ]
+      ]
+    },
+    "fn:packages/core/src/graph/cluster-detector.ts:ClusterDetector.inferSemanticName": {
+      "lines": [
+        505,
+        555
+      ],
+      "hash": "b9b98ece543df8a139145df4bfc787749fa641c3a9a7d6104a6b76ddf3f66b22",
+      "moduleId": "packages-core",
+      "params": [
+        {
+          "name": "filePaths",
+          "type": "string[]"
+        },
+        {
+          "name": "functionIds",
+          "type": "string[]"
+        }
+      ],
+      "returnType": "string",
+      "isExported": true,
+      "purpose": "─── Semantic Naming ──────────────────────────────────────────",
+      "edgeCases": [
+        "scores.length >= 2 && scores[0][1] > 1 && scores[1][1] > 1 &&\r\n            scores[1][1] >= scores[0][1] * 0.5",
+        "scores.length >= 1 && scores[0][1] > 0"
+      ],
+      "details": [
+        [
+          528,
+          540,
+          "Loop"
+        ],
+        [
+          530,
+          538,
+          "Loop"
+        ],
+        [
+          531,
+          537,
+          "Loop"
+        ],
+        [
+          534,
+          536,
+          "ControlFlow"
+        ],
+        [
+          539,
+          539,
+          "ControlFlow"
+        ],
+        [
+          544,
+          548,
+          "ControlFlow"
+        ],
+        [
+          549,
+          551,
+          "ControlFlow"
+        ]
+      ]
+    },
+    "fn:packages/core/src/graph/cluster-detector.ts:ClusterDetector.inferClusterNameFromDir": {
+      "lines": [
+        558,
+        563
+      ],
+      "hash": "5e0bee3cde4f07a872a2d7aa5c59b9b74ae96ad00be045e8f6b7f58979328832",
+      "moduleId": "packages-core",
+      "params": [
+        {
+          "name": "filePaths",
+          "type": "string[]"
+        }
+      ],
+      "returnType": "string",
+      "isExported": true,
+      "purpose": "Fallback: infer a human-readable cluster name from directory paths"
+    },
+    "fn:packages/core/src/graph/cluster-detector.ts:ClusterDetector.buildWordBag": {
+      "lines": [
+        566,
+        579
+      ],
+      "hash": "9c2698eb4ae85aa14b74a942261020adfcd5b52e6f02b1d0e9e4825dd0d28686",
+      "moduleId": "packages-core",
+      "params": [
+        {
+          "name": "identifiers",
+          "type": "string[]"
+        }
+      ],
+      "returnType": "string[]",
+      "isExported": true,
+      "purpose": "Split identifiers and file names into lowercase words",
+      "details": [
+        [
+          568,
+          577,
+          "Loop"
+        ]
+      ]
+    },
+    "fn:packages/core/src/graph/dead-code-detector.ts:DeadCodeDetector.constructor": {
+      "lines": [
+        62,
+        70
+      ],
+      "hash": "8e592d6083360a71fdfe7ff88a6e7c3c3374f7441767d0443cbd15924a00292f",
+      "moduleId": "packages-core",
+      "params": [
+        {
+          "name": "graph",
+          "type": "DependencyGraph"
+        },
+        {
+          "name": "lock",
+          "type": "MikkLock"
+        }
+      ],
+      "returnType": "DeadCodeDetector",
+      "isExported": true,
+      "purpose": "Dead code detector.constructor (graph, lock)"
+    },
+    "fn:packages/core/src/graph/dead-code-detector.ts:DeadCodeDetector.detect": {
+      "lines": [
+        72,
+        146
+      ],
+      "hash": "1457f4a2efcf8bf31ed3e068005f4b92030baf4756a1d4a25b60711540c950d6",
+      "moduleId": "packages-core",
+      "returnType": "DeadCodeResult",
+      "isExported": true,
+      "purpose": "Dead code detector.detect",
+      "details": [
+        [
+          77,
+          107,
+          "Loop"
+        ],
+        [
+          82,
+          84,
+          "ControlFlow"
+        ],
+        [
+          91,
+          91,
+          "ControlFlow"
+        ],
+        [
+          94,
+          94,
+          "ControlFlow"
+        ],
+        [
+          110,
+          135,
+          "ControlFlow"
+        ],
+        [
+          111,
+          134,
+          "Loop"
+        ],
+        [
+          113,
+          115,
+          "ControlFlow"
+        ],
+        [
+          120,
+          120,
+          "ControlFlow"
+        ],
+        [
+          121,
+          121,
+          "ControlFlow"
+        ]
+      ]
+    },
+    "fn:packages/core/src/graph/dead-code-detector.ts:DeadCodeDetector.isExempt": {
+      "lines": [
+        150,
+        171
+      ],
+      "hash": "0db46e3e73bee01f5ba6cfd96310e6b8aa71319c8b01b384f8a5e624dca1ef48",
+      "moduleId": "packages-core",
+      "params": [
+        {
+          "name": "fn",
+          "type": "MikkLock['functions'][string]"
+        },
+        {
+          "name": "id",
+          "type": "string"
+        }
+      ],
+      "returnType": "boolean",
+      "isExported": true,
+      "purpose": "─── Exemption checks ──────────────────────────────────────────",
+      "edgeCases": [
+        "fn.isExported",
+        "ENTRY_POINT_PATTERNS.some(p => p.test(fn.name))",
+        "this.routeHandlers.has(fn.name)",
+        "TEST_PATTERNS.some(p => p.test(fn.name) || p.test(fn.file))",
+        "fn.name === 'constructor' || fn.name === '__init__'",
+        "this.isCalledByExportedInSameFile(fn, id)"
+      ],
+      "details": [
+        [
+          152,
+          152,
+          "ControlFlow"
+        ],
+        [
+          155,
+          155,
+          "ControlFlow"
+        ],
+        [
+          158,
+          158,
+          "ControlFlow"
+        ],
+        [
+          161,
+          161,
+          "ControlFlow"
+        ],
+        [
+          164,
+          164,
+          "ControlFlow"
+        ],
+        [
+          168,
+          168,
+          "ControlFlow"
+        ]
+      ]
+    },
+    "fn:packages/core/src/graph/dead-code-detector.ts:DeadCodeDetector.isCalledByExportedInSameFile": {
+      "lines": [
+        173,
+        185
+      ],
+      "hash": "d670881cbf1214603a0c448084719ec27a9fcd29248beb1de68f8ff2295ee2a7",
+      "moduleId": "packages-core",
+      "params": [
+        {
+          "name": "fn",
+          "type": "MikkLock['functions'][string]"
+        },
+        {
+          "name": "fnId",
+          "type": "string"
+        }
+      ],
+      "returnType": "boolean",
+      "isExported": true,
+      "purpose": "Dead code detector.is called by exported in same file (fn, fnId)",
+      "edgeCases": [
+        "caller && caller.isExported && caller.file === fn.file"
+      ],
+      "details": [
+        [
+          178,
+          183,
+          "Loop"
+        ],
+        [
+          180,
+          182,
+          "ControlFlow"
+        ]
+      ]
+    },
+    "fn:packages/core/src/graph/dead-code-detector.ts:DeadCodeDetector.inferReason": {
+      "lines": [
+        187,
+        193
+      ],
+      "hash": "dbb2d6840fd0a600c33af26223d5159f0ecf6a1a5e5917d7b83267019ebfca5a",
+      "moduleId": "packages-core",
+      "params": [
+        {
+          "name": "fn",
+          "type": "MikkLock['functions'][string]"
+        },
+        {
+          "name": "id",
+          "type": "string"
+        }
+      ],
+      "returnType": "string",
+      "isExported": true,
+      "purpose": "Dead code detector.infer reason (fn, id)",
+      "edgeCases": [
+        "fn.calledBy.length === 0"
+      ],
+      "details": [
+        [
+          188,
+          190,
+          "ControlFlow"
+        ]
+      ]
+    },
+    "fn:packages/core/src/graph/graph-builder.ts:GraphBuilder.build": {
+      "lines": [
+        11,
+        44
+      ],
+      "hash": "52189f5ac9ef9c296422286c146e504f9c10fa029900c12495a40f451176f724",
+      "moduleId": "packages-core",
+      "params": [
+        {
+          "name": "files",
+          "type": "ParsedFile[]"
+        }
+      ],
+      "returnType": "DependencyGraph",
+      "isExported": true,
+      "purpose": "Main entry point — takes all parsed files and returns the complete graph",
+      "details": [
+        [
+          20,
+          31,
+          "Loop"
+        ],
+        [
+          22,
+          24,
+          "Loop"
+        ],
+        [
+          25,
+          27,
+          "Loop"
+        ],
+        [
+          28,
+          30,
+          "Loop"
+        ],
+        [
+          34,
+          38,
+          "Loop"
+        ]
+      ]
+    },
+    "fn:packages/core/src/graph/graph-builder.ts:GraphBuilder.addFileNode": {
+      "lines": [
+        46,
+        54
+      ],
+      "hash": "a4ab1e745bb119c55af32ddcaccbc155281d7251564c51ef458028dfe2cc6162",
+      "moduleId": "packages-core",
+      "params": [
+        {
+          "name": "graph",
+          "type": "DependencyGraph"
+        },
+        {
+          "name": "file",
+          "type": "ParsedFile"
+        }
+      ],
+      "isExported": true,
+      "purpose": "Graph builder.add file node (graph, file)"
+    },
+    "fn:packages/core/src/graph/graph-builder.ts:GraphBuilder.addFunctionNode": {
+      "lines": [
+        56,
+        76
+      ],
+      "hash": "bde2c082010ed0ee518dd3eb854d014916ff0228f4cd503c467543573d8650cb",
+      "moduleId": "packages-core",
+      "params": [
+        {
+          "name": "graph",
+          "type": "DependencyGraph"
+        },
+        {
+          "name": "fn",
+          "type": "ParsedFunction"
+        }
+      ],
+      "isExported": true,
+      "purpose": "Graph builder.add function node (graph, fn)"
+    },
+    "fn:packages/core/src/graph/graph-builder.ts:GraphBuilder.addClassNode": {
+      "lines": [
+        78,
+        98
+      ],
+      "hash": "4708bf7b25c651ec8d0230bd2034afc8971157b283f2c611941087ac8e8457c7",
+      "moduleId": "packages-core",
+      "params": [
+        {
+          "name": "graph",
+          "type": "DependencyGraph"
+        },
+        {
+          "name": "cls",
+          "type": "ParsedClass"
+        },
+        {
+          "name": "filePath",
+          "type": "string"
+        }
+      ],
+      "isExported": true,
+      "purpose": "Graph builder.add class node (graph, cls, filePath)",
+      "details": [
+        [
+          95,
+          97,
+          "Loop"
+        ]
+      ]
+    },
+    "fn:packages/core/src/graph/graph-builder.ts:GraphBuilder.addGenericNode": {
+      "lines": [
+        100,
+        114
+      ],
+      "hash": "1c477a3e3b6c097f524a5037c1974582eaca28fb8afff7b27d8da236d1950e7f",
+      "moduleId": "packages-core",
+      "params": [
+        {
+          "name": "graph",
+          "type": "DependencyGraph"
+        },
+        {
+          "name": "gen",
+          "type": "any"
+        }
+      ],
+      "isExported": true,
+      "purpose": "Graph builder.add generic node (graph, gen)"
+    },
+    "fn:packages/core/src/graph/graph-builder.ts:GraphBuilder.addImportEdges": {
+      "lines": [
+        117,
+        128
+      ],
+      "hash": "2872fb4afedb0462ad8b20aa5bfe9463177e9955658478e317715d78a3e4a164",
+      "moduleId": "packages-core",
+      "params": [
+        {
+          "name": "graph",
+          "type": "DependencyGraph"
+        },
+        {
+          "name": "file",
+          "type": "ParsedFile"
+        }
+      ],
+      "isExported": true,
+      "purpose": "Creates edges for import statements: fileA imports fileB → edge(A, B, 'imports')",
+      "details": [
+        [
+          118,
+          127,
+          "Loop"
+        ],
+        [
+          119,
+          126,
+          "ControlFlow"
+        ]
+      ]
+    },
+    "fn:packages/core/src/graph/graph-builder.ts:GraphBuilder.addCallEdges": {
+      "lines": [
+        131,
+        174
+      ],
+      "hash": "f50351b4d10c41f1fe159b5c37e6cc1102b407092f84f0fa4b3c5d1c3eb3378f",
+      "moduleId": "packages-core",
+      "params": [
+        {
+          "name": "graph",
+          "type": "DependencyGraph"
+        },
+        {
+          "name": "file",
+          "type": "ParsedFile"
+        }
+      ],
+      "isExported": true,
+      "purpose": "Creates edges for function calls: fnA calls fnB → edge(A, B, 'calls')",
+      "details": [
+        [
+          134,
+          140,
+          "Loop"
+        ],
+        [
+          135,
+          139,
+          "ControlFlow"
+        ],
+        [
+          136,
+          138,
+          "Loop"
+        ],
+        [
+          144,
+          173,
+          "Loop"
+        ],
+        [
+          145,
+          172,
+          "Loop"
+        ],
+        [
+          151,
+          159,
+          "ControlFlow"
+        ],
+        [
+          163,
+          171,
+          "ControlFlow"
+        ]
+      ]
+    },
+    "fn:packages/core/src/graph/graph-builder.ts:GraphBuilder.addContainmentEdges": {
+      "lines": [
+        177,
+        199
+      ],
+      "hash": "bfdf12fca7f565e5e7fa2bffe7e288222939123117da5f675b27a8b330bb83a2",
+      "moduleId": "packages-core",
+      "params": [
+        {
+          "name": "graph",
+          "type": "DependencyGraph"
+        },
+        {
+          "name": "file",
+          "type": "ParsedFile"
+        }
+      ],
+      "isExported": true,
+      "purpose": "Creates containment edges: file contains function → edge(file, fn, 'contains')",
+      "details": [
+        [
+          178,
+          184,
+          "Loop"
+        ],
+        [
+          185,
+          198,
+          "Loop"
+        ],
+        [
+          191,
+          197,
+          "Loop"
+        ]
+      ]
+    },
+    "fn:packages/core/src/graph/graph-builder.ts:GraphBuilder.buildAdjacencyMaps": {
+      "lines": [
+        202,
+        216
+      ],
+      "hash": "3cc61a59d7cb4a8897c959e077cbd5fd00301dc882747933215c630e9dd41e3b",
+      "moduleId": "packages-core",
+      "params": [
+        {
+          "name": "graph",
+          "type": "DependencyGraph"
+        }
+      ],
+      "isExported": true,
+      "purpose": "Build adjacency maps from edge list for O(1) lookups",
+      "details": [
+        [
+          203,
+          215,
+          "Loop"
+        ],
+        [
+          205,
+          207,
+          "ControlFlow"
+        ],
+        [
+          211,
+          213,
+          "ControlFlow"
+        ]
+      ]
+    },
+    "fn:packages/core/src/graph/impact-analyzer.ts:ImpactAnalyzer.constructor": {
+      "lines": [
+        15,
+        15
+      ],
+      "hash": "e3082901897e1fa00d95fdc3829862910db11227d339fa2f73b72e4ba00348b4",
+      "moduleId": "packages-core",
+      "params": [
+        {
+          "name": "graph",
+          "type": "DependencyGraph"
+        }
+      ],
+      "returnType": "ImpactAnalyzer",
+      "isExported": true,
+      "purpose": "Impact analyzer.constructor (graph)"
+    },
+    "fn:packages/core/src/graph/impact-analyzer.ts:ImpactAnalyzer.analyze": {
+      "lines": [
+        18,
+        91
+      ],
+      "hash": "5f1853f9ecd3c3d287b52c44d4e2d216c5c2384c089e7c0d04e687647a28e471",
+      "moduleId": "packages-core",
+      "params": [
+        {
+          "name": "changedNodeIds",
+          "type": "string[]"
+        }
+      ],
+      "returnType": "ImpactResult",
+      "isExported": true,
+      "purpose": "Given a list of changed node IDs, find everything impacted",
+      "details": [
+        [
+          28,
+          31,
+          "Loop"
+        ],
+        [
+          30,
+          30,
+          "ControlFlow"
+        ],
+        [
+          33,
+          47,
+          "Loop"
+        ],
+        [
+          35,
+          35,
+          "ControlFlow"
+        ],
+        [
+          42,
+          46,
+          "Loop"
+        ],
+        [
+          43,
+          45,
+          "ControlFlow"
+        ],
+        [
+          59,
+          82,
+          "Loop"
+        ],
+        [
+          61,
+          61,
+          "ControlFlow"
+        ]
+      ]
+    },
+    "fn:packages/core/src/graph/impact-analyzer.ts:ImpactAnalyzer.computeConfidence": {
+      "lines": [
+        98,
+        105
+      ],
+      "hash": "6c1515f487c6085255f0d209535a84308cd39b8c8af32b2fbf3a6c58d398f2c9",
+      "moduleId": "packages-core",
+      "params": [
+        {
+          "name": "impactedCount",
+          "type": "number"
+        },
+        {
+          "name": "depth",
+          "type": "number"
+        }
+      ],
+      "returnType": "'high' | 'medium' | 'low'",
+      "isExported": true,
+      "purpose": "How confident are we in this impact analysis?",
+      "edgeCases": [
+        "impactedCount < 5 && depth < 3",
+        "impactedCount < 20 && depth < 6"
+      ],
+      "details": [
+        [
+          102,
+          102,
+          "ControlFlow"
+        ],
+        [
+          103,
+          103,
+          "ControlFlow"
+        ]
+      ]
+    },
     "fn:packages/core/src/utils/errors.ts:MikkError.constructor": {
       "lines": [
         2,
@@ -8919,1082 +10818,6 @@
       "returnType": "boolean",
       "isExported": true,
       "purpose": "Simple minimatch-like glob matching utility."
-    },
-    "fn:packages/diagram-generator/src/generators/capsule-diagram.ts:CapsuleDiagramGenerator.constructor": {
-      "lines": [
-        9,
-        12
-      ],
-      "hash": "822332c5a207ffd20f4e5260789a15d016c09d4e6137a1a7b5d644a240a3a72a",
-      "moduleId": "packages-diagram-generator",
-      "params": [
-        {
-          "name": "contract",
-          "type": "MikkContract"
-        },
-        {
-          "name": "lock",
-          "type": "MikkLock"
-        }
-      ],
-      "returnType": "CapsuleDiagramGenerator",
-      "isExported": true,
-      "purpose": "Capsule diagram generator.constructor (contract, lock)"
-    },
-    "fn:packages/diagram-generator/src/generators/capsule-diagram.ts:CapsuleDiagramGenerator.generate": {
-      "lines": [
-        14,
-        89
-      ],
-      "hash": "ea364c735e2807574926f53117472a5d45e14afcb39dcb9cc109e5ab0f0e21b5",
-      "moduleId": "packages-diagram-generator",
-      "params": [
-        {
-          "name": "moduleId",
-          "type": "string"
-        }
-      ],
-      "returnType": "string",
-      "isExported": true,
-      "purpose": "Capsule diagram generator.generate (moduleId)",
-      "edgeCases": [
-        "!module"
-      ],
-      "details": [
-        [
-          16,
-          16,
-          "ControlFlow"
-        ],
-        [
-          39,
-          45,
-          "ControlFlow"
-        ],
-        [
-          41,
-          43,
-          "Loop"
-        ],
-        [
-          47,
-          55,
-          "ControlFlow"
-        ],
-        [
-          49,
-          51,
-          "Loop"
-        ],
-        [
-          53,
-          55,
-          "ControlFlow"
-        ],
-        [
-          61,
-          68,
-          "Loop"
-        ],
-        [
-          62,
-          67,
-          "Loop"
-        ],
-        [
-          64,
-          66,
-          "ControlFlow"
-        ],
-        [
-          75,
-          77,
-          "Loop"
-        ],
-        [
-          78,
-          82,
-          "Loop"
-        ],
-        [
-          79,
-          81,
-          "ControlFlow"
-        ],
-        [
-          84,
-          86,
-          "ControlFlow"
-        ]
-      ]
-    },
-    "fn:packages/diagram-generator/src/generators/capsule-diagram.ts:CapsuleDiagramGenerator.sanitizeId": {
-      "lines": [
-        91,
-        93
-      ],
-      "hash": "5f1b05ae7275ed337d8f4758d601859793c0b5d088c29902bc1edabe913ddf0e",
-      "moduleId": "packages-diagram-generator",
-      "params": [
-        {
-          "name": "id",
-          "type": "string"
-        }
-      ],
-      "returnType": "string",
-      "isExported": true,
-      "purpose": "Capsule diagram generator.sanitize id (id)"
-    },
-    "fn:packages/diagram-generator/src/generators/dependency-matrix.ts:DependencyMatrixGenerator.constructor": {
-      "lines": [
-        12,
-        15
-      ],
-      "hash": "822332c5a207ffd20f4e5260789a15d016c09d4e6137a1a7b5d644a240a3a72a",
-      "moduleId": "packages-diagram-generator",
-      "params": [
-        {
-          "name": "contract",
-          "type": "MikkContract"
-        },
-        {
-          "name": "lock",
-          "type": "MikkLock"
-        }
-      ],
-      "returnType": "DependencyMatrixGenerator",
-      "isExported": true,
-      "purpose": "Dependency matrix generator.constructor (contract, lock)"
-    },
-    "fn:packages/diagram-generator/src/generators/dependency-matrix.ts:DependencyMatrixGenerator.generate": {
-      "lines": [
-        21,
-        51
-      ],
-      "hash": "cbe263d815b0b9951b448bc69d9366c9047dc40b4325fd87b6024eb4d882c970",
-      "moduleId": "packages-diagram-generator",
-      "returnType": "string",
-      "isExported": true,
-      "purpose": "Generate a Mermaid diagram showing the dependency matrix.",
-      "details": [
-        [
-          31,
-          35,
-          "Loop"
-        ],
-        [
-          39,
-          45,
-          "Loop"
-        ],
-        [
-          41,
-          44,
-          "ControlFlow"
-        ]
-      ]
-    },
-    "fn:packages/diagram-generator/src/generators/dependency-matrix.ts:DependencyMatrixGenerator.generateTable": {
-      "lines": [
-        57,
-        77
-      ],
-      "hash": "4f469cebea3c4a21a519da4d33358e4f09c4d2ec4612da5b826588051d249574",
-      "moduleId": "packages-diagram-generator",
-      "returnType": "string",
-      "isExported": true,
-      "purpose": "Generate a markdown table showing the N×N dependency matrix.",
-      "edgeCases": [
-        "fromMod.id === toMod.id"
-      ],
-      "details": [
-        [
-          67,
-          74,
-          "Loop"
-        ],
-        [
-          69,
-          69,
-          "ControlFlow"
-        ]
-      ]
-    },
-    "fn:packages/diagram-generator/src/generators/dependency-matrix.ts:DependencyMatrixGenerator.computeMatrix": {
-      "lines": [
-        79,
-        106
-      ],
-      "hash": "2388af403c4f1623b1e5eb80c4176e41a4fd68dafcd0da6152b54ad0a8a386eb",
-      "moduleId": "packages-diagram-generator",
-      "returnType": "Map<string, number>",
-      "isExported": true,
-      "purpose": "Dependency matrix generator.compute matrix",
-      "details": [
-        [
-          83,
-          91,
-          "Loop"
-        ],
-        [
-          84,
-          90,
-          "Loop"
-        ],
-        [
-          86,
-          89,
-          "ControlFlow"
-        ],
-        [
-          94,
-          103,
-          "Loop"
-        ],
-        [
-          95,
-          95,
-          "ControlFlow"
-        ],
-        [
-          96,
-          102,
-          "Loop"
-        ],
-        [
-          98,
-          101,
-          "ControlFlow"
-        ]
-      ]
-    },
-    "fn:packages/diagram-generator/src/generators/dependency-matrix.ts:DependencyMatrixGenerator.sanitizeId": {
-      "lines": [
-        108,
-        110
-      ],
-      "hash": "5f1b05ae7275ed337d8f4758d601859793c0b5d088c29902bc1edabe913ddf0e",
-      "moduleId": "packages-diagram-generator",
-      "params": [
-        {
-          "name": "id",
-          "type": "string"
-        }
-      ],
-      "returnType": "string",
-      "isExported": true,
-      "purpose": "Dependency matrix generator.sanitize id (id)"
-    },
-    "fn:packages/diagram-generator/src/generators/flow-diagram.ts:FlowDiagramGenerator.constructor": {
-      "lines": [
-        9,
-        11
-      ],
-      "hash": "e18d68f37144a05aa2818d42dbb2aaaaadd2a3cf8f09a92f90d6a67ea4bf640c",
-      "moduleId": "packages-diagram-generator",
-      "params": [
-        {
-          "name": "lock",
-          "type": "MikkLock"
-        }
-      ],
-      "returnType": "FlowDiagramGenerator",
-      "isExported": true,
-      "purpose": "Flow diagram generator.constructor (lock)"
-    },
-    "fn:packages/diagram-generator/src/generators/flow-diagram.ts:FlowDiagramGenerator.generate": {
-      "lines": [
-        14,
-        28
-      ],
-      "hash": "f3abccfd5cfadd4f1bfcaef8c060664dfcaa810f121d3926d9df9811d7c14e80",
-      "moduleId": "packages-diagram-generator",
-      "params": [
-        {
-          "name": "startFunctionId",
-          "type": "string"
-        },
-        {
-          "name": "maxDepth",
-          "type": "number",
-          "optional": true
-        }
-      ],
-      "returnType": "string",
-      "isExported": true,
-      "purpose": "Generate a sequence diagram starting from a function",
-      "details": [
-        [
-          23,
-          25,
-          "ControlFlow"
-        ]
-      ]
-    },
-    "fn:packages/diagram-generator/src/generators/flow-diagram.ts:FlowDiagramGenerator.generateEntryPoints": {
-      "lines": [
-        31,
-        75
-      ],
-      "hash": "0f6fae0afc265032666e5e3eddc5216f80d06e45e88aabbd67c66114a7378a7a",
-      "moduleId": "packages-diagram-generator",
-      "returnType": "string",
-      "isExported": true,
-      "purpose": "Generate a flow diagram showing all entry points grouped by module",
-      "details": [
-        [
-          43,
-          48,
-          "Loop"
-        ],
-        [
-          44,
-          46,
-          "ControlFlow"
-        ],
-        [
-          50,
-          56,
-          "Loop"
-        ],
-        [
-          52,
-          54,
-          "Loop"
-        ],
-        [
-          61,
-          69,
-          "Loop"
-        ],
-        [
-          63,
-          68,
-          "Loop"
-        ],
-        [
-          65,
-          67,
-          "ControlFlow"
-        ]
-      ]
-    },
-    "fn:packages/diagram-generator/src/generators/flow-diagram.ts:FlowDiagramGenerator.traceFlow": {
-      "lines": [
-        77,
-        101
-      ],
-      "hash": "3a7b6d51111b796ffd60e9423813947be719d7d6fef96e49e2d7b6aa927c037f",
-      "moduleId": "packages-diagram-generator",
-      "params": [
-        {
-          "name": "fnId",
-          "type": "string"
-        },
-        {
-          "name": "lines",
-          "type": "string[]"
-        },
-        {
-          "name": "visited",
-          "type": "Set<string>"
-        },
-        {
-          "name": "depth",
-          "type": "number"
-        },
-        {
-          "name": "maxDepth",
-          "type": "number"
-        }
-      ],
-      "isExported": true,
-      "purpose": "Flow diagram generator.trace flow",
-      "edgeCases": [
-        "depth >= maxDepth || visited.has(fnId)",
-        "!fn"
-      ],
-      "details": [
-        [
-          84,
-          84,
-          "ControlFlow"
-        ],
-        [
-          88,
-          88,
-          "ControlFlow"
-        ],
-        [
-          92,
-          100,
-          "Loop"
-        ],
-        [
-          94,
-          94,
-          "ControlFlow"
-        ]
-      ]
-    },
-    "fn:packages/diagram-generator/src/generators/flow-diagram.ts:FlowDiagramGenerator.getParticipantName": {
-      "lines": [
-        103,
-        105
-      ],
-      "hash": "f34c54c3ff2805234d065c28de4e9fe02a1f80ec412c3b1e13556a39fa2d3ba0",
-      "moduleId": "packages-diagram-generator",
-      "params": [
-        {
-          "name": "moduleId",
-          "type": "string"
-        },
-        {
-          "name": "fnName",
-          "type": "string"
-        }
-      ],
-      "returnType": "string",
-      "isExported": true,
-      "purpose": "Flow diagram generator.get participant name (moduleId, fnName)"
-    },
-    "fn:packages/diagram-generator/src/generators/flow-diagram.ts:FlowDiagramGenerator.sanitizeId": {
-      "lines": [
-        107,
-        109
-      ],
-      "hash": "5f1b05ae7275ed337d8f4758d601859793c0b5d088c29902bc1edabe913ddf0e",
-      "moduleId": "packages-diagram-generator",
-      "params": [
-        {
-          "name": "id",
-          "type": "string"
-        }
-      ],
-      "returnType": "string",
-      "isExported": true,
-      "purpose": "Flow diagram generator.sanitize id (id)"
-    },
-    "fn:packages/diagram-generator/src/generators/health-diagram.ts:HealthDiagramGenerator.constructor": {
-      "lines": [
-        9,
-        12
-      ],
-      "hash": "822332c5a207ffd20f4e5260789a15d016c09d4e6137a1a7b5d644a240a3a72a",
-      "moduleId": "packages-diagram-generator",
-      "params": [
-        {
-          "name": "contract",
-          "type": "MikkContract"
-        },
-        {
-          "name": "lock",
-          "type": "MikkLock"
-        }
-      ],
-      "returnType": "HealthDiagramGenerator",
-      "isExported": true,
-      "purpose": "Health diagram generator.constructor (contract, lock)"
-    },
-    "fn:packages/diagram-generator/src/generators/health-diagram.ts:HealthDiagramGenerator.generate": {
-      "lines": [
-        14,
-        70
-      ],
-      "hash": "caa7b984d7a17c4b16893efabd53f00006af1c87f3f8717d750ea781663f64d0",
-      "moduleId": "packages-diagram-generator",
-      "returnType": "string",
-      "isExported": true,
-      "purpose": "Health diagram generator.generate",
-      "details": [
-        [
-          22,
-          30,
-          "Loop"
-        ],
-        [
-          34,
-          45,
-          "Loop"
-        ],
-        [
-          35,
-          44,
-          "Loop"
-        ],
-        [
-          37,
-          43,
-          "ControlFlow"
-        ],
-        [
-          39,
-          42,
-          "ControlFlow"
-        ],
-        [
-          46,
-          58,
-          "Loop"
-        ],
-        [
-          47,
-          47,
-          "ControlFlow"
-        ],
-        [
-          48,
-          57,
-          "Loop"
-        ],
-        [
-          50,
-          56,
-          "ControlFlow"
-        ],
-        [
-          52,
-          55,
-          "ControlFlow"
-        ],
-        [
-          65,
-          67,
-          "Loop"
-        ]
-      ]
-    },
-    "fn:packages/diagram-generator/src/generators/health-diagram.ts:HealthDiagramGenerator.computeMetrics": {
-      "lines": [
-        72,
-        108
-      ],
-      "hash": "70e68d29c2127879e6ceba4e169dfa836e789a94c980e42e12ae99215de8be07",
-      "moduleId": "packages-diagram-generator",
-      "params": [
-        {
-          "name": "moduleId",
-          "type": "string"
-        }
-      ],
-      "isExported": true,
-      "purpose": "Health diagram generator.compute metrics (moduleId)",
-      "details": [
-        [
-          80,
-          88,
-          "Loop"
-        ],
-        [
-          81,
-          87,
-          "Loop"
-        ],
-        [
-          83,
-          86,
-          "ControlFlow"
-        ],
-        [
-          84,
-          85,
-          "ControlFlow"
-        ],
-        [
-          89,
-          98,
-          "Loop"
-        ],
-        [
-          90,
-          90,
-          "ControlFlow"
-        ],
-        [
-          91,
-          97,
-          "Loop"
-        ],
-        [
-          93,
-          96,
-          "ControlFlow"
-        ],
-        [
-          94,
-          95,
-          "ControlFlow"
-        ]
-      ]
-    },
-    "fn:packages/diagram-generator/src/generators/health-diagram.ts:HealthDiagramGenerator.sanitizeId": {
-      "lines": [
-        110,
-        112
-      ],
-      "hash": "5f1b05ae7275ed337d8f4758d601859793c0b5d088c29902bc1edabe913ddf0e",
-      "moduleId": "packages-diagram-generator",
-      "params": [
-        {
-          "name": "id",
-          "type": "string"
-        }
-      ],
-      "returnType": "string",
-      "isExported": true,
-      "purpose": "Health diagram generator.sanitize id (id)"
-    },
-    "fn:packages/diagram-generator/src/generators/impact-diagram.ts:ImpactDiagramGenerator.constructor": {
-      "lines": [
-        9,
-        11
-      ],
-      "hash": "e18d68f37144a05aa2818d42dbb2aaaaadd2a3cf8f09a92f90d6a67ea4bf640c",
-      "moduleId": "packages-diagram-generator",
-      "params": [
-        {
-          "name": "lock",
-          "type": "MikkLock"
-        }
-      ],
-      "returnType": "ImpactDiagramGenerator",
-      "isExported": true,
-      "purpose": "Impact diagram generator.constructor (lock)"
-    },
-    "fn:packages/diagram-generator/src/generators/impact-diagram.ts:ImpactDiagramGenerator.generate": {
-      "lines": [
-        13,
-        61
-      ],
-      "hash": "5fbdcb51f76b70d21489523a23d81a73152b8449c67641f6e3c28d6f9d031bd2",
-      "moduleId": "packages-diagram-generator",
-      "params": [
-        {
-          "name": "changedNodeIds",
-          "type": "string[]"
-        },
-        {
-          "name": "impactedNodeIds",
-          "type": "string[]"
-        }
-      ],
-      "returnType": "string",
-      "isExported": true,
-      "purpose": "Impact diagram generator.generate (changedNodeIds, impactedNodeIds)",
-      "details": [
-        [
-          20,
-          25,
-          "Loop"
-        ],
-        [
-          22,
-          24,
-          "ControlFlow"
-        ],
-        [
-          28,
-          33,
-          "Loop"
-        ],
-        [
-          30,
-          32,
-          "ControlFlow"
-        ],
-        [
-          39,
-          47,
-          "Loop"
-        ],
-        [
-          41,
-          41,
-          "ControlFlow"
-        ],
-        [
-          42,
-          46,
-          "Loop"
-        ],
-        [
-          43,
-          45,
-          "ControlFlow"
-        ],
-        [
-          53,
-          55,
-          "Loop"
-        ],
-        [
-          56,
-          58,
-          "Loop"
-        ]
-      ]
-    },
-    "fn:packages/diagram-generator/src/generators/impact-diagram.ts:ImpactDiagramGenerator.sanitizeId": {
-      "lines": [
-        63,
-        65
-      ],
-      "hash": "5f1b05ae7275ed337d8f4758d601859793c0b5d088c29902bc1edabe913ddf0e",
-      "moduleId": "packages-diagram-generator",
-      "params": [
-        {
-          "name": "id",
-          "type": "string"
-        }
-      ],
-      "returnType": "string",
-      "isExported": true,
-      "purpose": "Impact diagram generator.sanitize id (id)"
-    },
-    "fn:packages/diagram-generator/src/generators/main-diagram.ts:MainDiagramGenerator.constructor": {
-      "lines": [
-        11,
-        14
-      ],
-      "hash": "822332c5a207ffd20f4e5260789a15d016c09d4e6137a1a7b5d644a240a3a72a",
-      "moduleId": "packages-diagram-generator",
-      "params": [
-        {
-          "name": "contract",
-          "type": "MikkContract"
-        },
-        {
-          "name": "lock",
-          "type": "MikkLock"
-        }
-      ],
-      "returnType": "MainDiagramGenerator",
-      "isExported": true,
-      "purpose": "Main diagram generator.constructor (contract, lock)"
-    },
-    "fn:packages/diagram-generator/src/generators/main-diagram.ts:MainDiagramGenerator.generate": {
-      "lines": [
-        16,
-        25
-      ],
-      "hash": "2a4afa57266c16e948d92b05bcd299b1300aadaca09e18fd285ed7b0b3379c25",
-      "moduleId": "packages-diagram-generator",
-      "returnType": "string",
-      "isExported": true,
-      "purpose": "Main diagram generator.generate",
-      "edgeCases": [
-        "modules.length <= 1"
-      ],
-      "details": [
-        [
-          20,
-          22,
-          "ControlFlow"
-        ]
-      ]
-    },
-    "fn:packages/diagram-generator/src/generators/main-diagram.ts:MainDiagramGenerator.generateModuleLevelView": {
-      "lines": [
-        28,
-        91
-      ],
-      "hash": "f53197672a89b1fc4f9e41b54a10771d49dd31e637426ae67c97a3a2749bc722",
-      "moduleId": "packages-diagram-generator",
-      "returnType": "string",
-      "isExported": true,
-      "purpose": "Standard multi-module view — modules as nodes, inter-module calls as edges",
-      "details": [
-        [
-          35,
-          40,
-          "Loop"
-        ],
-        [
-          48,
-          59,
-          "Loop"
-        ],
-        [
-          49,
-          58,
-          "Loop"
-        ],
-        [
-          51,
-          57,
-          "ControlFlow"
-        ],
-        [
-          53,
-          55,
-          "ControlFlow"
-        ],
-        [
-          62,
-          76,
-          "Loop"
-        ],
-        [
-          63,
-          63,
-          "ControlFlow"
-        ],
-        [
-          64,
-          75,
-          "Loop"
-        ],
-        [
-          66,
-          74,
-          "ControlFlow"
-        ],
-        [
-          68,
-          70,
-          "ControlFlow"
-        ],
-        [
-          78,
-          81,
-          "Loop"
-        ],
-        [
-          86,
-          88,
-          "Loop"
-        ]
-      ]
-    },
-    "fn:packages/diagram-generator/src/generators/main-diagram.ts:MainDiagramGenerator.generateFileLevelView": {
-      "lines": [
-        98,
-        160
-      ],
-      "hash": "9c56b756c81ac1e3fb330f683d68316d01251d3333e434ae064bc12f610c33d8",
-      "moduleId": "packages-diagram-generator",
-      "returnType": "string",
-      "isExported": true,
-      "purpose": "File-level view — for single-module or no-module projects.",
-      "details": [
-        [
-          121,
-          126,
-          "Loop"
-        ],
-        [
-          124,
-          124,
-          "ControlFlow"
-        ],
-        [
-          128,
-          137,
-          "Loop"
-        ],
-        [
-          131,
-          135,
-          "Loop"
-        ],
-        [
-          139,
-          141,
-          "ControlFlow"
-        ],
-        [
-          146,
-          153,
-          "Loop"
-        ],
-        [
-          147,
-          147,
-          "ControlFlow"
-        ],
-        [
-          148,
-          152,
-          "Loop"
-        ],
-        [
-          149,
-          151,
-          "ControlFlow"
-        ]
-      ]
-    },
-    "fn:packages/diagram-generator/src/generators/main-diagram.ts:MainDiagramGenerator.sanitizeId": {
-      "lines": [
-        162,
-        164
-      ],
-      "hash": "5f1b05ae7275ed337d8f4758d601859793c0b5d088c29902bc1edabe913ddf0e",
-      "moduleId": "packages-diagram-generator",
-      "params": [
-        {
-          "name": "id",
-          "type": "string"
-        }
-      ],
-      "returnType": "string",
-      "isExported": true,
-      "purpose": "Main diagram generator.sanitize id (id)"
-    },
-    "fn:packages/diagram-generator/src/generators/module-diagram.ts:ModuleDiagramGenerator.constructor": {
-      "lines": [
-        17,
-        20
-      ],
-      "hash": "822332c5a207ffd20f4e5260789a15d016c09d4e6137a1a7b5d644a240a3a72a",
-      "moduleId": "packages-diagram-generator",
-      "params": [
-        {
-          "name": "contract",
-          "type": "MikkContract"
-        },
-        {
-          "name": "lock",
-          "type": "MikkLock"
-        }
-      ],
-      "returnType": "ModuleDiagramGenerator",
-      "isExported": true,
-      "purpose": "Module diagram generator.constructor (contract, lock)"
-    },
-    "fn:packages/diagram-generator/src/generators/module-diagram.ts:ModuleDiagramGenerator.generate": {
-      "lines": [
-        22,
-        152
-      ],
-      "hash": "31ec87610357c224e96bec6f2dd6ead7a73ed53abdb45182374576ad8bc841cc",
-      "moduleId": "packages-diagram-generator",
-      "params": [
-        {
-          "name": "moduleId",
-          "type": "string"
-        }
-      ],
-      "returnType": "string",
-      "isExported": true,
-      "purpose": "Module diagram generator.generate (moduleId)",
-      "edgeCases": [
-        "!module"
-      ],
-      "details": [
-        [
-          24,
-          24,
-          "ControlFlow"
-        ],
-        [
-          36,
-          83,
-          "ControlFlow"
-        ],
-        [
-          39,
-          57,
-          "Loop"
-        ],
-        [
-          54,
-          56,
-          "ControlFlow"
-        ],
-        [
-          60,
-          68,
-          "ControlFlow"
-        ],
-        [
-          67,
-          67,
-          "Loop"
-        ],
-        [
-          71,
-          79,
-          "ControlFlow"
-        ],
-        [
-          75,
-          78,
-          "Loop"
-        ],
-        [
-          76,
-          76,
-          "ControlFlow"
-        ],
-        [
-          92,
-          97,
-          "Loop"
-        ],
-        [
-          93,
-          95,
-          "ControlFlow"
-        ],
-        [
-          102,
-          113,
-          "ControlFlow"
-        ],
-        [
-          116,
-          124,
-          "Loop"
-        ],
-        [
-          119,
-          122,
-          "Loop"
-        ],
-        [
-          131,
-          145,
-          "Loop"
-        ],
-        [
-          132,
-          144,
-          "Loop"
-        ],
-        [
-          134,
-          143,
-          "ControlFlow"
-        ],
-        [
-          135,
-          142,
-          "ControlFlow"
-        ],
-        [
-          138,
-          142,
-          "ControlFlow"
-        ]
-      ]
-    },
-    "fn:packages/diagram-generator/src/generators/module-diagram.ts:ModuleDiagramGenerator.sanitizeId": {
-      "lines": [
-        154,
-        156
-      ],
-      "hash": "5f1b05ae7275ed337d8f4758d601859793c0b5d088c29902bc1edabe913ddf0e",
-      "moduleId": "packages-diagram-generator",
-      "params": [
-        {
-          "name": "id",
-          "type": "string"
-        }
-      ],
-      "returnType": "string",
-      "isExported": true,
-      "purpose": "Module diagram generator.sanitize id (id)"
     },
     "fn:packages/cli/src/commands/contract/index.ts:registerContractCommands": {
       "lines": [
@@ -11401,7 +12224,7 @@
     "class:packages/watcher/src/incremental-analyzer.ts:IncrementalAnalyzer": {
       "lines": [
         25,
-        192
+        198
       ],
       "isExported": true,
       "moduleId": "packages-watcher",
@@ -11428,47 +12251,109 @@
         ]
       ]
     },
-    "class:packages/core/src/graph/cluster-detector.ts:ClusterDetector": {
-      "lines": [
-        82,
-        580
-      ],
-      "isExported": true,
-      "moduleId": "packages-core",
-      "purpose": "ClusterDetector — analyzes the dependency graph and groups files",
-      "edgeCases": [
-        "fileNodes.length === 0",
-        "total === 0",
-        "!node",
-        "node.type === 'file'",
-        "filePaths.length === 0",
-        "filePaths.length === 1",
-        "meaningful.length === 0",
-        "files.length === 0",
-        "scores.length >= 2 && scores[0][1] > 1 && scores[1][1] > 1 &&\r\n            scores[1][1] >= scores[0][1] * 0.5",
-        "scores.length >= 1 && scores[0][1] > 0"
-      ]
-    },
-    "class:packages/core/src/graph/graph-builder.ts:GraphBuilder": {
-      "lines": [
-        9,
-        213
-      ],
-      "isExported": true,
-      "moduleId": "packages-core",
-      "purpose": "GraphBuilder — takes parsed files and builds the dependency graph."
-    },
-    "class:packages/core/src/graph/impact-analyzer.ts:ImpactAnalyzer": {
+    "class:packages/diagram-generator/src/generators/capsule-diagram.ts:CapsuleDiagramGenerator": {
       "lines": [
         8,
-        55
+        94
+      ],
+      "isExported": true,
+      "moduleId": "packages-diagram-generator",
+      "purpose": "CapsuleDiagramGenerator — generates capsule diagrams that show",
+      "edgeCases": [
+        "!module"
+      ]
+    },
+    "class:packages/diagram-generator/src/generators/dependency-matrix.ts:DependencyMatrixGenerator": {
+      "lines": [
+        11,
+        111
+      ],
+      "isExported": true,
+      "moduleId": "packages-diagram-generator",
+      "purpose": "DependencyMatrixGenerator — generates an N×N dependency matrix",
+      "edgeCases": [
+        "fromMod.id === toMod.id"
+      ]
+    },
+    "class:packages/diagram-generator/src/generators/flow-diagram.ts:FlowDiagramGenerator": {
+      "lines": [
+        8,
+        110
+      ],
+      "isExported": true,
+      "moduleId": "packages-diagram-generator",
+      "purpose": "FlowDiagramGenerator — generates sequence diagrams for specific",
+      "edgeCases": [
+        "depth >= maxDepth || visited.has(fnId)",
+        "!fn"
+      ]
+    },
+    "class:packages/diagram-generator/src/generators/health-diagram.ts:HealthDiagramGenerator": {
+      "lines": [
+        8,
+        113
+      ],
+      "isExported": true,
+      "moduleId": "packages-diagram-generator",
+      "purpose": "HealthDiagramGenerator — generates a module health dashboard showing"
+    },
+    "class:packages/diagram-generator/src/generators/impact-diagram.ts:ImpactDiagramGenerator": {
+      "lines": [
+        8,
+        66
+      ],
+      "isExported": true,
+      "moduleId": "packages-diagram-generator",
+      "purpose": "ImpactDiagramGenerator — generates a Mermaid diagram showing the"
+    },
+    "class:packages/diagram-generator/src/generators/main-diagram.ts:MainDiagramGenerator": {
+      "lines": [
+        10,
+        165
+      ],
+      "isExported": true,
+      "moduleId": "packages-diagram-generator",
+      "purpose": "MainDiagramGenerator — generates the top-level Mermaid diagram",
+      "edgeCases": [
+        "modules.length <= 1"
+      ]
+    },
+    "class:packages/diagram-generator/src/generators/module-diagram.ts:ModuleDiagramGenerator": {
+      "lines": [
+        16,
+        157
+      ],
+      "isExported": true,
+      "moduleId": "packages-diagram-generator",
+      "purpose": "ModuleDiagramGenerator — generates a detailed Mermaid diagram for a",
+      "edgeCases": [
+        "!module"
+      ]
+    },
+    "class:packages/core/src/contract/adr-manager.ts:AdrManager": {
+      "lines": [
+        12,
+        75
       ],
       "isExported": true,
       "moduleId": "packages-core",
-      "purpose": "ImpactAnalyzer — Given changed nodes, walks the graph backwards (BFS)",
+      "purpose": "AdrManager — CRUD operations on Architectural Decision Records",
       "edgeCases": [
-        "impactedCount < 5 && depth < 3",
-        "impactedCount < 20 && depth < 6"
+        "contract.declared.decisions.some(d => d.id === decision.id)",
+        "idx === -1",
+        "idx === -1"
+      ],
+      "errors": [
+        [
+          36,
+          "throw",
+          "new Error(`ADR with id \"${decision.id}\" already exists. Use update() instead.`)"
+        ],
+        [
+          47,
+          "throw",
+          "new Error(`ADR \"${id}\" not found. Use add() to create a new decision.`)"
+        ]
       ]
     },
     "class:packages/core/src/contract/contract-generator.ts:ContractGenerator": {
@@ -11620,6 +12505,68 @@
         "forbidden"
       ]
     },
+    "class:packages/core/src/graph/cluster-detector.ts:ClusterDetector": {
+      "lines": [
+        82,
+        580
+      ],
+      "isExported": true,
+      "moduleId": "packages-core",
+      "purpose": "ClusterDetector — analyzes the dependency graph and groups files",
+      "edgeCases": [
+        "fileNodes.length === 0",
+        "total === 0",
+        "!node",
+        "node.type === 'file'",
+        "filePaths.length === 0",
+        "filePaths.length === 1",
+        "meaningful.length === 0",
+        "files.length === 0",
+        "scores.length >= 2 && scores[0][1] > 1 && scores[1][1] > 1 &&\r\n            scores[1][1] >= scores[0][1] * 0.5",
+        "scores.length >= 1 && scores[0][1] > 0"
+      ]
+    },
+    "class:packages/core/src/graph/dead-code-detector.ts:DeadCodeDetector": {
+      "lines": [
+        59,
+        194
+      ],
+      "isExported": true,
+      "moduleId": "packages-core",
+      "purpose": "─── Detector ──────────────────────────────────────────────────────",
+      "edgeCases": [
+        "fn.isExported",
+        "ENTRY_POINT_PATTERNS.some(p => p.test(fn.name))",
+        "this.routeHandlers.has(fn.name)",
+        "TEST_PATTERNS.some(p => p.test(fn.name) || p.test(fn.file))",
+        "fn.name === 'constructor' || fn.name === '__init__'",
+        "this.isCalledByExportedInSameFile(fn, id)",
+        "caller && caller.isExported && caller.file === fn.file",
+        "fn.calledBy.length === 0"
+      ]
+    },
+    "class:packages/core/src/graph/graph-builder.ts:GraphBuilder": {
+      "lines": [
+        9,
+        217
+      ],
+      "isExported": true,
+      "moduleId": "packages-core",
+      "purpose": "GraphBuilder — takes parsed files and builds the dependency graph."
+    },
+    "class:packages/core/src/graph/impact-analyzer.ts:ImpactAnalyzer": {
+      "lines": [
+        14,
+        106
+      ],
+      "isExported": true,
+      "moduleId": "packages-core",
+      "purpose": "ImpactAnalyzer — Given changed nodes, walks the graph backwards (BFS)",
+      "edgeCases": [
+        "impactedCount < 5 && depth < 3",
+        "impactedCount < 20 && depth < 6"
+      ]
+    },
     "class:packages/core/src/utils/errors.ts:MikkError": {
       "lines": [
         1,
@@ -11682,85 +12629,6 @@
       "isExported": true,
       "moduleId": "packages-core",
       "purpose": "Sync state error"
-    },
-    "class:packages/diagram-generator/src/generators/capsule-diagram.ts:CapsuleDiagramGenerator": {
-      "lines": [
-        8,
-        94
-      ],
-      "isExported": true,
-      "moduleId": "packages-diagram-generator",
-      "purpose": "CapsuleDiagramGenerator — generates capsule diagrams that show",
-      "edgeCases": [
-        "!module"
-      ]
-    },
-    "class:packages/diagram-generator/src/generators/dependency-matrix.ts:DependencyMatrixGenerator": {
-      "lines": [
-        11,
-        111
-      ],
-      "isExported": true,
-      "moduleId": "packages-diagram-generator",
-      "purpose": "DependencyMatrixGenerator — generates an N×N dependency matrix",
-      "edgeCases": [
-        "fromMod.id === toMod.id"
-      ]
-    },
-    "class:packages/diagram-generator/src/generators/flow-diagram.ts:FlowDiagramGenerator": {
-      "lines": [
-        8,
-        110
-      ],
-      "isExported": true,
-      "moduleId": "packages-diagram-generator",
-      "purpose": "FlowDiagramGenerator — generates sequence diagrams for specific",
-      "edgeCases": [
-        "depth >= maxDepth || visited.has(fnId)",
-        "!fn"
-      ]
-    },
-    "class:packages/diagram-generator/src/generators/health-diagram.ts:HealthDiagramGenerator": {
-      "lines": [
-        8,
-        113
-      ],
-      "isExported": true,
-      "moduleId": "packages-diagram-generator",
-      "purpose": "HealthDiagramGenerator — generates a module health dashboard showing"
-    },
-    "class:packages/diagram-generator/src/generators/impact-diagram.ts:ImpactDiagramGenerator": {
-      "lines": [
-        8,
-        66
-      ],
-      "isExported": true,
-      "moduleId": "packages-diagram-generator",
-      "purpose": "ImpactDiagramGenerator — generates a Mermaid diagram showing the"
-    },
-    "class:packages/diagram-generator/src/generators/main-diagram.ts:MainDiagramGenerator": {
-      "lines": [
-        10,
-        165
-      ],
-      "isExported": true,
-      "moduleId": "packages-diagram-generator",
-      "purpose": "MainDiagramGenerator — generates the top-level Mermaid diagram",
-      "edgeCases": [
-        "modules.length <= 1"
-      ]
-    },
-    "class:packages/diagram-generator/src/generators/module-diagram.ts:ModuleDiagramGenerator": {
-      "lines": [
-        16,
-        157
-      ],
-      "isExported": true,
-      "moduleId": "packages-diagram-generator",
-      "purpose": "ModuleDiagramGenerator — generates a detailed Mermaid diagram for a",
-      "edgeCases": [
-        "!module"
-      ]
     },
     "class:packages/core/src/parser/typescript/ts-extractor.ts:TypeScriptExtractor": {
       "lines": [
@@ -11976,76 +12844,6 @@
       "moduleId": "packages-watcher",
       "isExported": true,
       "purpose": "Typed watcher events"
-    },
-    "type:packages/core/src/graph/types.ts:NodeType": {
-      "lines": [
-        5,
-        5
-      ],
-      "type": "type",
-      "moduleId": "packages-core",
-      "isExported": true,
-      "purpose": "Graph types — nodes, edges, and the dependency graph itself."
-    },
-    "type:packages/core/src/graph/types.ts:EdgeType": {
-      "lines": [
-        6,
-        6
-      ],
-      "type": "type",
-      "moduleId": "packages-core",
-      "isExported": true,
-      "purpose": "Edge type"
-    },
-    "intf:packages/core/src/graph/types.ts:GraphNode": {
-      "lines": [
-        9,
-        28
-      ],
-      "type": "interface",
-      "moduleId": "packages-core",
-      "isExported": true,
-      "purpose": "A single node in the dependency graph"
-    },
-    "intf:packages/core/src/graph/types.ts:GraphEdge": {
-      "lines": [
-        31,
-        36
-      ],
-      "type": "interface",
-      "moduleId": "packages-core",
-      "isExported": true,
-      "purpose": "A single edge in the dependency graph"
-    },
-    "intf:packages/core/src/graph/types.ts:DependencyGraph": {
-      "lines": [
-        39,
-        44
-      ],
-      "type": "interface",
-      "moduleId": "packages-core",
-      "isExported": true,
-      "purpose": "The full dependency graph"
-    },
-    "intf:packages/core/src/graph/types.ts:ImpactResult": {
-      "lines": [
-        47,
-        52
-      ],
-      "type": "interface",
-      "moduleId": "packages-core",
-      "isExported": true,
-      "purpose": "Result of impact analysis"
-    },
-    "intf:packages/core/src/graph/types.ts:ModuleCluster": {
-      "lines": [
-        55,
-        61
-      ],
-      "type": "interface",
-      "moduleId": "packages-core",
-      "isExported": true,
-      "purpose": "A cluster of files that naturally belong together"
     },
     "intf:packages/core/src/contract/contract-writer.ts:UpdateResult": {
       "lines": [
@@ -12397,6 +13195,116 @@
       "isExported": true,
       "purpose": "Everything extracted from a single file"
     },
+    "intf:packages/core/src/graph/dead-code-detector.ts:DeadCodeEntry": {
+      "lines": [
+        6,
+        13
+      ],
+      "type": "interface",
+      "moduleId": "packages-core",
+      "isExported": true,
+      "purpose": "─── Types ──────────────────────────────────────────────────────────"
+    },
+    "intf:packages/core/src/graph/dead-code-detector.ts:DeadCodeResult": {
+      "lines": [
+        15,
+        21
+      ],
+      "type": "interface",
+      "moduleId": "packages-core",
+      "isExported": true,
+      "purpose": "Dead code result"
+    },
+    "type:packages/core/src/graph/types.ts:NodeType": {
+      "lines": [
+        5,
+        5
+      ],
+      "type": "type",
+      "moduleId": "packages-core",
+      "isExported": true,
+      "purpose": "Graph types — nodes, edges, and the dependency graph itself."
+    },
+    "type:packages/core/src/graph/types.ts:EdgeType": {
+      "lines": [
+        6,
+        6
+      ],
+      "type": "type",
+      "moduleId": "packages-core",
+      "isExported": true,
+      "purpose": "Edge type"
+    },
+    "intf:packages/core/src/graph/types.ts:GraphNode": {
+      "lines": [
+        9,
+        28
+      ],
+      "type": "interface",
+      "moduleId": "packages-core",
+      "isExported": true,
+      "purpose": "A single node in the dependency graph"
+    },
+    "intf:packages/core/src/graph/types.ts:GraphEdge": {
+      "lines": [
+        31,
+        37
+      ],
+      "type": "interface",
+      "moduleId": "packages-core",
+      "isExported": true,
+      "purpose": "A single edge in the dependency graph"
+    },
+    "intf:packages/core/src/graph/types.ts:DependencyGraph": {
+      "lines": [
+        40,
+        45
+      ],
+      "type": "interface",
+      "moduleId": "packages-core",
+      "isExported": true,
+      "purpose": "The full dependency graph"
+    },
+    "type:packages/core/src/graph/types.ts:RiskLevel": {
+      "lines": [
+        48,
+        48
+      ],
+      "type": "type",
+      "moduleId": "packages-core",
+      "isExported": true,
+      "purpose": "Risk level for an impacted node"
+    },
+    "intf:packages/core/src/graph/types.ts:ClassifiedImpact": {
+      "lines": [
+        51,
+        58
+      ],
+      "type": "interface",
+      "moduleId": "packages-core",
+      "isExported": true,
+      "purpose": "A single node in the classified impact result"
+    },
+    "intf:packages/core/src/graph/types.ts:ImpactResult": {
+      "lines": [
+        61,
+        73
+      ],
+      "type": "interface",
+      "moduleId": "packages-core",
+      "isExported": true,
+      "purpose": "Result of impact analysis"
+    },
+    "intf:packages/core/src/graph/types.ts:ModuleCluster": {
+      "lines": [
+        76,
+        82
+      ],
+      "type": "interface",
+      "moduleId": "packages-core",
+      "isExported": true,
+      "purpose": "A cluster of files that naturally belong together"
+    },
     "type:packages/core/src/utils/fs.ts:ContextFileType": {
       "lines": [
         104,
@@ -12483,25 +13391,23 @@
         "packages/cli/src/index.ts",
         "packages/cli/src/commands/analyze.ts",
         "packages/cli/src/commands/context.ts",
+        "packages/cli/src/commands/dead-code.ts",
         "packages/cli/src/commands/diff.ts",
         "packages/cli/src/commands/init.ts",
         "packages/cli/src/commands/intent.ts",
+        "packages/cli/src/commands/mcp.ts",
         "packages/cli/src/commands/visualize.ts",
         "packages/cli/src/commands/watch.ts",
         "packages/cli/src/commands/contract/index.ts"
       ],
-      "hash": "095871713e2be548211abbe0bf61ba41c9e48df27e6456ac23d4b708ffaf61aa",
+      "hash": "cd8fd9f573da60a8b6778b0060d26493ee680522cb3766730c46daaffc01f733",
       "fragmentPath": ".mikk/fragments/packages-cli.lock"
     },
     "packages-core": {
       "id": "packages-core",
       "files": [
         "packages/core/src/index.ts",
-        "packages/core/src/graph/cluster-detector.ts",
-        "packages/core/src/graph/graph-builder.ts",
-        "packages/core/src/graph/impact-analyzer.ts",
-        "packages/core/src/graph/index.ts",
-        "packages/core/src/graph/types.ts",
+        "packages/core/src/contract/adr-manager.ts",
         "packages/core/src/contract/contract-generator.ts",
         "packages/core/src/contract/contract-reader.ts",
         "packages/core/src/contract/contract-writer.ts",
@@ -12517,6 +13423,12 @@
         "packages/core/src/parser/boundary-checker.ts",
         "packages/core/src/parser/index.ts",
         "packages/core/src/parser/types.ts",
+        "packages/core/src/graph/cluster-detector.ts",
+        "packages/core/src/graph/dead-code-detector.ts",
+        "packages/core/src/graph/graph-builder.ts",
+        "packages/core/src/graph/impact-analyzer.ts",
+        "packages/core/src/graph/index.ts",
+        "packages/core/src/graph/types.ts",
         "packages/core/src/utils/errors.ts",
         "packages/core/src/utils/fs.ts",
         "packages/core/src/utils/fuzzy-match.ts",
@@ -12526,7 +13438,7 @@
         "packages/core/src/parser/typescript/ts-parser.ts",
         "packages/core/src/parser/typescript/ts-resolver.ts"
       ],
-      "hash": "48adfc05eccb01990880675a500022ce0ee5a5ca066a72b75371973472370058",
+      "hash": "b6e09df2fe0644e331342819e5d380baf5c0f4b848e823a55b25c753ac87154f",
       "fragmentPath": ".mikk/fragments/packages-core.lock"
     },
     "packages-diagram-generator": {
@@ -12575,339 +13487,379 @@
         "packages/watcher/src/index.ts",
         "packages/watcher/src/types.ts"
       ],
-      "hash": "82ec92b3705e5a87ab5919cc8a87717d35affc32ba7b749851011ab8be917fda",
+      "hash": "3912e104be75324db42011c2cddfaa148a2b0101f588a80e299597f21c9ee495",
       "fragmentPath": ".mikk/fragments/packages-watcher.lock"
     }
   },
   "files": {
     "apps/registry/src/index.ts": {
       "hash": "a449b5274486fbf02ae906690390dc4fd16caa7d3871225699a0ea565e0ab3a1",
-      "lastModified": "2026-03-03T06:47:30.927Z",
+      "lastModified": "2026-03-07T14:13:45.767Z",
       "moduleId": "apps-registry"
     },
     "apps/web/src/index.ts": {
       "hash": "f11208fe3acf64f4d9c4bf926dd0577f3c4c1a6f8cf3000faf0bfa5cce609162",
-      "lastModified": "2026-03-03T06:47:30.928Z",
+      "lastModified": "2026-03-07T14:13:45.767Z",
       "moduleId": "apps-web"
     },
     "packages/ai-context/src/claude-md-generator.ts": {
       "hash": "acdd9d76cfa1121c930718d69d8ac4567611807d1c6502ca5b0f2e82a78e7fd8",
-      "lastModified": "2026-03-03T06:47:30.928Z",
+      "lastModified": "2026-03-07T14:13:45.767Z",
       "moduleId": "packages-ai-context"
     },
     "packages/ai-context/src/context-builder.ts": {
       "hash": "7cf7c233b374b1bd61b29123584839ef3d14a4bef3f0d4e231ef837a892d6a36",
-      "lastModified": "2026-03-03T06:47:30.928Z",
+      "lastModified": "2026-03-07T14:13:45.767Z",
       "moduleId": "packages-ai-context"
     },
     "packages/ai-context/src/index.ts": {
       "hash": "25d5942a2cf438e638050d2ad6d4777dae6c62d13e3b866271d7fa4e6d6b5387",
-      "lastModified": "2026-03-03T06:47:30.928Z",
+      "lastModified": "2026-03-07T14:13:45.767Z",
       "moduleId": "packages-ai-context"
     },
     "packages/ai-context/src/providers.ts": {
       "hash": "e36e055e5f41d4c11ebec435f6a1f5042d7fc2a36c380b4f4ac8ff1fec86c55d",
-      "lastModified": "2026-03-03T06:47:30.928Z",
+      "lastModified": "2026-03-07T14:13:45.767Z",
       "moduleId": "packages-ai-context"
     },
     "packages/ai-context/src/types.ts": {
       "hash": "5e0f1c96ad81b78070147466c78681133799a7cd98580e62278e9011b99abc9f",
-      "lastModified": "2026-03-03T06:47:30.928Z",
+      "lastModified": "2026-03-07T14:13:45.767Z",
       "moduleId": "packages-ai-context"
     },
     "packages/cli/src/index.ts": {
-      "hash": "9514883690a004b49dd7436599baa2aeed9aa51e17b9d03dc348f8bb06bf09fb",
-      "lastModified": "2026-03-03T06:47:30.928Z",
+      "hash": "3694ee9adfa92d4f5104d6695e6eb68456fe61783b24743b0942c3b6ae41a058",
+      "lastModified": "2026-03-07T14:13:45.767Z",
       "moduleId": "packages-cli"
-    },
-    "packages/core/src/index.ts": {
-      "hash": "8aed819725fee16d98e9381adc12a3d88dbad7fde6e7c8abf6a7ab74d9be9f56",
-      "lastModified": "2026-03-03T06:47:30.928Z",
-      "moduleId": "packages-core"
     },
     "packages/diagram-generator/src/index.ts": {
       "hash": "5a9d6d75366cddda26a4688c0ebc950001a3d160def44b025f3c2ea44624b237",
-      "lastModified": "2026-03-03T06:47:30.928Z",
+      "lastModified": "2026-03-07T14:13:45.767Z",
       "moduleId": "packages-diagram-generator"
     },
     "packages/diagram-generator/src/orchestrator.ts": {
       "hash": "a224dbe50f1ecf6e1b7c2bf3cd7eea23d5586f313e643a33a0923393a8f209b2",
-      "lastModified": "2026-03-03T06:47:30.929Z",
+      "lastModified": "2026-03-07T14:13:45.767Z",
       "moduleId": "packages-diagram-generator"
+    },
+    "packages/core/src/index.ts": {
+      "hash": "8aed819725fee16d98e9381adc12a3d88dbad7fde6e7c8abf6a7ab74d9be9f56",
+      "lastModified": "2026-03-07T14:13:45.767Z",
+      "moduleId": "packages-core"
     },
     "packages/intent-engine/src/conflict-detector.ts": {
       "hash": "f2050e5cb308aa507e54e85e61a2f9aa3ee0d02a4a892d1a66c60a31156e0e26",
-      "lastModified": "2026-03-03T06:47:30.929Z",
+      "lastModified": "2026-03-07T14:13:45.767Z",
       "moduleId": "packages-intent-engine"
     },
     "packages/intent-engine/src/index.ts": {
       "hash": "d6b06fce5770e0341f4157fdcc2b1cb33a9f4ae81f18a50698ee131086b4b82f",
-      "lastModified": "2026-03-03T06:47:30.929Z",
+      "lastModified": "2026-03-07T14:13:45.767Z",
       "moduleId": "packages-intent-engine"
     },
     "packages/intent-engine/src/interpreter.ts": {
       "hash": "41de46c1e62775a337da5c6d33460afce81fc5c292a48225039c3eaacbd2fd83",
-      "lastModified": "2026-03-03T06:47:30.929Z",
+      "lastModified": "2026-03-07T14:13:45.768Z",
       "moduleId": "packages-intent-engine"
     },
     "packages/intent-engine/src/preflight.ts": {
       "hash": "e65fe3adf59c924f6d2996ae0b42719ccd41f2a7108f6aee0223055b8add125a",
-      "lastModified": "2026-03-03T06:47:30.929Z",
+      "lastModified": "2026-03-07T14:13:45.768Z",
       "moduleId": "packages-intent-engine"
     },
     "packages/intent-engine/src/suggester.ts": {
       "hash": "76c330b40c7df1568351fd66ee932c638cb71898ec839e99cc3e4086d8ef3b49",
-      "lastModified": "2026-03-03T06:47:30.929Z",
+      "lastModified": "2026-03-07T14:13:45.768Z",
       "moduleId": "packages-intent-engine"
     },
     "packages/intent-engine/src/types.ts": {
       "hash": "6180c1cfbb92010ea63576b48c85f49ac8fc16cde57a182aeb0431b20f2e2b48",
-      "lastModified": "2026-03-03T06:47:30.929Z",
+      "lastModified": "2026-03-07T14:13:45.768Z",
       "moduleId": "packages-intent-engine"
+    },
+    "packages/mcp-server/src/index.ts": {
+      "hash": "375004db1f37e83726e6cc0ff5bb498a576fdb012d5a985a009020e15054bf0b",
+      "lastModified": "2026-03-07T14:13:45.768Z"
+    },
+    "packages/mcp-server/src/resources.ts": {
+      "hash": "bbee5593fd861fceaa1da010da9b838e9b93c85ddcb4716c8e9bbf8abb72f86c",
+      "lastModified": "2026-03-07T14:13:45.768Z"
+    },
+    "packages/mcp-server/src/server.ts": {
+      "hash": "fba11498c5b4c3f25eae9c066c65ba962b3c5e9e5c9ee3336ebfb62a774b7d11",
+      "lastModified": "2026-03-07T14:13:45.768Z"
+    },
+    "packages/mcp-server/src/stdio.ts": {
+      "hash": "7db3c404da51c75a7ffdb7192bc24d49b1b81a1ed2241c8e29bcb7d6209999c8",
+      "lastModified": "2026-03-07T14:13:45.768Z"
+    },
+    "packages/mcp-server/src/tools.ts": {
+      "hash": "b54753e5e91576a12760e7e0887fbd477d6538fc154f073eaf19d6536814a618",
+      "lastModified": "2026-03-07T14:13:45.768Z"
     },
     "packages/vscode-extension/src/extension.ts": {
       "hash": "3671b58b4529760251ba56192dee3480ec123bb126fb0108ec5ef245f14749f1",
-      "lastModified": "2026-03-03T06:47:30.929Z",
+      "lastModified": "2026-03-07T14:13:45.768Z",
       "moduleId": "packages-vscode-extension"
     },
     "packages/watcher/src/daemon.ts": {
       "hash": "84dbffac22b9d454de20e7f79bbb669b2bb25cb002a35f22d189c033ec55045a",
-      "lastModified": "2026-03-03T06:47:30.929Z",
+      "lastModified": "2026-03-07T14:13:45.768Z",
       "moduleId": "packages-watcher"
     },
     "packages/watcher/src/file-watcher.ts": {
       "hash": "c49f11a8366c7171bab75fe828aa31b87d2984223861ca925b0dc6325f2215c4",
-      "lastModified": "2026-03-03T06:47:30.929Z",
+      "lastModified": "2026-03-07T14:13:45.768Z",
       "moduleId": "packages-watcher"
     },
     "packages/watcher/src/incremental-analyzer.ts": {
-      "hash": "520e81d95b52785d39f9adcec5674d85a873157a5dc786c1e0539ce587e0f611",
-      "lastModified": "2026-03-03T06:47:30.929Z",
+      "hash": "8df8e5453174d5d99418634aad2f683d4b140212f975340242bffaa5b0e31fa4",
+      "lastModified": "2026-03-07T14:13:45.768Z",
       "moduleId": "packages-watcher"
     },
     "packages/watcher/src/index.ts": {
       "hash": "fad96198c76601062472af8dab4d932ed4c7e260f6c8812c7d86a9b688c40f11",
-      "lastModified": "2026-03-03T06:47:30.929Z",
+      "lastModified": "2026-03-07T14:13:45.768Z",
       "moduleId": "packages-watcher"
     },
     "packages/watcher/src/types.ts": {
       "hash": "5cb23a71ef16399c0a4a3d6c759b247729003699606992bc89560b3b7779f206",
-      "lastModified": "2026-03-03T06:47:30.929Z",
+      "lastModified": "2026-03-07T14:13:45.768Z",
       "moduleId": "packages-watcher"
     },
     "packages/cli/src/commands/analyze.ts": {
       "hash": "4fd73c87df73697770b5b4837fa95f85b33c4befdca7feb11e3f7513805b6b8f",
-      "lastModified": "2026-03-03T06:47:30.929Z",
+      "lastModified": "2026-03-07T14:13:45.768Z",
       "moduleId": "packages-cli"
     },
     "packages/cli/src/commands/context.ts": {
       "hash": "df768828820f9bc22739c1e7b8ad18b00160fb18ea11114eba8ce56ae9008ec5",
-      "lastModified": "2026-03-03T06:47:30.929Z",
+      "lastModified": "2026-03-07T14:13:45.768Z",
+      "moduleId": "packages-cli"
+    },
+    "packages/cli/src/commands/dead-code.ts": {
+      "hash": "7ba5453f26d7ab467988fa2b87bf61d3f514d3d1df402419c2a83bd50fc13b00",
+      "lastModified": "2026-03-07T14:13:45.768Z",
       "moduleId": "packages-cli"
     },
     "packages/cli/src/commands/diff.ts": {
       "hash": "0223521725249fe55e09bedaeb84a0c8287ea693d39475aa55be06e6d6b9a5ee",
-      "lastModified": "2026-03-03T06:47:30.929Z",
+      "lastModified": "2026-03-07T14:13:45.768Z",
       "moduleId": "packages-cli"
     },
     "packages/cli/src/commands/init.ts": {
       "hash": "788f9831f0b912326f5c8c2e587b8570c47b7838e4e426c06099de95f97d2610",
-      "lastModified": "2026-03-03T06:47:30.929Z",
+      "lastModified": "2026-03-07T14:13:45.768Z",
       "moduleId": "packages-cli"
     },
     "packages/cli/src/commands/intent.ts": {
       "hash": "3d323f1417a8bad1ee5843995d798a61a0f6277b7e156717d9a5bcf2278aa1d8",
-      "lastModified": "2026-03-03T06:47:30.929Z",
+      "lastModified": "2026-03-07T14:13:45.768Z",
+      "moduleId": "packages-cli"
+    },
+    "packages/cli/src/commands/mcp.ts": {
+      "hash": "c4c9714f76d619bf21320e1ed70f9d442c57620784b266a1edef8422f491aa6c",
+      "lastModified": "2026-03-07T14:13:45.768Z",
       "moduleId": "packages-cli"
     },
     "packages/cli/src/commands/visualize.ts": {
       "hash": "87692f3cbc5018e8e57178195a386e54ea1a1d6f0e7d5f9ae7099558c541469a",
-      "lastModified": "2026-03-03T06:47:30.929Z",
+      "lastModified": "2026-03-07T14:13:45.768Z",
       "moduleId": "packages-cli"
     },
     "packages/cli/src/commands/watch.ts": {
       "hash": "68e9ce620bae51419aa9a527f489d6d4b8c990ef0f06bed871fcbb3639ace08b",
-      "lastModified": "2026-03-03T06:47:30.929Z",
+      "lastModified": "2026-03-07T14:13:45.768Z",
       "moduleId": "packages-cli"
-    },
-    "packages/core/src/graph/cluster-detector.ts": {
-      "hash": "42c0306afd6d21f5386500dba9bb31e0a9c580e673e4d902a3f950c2cfef42ab",
-      "lastModified": "2026-03-03T06:47:30.929Z",
-      "moduleId": "packages-core"
-    },
-    "packages/core/src/graph/graph-builder.ts": {
-      "hash": "2224873edebc8cc33a7b91b4c7b130b181ce0e9dfeb859522cd68e359095b3ed",
-      "lastModified": "2026-03-03T06:47:30.929Z",
-      "moduleId": "packages-core"
-    },
-    "packages/core/src/graph/impact-analyzer.ts": {
-      "hash": "a621b1fa8f916456bf3c79244d04cd4a281517137ad97ea1944dfb7592809e0c",
-      "lastModified": "2026-03-03T06:47:30.929Z",
-      "moduleId": "packages-core"
-    },
-    "packages/core/src/graph/index.ts": {
-      "hash": "e37b346505f4486ed508321162a730d4190e566d8277dce321706283c6ba7d14",
-      "lastModified": "2026-03-03T06:47:30.929Z",
-      "moduleId": "packages-core"
-    },
-    "packages/core/src/graph/types.ts": {
-      "hash": "25c247301a65adbef4decc164812ff7a4c36bcdf6616924b06dec1cdc82ef165",
-      "lastModified": "2026-03-03T06:47:30.929Z",
-      "moduleId": "packages-core"
-    },
-    "packages/core/src/contract/contract-generator.ts": {
-      "hash": "34d47ff8e17aa61ddf23847863401928dc2382513a8ff6750a104f3aee52d908",
-      "lastModified": "2026-03-03T06:47:30.929Z",
-      "moduleId": "packages-core"
-    },
-    "packages/core/src/contract/contract-reader.ts": {
-      "hash": "0f3cb3b263d3ac4d74d952fe1c45d680214cd352d96d8325a4e45973d9ae2df6",
-      "lastModified": "2026-03-03T06:47:30.929Z",
-      "moduleId": "packages-core"
-    },
-    "packages/core/src/contract/contract-writer.ts": {
-      "hash": "860042c28cd7ca4ca2fee4b93774955444939fc69c2a1b9fd62c7a216caf3ca0",
-      "lastModified": "2026-03-03T06:47:30.929Z",
-      "moduleId": "packages-core"
-    },
-    "packages/core/src/contract/index.ts": {
-      "hash": "e1a14399893dd5ef9534cf6d1832f7d931b5cae740b86f9824316e71f59dd26a",
-      "lastModified": "2026-03-03T06:47:30.929Z",
-      "moduleId": "packages-core"
-    },
-    "packages/core/src/contract/lock-compiler.ts": {
-      "hash": "df148f8673c6d4949eaa4a2c0aed7c5018e8a5a060070c507dcababf13f38d31",
-      "lastModified": "2026-03-03T06:47:30.929Z",
-      "moduleId": "packages-core"
-    },
-    "packages/core/src/contract/lock-reader.ts": {
-      "hash": "fde854a34ac3ad0b2e3cfec23f027c45fe5aeff2bd82a67e40fe18e7db6d9a76",
-      "lastModified": "2026-03-03T06:47:30.929Z",
-      "moduleId": "packages-core"
-    },
-    "packages/core/src/contract/schema.ts": {
-      "hash": "f09d8f0d15c63b4c213447ee3187fa209b8f6a4ca99f0cb0d85a1824cfda6cbb",
-      "lastModified": "2026-03-03T06:47:30.929Z",
-      "moduleId": "packages-core"
-    },
-    "packages/core/src/hash/file-hasher.ts": {
-      "hash": "be0a53963b6b9525ae0eb9085f6bc41dd09f4fdb7ba498221c15c1ca711a836b",
-      "lastModified": "2026-03-03T06:47:30.929Z",
-      "moduleId": "packages-core"
-    },
-    "packages/core/src/hash/hash-store.ts": {
-      "hash": "c37e7727f62624d8e0d978539a8832c6fab4ff7352ec7888a8953ae2e555e266",
-      "lastModified": "2026-03-03T06:47:30.929Z",
-      "moduleId": "packages-core"
-    },
-    "packages/core/src/hash/index.ts": {
-      "hash": "34508a7b2abd1051067e5da146e3de99c89bc73020e57a7f358ceeba53e9ba44",
-      "lastModified": "2026-03-03T06:47:30.929Z",
-      "moduleId": "packages-core"
-    },
-    "packages/core/src/hash/tree-hasher.ts": {
-      "hash": "f2195439b6b9c32b8fe011bc0bf839ff7181e0f137f78be9acd666cea87d28bb",
-      "lastModified": "2026-03-03T06:47:30.929Z",
-      "moduleId": "packages-core"
-    },
-    "packages/core/src/parser/base-parser.ts": {
-      "hash": "740751c7c345850d5a7931a0f17834a0e9c15a55318309b3cfd4c51d4e84455f",
-      "lastModified": "2026-03-03T06:47:30.929Z",
-      "moduleId": "packages-core"
-    },
-    "packages/core/src/parser/boundary-checker.ts": {
-      "hash": "32ae0585df4f75f4d0add7ee3ef9b35b8404f3420aa909b78e20267d665042db",
-      "lastModified": "2026-03-03T06:47:30.930Z",
-      "moduleId": "packages-core"
-    },
-    "packages/core/src/parser/index.ts": {
-      "hash": "f827a2b7d4c5017d76036c1050374f3ac3e573cdba3d6e88f303aa0716a7e910",
-      "lastModified": "2026-03-03T06:47:30.930Z",
-      "moduleId": "packages-core"
-    },
-    "packages/core/src/parser/types.ts": {
-      "hash": "51e7655838abcabbc80fc09bf0453fee689e869dc3b978c6a3bc2095e8cfff6f",
-      "lastModified": "2026-03-03T06:47:30.930Z",
-      "moduleId": "packages-core"
-    },
-    "packages/core/src/utils/errors.ts": {
-      "hash": "d10f86ce115b52833372915986f6ed1bc288aa5f02040a5c74781a6a2a4d837a",
-      "lastModified": "2026-03-03T06:47:30.930Z",
-      "moduleId": "packages-core"
-    },
-    "packages/core/src/utils/fs.ts": {
-      "hash": "30337e0f464292b7feec4fc71b26faf03f6d630de8a8fa5791398083156b50bc",
-      "lastModified": "2026-03-03T06:47:30.930Z",
-      "moduleId": "packages-core"
-    },
-    "packages/core/src/utils/fuzzy-match.ts": {
-      "hash": "b4ecc5d1e185b45e12a191b84a8f357d494abacb879e27f24166802884a27114",
-      "lastModified": "2026-03-03T06:47:30.930Z",
-      "moduleId": "packages-core"
-    },
-    "packages/core/src/utils/logger.ts": {
-      "hash": "0737b96e6ce14c4d2023ca195d3df3efc2f51de7a32489cf4f15a5037a1c87dd",
-      "lastModified": "2026-03-03T06:47:30.930Z",
-      "moduleId": "packages-core"
-    },
-    "packages/core/src/utils/minimatch.ts": {
-      "hash": "be4acfc69ed63a4c7f7d0280888c72a90eb9491fd6cb1ffdbfb307e605d3b2ec",
-      "lastModified": "2026-03-03T06:47:30.930Z",
-      "moduleId": "packages-core"
     },
     "packages/diagram-generator/src/generators/capsule-diagram.ts": {
       "hash": "9975e35e04f47653fdb1f7e39c9dbaaba56a0194a832356a508e6bb90d0639e2",
-      "lastModified": "2026-03-03T06:47:30.930Z",
+      "lastModified": "2026-03-07T14:13:45.768Z",
       "moduleId": "packages-diagram-generator"
     },
     "packages/diagram-generator/src/generators/dependency-matrix.ts": {
       "hash": "25f47a198dcc1825362bd262d3c43bce8d800ac5d992369de1ad127833a1c4b2",
-      "lastModified": "2026-03-03T06:47:30.930Z",
+      "lastModified": "2026-03-07T14:13:45.768Z",
       "moduleId": "packages-diagram-generator"
     },
     "packages/diagram-generator/src/generators/flow-diagram.ts": {
       "hash": "eb699c28038cf63c9e704f5c1060f2b0a3e01c7b85e6b119c3eb54dd12db4a1b",
-      "lastModified": "2026-03-03T06:47:30.930Z",
+      "lastModified": "2026-03-07T14:13:45.768Z",
       "moduleId": "packages-diagram-generator"
     },
     "packages/diagram-generator/src/generators/health-diagram.ts": {
       "hash": "846ea4da7c732806c38489b645f40126e2fd7635be26864cd9bc897b0b302db3",
-      "lastModified": "2026-03-03T06:47:30.930Z",
+      "lastModified": "2026-03-07T14:13:45.768Z",
       "moduleId": "packages-diagram-generator"
     },
     "packages/diagram-generator/src/generators/impact-diagram.ts": {
       "hash": "6258c81614d42dee3c38f27fd938e9869d4df0f73217e330dd17fb75012daded",
-      "lastModified": "2026-03-03T06:47:30.930Z",
+      "lastModified": "2026-03-07T14:13:45.768Z",
       "moduleId": "packages-diagram-generator"
     },
     "packages/diagram-generator/src/generators/main-diagram.ts": {
       "hash": "9b3507efa076b14d1ec65195303c506ff6e851f05885aef73cdc350cdbb8d9e1",
-      "lastModified": "2026-03-03T06:47:30.930Z",
+      "lastModified": "2026-03-07T14:13:45.768Z",
       "moduleId": "packages-diagram-generator"
     },
     "packages/diagram-generator/src/generators/module-diagram.ts": {
       "hash": "d916484d394eab47eecec466f3f1b70826af8842a54e3accec1ca32481a35dbf",
-      "lastModified": "2026-03-03T06:47:30.930Z",
+      "lastModified": "2026-03-07T14:13:45.768Z",
       "moduleId": "packages-diagram-generator"
+    },
+    "packages/core/src/contract/adr-manager.ts": {
+      "hash": "6ab0e874b605b8bbd0fa22cbc03a9d89d542a04727da716f19681dae10b48aa5",
+      "lastModified": "2026-03-07T14:13:45.768Z",
+      "moduleId": "packages-core"
+    },
+    "packages/core/src/contract/contract-generator.ts": {
+      "hash": "34d47ff8e17aa61ddf23847863401928dc2382513a8ff6750a104f3aee52d908",
+      "lastModified": "2026-03-07T14:13:45.768Z",
+      "moduleId": "packages-core"
+    },
+    "packages/core/src/contract/contract-reader.ts": {
+      "hash": "0f3cb3b263d3ac4d74d952fe1c45d680214cd352d96d8325a4e45973d9ae2df6",
+      "lastModified": "2026-03-07T14:13:45.768Z",
+      "moduleId": "packages-core"
+    },
+    "packages/core/src/contract/contract-writer.ts": {
+      "hash": "860042c28cd7ca4ca2fee4b93774955444939fc69c2a1b9fd62c7a216caf3ca0",
+      "lastModified": "2026-03-07T14:13:45.768Z",
+      "moduleId": "packages-core"
+    },
+    "packages/core/src/contract/index.ts": {
+      "hash": "5467795e446cda9c09ef5dd20da0e0cd9bc76e92a790ad36119806681b2bdfc9",
+      "lastModified": "2026-03-07T14:13:45.768Z",
+      "moduleId": "packages-core"
+    },
+    "packages/core/src/contract/lock-compiler.ts": {
+      "hash": "df148f8673c6d4949eaa4a2c0aed7c5018e8a5a060070c507dcababf13f38d31",
+      "lastModified": "2026-03-07T14:13:45.768Z",
+      "moduleId": "packages-core"
+    },
+    "packages/core/src/contract/lock-reader.ts": {
+      "hash": "fde854a34ac3ad0b2e3cfec23f027c45fe5aeff2bd82a67e40fe18e7db6d9a76",
+      "lastModified": "2026-03-07T14:13:45.768Z",
+      "moduleId": "packages-core"
+    },
+    "packages/core/src/contract/schema.ts": {
+      "hash": "f09d8f0d15c63b4c213447ee3187fa209b8f6a4ca99f0cb0d85a1824cfda6cbb",
+      "lastModified": "2026-03-07T14:13:45.768Z",
+      "moduleId": "packages-core"
+    },
+    "packages/core/src/hash/file-hasher.ts": {
+      "hash": "be0a53963b6b9525ae0eb9085f6bc41dd09f4fdb7ba498221c15c1ca711a836b",
+      "lastModified": "2026-03-07T14:13:45.768Z",
+      "moduleId": "packages-core"
+    },
+    "packages/core/src/hash/hash-store.ts": {
+      "hash": "c37e7727f62624d8e0d978539a8832c6fab4ff7352ec7888a8953ae2e555e266",
+      "lastModified": "2026-03-07T14:13:45.768Z",
+      "moduleId": "packages-core"
+    },
+    "packages/core/src/hash/index.ts": {
+      "hash": "34508a7b2abd1051067e5da146e3de99c89bc73020e57a7f358ceeba53e9ba44",
+      "lastModified": "2026-03-07T14:13:45.768Z",
+      "moduleId": "packages-core"
+    },
+    "packages/core/src/hash/tree-hasher.ts": {
+      "hash": "f2195439b6b9c32b8fe011bc0bf839ff7181e0f137f78be9acd666cea87d28bb",
+      "lastModified": "2026-03-07T14:13:45.768Z",
+      "moduleId": "packages-core"
+    },
+    "packages/core/src/parser/base-parser.ts": {
+      "hash": "740751c7c345850d5a7931a0f17834a0e9c15a55318309b3cfd4c51d4e84455f",
+      "lastModified": "2026-03-07T14:13:45.768Z",
+      "moduleId": "packages-core"
+    },
+    "packages/core/src/parser/boundary-checker.ts": {
+      "hash": "32ae0585df4f75f4d0add7ee3ef9b35b8404f3420aa909b78e20267d665042db",
+      "lastModified": "2026-03-07T14:13:45.768Z",
+      "moduleId": "packages-core"
+    },
+    "packages/core/src/parser/index.ts": {
+      "hash": "f827a2b7d4c5017d76036c1050374f3ac3e573cdba3d6e88f303aa0716a7e910",
+      "lastModified": "2026-03-07T14:13:45.768Z",
+      "moduleId": "packages-core"
+    },
+    "packages/core/src/parser/types.ts": {
+      "hash": "51e7655838abcabbc80fc09bf0453fee689e869dc3b978c6a3bc2095e8cfff6f",
+      "lastModified": "2026-03-07T14:13:45.768Z",
+      "moduleId": "packages-core"
+    },
+    "packages/core/src/graph/cluster-detector.ts": {
+      "hash": "42c0306afd6d21f5386500dba9bb31e0a9c580e673e4d902a3f950c2cfef42ab",
+      "lastModified": "2026-03-07T14:13:45.768Z",
+      "moduleId": "packages-core"
+    },
+    "packages/core/src/graph/dead-code-detector.ts": {
+      "hash": "fa41469bf9b787e8f2296a13ee4a48e0500ef1faea33ddbb5877da64f4f66efb",
+      "lastModified": "2026-03-07T14:13:45.768Z",
+      "moduleId": "packages-core"
+    },
+    "packages/core/src/graph/graph-builder.ts": {
+      "hash": "2b44c7755d1e19375768d094659d5400be7177c06038f720efa8851888e2b13b",
+      "lastModified": "2026-03-07T14:13:45.768Z",
+      "moduleId": "packages-core"
+    },
+    "packages/core/src/graph/impact-analyzer.ts": {
+      "hash": "3d49794e97049ea176b921a50a16a219f80ed95ca1c0599888b74fec018246d7",
+      "lastModified": "2026-03-07T14:13:45.768Z",
+      "moduleId": "packages-core"
+    },
+    "packages/core/src/graph/index.ts": {
+      "hash": "44a49974e410aebf291056424dc269d4d49b2cec64c0a7349fb799e3e7ef3a89",
+      "lastModified": "2026-03-07T14:13:45.768Z",
+      "moduleId": "packages-core"
+    },
+    "packages/core/src/graph/types.ts": {
+      "hash": "935d7e708c89578232080a530759f949adc8ed4aea4c63eee6d773800f08879d",
+      "lastModified": "2026-03-07T14:13:45.768Z",
+      "moduleId": "packages-core"
+    },
+    "packages/core/src/utils/errors.ts": {
+      "hash": "d10f86ce115b52833372915986f6ed1bc288aa5f02040a5c74781a6a2a4d837a",
+      "lastModified": "2026-03-07T14:13:45.768Z",
+      "moduleId": "packages-core"
+    },
+    "packages/core/src/utils/fs.ts": {
+      "hash": "30337e0f464292b7feec4fc71b26faf03f6d630de8a8fa5791398083156b50bc",
+      "lastModified": "2026-03-07T14:13:45.768Z",
+      "moduleId": "packages-core"
+    },
+    "packages/core/src/utils/fuzzy-match.ts": {
+      "hash": "b4ecc5d1e185b45e12a191b84a8f357d494abacb879e27f24166802884a27114",
+      "lastModified": "2026-03-07T14:13:45.768Z",
+      "moduleId": "packages-core"
+    },
+    "packages/core/src/utils/logger.ts": {
+      "hash": "0737b96e6ce14c4d2023ca195d3df3efc2f51de7a32489cf4f15a5037a1c87dd",
+      "lastModified": "2026-03-07T14:13:45.768Z",
+      "moduleId": "packages-core"
+    },
+    "packages/core/src/utils/minimatch.ts": {
+      "hash": "be4acfc69ed63a4c7f7d0280888c72a90eb9491fd6cb1ffdbfb307e605d3b2ec",
+      "lastModified": "2026-03-07T14:13:45.768Z",
+      "moduleId": "packages-core"
     },
     "packages/cli/src/commands/contract/index.ts": {
       "hash": "d064347e62c0c3f98d43a83c2cf62fed8e8119c35b995a112e107b034dff0333",
-      "lastModified": "2026-03-03T06:47:30.930Z",
+      "lastModified": "2026-03-07T14:13:45.768Z",
       "moduleId": "packages-cli"
     },
     "packages/core/src/parser/typescript/ts-extractor.ts": {
       "hash": "9a8bd7cdf5e8659a344fe8da6dbbb36334821e0c8da0108ec948c1897ef5288f",
-      "lastModified": "2026-03-03T06:47:30.930Z",
+      "lastModified": "2026-03-07T14:13:45.768Z",
       "moduleId": "packages-core"
     },
     "packages/core/src/parser/typescript/ts-parser.ts": {
       "hash": "fc14f07208df1c6dcd5606bd3b8d918dbc3d7c70e522acfc6f28092946f2c172",
-      "lastModified": "2026-03-03T06:47:30.930Z",
+      "lastModified": "2026-03-07T14:13:45.768Z",
       "moduleId": "packages-core"
     },
     "packages/core/src/parser/typescript/ts-resolver.ts": {
       "hash": "5a65b1fde12bce87b448c517411d85a5e438917f8abb90cf626faabbfba15489",
-      "lastModified": "2026-03-03T06:47:30.930Z",
+      "lastModified": "2026-03-07T14:13:45.768Z",
       "moduleId": "packages-core"
     }
   },
@@ -12932,9 +13884,9 @@
     },
     {
       "path": "packages/core/src/graph/types.ts",
-      "content": "/**\r\n * Graph types — nodes, edges, and the dependency graph itself.\r\n */\r\n\r\nexport type NodeType = 'function' | 'file' | 'module' | 'class' | 'generic'\r\nexport type EdgeType = 'calls' | 'imports' | 'exports' | 'contains'\r\n\r\n/** A single node in the dependency graph */\r\nexport interface GraphNode {\r\n    id: string              // \"fn:src/auth/verify.ts:verifyToken\"\r\n    type: NodeType\r\n    label: string           // \"verifyToken\"\r\n    file: string            // \"src/auth/verify.ts\"\r\n    moduleId?: string       // \"auth\" — which declared module this belongs to\r\n    metadata: {\r\n        startLine?: number\r\n        endLine?: number\r\n        isExported?: boolean\r\n        isAsync?: boolean\r\n        hash?: string\r\n        purpose?: string\r\n        params?: { name: string; type: string; optional?: boolean }[]\r\n        returnType?: string\r\n        edgeCasesHandled?: string[]\r\n        errorHandling?: { line: number; type: 'try-catch' | 'throw'; detail: string }[]\r\n        detailedLines?: { startLine: number; endLine: number; blockType: string }[]\r\n    }\r\n}\r\n\r\n/** A single edge in the dependency graph */\r\nexport interface GraphEdge {\r\n    source: string          // \"fn:src/auth/verify.ts:verifyToken\"\r\n    target: string          // \"fn:src/utils/jwt.ts:jwtDecode\"\r\n    type: EdgeType\r\n    weight?: number         // How often this call happens (for coupling metrics)\r\n}\r\n\r\n/** The full dependency graph */\r\nexport interface DependencyGraph {\r\n    nodes: Map<string, GraphNode>\r\n    edges: GraphEdge[]\r\n    outEdges: Map<string, GraphEdge[]>   // node → [edges going out]\r\n    inEdges: Map<string, GraphEdge[]>    // node → [edges coming in]\r\n}\r\n\r\n/** Result of impact analysis */\r\nexport interface ImpactResult {\r\n    changed: string[]        // The directly changed nodes\r\n    impacted: string[]       // Everything that depends on changed nodes\r\n    depth: number            // How many hops from change to furthest impact\r\n    confidence: 'high' | 'medium' | 'low'\r\n}\r\n\r\n/** A cluster of files that naturally belong together */\r\nexport interface ModuleCluster {\r\n    id: string\r\n    files: string[]\r\n    confidence: number      // 0.0 to 1.0\r\n    suggestedName: string   // inferred from folder names\r\n    functions: string[]     // function IDs in this cluster\r\n}\r\n",
+      "content": "/**\r\n * Graph types — nodes, edges, and the dependency graph itself.\r\n */\r\n\r\nexport type NodeType = 'function' | 'file' | 'module' | 'class' | 'generic'\r\nexport type EdgeType = 'calls' | 'imports' | 'exports' | 'contains'\r\n\r\n/** A single node in the dependency graph */\r\nexport interface GraphNode {\r\n    id: string              // \"fn:src/auth/verify.ts:verifyToken\"\r\n    type: NodeType\r\n    label: string           // \"verifyToken\"\r\n    file: string            // \"src/auth/verify.ts\"\r\n    moduleId?: string       // \"auth\" — which declared module this belongs to\r\n    metadata: {\r\n        startLine?: number\r\n        endLine?: number\r\n        isExported?: boolean\r\n        isAsync?: boolean\r\n        hash?: string\r\n        purpose?: string\r\n        params?: { name: string; type: string; optional?: boolean }[]\r\n        returnType?: string\r\n        edgeCasesHandled?: string[]\r\n        errorHandling?: { line: number; type: 'try-catch' | 'throw'; detail: string }[]\r\n        detailedLines?: { startLine: number; endLine: number; blockType: string }[]\r\n    }\r\n}\r\n\r\n/** A single edge in the dependency graph */\r\nexport interface GraphEdge {\r\n    source: string          // \"fn:src/auth/verify.ts:verifyToken\"\r\n    target: string          // \"fn:src/utils/jwt.ts:jwtDecode\"\r\n    type: EdgeType\r\n    weight?: number         // How often this call happens (for coupling metrics)\r\n    confidence?: number     // 0.0–1.0: 1.0 = direct AST call, 0.8 = via interface, 0.5 = fuzzy/inferred\r\n}\r\n\r\n/** The full dependency graph */\r\nexport interface DependencyGraph {\r\n    nodes: Map<string, GraphNode>\r\n    edges: GraphEdge[]\r\n    outEdges: Map<string, GraphEdge[]>   // node → [edges going out]\r\n    inEdges: Map<string, GraphEdge[]>    // node → [edges coming in]\r\n}\r\n\r\n/** Risk level for an impacted node */\r\nexport type RiskLevel = 'critical' | 'high' | 'medium' | 'low'\r\n\r\n/** A single node in the classified impact result */\r\nexport interface ClassifiedImpact {\r\n    nodeId: string\r\n    label: string\r\n    file: string\r\n    moduleId?: string\r\n    risk: RiskLevel\r\n    depth: number           // hops from change\r\n}\r\n\r\n/** Result of impact analysis */\r\nexport interface ImpactResult {\r\n    changed: string[]        // The directly changed nodes\r\n    impacted: string[]       // Everything that depends on changed nodes\r\n    depth: number            // How many hops from change to furthest impact\r\n    confidence: 'high' | 'medium' | 'low'\r\n    /** Risk-classified breakdown of impacted nodes */\r\n    classified: {\r\n        critical: ClassifiedImpact[]\r\n        high: ClassifiedImpact[]\r\n        medium: ClassifiedImpact[]\r\n        low: ClassifiedImpact[]\r\n    }\r\n}\r\n\r\n/** A cluster of files that naturally belong together */\r\nexport interface ModuleCluster {\r\n    id: string\r\n    files: string[]\r\n    confidence: number      // 0.0 to 1.0\r\n    suggestedName: string   // inferred from folder names\r\n    functions: string[]     // function IDs in this cluster\r\n}\r\n",
       "type": "types",
-      "size": 2287
+      "size": 2970
     },
     {
       "path": "packages/core/src/parser/types.ts",

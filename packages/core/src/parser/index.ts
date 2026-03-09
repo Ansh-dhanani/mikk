@@ -1,6 +1,7 @@
 import * as path from 'node:path'
 import { BaseParser } from './base-parser.js'
 import { TypeScriptParser } from './typescript/ts-parser.js'
+import { GoParser } from './go/go-parser.js'
 import { UnsupportedLanguageError } from '../utils/errors.js'
 import type { ParsedFile } from './types.js'
 
@@ -9,6 +10,9 @@ export { BaseParser } from './base-parser.js'
 export { TypeScriptParser } from './typescript/ts-parser.js'
 export { TypeScriptExtractor } from './typescript/ts-extractor.js'
 export { TypeScriptResolver } from './typescript/ts-resolver.js'
+export { GoParser } from './go/go-parser.js'
+export { GoExtractor } from './go/go-extractor.js'
+export { GoResolver } from './go/go-resolver.js'
 export { BoundaryChecker } from './boundary-checker.js'
 
 /** Get the appropriate parser for a file based on its extension */
@@ -18,6 +22,8 @@ export function getParser(filePath: string): BaseParser {
         case '.ts':
         case '.tsx':
             return new TypeScriptParser()
+        case '.go':
+            return new GoParser()
         default:
             throw new UnsupportedLanguageError(ext)
     }
@@ -30,17 +36,32 @@ export async function parseFiles(
     readFile: (fp: string) => Promise<string>
 ): Promise<ParsedFile[]> {
     const tsParser = new TypeScriptParser()
-    const files: ParsedFile[] = []
+    const goParser = new GoParser()
+    const tsFiles: ParsedFile[] = []
+    const goFiles: ParsedFile[] = []
 
     for (const fp of filePaths) {
         const ext = path.extname(fp)
         if (ext === '.ts' || ext === '.tsx') {
-            const content = await readFile(path.join(projectRoot, fp))
-            const parsed = tsParser.parse(fp, content)
-            files.push(parsed)
+            try {
+                const content = await readFile(path.join(projectRoot, fp))
+                tsFiles.push(tsParser.parse(fp, content))
+            } catch {
+                // Skip unreadable files (permissions, binary, etc.) — don't abort the whole parse
+            }
+        } else if (ext === '.go') {
+            try {
+                const content = await readFile(path.join(projectRoot, fp))
+                goFiles.push(goParser.parse(fp, content))
+            } catch {
+                // Skip unreadable files
+            }
         }
     }
 
-    // Resolve all imports after all files are parsed
-    return tsParser.resolveImports(files, projectRoot)
+    // Resolve imports per language after all files of that language are parsed
+    const resolvedTs = tsParser.resolveImports(tsFiles, projectRoot)
+    const resolvedGo = goParser.resolveImports(goFiles, projectRoot)
+
+    return [...resolvedTs, ...resolvedGo]
 }

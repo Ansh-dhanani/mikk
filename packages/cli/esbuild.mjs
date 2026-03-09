@@ -12,6 +12,7 @@ await esbuild.build({
   target: 'node18',
   sourcemap: true,
   banner: { js: '#!/usr/bin/env node' },
+  external: ['@xenova/transformers'],
   define: {
     '__MIKK_VERSION__': JSON.stringify(version)
   }

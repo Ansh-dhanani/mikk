@@ -1,3 +1,5 @@
+import * as path from 'node:path'
+import * as fs from 'node:fs'
 import { BaseParser } from '../base-parser.js'
 import { TypeScriptExtractor } from './ts-extractor.js'
 import { TypeScriptResolver } from './ts-resolver.js'
@@ -54,7 +56,8 @@ export class TypeScriptParser extends BaseParser {
 
     /** Resolve all import paths in parsed files to absolute project paths */
     resolveImports(files: ParsedFile[], projectRoot: string): ParsedFile[] {
-        const resolver = new TypeScriptResolver(projectRoot)
+        const tsConfigPaths = loadTsConfigPaths(projectRoot)
+        const resolver = new TypeScriptResolver(projectRoot, tsConfigPaths)
         const allFilePaths = files.map(f => f.path)
         return files.map(file => ({
             ...file,
@@ -65,4 +68,41 @@ export class TypeScriptParser extends BaseParser {
     getSupportedExtensions(): string[] {
         return ['.ts', '.tsx']
     }
+}
+
+/**
+ * Read compilerOptions.paths from the nearest tsconfig.json in projectRoot.
+ * Handles baseUrl prefix so aliases like "@/*" → ["src/*"] resolve correctly.
+ */
+function loadTsConfigPaths(projectRoot: string): Record<string, string[]> {
+    const candidates = ['tsconfig.json', 'tsconfig.base.json']
+    for (const name of candidates) {
+        const tsConfigPath = path.join(projectRoot, name)
+        try {
+            const raw = fs.readFileSync(tsConfigPath, 'utf-8')
+            // Strip line comments before JSON.parse (tsconfig allows them)
+            const stripped = raw.replace(/\/\/.*$/gm, '').replace(/\/\*[\s\S]*?\*\//g, '')
+            let tsConfig: any
+            try {
+                tsConfig = JSON.parse(stripped)
+            } catch {
+                // Stripping may have broken a URL (e.g. "https://...") — fall back to raw
+                tsConfig = JSON.parse(raw)
+            }
+            const options = tsConfig.compilerOptions ?? {}
+            const rawPaths: Record<string, string[]> = options.paths ?? {}
+            if (Object.keys(rawPaths).length === 0) continue
+
+            const baseUrl: string = options.baseUrl ?? '.'
+            // Prefix each target with baseUrl so relative resolution works
+            const resolved: Record<string, string[]> = {}
+            for (const [alias, targets] of Object.entries(rawPaths)) {
+                resolved[alias] = (targets as string[]).map(t =>
+                    t.startsWith('.') ? path.posix.join(baseUrl, t) : t
+                )
+            }
+            return resolved
+        } catch { /* tsconfig not found or invalid — continue */ }
+    }
+    return {}
 }

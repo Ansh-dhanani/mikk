@@ -530,31 +530,53 @@ export class TypeScriptExtractor {
         return [...new Set(calls)] // deduplicate
     }
 
-    /** Extract the purpose from JSDoc comments or preceding single-line comments */
+    /** Extract the purpose from JSDoc comments or preceding single-line comments.
+     *  Falls back to deriving a human-readable sentence from the function name. */
     private extractPurpose(node: ts.Node): string {
         const fullText = this.sourceFile.getFullText()
         const commentRanges = ts.getLeadingCommentRanges(fullText, node.getFullStart())
-        if (!commentRanges || commentRanges.length === 0) return ''
+        if (commentRanges && commentRanges.length > 0) {
+            const meaningfulLines: string[] = []
+            for (const range of commentRanges) {
+                const comment = fullText.slice(range.pos, range.end)
+                let clean = ''
+                if (comment.startsWith('/**') || comment.startsWith('/*')) {
+                    clean = comment.replace(/[\/\*]/g, '').trim()
+                } else if (comment.startsWith('//')) {
+                    clean = comment.replace(/\/\//g, '').trim()
+                }
 
-        const meaningfulLines: string[] = []
-        for (const range of commentRanges) {
-            const comment = fullText.slice(range.pos, range.end)
-            let clean = ''
-            if (comment.startsWith('/**') || comment.startsWith('/*')) {
-                clean = comment.replace(/[\/\*]/g, '').trim()
-            } else if (comment.startsWith('//')) {
-                clean = comment.replace(/\/\//g, '').trim()
+                // Skip divider lines (lines with 3+ repeated special characters)
+                if (/^[─\-_=\*]{3,}$/.test(clean)) continue
+
+                if (clean) meaningfulLines.push(clean)
             }
 
-            // Skip divider lines (lines with 3+ repeated special characters)
-            if (/^[─\-_=\*]{3,}$/.test(clean)) continue
-
-            if (clean) meaningfulLines.push(clean)
+            // Return the first meaningful line — in JSDoc, the first line is the summary.
+            const fromComment = meaningfulLines.length > 0 ? meaningfulLines[0].split('\n')[0].trim() : ''
+            if (fromComment) return fromComment
         }
 
-        // Return the first meaningful line — in JSDoc, the first line is the summary.
-        // e.g. "Decrypt data using AES-256-GCM" (not a later detail line)
-        return meaningfulLines.length > 0 ? meaningfulLines[0].split('\n')[0].trim() : ''
+        // Fallback: derive a human-readable sentence from the function/identifier name
+        const name = this.getNodeName(node)
+        return name ? derivePurposeFromName(name) : ''
+    }
+
+    /** Get the identifier name from common declaration node types */
+    private getNodeName(node: ts.Node): string {
+        if (ts.isFunctionDeclaration(node) && node.name) return node.name.text
+        if (ts.isArrowFunction(node) || ts.isFunctionExpression(node)) {
+            const parent = node.parent
+            if (parent && ts.isVariableDeclaration(parent) && ts.isIdentifier(parent.name)) {
+                return parent.name.text
+            }
+        }
+        if (ts.isMethodDeclaration(node) && ts.isIdentifier(node.name)) return node.name.text
+        if (ts.isConstructorDeclaration(node)) return 'constructor'
+        if ((ts.isInterfaceDeclaration(node) || ts.isTypeAliasDeclaration(node) || ts.isClassDeclaration(node)) && node.name) {
+            return (node as any).name.text
+        }
+        return ''
     }
 
     /** Extract edge cases handled (if statements returning early) */
@@ -678,4 +700,29 @@ export class TypeScriptExtractor {
             callback(child)
         })
     }
+}
+
+// ─── Helpers ─────────────────────────────────────────────────────────────────
+
+/**
+ * Derive a human-readable purpose sentence from a camelCase/PascalCase identifier.
+ * Examples:
+ *   validateJwtToken   → "Validate jwt token"
+ *   buildGraphFromLock → "Build graph from lock"
+ *   UserRepository     → "User repository"
+ *   parseFiles         → "Parse files"
+ */
+function derivePurposeFromName(name: string): string {
+    if (!name || name === 'constructor') return ''
+    // Split on camelCase/PascalCase boundaries and underscores
+    const words = name
+        .replace(/_+/g, ' ')
+        .replace(/([a-z])([A-Z])/g, '$1 $2')
+        .replace(/([A-Z]+)([A-Z][a-z])/g, '$1 $2')
+        .toLowerCase()
+        .split(/\s+/)
+        .filter(Boolean)
+    if (words.length === 0) return ''
+    words[0] = words[0].charAt(0).toUpperCase() + words[0].slice(1)
+    return words.join(' ')
 }
