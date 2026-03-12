@@ -4,20 +4,45 @@ graph TD
         subgraph file_packages_cli_src_commands_analyze_ts["📄 analyze.ts"]
             fn_packages_cli_src_commands_analyze_ts_registerAnalyzeCommand["⚡ registerAnalyzeCommand"]
         end
+        subgraph file_packages_cli_src_commands_ci_ts["📄 ci.ts"]
+            fn_packages_cli_src_commands_ci_ts_registerCiCommand["⚡ registerCiCommand"]
+            fn_packages_cli_src_commands_ci_ts_buildGraphFromLock["λ buildGraphFromLock"]
+        end
         subgraph file_packages_cli_src_commands_context_ts["📄 context.ts"]
             fn_packages_cli_src_commands_context_ts_parseIntOption["λ parseIntOption"]
             fn_packages_cli_src_commands_context_ts_registerContextCommands["⚡ registerContextCommands"]
             fn_packages_cli_src_commands_context_ts_loadContractAndLock["λ loadContractAndLock"]
             fn_packages_cli_src_commands_context_ts_printMeta["λ printMeta"]
         end
+        subgraph file_packages_cli_src_commands_dead_code_ts["📄 dead-code.ts"]
+            fn_packages_cli_src_commands_dead_code_ts_registerDeadCodeCommand["⚡ registerDeadCodeCommand"]
+            fn_packages_cli_src_commands_dead_code_ts_buildGraphFromLock["λ buildGraphFromLock"]
+        end
         subgraph file_packages_cli_src_commands_diff_ts["📄 diff.ts"]
             fn_packages_cli_src_commands_diff_ts_registerDiffCommand["⚡ registerDiffCommand"]
+        end
+        subgraph file_packages_cli_src_commands_doctor_ts["📄 doctor.ts"]
+            fn_packages_cli_src_commands_doctor_ts_registerDoctorCommand["⚡ registerDoctorCommand"]
         end
         subgraph file_packages_cli_src_commands_init_ts["📄 init.ts"]
             fn_packages_cli_src_commands_init_ts_registerInitCommand["⚡ registerInitCommand"]
         end
         subgraph file_packages_cli_src_commands_intent_ts["📄 intent.ts"]
             fn_packages_cli_src_commands_intent_ts_registerIntentCommand["⚡ registerIntentCommand"]
+        end
+        subgraph file_packages_cli_src_commands_mcp_ts["📄 mcp.ts"]
+            fn_packages_cli_src_commands_mcp_ts_registerMcpCommand["⚡ registerMcpCommand"]
+            fn_packages_cli_src_commands_mcp_ts_installMcpConfig["λ installMcpConfig"]
+            fn_packages_cli_src_commands_mcp_ts_buildTargets["λ buildTargets"]
+            fn_packages_cli_src_commands_mcp_ts_buildMcpEntry["λ buildMcpEntry"]
+            fn_packages_cli_src_commands_mcp_ts_parseJsonSafe["λ parseJsonSafe"]
+            fn_packages_cli_src_commands_mcp_ts_patchClaudeConfig["λ patchClaudeConfig"]
+            fn_packages_cli_src_commands_mcp_ts_patchCursorConfig["λ patchCursorConfig"]
+            fn_packages_cli_src_commands_mcp_ts_patchVSCodeConfig["λ patchVSCodeConfig"]
+        end
+        subgraph file_packages_cli_src_commands_stats_ts["📄 stats.ts"]
+            fn_packages_cli_src_commands_stats_ts_registerStatsCommand["⚡ registerStatsCommand"]
+            fn_packages_cli_src_commands_stats_ts_buildGraphFromLock["λ buildGraphFromLock"]
         end
         subgraph file_packages_cli_src_commands_visualize_ts["📄 visualize.ts"]
             fn_packages_cli_src_commands_visualize_ts_loadProjectContext["λ loadProjectContext"]
@@ -31,9 +56,23 @@ graph TD
         end
     end
 
+    fn_packages_cli_src_commands_ci_ts_registerCiCommand --> fn_packages_cli_src_commands_ci_ts_buildGraphFromLock
     fn_packages_cli_src_commands_context_ts_registerContextCommands --> fn_packages_cli_src_commands_context_ts_loadContractAndLock
     fn_packages_cli_src_commands_context_ts_registerContextCommands --> fn_packages_cli_src_commands_context_ts_parseIntOption
     fn_packages_cli_src_commands_context_ts_registerContextCommands --> fn_packages_cli_src_commands_context_ts_printMeta
+    fn_packages_cli_src_commands_dead_code_ts_registerDeadCodeCommand --> fn_packages_cli_src_commands_dead_code_ts_buildGraphFromLock
+    fn_packages_cli_src_commands_mcp_ts_registerMcpCommand --> fn_packages_cli_src_commands_mcp_ts_installMcpConfig
+    fn_packages_cli_src_commands_mcp_ts_installMcpConfig --> fn_packages_cli_src_commands_mcp_ts_buildTargets
+    fn_packages_cli_src_commands_mcp_ts_buildTargets --> fn_packages_cli_src_commands_mcp_ts_patchClaudeConfig
+    fn_packages_cli_src_commands_mcp_ts_buildTargets --> fn_packages_cli_src_commands_mcp_ts_patchCursorConfig
+    fn_packages_cli_src_commands_mcp_ts_buildTargets --> fn_packages_cli_src_commands_mcp_ts_patchVSCodeConfig
+    fn_packages_cli_src_commands_mcp_ts_patchClaudeConfig --> fn_packages_cli_src_commands_mcp_ts_parseJsonSafe
+    fn_packages_cli_src_commands_mcp_ts_patchClaudeConfig --> fn_packages_cli_src_commands_mcp_ts_buildMcpEntry
+    fn_packages_cli_src_commands_mcp_ts_patchCursorConfig --> fn_packages_cli_src_commands_mcp_ts_parseJsonSafe
+    fn_packages_cli_src_commands_mcp_ts_patchCursorConfig --> fn_packages_cli_src_commands_mcp_ts_buildMcpEntry
+    fn_packages_cli_src_commands_mcp_ts_patchVSCodeConfig --> fn_packages_cli_src_commands_mcp_ts_parseJsonSafe
+    fn_packages_cli_src_commands_mcp_ts_patchVSCodeConfig --> fn_packages_cli_src_commands_mcp_ts_buildMcpEntry
+    fn_packages_cli_src_commands_stats_ts_registerStatsCommand --> fn_packages_cli_src_commands_stats_ts_buildGraphFromLock
     fn_packages_cli_src_commands_visualize_ts_registerVisualizeCommands --> fn_packages_cli_src_commands_visualize_ts_loadProjectContext
 
     classDef default fill:#334155,stroke:#64748b,color:#e2e8f0,stroke-width:1px

@@ -1,4 +1,6 @@
 import type { MikkContract, MikkLock, MikkLockFunction } from '@getmikk/core'
+import * as fs from 'node:fs'
+import * as path from 'node:path'
 
 /** Default token budget for claude.md — generous but still bounded */
 const DEFAULT_TOKEN_BUDGET = 12000
@@ -33,7 +35,8 @@ export class ClaudeMdGenerator {
         private contract: MikkContract,
         private lock: MikkLock,
         private tokenBudget: number = DEFAULT_TOKEN_BUDGET,
-        meta?: ProjectMeta
+        meta?: ProjectMeta,
+        private projectRoot?: string
     ) {
         this.meta = meta || {}
     }
@@ -324,13 +327,18 @@ export class ClaudeMdGenerator {
             lines.push(`### \`${cf.path}\` (${cf.type})`)
             lines.push('')
             lines.push('```' + lang)
+            // Read content from disk on-demand
+            let content = ''
+            if (this.projectRoot) {
+                try { content = fs.readFileSync(path.resolve(this.projectRoot, cf.path), 'utf-8') } catch { }
+            }
             // Trim content to avoid blowing up the token budget
             const maxChars = 8000 // ~2000 tokens per file
-            if (cf.content.length > maxChars) {
-                lines.push(cf.content.slice(0, maxChars))
-                lines.push(`// ... truncated (${cf.size} bytes total)`)
+            if (content.length > maxChars) {
+                lines.push(content.slice(0, maxChars))
+                lines.push(`// ... truncated (${cf.size ?? content.length} bytes total)`)
             } else {
-                lines.push(cf.content.trimEnd())
+                lines.push(content.trimEnd())
             }
             lines.push('```')
             lines.push('')

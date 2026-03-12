@@ -7,7 +7,9 @@ import * as path from 'node:path'
 import { createMikkMcpServer } from '../src/server'
 import { InMemoryTransport } from '@modelcontextprotocol/sdk/inMemory.js'
 import { Client } from '@modelcontextprotocol/sdk/client/index.js'
+import { Client } from '@modelcontextprotocol/sdk/client/index.js'
 import type { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js'
+import * as fs from 'node:fs/promises'
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Test constants
@@ -21,6 +23,18 @@ const MISSING_ROOT = path.join(import.meta.dir, 'fixtures', 'nonexistent-project
 // ─────────────────────────────────────────────────────────────────────────────
 
 async function createTestClient(projectRoot = FIXTURE_ROOT): Promise<{ client: Client; server: McpServer }> {
+    // Touch lock file so active staleness detection doesn't trigger on fresh clones
+    const lockPath = path.join(projectRoot, 'mikk.lock.json')
+    try {
+        const lockStr = await fs.readFile(lockPath, 'utf-8')
+        const lock = JSON.parse(lockStr)
+        const futureDate = new Date(Date.now() + 10000).toISOString()
+        for (const file in lock.files) {
+            lock.files[file].lastModified = futureDate
+        }
+        await fs.writeFile(lockPath, JSON.stringify(lock, null, 2))
+    } catch { /* ignore if no lock */ }
+
     const [clientTransport, serverTransport] = InMemoryTransport.createLinkedPair()
     const server = createMikkMcpServer(projectRoot)
     await server.connect(serverTransport)
@@ -78,9 +92,9 @@ describe('@getmikk/mcp-server — tool list', () => {
         await server.close()
     })
 
-    it('exposes exactly 15 tools', async () => {
+    it('exposes exactly 18 tools', async () => {
         const result = await client.listTools()
-        expect(result.tools).toHaveLength(15)
+        expect(result.tools).toHaveLength(18)
     })
 
     it('has the correct tool names', async () => {
@@ -90,16 +104,19 @@ describe('@getmikk/mcp-server — tool list', () => {
             'mikk_before_edit',
             'mikk_dead_code',
             'mikk_find_usages',
+            'mikk_get_changes',
             'mikk_get_constraints',
             'mikk_get_file',
             'mikk_get_function_detail',
             'mikk_get_module_detail',
             'mikk_get_project_overview',
             'mikk_get_routes',
+            'mikk_get_session_context',
             'mikk_impact_analysis',
             'mikk_list_modules',
             'mikk_manage_adr',
             'mikk_query_context',
+            'mikk_read_file',
             'mikk_search_functions',
             'mikk_semantic_search',
         ])
@@ -797,6 +814,120 @@ describe('resources', () => {
         } catch (err: any) {
             expect(typeof err.message).toBe('string')
         }
+    })
+})
+
+// ─────────────────────────────────────────────────────────────────────────────
+// SUITE: mikk_get_changes
+// ─────────────────────────────────────────────────────────────────────────────
+
+describe('mikk_get_changes', () => {
+    let client: Client
+    let server: McpServer
+
+    beforeAll(async () => {
+        ;({ client, server } = await createTestClient())
+    })
+
+    afterAll(async () => {
+        await server.close()
+    })
+
+    it('detects modified files based on hash mismatch with lock', async () => {
+        const result = await client.callTool({ name: 'mikk_get_changes', arguments: {} })
+        expect(isError(result)).toBe(false)
+        const data = parseJSON(result)
+        expect(data.added).toHaveLength(0)
+        expect(data.modified).toHaveLength(1) // src/auth.ts fixture content changed
+        expect(data.deleted).toHaveLength(0)
+        expect(data.summary).toContain('1 modified')
+    })
+})
+
+// ─────────────────────────────────────────────────────────────────────────────
+// SUITE: mikk_read_file
+// ─────────────────────────────────────────────────────────────────────────────
+
+describe('mikk_read_file', () => {
+    let client: Client
+    let server: McpServer
+
+    beforeAll(async () => {
+        ;({ client, server } = await createTestClient())
+    })
+
+    afterAll(async () => {
+        await server.close()
+    })
+
+    it('returns the entire file when no functions specified', async () => {
+        const result = await client.callTool({ name: 'mikk_read_file', arguments: { file: 'src/auth.ts' } })
+        expect(isError(result)).toBe(false)
+        const text = getText(result)
+        expect(text).toContain('export async function login')
+        expect(text).toContain('function hashPassword')
+        expect(text).toContain('function generateToken')
+    })
+
+    it('returns only the specified function when provided', async () => {
+        const result = await client.callTool({ name: 'mikk_read_file', arguments: { file: 'src/auth.ts', functions: ['hashPassword'] } })
+        expect(isError(result)).toBe(false)
+        const text = getText(result)
+        expect(text).toContain('function hashPassword')
+        expect(text).not.toContain('export async function login')
+    })
+
+    it('returns multiple specified functions', async () => {
+        const result = await client.callTool({ name: 'mikk_read_file', arguments: { file: 'src/auth.ts', functions: ['login', 'generateToken'] } })
+        expect(isError(result)).toBe(false)
+        const text = getText(result)
+        expect(text).toContain('export async function login')
+        expect(text).toContain('function generateToken')
+        expect(text).not.toContain('function hashPassword')
+    })
+
+    it('returns error when file does not exist', async () => {
+        const result = await client.callTool({ name: 'mikk_read_file', arguments: { file: 'src/missing.ts' } })
+        expect(isError(result)).toBe(true)
+        expect(getText(result)).toContain('Cannot read')
+        expect(getText(result)).toContain('src/missing.ts')
+    })
+
+    it('returns warning when function is not found in file', async () => {
+        const result = await client.callTool({ name: 'mikk_read_file', arguments: { file: 'src/auth.ts', functions: ['login', 'unknownFunction'] } })
+        expect(isError(result)).toBe(false)
+        const text = getText(result)
+        expect(text).toContain('export async function login')
+        expect(text).toContain('Function "unknownFunction" not found')
+    })
+})
+
+// ─────────────────────────────────────────────────────────────────────────────
+// SUITE: mikk_get_session_context
+// ─────────────────────────────────────────────────────────────────────────────
+
+describe('mikk_get_session_context', () => {
+    let client: Client
+    let server: McpServer
+
+    beforeAll(async () => {
+        ;({ client, server } = await createTestClient())
+    })
+
+    afterAll(async () => {
+        await server.close()
+    })
+
+    it('returns comprehensive session context', async () => {
+        const result = await client.callTool({ name: 'mikk_get_session_context', arguments: {} })
+        expect(isError(result)).toBe(false)
+        const data = parseJSON(result)
+        
+        expect(data.project.name).toBe('test-project')
+        expect(data.summary.totalFunctions).toBe(3)
+        expect(data.constraints).toHaveLength(2)
+        expect(data.summary.estimatedChanges).toBe(0) // bypassed by mtime mock
+        expect(data.hotModules).toHaveLength(0)
     })
 })
 

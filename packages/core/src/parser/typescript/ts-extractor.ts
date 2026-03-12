@@ -7,11 +7,11 @@ import { hashContent } from '../../hash/file-hasher.js'
  * and extracts functions, classes, imports, exports and call relationships.
  */
 export class TypeScriptExtractor {
-    private sourceFile: ts.SourceFile
+    protected readonly sourceFile: ts.SourceFile
 
     constructor(
-        private filePath: string,
-        private content: string
+        protected readonly filePath: string,
+        protected readonly content: string
     ) {
         this.sourceFile = ts.createSourceFile(
             filePath,
@@ -118,7 +118,7 @@ export class TypeScriptExtractor {
         return generics
     }
 
-    private isVariableFunction(node: ts.VariableStatement): boolean {
+    protected isVariableFunction(node: ts.VariableStatement): boolean {
         for (const decl of node.declarationList.declarations) {
             if (decl.initializer && (ts.isArrowFunction(decl.initializer) || ts.isFunctionExpression(decl.initializer))) {
                 return true
@@ -309,14 +309,14 @@ export class TypeScriptExtractor {
         return routes
     }
 
-    // ─── Private Helpers ──────────────────────────────────────
+    // ─── Protected Helpers ─────────────────────────────────────
 
-    private parseFunctionDeclaration(node: ts.FunctionDeclaration): ParsedFunction {
+    protected parseFunctionDeclaration(node: ts.FunctionDeclaration): ParsedFunction {
         const name = node.name!.text
         const startLine = this.getLineNumber(node.getStart())
         const endLine = this.getLineNumber(node.getEnd())
         const params = this.extractParams(node.parameters)
-        const returnType = node.type ? node.type.getText(this.sourceFile) : 'void'
+        const returnType = normalizeTypeAnnotation(node.type ? node.type.getText(this.sourceFile) : 'void')
         const isAsync = !!node.modifiers?.some(m => m.kind === ts.SyntaxKind.AsyncKeyword)
         const isGenerator = !!node.asteriskToken
         const typeParameters = this.extractTypeParameters(node.typeParameters)
@@ -344,7 +344,7 @@ export class TypeScriptExtractor {
         }
     }
 
-    private parseVariableFunction(
+    protected parseVariableFunction(
         stmt: ts.VariableStatement,
         decl: ts.VariableDeclaration,
         fn: ts.ArrowFunction | ts.FunctionExpression
@@ -353,7 +353,7 @@ export class TypeScriptExtractor {
         const startLine = this.getLineNumber(stmt.getStart())
         const endLine = this.getLineNumber(stmt.getEnd())
         const params = this.extractParams(fn.parameters)
-        const returnType = fn.type ? fn.type.getText(this.sourceFile) : 'void'
+        const returnType = normalizeTypeAnnotation(fn.type ? fn.type.getText(this.sourceFile) : 'void')
         const isAsync = !!fn.modifiers?.some(m => m.kind === ts.SyntaxKind.AsyncKeyword)
         const isGenerator = ts.isFunctionExpression(fn) && !!fn.asteriskToken
         const typeParameters = this.extractTypeParameters(fn.typeParameters)
@@ -381,7 +381,7 @@ export class TypeScriptExtractor {
         }
     }
 
-    private parseClass(node: ts.ClassDeclaration): ParsedClass {
+    protected parseClass(node: ts.ClassDeclaration): ParsedClass {
         const name = node.name!.text
         const startLine = this.getLineNumber(node.getStart())
         const endLine = this.getLineNumber(node.getEnd())
@@ -420,7 +420,7 @@ export class TypeScriptExtractor {
                 const mStartLine = this.getLineNumber(member.getStart())
                 const mEndLine = this.getLineNumber(member.getEnd())
                 const params = this.extractParams(member.parameters)
-                const returnType = member.type ? member.type.getText(this.sourceFile) : 'void'
+                const returnType = normalizeTypeAnnotation(member.type ? member.type.getText(this.sourceFile) : 'void')
                 const isAsync = !!member.modifiers?.some(m => m.kind === ts.SyntaxKind.AsyncKeyword)
                 const isGenerator = !!member.asteriskToken
                 const methodTypeParams = this.extractTypeParameters(member.typeParameters)
@@ -465,7 +465,7 @@ export class TypeScriptExtractor {
         }
     }
 
-    private parseImport(node: ts.ImportDeclaration): ParsedImport | null {
+    protected parseImport(node: ts.ImportDeclaration): ParsedImport | null {
         const source = (node.moduleSpecifier as ts.StringLiteral).text
         const names: string[] = []
         let isDefault = false
@@ -503,7 +503,7 @@ export class TypeScriptExtractor {
     }
 
     /** Extract function/method call expressions from a node (including new Foo()) */
-    private extractCalls(node: ts.Node): string[] {
+    protected extractCalls(node: ts.Node): string[] {
         const calls: string[] = []
         const walkCalls = (n: ts.Node) => {
             if (ts.isCallExpression(n)) {
@@ -532,7 +532,7 @@ export class TypeScriptExtractor {
 
     /** Extract the purpose from JSDoc comments or preceding single-line comments.
      *  Falls back to deriving a human-readable sentence from the function name. */
-    private extractPurpose(node: ts.Node): string {
+    protected extractPurpose(node: ts.Node): string {
         const fullText = this.sourceFile.getFullText()
         const commentRanges = ts.getLeadingCommentRanges(fullText, node.getFullStart())
         if (commentRanges && commentRanges.length > 0) {
@@ -563,7 +563,7 @@ export class TypeScriptExtractor {
     }
 
     /** Get the identifier name from common declaration node types */
-    private getNodeName(node: ts.Node): string {
+    protected getNodeName(node: ts.Node): string {
         if (ts.isFunctionDeclaration(node) && node.name) return node.name.text
         if (ts.isArrowFunction(node) || ts.isFunctionExpression(node)) {
             const parent = node.parent
@@ -580,7 +580,7 @@ export class TypeScriptExtractor {
     }
 
     /** Extract edge cases handled (if statements returning early) */
-    private extractEdgeCases(node: ts.Node): string[] {
+    protected extractEdgeCases(node: ts.Node): string[] {
         const edgeCases: string[] = []
         const walkEdgeCases = (n: ts.Node) => {
             if (ts.isIfStatement(n)) {
@@ -601,7 +601,7 @@ export class TypeScriptExtractor {
     }
 
     /** Extract try-catch blocks or explicit throw statements */
-    private extractErrorHandling(node: ts.Node): { line: number, type: 'try-catch' | 'throw', detail: string }[] {
+    protected extractErrorHandling(node: ts.Node): { line: number, type: 'try-catch' | 'throw', detail: string }[] {
         const errors: { line: number, type: 'try-catch' | 'throw', detail: string }[] = []
         const walkErrors = (n: ts.Node) => {
             if (ts.isTryStatement(n)) {
@@ -625,7 +625,7 @@ export class TypeScriptExtractor {
     }
 
     /** Extract detailed line block breakdowns */
-    private extractDetailedLines(node: ts.Node): { startLine: number, endLine: number, blockType: string }[] {
+    protected extractDetailedLines(node: ts.Node): { startLine: number, endLine: number, blockType: string }[] {
         const blocks: { startLine: number, endLine: number, blockType: string }[] = []
         const walkBlocks = (n: ts.Node) => {
             if (ts.isIfStatement(n) || ts.isSwitchStatement(n)) {
@@ -650,13 +650,13 @@ export class TypeScriptExtractor {
     }
 
     /** Extract type parameter names from a generic declaration */
-    private extractTypeParameters(typeParams: ts.NodeArray<ts.TypeParameterDeclaration> | undefined): string[] {
+    protected extractTypeParameters(typeParams: ts.NodeArray<ts.TypeParameterDeclaration> | undefined): string[] {
         if (!typeParams || typeParams.length === 0) return []
         return typeParams.map(tp => tp.name.text)
     }
 
     /** Extract decorator names from a class declaration */
-    private extractDecorators(node: ts.ClassDeclaration): string[] {
+    protected extractDecorators(node: ts.ClassDeclaration): string[] {
         const decorators: string[] = []
         const modifiers = ts.canHaveDecorators(node) ? ts.getDecorators(node) : undefined
         if (modifiers) {
@@ -674,28 +674,28 @@ export class TypeScriptExtractor {
     }
 
     /** Extract parameters from a function's parameter list */
-    private extractParams(params: ts.NodeArray<ts.ParameterDeclaration>): ParsedParam[] {
+    protected extractParams(params: ts.NodeArray<ts.ParameterDeclaration>): ParsedParam[] {
         return params.map((p) => ({
             name: p.name.getText(this.sourceFile),
-            type: p.type ? p.type.getText(this.sourceFile) : 'any',
+            type: normalizeTypeAnnotation(p.type ? p.type.getText(this.sourceFile) : 'any'),
             optional: !!p.questionToken || !!p.initializer,
             defaultValue: p.initializer ? p.initializer.getText(this.sourceFile) : undefined,
         }))
     }
 
     /** Check if a node has the 'export' modifier */
-    private hasExportModifier(node: ts.Node): boolean {
+    protected hasExportModifier(node: ts.Node): boolean {
         const modifiers = ts.canHaveModifiers(node) ? ts.getModifiers(node) : undefined
         return !!modifiers?.some(m => m.kind === ts.SyntaxKind.ExportKeyword)
     }
 
     /** Get 1-indexed line number from a character position */
-    private getLineNumber(pos: number): number {
+    protected getLineNumber(pos: number): number {
         return this.sourceFile.getLineAndCharacterOfPosition(pos).line + 1
     }
 
     /** Walk the top-level children of a node (non-recursive — callbacks decide depth) */
-    private walkNode(node: ts.Node, callback: (node: ts.Node) => void): void {
+    protected walkNode(node: ts.Node, callback: (node: ts.Node) => void): void {
         ts.forEachChild(node, (child) => {
             callback(child)
         })
@@ -712,6 +712,10 @@ export class TypeScriptExtractor {
  *   UserRepository     → "User repository"
  *   parseFiles         → "Parse files"
  */
+function normalizeTypeAnnotation(type: string): string {
+    return type.replace(/\s*\n\s*/g, ' ').replace(/\s{2,}/g, ' ').trim()
+}
+
 function derivePurposeFromName(name: string): string {
     if (!name || name === 'constructor') return ''
     // Split on camelCase/PascalCase boundaries and underscores

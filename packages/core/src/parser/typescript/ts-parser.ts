@@ -71,30 +71,27 @@ export class TypeScriptParser extends BaseParser {
 }
 
 /**
- * Read compilerOptions.paths from the nearest tsconfig.json in projectRoot.
- * Handles baseUrl prefix so aliases like "@/*" → ["src/*"] resolve correctly.
+ * Read compilerOptions.paths from tsconfig.json in projectRoot.
+ * Recursively follows "extends" chains (e.g. extends ./tsconfig.base.json,
+ * extends @tsconfig/node-lts/tsconfig.json) and merges paths.
+ * 
+ * Handles:
+ *  - extends with relative paths (./tsconfig.base.json)
+ *  - extends with node_modules packages (@tsconfig/node-lts)
+ *  - baseUrl prefix so aliases like "@/*" → ["src/*"] resolve correctly
+ *  - JSON5-style comments (line and block comments)
  */
 function loadTsConfigPaths(projectRoot: string): Record<string, string[]> {
     const candidates = ['tsconfig.json', 'tsconfig.base.json']
     for (const name of candidates) {
         const tsConfigPath = path.join(projectRoot, name)
         try {
-            const raw = fs.readFileSync(tsConfigPath, 'utf-8')
-            // Strip line comments before JSON.parse (tsconfig allows them)
-            const stripped = raw.replace(/\/\/.*$/gm, '').replace(/\/\*[\s\S]*?\*\//g, '')
-            let tsConfig: any
-            try {
-                tsConfig = JSON.parse(stripped)
-            } catch {
-                // Stripping may have broken a URL (e.g. "https://...") — fall back to raw
-                tsConfig = JSON.parse(raw)
-            }
-            const options = tsConfig.compilerOptions ?? {}
+            const merged = loadTsConfigWithExtends(tsConfigPath, new Set())
+            const options = merged.compilerOptions ?? {}
             const rawPaths: Record<string, string[]> = options.paths ?? {}
             if (Object.keys(rawPaths).length === 0) continue
 
             const baseUrl: string = options.baseUrl ?? '.'
-            // Prefix each target with baseUrl so relative resolution works
             const resolved: Record<string, string[]> = {}
             for (const [alias, targets] of Object.entries(rawPaths)) {
                 resolved[alias] = (targets as string[]).map(t =>
@@ -105,4 +102,86 @@ function loadTsConfigPaths(projectRoot: string): Record<string, string[]> {
         } catch { /* tsconfig not found or invalid — continue */ }
     }
     return {}
+}
+
+/**
+ * Recursively load a tsconfig, following the "extends" chain.
+ * Merges compilerOptions from parent → child (child wins on conflict).
+ * Prevents infinite loops via a visited set.
+ */
+function loadTsConfigWithExtends(configPath: string, visited: Set<string>): any {
+    const resolved = path.resolve(configPath)
+    if (visited.has(resolved)) return {}
+    visited.add(resolved)
+
+    let raw: string
+    try {
+        raw = fs.readFileSync(resolved, 'utf-8')
+    } catch {
+        return {}
+    }
+
+    // Strip JSON5 comments
+    const stripped = raw.replace(/\/\/.*$/gm, '').replace(/\/\*[\s\S]*?\*\//g, '')
+    let config: any
+    try {
+        config = JSON.parse(stripped)
+    } catch {
+        try { config = JSON.parse(raw) } catch { return {} }
+    }
+
+    if (!config.extends) return config
+
+    // Resolve the parent config path
+    const extendsValue = config.extends
+    let parentPath: string
+
+    if (extendsValue.startsWith('.')) {
+        // Relative path: ./tsconfig.base.json or ../tsconfig.json
+        parentPath = path.resolve(path.dirname(resolved), extendsValue)
+        // Add .json if missing
+        if (!parentPath.endsWith('.json')) parentPath += '.json'
+    } else {
+        // Node module: @tsconfig/node-lts or @tsconfig/node-lts/tsconfig.json
+        try {
+            // Try resolving as a node module from projectRoot
+            const projectRoot = path.dirname(resolved)
+            const modulePath = path.join(projectRoot, 'node_modules', extendsValue)
+            if (fs.existsSync(modulePath + '.json')) {
+                parentPath = modulePath + '.json'
+            } else if (fs.existsSync(path.join(modulePath, 'tsconfig.json'))) {
+                parentPath = path.join(modulePath, 'tsconfig.json')
+            } else if (fs.existsSync(modulePath)) {
+                parentPath = modulePath
+            } else {
+                // Can't resolve — skip extends
+                delete config.extends
+                return config
+            }
+        } catch {
+            delete config.extends
+            return config
+        }
+    }
+
+    // Load parent recursively
+    const parent = loadTsConfigWithExtends(parentPath, visited)
+
+    // Merge: parent compilerOptions → child compilerOptions (child wins)
+    const merged = { ...config }
+    delete merged.extends
+    merged.compilerOptions = {
+        ...(parent.compilerOptions ?? {}),
+        ...(config.compilerOptions ?? {}),
+    }
+
+    // Merge paths specifically (child paths override parent paths for same alias)
+    if (parent.compilerOptions?.paths || config.compilerOptions?.paths) {
+        merged.compilerOptions.paths = {
+            ...(parent.compilerOptions?.paths ?? {}),
+            ...(config.compilerOptions?.paths ?? {}),
+        }
+    }
+
+    return merged
 }

@@ -24,6 +24,15 @@ const WEIGHT = {
 // Default token budget per context payload
 const DEFAULT_TOKEN_BUDGET = 6000
 
+function readContextFile(filePath: string, projectRoot?: string): string {
+    if (!projectRoot) return ''
+    try {
+        return fs.readFileSync(path.resolve(projectRoot, filePath), 'utf-8')
+    } catch {
+        return ''
+    }
+}
+
 /**
  * Rough token estimator: 1 token ≈ 4 chars for code/identifiers
  */
@@ -305,7 +314,7 @@ export class ContextBuilder {
             })),
             contextFiles: this.lock.contextFiles?.map(cf => ({
                 path: cf.path,
-                content: cf.content,
+                content: readContextFile(cf.path, query.projectRoot),
                 type: cf.type,
             })),
             routes: this.lock.routes?.map(r => ({
@@ -433,11 +442,12 @@ export class ContextBuilder {
                 lines.push(`--- ${cf.path} (${cf.type}) ---`)
                 // Trim to ~2000 chars per file in prompt output
                 const maxChars = 2000
-                if (cf.content.length > maxChars) {
-                    lines.push(cf.content.slice(0, maxChars))
-                    lines.push(`... (truncated, ${cf.size} bytes total)`)
+                const cfContent = readContextFile(cf.path, query.projectRoot)
+                if (cfContent.length > maxChars) {
+                    lines.push(cfContent.slice(0, maxChars))
+                    lines.push(`... (truncated, ${cf.size ?? cfContent.length} bytes total)`)
                 } else {
-                    lines.push(cf.content.trimEnd())
+                    lines.push(cfContent.trimEnd())
                 }
                 lines.push('')
             }

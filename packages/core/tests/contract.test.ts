@@ -76,7 +76,7 @@ describe('LockCompiler', () => {
         const graph = new GraphBuilder().build(files)
         const lock = compiler.compile(graph, contract, files)
 
-        expect(lock.version).toBe('1.0.0')
+        expect(lock.version).toBe('1.7.0')
         expect(lock.syncState.status).toBe('clean')
         expect(Object.keys(lock.functions).length).toBeGreaterThan(0)
         expect(Object.keys(lock.modules).length).toBeGreaterThanOrEqual(1)

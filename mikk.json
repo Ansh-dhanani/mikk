@@ -11,17 +11,63 @@
       "packages/cli/src/index.ts",
       "packages/core/src/index.ts",
       "packages/diagram-generator/src/index.ts",
+      "packages/mcp-server/src/index.ts",
+      "packages/mcp-server/src/server.ts",
       "packages/intent-engine/src/index.ts",
       "packages/watcher/src/index.ts",
-      "packages/core/src/graph/index.ts",
       "packages/core/src/contract/index.ts",
       "packages/core/src/hash/index.ts",
+      "packages/core/src/graph/index.ts",
       "packages/core/src/parser/index.ts",
       "packages/cli/src/commands/contract/index.ts"
     ]
   },
   "declared": {
     "modules": [
+      {
+        "id": "packages-core",
+        "name": "Utils & Storage",
+        "description": "Infer the project language from the file extensions present; ─── Heuristic purpose inference ─────────────────────────...; Infer a short purpose string from function metadata when ...",
+        "intent": "",
+        "paths": [
+          "packages/core/src/**",
+          "packages/core/src/contract/**",
+          "packages/core/src/hash/**",
+          "packages/core/src/graph/**",
+          "packages/core/src/parser/**",
+          "packages/core/src/utils/**",
+          "packages/core/src/parser/javascript/**",
+          "packages/core/src/parser/typescript/**",
+          "packages/core/src/parser/go/**"
+        ],
+        "entryFunctions": [
+          "hashContent",
+          "hashFile",
+          "hashFunctionBody",
+          "computeModuleHash",
+          "computeRootHash",
+          "getParser",
+          "parseFiles",
+          "readMikkIgnore",
+          "parseMikkIgnore",
+          "discoverContextFiles",
+          "detectProjectLanguage",
+          "getDiscoveryPatterns",
+          "discoverFiles",
+          "readFileContent",
+          "writeFileContent",
+          "fileExists",
+          "setupMikkDirectory",
+          "generateMikkIgnore",
+          "scoreFunctions",
+          "findFuzzyMatches",
+          "levenshtein",
+          "splitCamelCase",
+          "extractKeywords",
+          "setLogLevel",
+          "minimatch"
+        ]
+      },
       {
         "id": "apps-registry",
         "name": "Search (Registry)",
@@ -59,69 +105,6 @@
         ]
       },
       {
-        "id": "packages-cli",
-        "name": "CLI",
-        "description": "Parse a numeric CLI option with validation; ── Helpers ──────────────────────────────────────────────...; Load contract + lock + diagram orchestrator",
-        "intent": "",
-        "paths": [
-          "packages/cli/src/**",
-          "packages/cli/src/commands/**",
-          "packages/cli/src/commands/contract/**"
-        ],
-        "entryFunctions": [
-          "registerAnalyzeCommand",
-          "registerContextCommands",
-          "registerDiffCommand",
-          "registerInitCommand",
-          "registerIntentCommand",
-          "registerVisualizeCommands",
-          "registerWatchCommand",
-          "registerContractCommands"
-        ]
-      },
-      {
-        "id": "packages-core",
-        "name": "Utils & Storage",
-        "description": "Infer the project language from the file extensions present; ─── Heuristic purpose inference ─────────────────────────...; Infer a short purpose string from function metadata when ...",
-        "intent": "",
-        "paths": [
-          "packages/core/src/**",
-          "packages/core/src/graph/**",
-          "packages/core/src/contract/**",
-          "packages/core/src/hash/**",
-          "packages/core/src/parser/**",
-          "packages/core/src/utils/**",
-          "packages/core/src/parser/typescript/**"
-        ],
-        "entryFunctions": [
-          "hashContent",
-          "hashFile",
-          "hashFunctionBody",
-          "computeModuleHash",
-          "computeRootHash",
-          "getParser",
-          "parseFiles",
-          "readMikkIgnore",
-          "parseMikkIgnore",
-          "discoverContextFiles",
-          "detectProjectLanguage",
-          "getDiscoveryPatterns",
-          "discoverFiles",
-          "readFileContent",
-          "writeFileContent",
-          "fileExists",
-          "setupMikkDirectory",
-          "generateMikkIgnore",
-          "scoreFunctions",
-          "findFuzzyMatches",
-          "levenshtein",
-          "splitCamelCase",
-          "extractKeywords",
-          "setLogLevel",
-          "minimatch"
-        ]
-      },
-      {
         "id": "packages-diagram-generator",
         "name": "Search (Diagram Generator)",
         "description": "9 files, 0 functions",
@@ -133,9 +116,24 @@
         "entryFunctions": []
       },
       {
+        "id": "packages-mcp-server",
+        "name": "Search (Mcp Server)",
+        "description": "Register all MCP resources — structured data an AI assist...; Create a Mikk MCP server instance with all tools and reso...; Start the MCP server with stdio transport",
+        "intent": "",
+        "paths": [
+          "packages/mcp-server/src/**"
+        ],
+        "entryFunctions": [
+          "registerResources",
+          "createMikkMcpServer",
+          "startStdioServer",
+          "registerTools"
+        ]
+      },
+      {
         "id": "packages-intent-engine",
         "name": "Search (Intent Engine)",
-        "description": "6 files, 0 functions",
+        "description": "─── Helpers ─────────────────────────────────────────────...",
         "intent": "",
         "paths": [
           "packages/intent-engine/src/**"
@@ -164,6 +162,29 @@
           "packages/watcher/src/**"
         ],
         "entryFunctions": []
+      },
+      {
+        "id": "packages-cli",
+        "name": "CLI",
+        "description": "Parse a numeric CLI option with validation; ── Helpers ──────────────────────────────────────────────...; Build DependencyGraph from lock — same logic as mcp-serve...",
+        "intent": "",
+        "paths": [
+          "packages/cli/src/**",
+          "packages/cli/src/commands/**",
+          "packages/cli/src/commands/contract/**"
+        ],
+        "entryFunctions": [
+          "registerAnalyzeCommand",
+          "registerContextCommands",
+          "registerDeadCodeCommand",
+          "registerDiffCommand",
+          "registerInitCommand",
+          "registerIntentCommand",
+          "registerMcpCommand",
+          "registerVisualizeCommands",
+          "registerWatchCommand",
+          "registerContractCommands"
+        ]
       }
     ],
     "constraints": [],

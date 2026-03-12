@@ -1,0 +1,37 @@
+%%{init: {"theme": "base", "themeVariables": {"primaryColor": "#1e293b", "primaryTextColor": "#e2e8f0", "lineColor": "#64748b", "secondaryColor": "#334155", "tertiaryColor": "#475569", "background": "#0f172a", "mainBkg": "#1e293b", "nodeBorder": "#475569"}}}%%
+graph TD
+    subgraph mod_packages_mcp_server["📦 Module: Search (Mcp Server)"]
+        subgraph file_packages_mcp_server_src_resources_ts["📄 resources.ts"]
+            fn_packages_mcp_server_src_resources_ts_registerResources["⚡ registerResources"]
+            fn_packages_mcp_server_src_resources_ts_safeRead["λ safeRead"]
+        end
+        subgraph file_packages_mcp_server_src_server_ts["📄 server.ts"]
+            fn_packages_mcp_server_src_server_ts_createMikkMcpServer["⚡ createMikkMcpServer"]
+        end
+        subgraph file_packages_mcp_server_src_stdio_ts["📄 stdio.ts"]
+            fn_packages_mcp_server_src_stdio_ts_startStdioServer["⚡ startStdioServer"]
+        end
+        subgraph file_packages_mcp_server_src_tools_ts["📄 tools.ts"]
+            fn_packages_mcp_server_src_tools_ts_invalidateCache["⚡ invalidateCache"]
+            fn_packages_mcp_server_src_tools_ts_getSemanticSearcher["λ getSemanticSearcher"]
+            fn_packages_mcp_server_src_tools_ts_quickHashFile["⚡ quickHashFile"]
+            fn_packages_mcp_server_src_tools_ts_registerTools["⚡ registerTools"]
+            fn_packages_mcp_server_src_tools_ts_loadContractAndLock["λ loadContractAndLock"]
+            fn_packages_mcp_server_src_tools_ts_buildGraphFromLock["λ buildGraphFromLock"]
+            fn_packages_mcp_server_src_tools_ts_detectCircularDeps["λ detectCircularDeps"]
+            fn_packages_mcp_server_src_tools_ts_walkDir["λ walkDir"]
+            fn_packages_mcp_server_src_tools_ts_isSourceFile["λ isSourceFile"]
+        end
+    end
+
+    fn_packages_mcp_server_src_resources_ts_registerResources --> fn_packages_mcp_server_src_resources_ts_safeRead
+    fn_packages_mcp_server_src_tools_ts_registerTools --> fn_packages_mcp_server_src_tools_ts_loadContractAndLock
+    fn_packages_mcp_server_src_tools_ts_registerTools --> fn_packages_mcp_server_src_tools_ts_buildGraphFromLock
+    fn_packages_mcp_server_src_tools_ts_registerTools --> fn_packages_mcp_server_src_tools_ts_detectCircularDeps
+    fn_packages_mcp_server_src_tools_ts_registerTools --> fn_packages_mcp_server_src_tools_ts_getSemanticSearcher
+    fn_packages_mcp_server_src_tools_ts_registerTools --> fn_packages_mcp_server_src_tools_ts_walkDir
+    fn_packages_mcp_server_src_tools_ts_registerTools --> fn_packages_mcp_server_src_tools_ts_isSourceFile
+    fn_packages_mcp_server_src_tools_ts_loadContractAndLock --> fn_packages_mcp_server_src_tools_ts_buildGraphFromLock
+
+    classDef default fill:#334155,stroke:#64748b,color:#e2e8f0,stroke-width:1px
+    classDef external fill:#1e293b,stroke:#475569,color:#94a3b8,stroke-dasharray: 5 5

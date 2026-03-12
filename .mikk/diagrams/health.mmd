@@ -1,26 +1,28 @@
 %%{init: {"theme": "base", "themeVariables": {"primaryColor": "#1e293b", "primaryTextColor": "#e2e8f0", "lineColor": "#64748b", "secondaryColor": "#334155", "tertiaryColor": "#475569", "background": "#0f172a", "mainBkg": "#1e293b", "nodeBorder": "#475569"}}}%%
 graph TD
 
+    packages_core["🟡 Utils & Storage<br/>Cohesion: 100%<br/>Coupling: 0<br/>Functions: 212"]
     apps_registry["🟡 Search (Registry)<br/>Cohesion: 50%<br/>Coupling: 0<br/>Functions: 1"]
     apps_web["🟡 Search (Web)<br/>Cohesion: 50%<br/>Coupling: 0<br/>Functions: 1"]
-    packages_ai_context["🟡 Providers (Ai Context)<br/>Cohesion: 100%<br/>Coupling: 0<br/>Functions: 43"]
-    packages_cli["🟢 CLI<br/>Cohesion: 100%<br/>Coupling: 0<br/>Functions: 12"]
-    packages_core["🟡 Utils & Storage<br/>Cohesion: 100%<br/>Coupling: 0<br/>Functions: 144"]
+    packages_ai_context["🟡 Providers (Ai Context)<br/>Cohesion: 100%<br/>Coupling: 0<br/>Functions: 44"]
     packages_diagram_generator["🟡 Search (Diagram Generator)<br/>Cohesion: 50%<br/>Coupling: 0<br/>Functions: 33"]
-    packages_intent_engine["🟡 Search (Intent Engine)<br/>Cohesion: 50%<br/>Coupling: 0<br/>Functions: 28"]
+    packages_mcp_server["🟢 Search (Mcp Server)<br/>Cohesion: 100%<br/>Coupling: 0<br/>Functions: 13"]
+    packages_intent_engine["🟢 Search (Intent Engine)<br/>Cohesion: 100%<br/>Coupling: 0<br/>Functions: 35"]
     packages_vscode_extension["🟡 Providers (Vscode Extension)<br/>Cohesion: 50%<br/>Coupling: 0<br/>Functions: 4"]
     packages_watcher["🟡 Storage<br/>Cohesion: 50%<br/>Coupling: 0<br/>Functions: 24"]
+    packages_cli["🟢 CLI<br/>Cohesion: 100%<br/>Coupling: 0<br/>Functions: 27"]
 
     classDef healthy fill:#22c55e,stroke:#4ade80,color:#f0fdf4
     classDef warning fill:#f59e0b,stroke:#fbbf24,color:#1e293b
     classDef critical fill:#ef4444,stroke:#f87171,color:#fef2f2
 
+    class packages_core warning
     class apps_registry warning
     class apps_web warning
     class packages_ai_context warning
-    class packages_cli healthy
-    class packages_core warning
     class packages_diagram_generator warning
-    class packages_intent_engine warning
+    class packages_mcp_server healthy
+    class packages_intent_engine healthy
     class packages_vscode_extension warning
     class packages_watcher warning
+    class packages_cli healthy

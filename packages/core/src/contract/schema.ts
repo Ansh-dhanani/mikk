@@ -74,11 +74,6 @@ export const MikkLockFunctionSchema = z.object({
         type: z.enum(['try-catch', 'throw']),
         detail: z.string(),
     })).optional(),
-    detailedLines: z.array(z.object({
-        startLine: z.number(),
-        endLine: z.number(),
-        blockType: z.string(),
-    })).optional()
 })
 
 export const MikkLockModuleSchema = z.object({
@@ -129,9 +124,9 @@ export const MikkLockGenericSchema = z.object({
 
 export const MikkLockContextFileSchema = z.object({
     path: z.string(),
-    content: z.string(),
+    content: z.string().optional(),
     type: z.enum(['schema', 'model', 'types', 'routes', 'config', 'api-spec', 'migration', 'docker']),
-    size: z.number(),
+    size: z.number().optional(),
 })
 
 export const MikkLockRouteSchema = z.object({

@@ -45,7 +45,6 @@ export function mockFunction(
         purpose: '',
         edgeCasesHandled: [],
         errorHandling: [],
-        detailedLines: [],
     }
 }
 

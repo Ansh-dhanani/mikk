@@ -9,6 +9,9 @@ import { registerIntentCommand } from './commands/intent.js'
 import { registerVisualizeCommands } from './commands/visualize.js'
 import { registerMcpCommand } from './commands/mcp.js'
 import { registerDeadCodeCommand } from './commands/dead-code.js'
+import { registerCiCommand } from './commands/ci.js'
+import { registerDoctorCommand } from './commands/doctor.js'
+import { registerStatsCommand } from './commands/stats.js'
 
 declare const __MIKK_VERSION__: string
 
@@ -42,5 +45,8 @@ registerIntentCommand(program)
 registerVisualizeCommands(program)
 registerMcpCommand(program)
 registerDeadCodeCommand(program)
+registerCiCommand(program)
+registerDoctorCommand(program)
+registerStatsCommand(program)
 
 program.parse()

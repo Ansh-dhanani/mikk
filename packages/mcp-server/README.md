@@ -70,16 +70,18 @@ mikk-mcp /path/to/project
 
 ---
 
-## Tools (12)
+## Tools (15)
 
 All tools read from the lock file (`mikk.lock.json`) — fast, no re-parsing.
 
 | Tool | Purpose |
 |---|---|
 | `mikk_get_project_overview` | Modules, function counts, tech stack, constraints |
+| `mikk_get_session_context` | **One-shot AI session start** — get project overview, recent changes, hot modules, and constraint status instantly |
+| `mikk_get_changes` | What files changed since the last codebase analysis |
 | `mikk_query_context` | Ask an architecture question — returns graph-traced context with call chains |
 | `mikk_impact_analysis` | Blast radius of changing a specific file |
-| `mikk_before_edit` | **Call before editing any file** — exported functions at risk, constraints that apply, full blast radius |
+| `mikk_before_edit` | **Call before editing any file** — exported functions at risk, actual boundary constraint violations, full blast radius |
 | `mikk_find_usages` | Every function that calls a specific function — essential before renaming |
 | `mikk_list_modules` | All declared modules with file/function counts |
 | `mikk_get_module_detail` | Functions, files, exported API, and internal call graph for a module |
@@ -88,6 +90,7 @@ All tools read from the lock file (`mikk.lock.json`) — fast, no re-parsing.
 | `mikk_semantic_search` | **Natural-language semantic search** using local vector embeddings (Xenova/all-MiniLM-L6-v2). Query: *"validate a JWT token"* returns functions ranked by semantic similarity (e.g. `verifyToken`, `validateJwt`). Requires optional `@xenova/transformers` package. |
 | `mikk_get_constraints` | All architectural constraints and design decisions |
 | `mikk_get_file` | Read raw source of any project file (with path traversal guard) |
+| `mikk_read_file` | Read raw source, scoped only to specific functions to save token context |
 | `mikk_get_routes` | Detected HTTP routes (Express / Koa / Hono style) |
 
 ### Staleness warning

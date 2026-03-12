@@ -1,25 +1,9 @@
 %%{init: {"theme": "base", "themeVariables": {"primaryColor": "#1e293b", "primaryTextColor": "#e2e8f0", "lineColor": "#64748b", "secondaryColor": "#334155", "tertiaryColor": "#475569", "background": "#0f172a", "mainBkg": "#1e293b", "nodeBorder": "#475569"}}}%%
 graph TD
-    subgraph mod_packages_core["📦 Module: Utils & Storage (104 internal functions collapsed)"]
-        subgraph file_packages_core_src_graph_cluster_detector_ts["📄 cluster-detector.ts"]
-            fn_packages_core_src_graph_cluster_detector_ts_ClusterDetector_constructor["⚡ ClusterDetector.constructor"]
-            fn_packages_core_src_graph_cluster_detector_ts_ClusterDetector_detect["⚡ ClusterDetector.detect"]
-            fn_packages_core_src_graph_cluster_detector_ts_ClusterDetector_computeCouplingMatrix["⚡ ClusterDetector.computeCouplingMatrix"]
-            fn_packages_core_src_graph_cluster_detector_ts_ClusterDetector_incrementPair["⚡ ClusterDetector.incrementPair"]
-            fn_packages_core_src_graph_cluster_detector_ts_ClusterDetector_computeClusterAffinity["⚡ ClusterDetector.computeClusterAffinity"]
-            fn_packages_core_src_graph_cluster_detector_ts_ClusterDetector_computeBestOutsideAffinity["⚡ ClusterDetector.computeBestOutsideAffinity"]
-            fn_packages_core_src_graph_cluster_detector_ts_ClusterDetector_computeClusterConfidence["⚡ ClusterDetector.computeClusterConfidence"]
-            fn_packages_core_src_graph_cluster_detector_ts_ClusterDetector_getTotalEdges["⚡ ClusterDetector.getTotalEdges"]
-            fn_packages_core_src_graph_cluster_detector_ts_ClusterDetector_getFileForNode["⚡ ClusterDetector.getFileForNode"]
-            fn_packages_core_src_graph_cluster_detector_ts_ClusterDetector_getNodeFile["⚡ ClusterDetector.getNodeFile"]
-            fn_packages_core_src_graph_cluster_detector_ts_ClusterDetector_getFunctionIdsForFiles["⚡ ClusterDetector.getFunctionIdsForFiles"]
-            fn_packages_core_src_graph_cluster_detector_ts_ClusterDetector_inferClusterId["⚡ ClusterDetector.inferClusterId"]
-            fn_packages_core_src_graph_cluster_detector_ts_ClusterDetector_getDirSegments["⚡ ClusterDetector.getDirSegments"]
-            fn_packages_core_src_graph_cluster_detector_ts_ClusterDetector_mergeSiblingClusters["⚡ ClusterDetector.mergeSiblingClusters"]
-            fn_packages_core_src_graph_cluster_detector_ts_ClusterDetector_getBaseDir["⚡ ClusterDetector.getBaseDir"]
-            fn_packages_core_src_graph_cluster_detector_ts_ClusterDetector_inferSemanticName["⚡ ClusterDetector.inferSemanticName"]
-            fn_packages_core_src_graph_cluster_detector_ts_ClusterDetector_inferClusterNameFromDir["⚡ ClusterDetector.inferClusterNameFromDir"]
-            fn_packages_core_src_graph_cluster_detector_ts_ClusterDetector_buildWordBag["⚡ ClusterDetector.buildWordBag"]
+    subgraph mod_packages_core["📦 Module: Utils & Storage (172 internal functions collapsed)"]
+        subgraph file_packages_core_src_contract_adr_manager_ts["📄 adr-manager.ts"]
+            fn_packages_core_src_contract_adr_manager_ts_AdrManager_constructor["⚡ AdrManager.constructor"]
+            fn_packages_core_src_contract_adr_manager_ts_AdrManager_list["⚡ AdrManager.list"]
         end
         subgraph file_packages_core_src_contract_contract_generator_ts["📄 contract-generator.ts"]
             fn_packages_core_src_contract_contract_generator_ts_ContractGenerator_generateFromClusters["⚡ ContractGenerator.generateFromClusters"]
@@ -56,6 +40,34 @@ graph TD
         end
         subgraph file_packages_core_src_utils_logger_ts["📄 logger.ts"]
             fn_packages_core_src_utils_logger_ts_log["⚡ log"]
+        end
+        subgraph file_packages_core_src_parser_go_go_extractor_ts["📄 go-extractor.ts"]
+            fn_packages_core_src_parser_go_go_extractor_ts_GoExtractor_extractClasses["⚡ GoExtractor.extractClasses"]
+            fn_packages_core_src_parser_go_go_extractor_ts_GoExtractor_extractExports["⚡ GoExtractor.extractExports"]
+            fn_packages_core_src_parser_go_go_extractor_ts_GoExtractor_scanFunctions["⚡ GoExtractor.scanFunctions"]
+            fn_packages_core_src_parser_go_go_extractor_ts_GoExtractor_buildParsedFunction["⚡ GoExtractor.buildParsedFunction"]
+            fn_packages_core_src_parser_go_go_extractor_ts_GoExtractor_scanTypeDeclarations["⚡ GoExtractor.scanTypeDeclarations"]
+            fn_packages_core_src_parser_go_go_extractor_ts_GoExtractor_parseImports["⚡ GoExtractor.parseImports"]
+        end
+        subgraph file_packages_core_src_parser_go_go_resolver_ts["📄 go-resolver.ts"]
+            fn_packages_core_src_parser_go_go_resolver_ts_GoResolver_constructor["⚡ GoResolver.constructor"]
+        end
+        subgraph file_packages_core_src_parser_javascript_js_extractor_ts["📄 js-extractor.ts"]
+            fn_packages_core_src_parser_javascript_js_extractor_ts_JavaScriptExtractor_extractCommonJsExports["⚡ JavaScriptExtractor.extractCommonJsExports"]
+            fn_packages_core_src_parser_javascript_js_extractor_ts_JavaScriptExtractor_extractCommonJsFunctions["⚡ JavaScriptExtractor.extractCommonJsFunctions"]
+        end
+        subgraph file_packages_core_src_parser_javascript_js_parser_ts["📄 js-parser.ts"]
+            fn_packages_core_src_parser_javascript_js_parser_ts_JavaScriptParser_resolveImports["⚡ JavaScriptParser.resolveImports"]
+        end
+        subgraph file_packages_core_src_parser_typescript_ts_extractor_ts["📄 ts-extractor.ts"]
+            fn_packages_core_src_parser_typescript_ts_extractor_ts_TypeScriptExtractor_parseFunctionDeclaration["⚡ TypeScriptExtractor.parseFunctionDeclaration"]
+            fn_packages_core_src_parser_typescript_ts_extractor_ts_TypeScriptExtractor_parseVariableFunction["⚡ TypeScriptExtractor.parseVariableFunction"]
+            fn_packages_core_src_parser_typescript_ts_extractor_ts_TypeScriptExtractor_parseClass["⚡ TypeScriptExtractor.parseClass"]
+            fn_packages_core_src_parser_typescript_ts_extractor_ts_TypeScriptExtractor_extractPurpose["⚡ TypeScriptExtractor.extractPurpose"]
+            fn_packages_core_src_parser_typescript_ts_extractor_ts_TypeScriptExtractor_extractParams["⚡ TypeScriptExtractor.extractParams"]
+        end
+        subgraph file_packages_core_src_parser_typescript_ts_parser_ts["📄 ts-parser.ts"]
+            fn_packages_core_src_parser_typescript_ts_parser_ts_TypeScriptParser_resolveImports["⚡ TypeScriptParser.resolveImports"]
         end
     end
 

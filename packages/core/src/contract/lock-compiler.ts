@@ -1,4 +1,4 @@
-import * as path from 'node:path'
+﻿import * as path from 'node:path'
 import { createHash } from 'node:crypto'
 import type { MikkContract, MikkLock } from './schema.js'
 import type { DependencyGraph } from '../graph/types.js'
@@ -131,7 +131,7 @@ export class LockCompiler {
         }
 
         const lockData: MikkLock = {
-            version: '1.0.0',
+            version: '1.7.0',
             generatedAt: new Date().toISOString(),
             generatorVersion: VERSION,
             projectRoot: contract.project.name,
@@ -146,7 +146,9 @@ export class LockCompiler {
             classes: Object.keys(classes).length > 0 ? classes : undefined,
             generics: Object.keys(generics).length > 0 ? generics : undefined,
             files,
-            contextFiles: contextFiles && contextFiles.length > 0 ? contextFiles : undefined,
+            contextFiles: contextFiles && contextFiles.length > 0
+                ? contextFiles.map(({ path, type, size }) => ({ path, type, size }))
+                : undefined,
             routes: routes.length > 0 ? routes : undefined,
             graph: {
                 nodes: graph.nodes.size,
@@ -205,7 +207,6 @@ export class LockCompiler {
                 ),
                 edgeCasesHandled: node.metadata.edgeCasesHandled,
                 errorHandling: node.metadata.errorHandling,
-                detailedLines: node.metadata.detailedLines,
             }
         }
 
@@ -333,7 +334,7 @@ export class LockCompiler {
                 path: file.path,
                 hash: file.hash,
                 moduleId: moduleId || 'unknown',
-                lastModified: new Date().toISOString(),
+                lastModified: new Date(file.parsedAt).toISOString(),
                 ...(importedFiles.length > 0 ? { imports: importedFiles } : {}),
             }
         }

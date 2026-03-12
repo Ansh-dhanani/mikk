@@ -31,6 +31,15 @@ graph TD
             fn_packages_intent_engine_src_preflight_ts_PreflightPipeline_constructor["⚡ PreflightPipeline.constructor"]
             fn_packages_intent_engine_src_preflight_ts_PreflightPipeline_run["⚡ PreflightPipeline.run"]
         end
+        subgraph file_packages_intent_engine_src_semantic_searcher_ts["📄 semantic-searcher.ts"]
+            fn_packages_intent_engine_src_semantic_searcher_ts_lockFingerprint["λ lockFingerprint"]
+            fn_packages_intent_engine_src_semantic_searcher_ts_cosineSimilarity["λ cosineSimilarity"]
+            fn_packages_intent_engine_src_semantic_searcher_ts_SemanticSearcher_constructor["⚡ SemanticSearcher.constructor"]
+            fn_packages_intent_engine_src_semantic_searcher_ts_SemanticSearcher_isAvailable["⚡ SemanticSearcher.isAvailable"]
+            fn_packages_intent_engine_src_semantic_searcher_ts_SemanticSearcher_index["⚡ SemanticSearcher.index"]
+            fn_packages_intent_engine_src_semantic_searcher_ts_SemanticSearcher_search["⚡ SemanticSearcher.search"]
+            fn_packages_intent_engine_src_semantic_searcher_ts_SemanticSearcher_ensurePipeline["⚡ SemanticSearcher.ensurePipeline"]
+        end
         subgraph file_packages_intent_engine_src_suggester_ts["📄 suggester.ts"]
             fn_packages_intent_engine_src_suggester_ts_Suggester_constructor["⚡ Suggester.constructor"]
             fn_packages_intent_engine_src_suggester_ts_Suggester_suggest["⚡ Suggester.suggest"]
@@ -39,6 +48,8 @@ graph TD
         end
     end
 
+    fn_packages_intent_engine_src_semantic_searcher_ts_SemanticSearcher_index --> fn_packages_intent_engine_src_semantic_searcher_ts_lockFingerprint
+    fn_packages_intent_engine_src_semantic_searcher_ts_SemanticSearcher_search --> fn_packages_intent_engine_src_semantic_searcher_ts_cosineSimilarity
 
     classDef default fill:#334155,stroke:#64748b,color:#e2e8f0,stroke-width:1px
     classDef external fill:#1e293b,stroke:#475569,color:#94a3b8,stroke-dasharray: 5 5

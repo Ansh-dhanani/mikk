@@ -76,7 +76,7 @@ export function registerAnalyzeCommand(program: Command) {
                         dependencies: pkgJson.dependencies,
                         devDependencies: pkgJson.devDependencies,
                     }
-                    const mdGenerator = new ClaudeMdGenerator(contract, lock, undefined, meta)
+                    const mdGenerator = new ClaudeMdGenerator(contract, lock, undefined, meta, projectRoot)
                     const claudeMd = mdGenerator.generate()
                     await fs.writeFile(path.join(projectRoot, 'claude.md'), claudeMd, 'utf-8')
                     await fs.writeFile(path.join(projectRoot, 'AGENTS.md'), claudeMd, 'utf-8')

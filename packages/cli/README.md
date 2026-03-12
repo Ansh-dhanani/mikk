@@ -249,6 +249,38 @@ Intents:
 
 ---
 
+### `mikk doctor`
+
+Run a suite of health checks on your project infrastructure (config files, lock file freshness, dependencies) and get actionable fix suggestions.
+
+```bash
+mikk doctor
+```
+
+---
+
+### `mikk stats`
+
+Display an overview dashboard of the codebase health, including total counts (functions, files, modules), dead code percentage, and architectural constraint statuses. 
+
+```bash
+mikk stats
+```
+
+---
+
+### `mikk ci`
+
+Designed for pipeline integration. Evaluates constraint violations and (optionally) checks dead code percentage to fail the build if thresholds aren't met.
+
+```bash
+mikk ci
+mikk ci --strict      # Also fails if dead code % is too high
+mikk ci --format json # Machine-readable output
+```
+
+---
+
 ### `mikk visualize` — Diagram Generation
 
 #### `mikk visualize all`

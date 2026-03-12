@@ -1,24 +1,26 @@
 %%{init: {"theme": "base", "themeVariables": {"primaryColor": "#1e293b", "primaryTextColor": "#e2e8f0", "lineColor": "#64748b", "secondaryColor": "#334155", "tertiaryColor": "#475569", "background": "#0f172a", "mainBkg": "#1e293b", "nodeBorder": "#475569"}}}%%
 graph TD
 
+    packages_core["📦 Utils & Storage<br/>37 files, 212 functions"]
     apps_registry["📦 Search (Registry)<br/>1 files, 1 functions"]
     apps_web["📦 Search (Web)<br/>1 files, 1 functions"]
-    packages_ai_context["📦 Providers (Ai Context)<br/>5 files, 43 functions"]
-    packages_cli["📦 CLI<br/>9 files, 12 functions"]
-    packages_core["📦 Utils & Storage<br/>29 files, 144 functions"]
+    packages_ai_context["📦 Providers (Ai Context)<br/>5 files, 44 functions"]
     packages_diagram_generator["📦 Search (Diagram Generator)<br/>9 files, 33 functions"]
-    packages_intent_engine["📦 Search (Intent Engine)<br/>6 files, 28 functions"]
+    packages_mcp_server["📦 Search (Mcp Server)<br/>5 files, 13 functions"]
+    packages_intent_engine["📦 Search (Intent Engine)<br/>7 files, 35 functions"]
     packages_vscode_extension["📦 Providers (Vscode Extension)<br/>1 files, 4 functions"]
     packages_watcher["📦 Storage<br/>5 files, 24 functions"]
+    packages_cli["📦 CLI<br/>14 files, 27 functions"]
 
 
     classDef module fill:#3b82f6,stroke:#60a5fa,color:#f8fafc,stroke-width:2px
+    class packages_core module
     class apps_registry module
     class apps_web module
     class packages_ai_context module
-    class packages_cli module
-    class packages_core module
     class packages_diagram_generator module
+    class packages_mcp_server module
     class packages_intent_engine module
     class packages_vscode_extension module
     class packages_watcher module
+    class packages_cli module

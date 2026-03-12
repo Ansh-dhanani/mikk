@@ -45,13 +45,13 @@ One command. Your entire codebase — parsed, graphed, hashed, and served as str
 <tr>
 <td align="center"><h2>90 files</h2><sub>of scattered source code<br/>your AI has to index</sub></td>
 <td align="center"><h2>→</h2></td>
-<td align="center"><h2>1 file</h2><sub><code>mikk.lock.json</code><br/>~12,900 lines · full structure</sub></td>
+<td align="center"><h2>1 file</h2><sub><code>mikk.lock.json</code><br/>compact JSON · ~60% smaller on disk</sub></td>
 <td align="center"><h2>+</h2></td>
 <td align="center"><h2>493 lines</h2><sub><code>claude.md</code> / <code>AGENTS.md</code><br/>architectural context</sub></td>
 </tr>
 </table>
 
-> Mikk's algorithm parses your entire codebase and generates **`mikk.lock.json`** — a single structured file (~12,900 lines) containing every function signature, every dependency edge, every call graph, every module assignment, and every Merkle hash. Instead of your AI crawling through **90+ scattered source files**, it reads **one file** with the full architecture. On top of that, Mikk generates **`claude.md`** and **`AGENTS.md`** — distilled to **493 lines** of tiered context that fits in any AI's context window.
+> Mikk's algorithm parses your entire codebase and generates **`mikk.lock.json`** — a single compact-JSON snapshot containing every function signature, every dependency edge, every call graph, every module assignment, and every Merkle hash. Instead of your AI crawling through **90+ scattered source files**, it reads **one file** with the full architecture. On top of that, Mikk generates **`claude.md`** and **`AGENTS.md`** — distilled to **493 lines** of tiered context that fits in any AI's context window.
 
 ---
 
@@ -82,7 +82,7 @@ npm install -g @getmikk/cli && cd my-project && mikk init
 
 In ~3 seconds, Mikk:
 
-1. **Parses** every TypeScript file via the TS Compiler API — real AST, not regex
+1. **Parses** every TypeScript and JavaScript file via the TS Compiler API — real AST, not regex
 2. **Builds** a full dependency graph (two-pass: nodes then edges, O(1) adjacency lookups)
 3. **Clusters** files into logical modules via greedy agglomeration
 4. **Hashes** everything with Merkle-tree SHA-256 (function → file → module → root)
@@ -150,9 +150,9 @@ Incremental, debounced file watching with atomic lock file writes and PID-based 
 <td width="50%">
 
 ### Full AST Parsing
-TypeScript Compiler API extracts functions, classes, generics, imports (with tsconfig alias resolution), decorators, and type parameters. Not regex — real compiler-grade parsing. Go files are parsed with regex + stateful scanning (no Go toolchain needed). Every function gets its **exact file path, start line, and end line** stored in the lock file.
+TypeScript Compiler API extracts functions, classes, generics, imports (with tsconfig alias resolution), decorators, and type parameters. Not regex — real compiler-grade parsing. JavaScript/JSX files are parsed with full edge-case handling (JSX expression containers, default exports, re-exports). Go files are parsed with regex + stateful scanning (no Go toolchain needed). Every function gets its **exact file path, start line, and end line** stored in the lock file.
 
-**Supported languages:** TypeScript/TSX · **Go**
+**Supported languages:** TypeScript · TSX · JavaScript · JSX · **Go**
 
 </td>
 </tr>
@@ -530,7 +530,7 @@ git clone https://github.com/Ansh-dhanani/mikk.git
 cd mikk
 bun install
 bun run build
-bun run test    # 97 tests across 10 packages
+bun run test    # 325 tests across 7 packages
 ```
 
 ### Tech Stack
@@ -547,6 +547,35 @@ bun run test    # 97 tests across 10 packages
 | **Commander** | CLI framework |
 | **@modelcontextprotocol/sdk** | MCP server protocol |
 | **esbuild** | Bundling |
+
+---
+
+## Changelog
+
+### v1.7.0 — Lock File Optimization + JS/JSX Support
+
+**Lock file size reduced by ~60% with 7 targeted optimizations:**
+
+| Optimization | Savings |
+|---|---|
+| Minified JSON (removed pretty-printing) | 741k lines → 1 line |
+| Removed `detailedLines` block breakdowns | −1,017 KB |
+| Context files stored as paths only; content read from disk on-demand | −526 KB |
+| Removed per-function SHA-256 hashes (file-level hashes retained) | −1,065 KB |
+| Normalized multiline type annotations to single-line | −400 KB |
+| Removed redundant `moduleId` from function entries (derived from file map) | −455 KB |
+| Integer edge IDs for `calls`/`calledBy` with a root `fnIndex` table | −1,100 KB |
+
+**JavaScript and JSX support:**
+- Full AST parsing for `.js`, `.jsx`, `.mjs`, `.cjs` files via TS Compiler API `ScriptKind` inference
+- JSX edge cases: expression containers, fragment children, `export default` function components, re-exports
+- Type annotation normalization across all return types and parameters (no more multi-line type strings)
+- 56 new JS/JSX-specific tests; 325 tests total across 7 packages
+
+**Other improvements:**
+- `ClaudeMdGenerator` now accepts a `projectRoot` parameter; context file content is read from disk on-demand instead of being embedded in the lock file
+- `ContextBuilder` reads context file content from disk at query time
+- Lock file schema version bumped to `1.7.0`; backward-compatible hydration for all older formats
 
 ---
 

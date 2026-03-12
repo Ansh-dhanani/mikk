@@ -12,7 +12,9 @@
   "modules": {
     "auth": {
       "id": "auth",
-      "files": ["src/auth.ts"],
+      "files": [
+        "src/auth.ts"
+      ],
       "hash": "modulehash001",
       "fragmentPath": ".mikk/fragments/auth.json"
     }
@@ -25,20 +27,36 @@
       "startLine": 1,
       "endLine": 7,
       "hash": "fnhash001",
-      "calls": ["fn:src/auth.ts:hashPassword", "fn:src/auth.ts:generateToken"],
+      "calls": [
+        "fn:src/auth.ts:hashPassword",
+        "fn:src/auth.ts:generateToken"
+      ],
       "calledBy": [],
       "moduleId": "auth",
       "params": [
-        { "name": "username", "type": "string" },
-        { "name": "password", "type": "string" }
+        {
+          "name": "username",
+          "type": "string"
+        },
+        {
+          "name": "password",
+          "type": "string"
+        }
       ],
       "returnType": "Promise<string>",
       "isAsync": true,
       "isExported": true,
       "purpose": "Authenticate a user and return a session token",
-      "edgeCasesHandled": ["invalid credentials", "empty password"],
+      "edgeCasesHandled": [
+        "invalid credentials",
+        "empty password"
+      ],
       "errorHandling": [
-        { "line": 4, "type": "throw", "detail": "Throws on invalid credentials" }
+        {
+          "line": 4,
+          "type": "throw",
+          "detail": "Throws on invalid credentials"
+        }
       ]
     },
     "fn:src/auth.ts:hashPassword": {
@@ -49,10 +67,15 @@
       "endLine": 11,
       "hash": "fnhash002",
       "calls": [],
-      "calledBy": ["fn:src/auth.ts:login"],
+      "calledBy": [
+        "fn:src/auth.ts:login"
+      ],
       "moduleId": "auth",
       "params": [
-        { "name": "password", "type": "string" }
+        {
+          "name": "password",
+          "type": "string"
+        }
       ],
       "returnType": "Promise<string>",
       "isAsync": false,
@@ -67,10 +90,15 @@
       "endLine": 15,
       "hash": "fnhash003",
       "calls": [],
-      "calledBy": ["fn:src/auth.ts:login"],
+      "calledBy": [
+        "fn:src/auth.ts:login"
+      ],
       "moduleId": "auth",
       "params": [
-        { "name": "username", "type": "string" }
+        {
+          "name": "username",
+          "type": "string"
+        }
       ],
       "returnType": "string",
       "isAsync": false,
@@ -83,7 +111,7 @@
       "path": "src/auth.ts",
       "hash": "filehash001",
       "moduleId": "auth",
-      "lastModified": "2025-01-01T00:00:00.000Z",
+      "lastModified": "2026-03-12T13:41:30.765Z",
       "imports": []
     }
   },
@@ -92,7 +120,9 @@
       "method": "POST",
       "path": "/auth/login",
       "handler": "login",
-      "middlewares": ["rateLimiter"],
+      "middlewares": [
+        "rateLimiter"
+      ],
       "file": "src/auth.ts",
       "line": 1
     }

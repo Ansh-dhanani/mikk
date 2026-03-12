@@ -32,7 +32,7 @@ export class LockReader {
     /** Write lock file to disk in compact format */
     async write(lock: MikkLock, lockPath: string): Promise<void> {
         const compact = compactifyLock(lock)
-        const json = JSON.stringify(compact, null, 2)
+        const json = JSON.stringify(compact)
         await fs.writeFile(lockPath, json, 'utf-8')
     }
 }
@@ -59,17 +59,23 @@ function compactifyLock(lock: MikkLock): any {
         graph: lock.graph,
     }
 
+    // P7: Build fnIndex for integer edge references
+    const fnKeys = Object.keys(lock.functions)
+    const fnIndexMap = new Map<string, number>()
+    fnKeys.forEach((k, i) => fnIndexMap.set(k, i))
+    out.fnIndex = fnKeys
+
     // Functions — biggest savings
     out.functions = {}
-    for (const [key, fn] of Object.entries(lock.functions)) {
+    for (let idx = 0; idx < fnKeys.length; idx++) {
+        const fn = lock.functions[fnKeys[idx]]
         const c: any = {
             lines: [fn.startLine, fn.endLine],
-            hash: fn.hash,
+            // P4: no hash, P6: no moduleId
         }
-        // Only write non-default fields
-        if (fn.moduleId && fn.moduleId !== 'unknown') c.moduleId = fn.moduleId
-        if (fn.calls.length > 0) c.calls = fn.calls
-        if (fn.calledBy.length > 0) c.calledBy = fn.calledBy
+        // P7: integer calls/calledBy referencing fnIndex positions
+        if (fn.calls.length > 0) c.calls = fn.calls.map(id => fnIndexMap.get(id) ?? -1).filter((n: number) => n >= 0)
+        if (fn.calledBy.length > 0) c.calledBy = fn.calledBy.map(id => fnIndexMap.get(id) ?? -1).filter((n: number) => n >= 0)
         if (fn.params && fn.params.length > 0) c.params = fn.params
         if (fn.returnType) c.returnType = fn.returnType
         if (fn.isAsync) c.isAsync = true
@@ -79,10 +85,8 @@ function compactifyLock(lock: MikkLock): any {
         if (fn.errorHandling && fn.errorHandling.length > 0) {
             c.errors = fn.errorHandling.map(e => [e.line, e.type, e.detail])
         }
-        if (fn.detailedLines && fn.detailedLines.length > 0) {
-            c.details = fn.detailedLines.map(d => [d.startLine, d.endLine, d.blockType])
-        }
-        out.functions[key] = c
+        // P2: no c.details (detailedLines removed)
+        out.functions[String(idx)] = c
     }
 
     // Classes
@@ -134,9 +138,9 @@ function compactifyLock(lock: MikkLock): any {
         out.files[key] = c
     }
 
-    // Context files — keep as-is (content is the bulk, no savings)
+    // Context files — paths/type only, no content
     if (lock.contextFiles && lock.contextFiles.length > 0) {
-        out.contextFiles = lock.contextFiles
+        out.contextFiles = lock.contextFiles.map(({ path, type, size }) => ({ path, type, size }))
     }
 
     // Routes — keep as-is (already compact)
@@ -166,23 +170,37 @@ function hydrateLock(raw: any): any {
         graph: raw.graph,
     }
 
+    // P7: function index for integer edge resolution
+    const fnIndex: string[] = raw.fnIndex || []
+    const hasFnIndex = fnIndex.length > 0
+
+    // P6: build file→moduleId map before function loop
+    const fileModuleMap: Record<string, string> = {}
+    for (const [key, c] of Object.entries(raw.files || {}) as [string, any][]) {
+        fileModuleMap[key] = c.moduleId || 'unknown'
+    }
+
     // Hydrate functions
     out.functions = {}
     for (const [key, c] of Object.entries(raw.functions || {}) as [string, any][]) {
-        // Parse key: "fn:filepath:functionName"
-        const { name, file } = parseEntityKey(key, 'fn:')
+        // P7: key is integer index → look up full ID via fnIndex
+        const fullId = hasFnIndex ? (fnIndex[parseInt(key)] || key) : key
+        const { name, file } = parseEntityKey(fullId, 'fn:')
         const lines = c.lines || [c.startLine || 0, c.endLine || 0]
+        // P7: integer calls/calledBy → resolve to full string IDs (backward compat: strings pass through)
+        const calls = (c.calls || []).map((v: any) => typeof v === 'number' ? (fnIndex[v] ?? null) : v).filter(Boolean)
+        const calledBy = (c.calledBy || []).map((v: any) => typeof v === 'number' ? (fnIndex[v] ?? null) : v).filter(Boolean)
 
-        out.functions[key] = {
-            id: key,
+        out.functions[fullId] = {
+            id: fullId,
             name,
             file,
             startLine: lines[0],
             endLine: lines[1],
-            hash: c.hash || '',
-            calls: c.calls || [],
-            calledBy: c.calledBy || [],
-            moduleId: c.moduleId || 'unknown',
+            hash: c.hash || '',  // P4: empty string when not stored
+            calls,
+            calledBy,
+            moduleId: fileModuleMap[file] || c.moduleId || 'unknown',  // P6: derive from file
             ...(c.params ? { params: c.params } : {}),
             ...(c.returnType ? { returnType: c.returnType } : {}),
             ...(c.isAsync ? { isAsync: true } : {}),
@@ -194,11 +212,7 @@ function hydrateLock(raw: any): any {
                     line: e[0], type: e[1], detail: e[2]
                 }))
             } : {}),
-            ...(c.details && c.details.length > 0 ? {
-                detailedLines: c.details.map((d: any) => ({
-                    startLine: d[0], endLine: d[1], blockType: d[2]
-                }))
-            } : {}),
+            // P2: no detailedLines restoration
         }
     }
 

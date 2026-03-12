@@ -1,0 +1,130 @@
+bun test v1.3.5 (1e86cebd)
+
+tests\mcp.test.ts:
+(pass) @getmikk/mcp-server — initialization > creates a server instance
+(pass) @getmikk/mcp-server — initialization > connects and responds to initialize [31.00ms]
+(pass) @getmikk/mcp-server — tool list > exposes exactly 18 tools [16.00ms]
+(pass) @getmikk/mcp-server — tool list > has the correct tool names
+(pass) @getmikk/mcp-server — tool list > does NOT expose mikk_analyze (CLI-only)
+(pass) @getmikk/mcp-server — tool list > all tools have non-empty descriptions
+(pass) mikk_get_project_overview > returns project metadata [15.00ms]
+(pass) mikk_get_project_overview > returns correct function and file counts
+(pass) mikk_get_project_overview > includes modules with exported function counts
+(pass) mikk_get_project_overview > includes constraints and decisions
+(pass) mikk_list_modules > returns all modules
+(pass) mikk_list_modules > includes function and file counts per module
+(pass) mikk_list_modules > includes entry functions
+(pass) mikk_get_module_detail > returns full module detail for a valid module
+(pass) mikk_get_module_detail > returns all functions in the module
+(pass) mikk_get_module_detail > separates exported vs internal functions
+(pass) mikk_get_module_detail > resolves call graph names (not raw IDs)
+(pass) mikk_get_module_detail > returns isError for unknown module
+(pass) mikk_get_function_detail > returns function metadata
+(pass) mikk_get_function_detail > returns actual source body for exported function
+(pass) mikk_get_function_detail > returns source body for internal functions [16.00ms]
+(pass) mikk_get_function_detail > body line range is correct (startLine to endLine)
+(pass) mikk_get_function_detail > includes params with types
+(pass) mikk_get_function_detail > resolves calledBy as function names (not IDs)
+(pass) mikk_get_function_detail > includes purpose, edgeCases, and errorHandling
+(pass) mikk_get_function_detail > returns isError for completely unknown function
+(pass) mikk_search_functions > finds functions by exact name
+(pass) mikk_search_functions > finds by substring, case-insensitive
+(pass) mikk_search_functions > finds by partial name (camelCase fragment)
+(pass) mikk_search_functions > returns no-match message for unknown query
+(pass) mikk_search_functions > respects limit parameter
+(pass) mikk_search_functions > result includes file, module, exported flag, and line range [15.00ms]
+(pass) mikk_search_functions > empty query returns all functions (up to limit)
+(pass) mikk_impact_analysis > returns impact for a known file
+(pass) mikk_impact_analysis > matches by basename when only filename given
+(pass) mikk_impact_analysis > correctly identifies changed nodes for entire file (3 functions + 1 file node)
+(pass) mikk_impact_analysis > has 0 impacted external nodes (login has no external callers)
+(pass) mikk_impact_analysis > returns isError with helpful next-step hint for unknown file
+(pass) mikk_impact_analysis > completes fast (lock-based, not re-parsing source)
+(pass) mikk_before_edit > returns blast radius report for a tracked file [16.00ms]
+(pass) mikk_before_edit > lists exported functions at risk with their callers
+(pass) mikk_before_edit > includes all project constraints (strings)
+(pass) mikk_before_edit > returns warning (not error) for untracked file
+(pass) mikk_before_edit > handles ./ prefix (./src/auth.ts finds the functions)
+(pass) mikk_before_edit > handles multiple files in a single call
+(pass) mikk_before_edit > summary blast radius counts sum correctly
+(pass) mikk_get_file > returns file contents with // path (N lines) header
+(pass) mikk_get_file > BLOCKS path traversal with ../
+(pass) mikk_get_file > BLOCKS absolute path outside project root
+(pass) mikk_get_file > returns isError with next-step hint for nonexistent file
+(pass) mikk_get_file > can read mikk.json itself
+(pass) mikk_get_file > can read the lock file
+(pass) mikk_get_constraints > returns all architectural constraints as strings
+(pass) mikk_get_constraints > returns all decisions with id, title, reason, date
+(pass) mikk_get_constraints > includes overwrite config
+(pass) mikk_get_routes > returns routes when present in lock
+(pass) mikk_get_routes > includes middleware array
+(pass) mikk_query_context > returns non-empty context for a valid question
+(pass) mikk_query_context > accepts focusModule param
+(pass) mikk_query_context > uses generic provider by default
+(pass) mikk_query_context > accepts explicit provider: compact
+(pass) mikk_query_context > accepts explicit provider: claude
+(pass) resources > exposes exactly 3 resources
+(pass) resources > mikk://contract returns valid JSON with project info
+(pass) resources > mikk://lock returns valid JSON with function map [16.00ms]
+(pass) resources > mikk://context gracefully errors if claude.md absent
+838 |         expect(isError(result)).toBe(false)
+839 |         const data = parseJSON(result)
+840 |         expect(data.added).toHaveLength(0)
+841 |         expect(data.modified).toHaveLength(1) // src/auth.ts fixture content changed
+842 |         expect(data.deleted).toHaveLength(0)
+843 |         expect(data.summary).toContain('1 file')
+                                   ^
+error: expect(received).toContain(expected)
+
+Expected to contain: "1 file"
+Received: "1 modified, 0 new, 0 deleted since last analysis"
+
+      at <anonymous> (C:\Users\Ansh\Desktop\web\Mesh\packages\mcp-server\tests\mcp.test.ts:843:30)
+(fail) mikk_get_changes > detects modified files based on hash mismatch with lock
+(pass) mikk_read_file > returns the entire file when no functions specified
+(pass) mikk_read_file > returns only the specified function when provided
+(pass) mikk_read_file > returns multiple specified functions
+(pass) mikk_read_file > returns error when file does not exist
+896 |     it('returns warning when function is not found in file', async () => {
+897 |         const result = await client.callTool({ name: 'mikk_read_file', arguments: { file: 'src/auth.ts', functions: ['login', 'unknownFunction'] } })
+898 |         expect(isError(result)).toBe(false)
+899 |         const text = getText(result)
+900 |         expect(text).toContain('export async function login')
+901 |         expect(text).toContain('WARNING: Function unknownFunction not found')
+                           ^
+error: expect(received).toContain(expected)
+
+Expected to contain: "WARNING: Function unknownFunction not found"
+Received: "// ── login ──\n// File: src/auth.ts:1-7\n// Module: auth\n// Purpose: Authenticate a user and return a session token\n// Params: username: string, password: string\n// Returns: Promise<string>\n// Async: true\n// Exported: true\n// Calls: hashPassword, generateToken\nexport async function login(username: string, password: string): Promise<string> {\r\n    const hash = await hashPassword(password)\r\n    if (!hash) {\r\n        throw new Error('Invalid credentials')\r\n    }\r\n    return generateToken(username)\r\n}\r\n\n// ❌ Function \"unknownFunction\" not found in src/auth.ts"
+
+      at <anonymous> (C:\Users\Ansh\Desktop\web\Mesh\packages\mcp-server\tests\mcp.test.ts:901:22)
+(fail) mikk_read_file > returns warning when function is not found in file
+(pass) mikk_get_session_context > returns comprehensive session context
+(pass) buildGraphFromLock — graph integrity > correctly identifies changed nodes for a 3-function file (3 fns + 1 file node)
+(pass) buildGraphFromLock — graph integrity > zero external impact when no callers exist outside the file
+(pass) buildGraphFromLock — graph integrity > before_edit constraints are proper string array (not objects)
+(pass) @getmikk/mcp-server — mikk_find_usages > returns caller list for a known function
+(pass) @getmikk/mcp-server — mikk_find_usages > returns module and file info alongside usages
+(pass) @getmikk/mcp-server — mikk_find_usages > returns isError for an unknown function
+(pass) @getmikk/mcp-server — mikk_find_usages > includes calledBy-resolved callers when present
+(pass) @getmikk/mcp-server — mikk_find_usages > warning is null when lock is clean
+(pass) @getmikk/mcp-server — staleness warning > mikk_get_project_overview includes warning field (null when clean)
+(pass) @getmikk/mcp-server — staleness warning > mikk_list_modules includes warning field (null when clean)
+(pass) @getmikk/mcp-server — staleness warning > mikk_get_module_detail includes warning field (null when clean)
+(pass) @getmikk/mcp-server — staleness warning > mikk_get_function_detail includes warning field (null when clean)
+(pass) @getmikk/mcp-server — staleness warning > mikk_search_functions includes warning field (null when clean)
+(pass) @getmikk/mcp-server — staleness warning > mikk_get_constraints includes warning field (null when clean)
+(pass) @getmikk/mcp-server — staleness warning > mikk_get_routes includes warning field (null when clean)
+(pass) @getmikk/mcp-server — staleness warning > impact_analysis response includes warning field (null when clean)
+(pass) @getmikk/mcp-server — staleness warning > before_edit response includes warning field (null when clean)
+(pass) @getmikk/mcp-server — staleness warning > find_usages response includes warning field (null when clean)
+(pass) @getmikk/mcp-server — mikk_query_context empty guard > returns an isError when focusFile does not exist in lock
+
+2 tests failed:
+(fail) mikk_get_changes > detects modified files based on hash mismatch with lock
+(fail) mikk_read_file > returns warning when function is not found in file
+
+ 90 pass
+ 2 fail
+ 236 expect() calls
+Ran 92 tests across 1 file. [868.00ms]
