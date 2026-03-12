@@ -1,6 +1,6 @@
 {
     "name": "@getmikk/mcp-server",
-    "version": "1.7.0",
+    "version": "1.8.0",
     "license": "Apache-2.0",
     "description": "MCP (Model Context Protocol) server for Mikk — exposes project intelligence to AI assistants",
     "repository": {
