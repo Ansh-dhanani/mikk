@@ -39,19 +39,14 @@ export class FileWatcher {
             },
         })
 
-        this.watcher.on('all', (event, path) => {
-            console.log(`[CHOKIDAR RAW] ${event}: ${path}`)
-        })
-        
-        this.watcher.on('change', (relativePath: string) => {
-            console.log(`[FILE WATCHER] change detected on ${relativePath}`)
-            this.handleChange(relativePath, 'changed')
-        })
-        this.watcher.on('add', (relativePath: string) => {
-            this.handleChange(relativePath, 'added')
-        })
-        this.watcher.on('unlink', (relativePath: string) => {
-            this.handleChange(relativePath, 'deleted')
+        this.watcher.on('all', (event, relativePath) => {
+            if (event === 'change') {
+                this.handleChange(relativePath, 'changed')
+            } else if (event === 'add') {
+                this.handleChange(relativePath, 'added')
+            } else if (event === 'unlink') {
+                this.handleChange(relativePath, 'deleted')
+            }
         })
     }
 
