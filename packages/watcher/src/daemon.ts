@@ -70,6 +70,16 @@ export class WatcherDaemon {
             this.analyzer.addParsedFile(file)
         }
 
+        // Seed the file watcher's hash store with initial hashes so the first
+        // change to any file can be properly deduplicated by content.
+        const initialHashes = new Map<string, string>()
+        for (const file of parsedFiles) {
+            if (file.hash) {
+                initialHashes.set(file.path.replace(/\\/g, '/'), file.hash)
+            }
+        }
+        this.watcher.seedHashes(initialHashes)
+
         // Subscribe to file changes with debouncing
         this.watcher.on(async (event: WatcherEvent) => {
             if (event.type === 'file:changed') {

@@ -44,31 +44,36 @@ export class IncrementalAnalyzer {
             return this.runFullAnalysis(events)
         }
 
-        // Incremental: process each event
-        let combinedChanged: string[] = []
-        let combinedImpacted: string[] = []
+        // Incremental: process each event, collecting changed file paths
+        const changedFilePaths: string[] = []
 
         for (const event of events) {
             if (event.type === 'deleted') {
                 this.parsedFiles.delete(event.path)
-                combinedChanged.push(event.path)
+                changedFilePaths.push(event.path)
             } else {
                 const parsed = await this.parseWithRaceCheck(event.path)
                 if (parsed) {
                     this.parsedFiles.set(event.path, parsed)
                 }
-                combinedChanged.push(...this.findAffectedNodes(event.path))
+                changedFilePaths.push(event.path)
             }
         }
 
-        // Rebuild graph from all parsed files
+        // Rebuild graph from all parsed files BEFORE deriving node IDs,
+        // so newly-added files are present in the graph when we look them up.
         const allParsedFiles = [...this.parsedFiles.values()]
         const builder = new GraphBuilder()
         this.graph = builder.build(allParsedFiles)
 
+        // Map changed file paths → graph node IDs using the updated graph
+        const changedNodeIds = [...new Set(
+            changedFilePaths.flatMap(fp => this.findAffectedNodes(fp))
+        )]
+
         // Run impact analysis on all changed nodes
         const analyzer = new ImpactAnalyzer(this.graph)
-        const impactResult = analyzer.analyze([...new Set(combinedChanged)])
+        const impactResult = analyzer.analyze(changedNodeIds)
 
         // Recompile lock
         const compiler = new LockCompiler()

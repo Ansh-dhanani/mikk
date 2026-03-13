@@ -22,8 +22,8 @@ export class FileWatcher {
             ignoreInitial: true,
             persistent: true,
             awaitWriteFinish: {
-                stabilityThreshold: 50,
-                pollInterval: 10,
+                stabilityThreshold: 300,
+                pollInterval: 50,
             },
         })
 
@@ -49,9 +49,16 @@ export class FileWatcher {
         this.handlers.push(handler)
     }
 
-    /** Set initial hash for a file */
+    /** Seed the initial hash for a file (called at startup for all known files) */
     setHash(filePath: string, hash: string): void {
         this.hashStore.set(filePath, hash)
+    }
+
+    /** Bulk-seed hashes for all known files so first-change dedup works correctly */
+    seedHashes(entries: ReadonlyMap<string, string>): void {
+        for (const [p, h] of entries) {
+            this.hashStore.set(p.replace(/\\/g, '/'), h)
+        }
     }
 
     private async handleChange(relativePath: string, type: FileChangeEvent['type']): Promise<void> {
@@ -68,7 +75,8 @@ export class FileWatcher {
             }
         }
 
-        if (oldHash === newHash) return // Content unchanged
+        // Skip only when both hashes are known and identical (true no-op change)
+        if (oldHash !== null && newHash !== null && oldHash === newHash) return
 
         if (newHash) this.hashStore.set(normalizedPath, newHash)
         if (type === 'deleted') this.hashStore.delete(normalizedPath)
