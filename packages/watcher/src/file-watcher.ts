@@ -16,8 +16,20 @@ export class FileWatcher {
 
     /** Start watching — non-blocking */
     start(): void {
-        this.watcher = watch(this.config.include, {
-            ignored: this.config.exclude,
+        const excludesRegexes = this.config.exclude.map(
+            pattern => new RegExp(pattern.replace(/\*/g, '.*').replace(/\//g, '[\\\\/]'))
+        )
+        const includeExts = ['.ts', '.tsx']
+
+        this.watcher = watch(this.config.projectRoot, {
+            ignored: (testPath: string, stats?: import('fs').Stats) => {
+                // Ignore matching exclude patterns
+                if (excludesRegexes.some(r => r.test(testPath))) return true
+                // Keep directories so we can recurse
+                if (!stats || stats.isDirectory()) return false
+                // Ignore non-matching file extensions
+                return !includeExts.some(ext => testPath.endsWith(ext))
+            },
             cwd: this.config.projectRoot,
             ignoreInitial: true,
             persistent: true,
@@ -27,7 +39,12 @@ export class FileWatcher {
             },
         })
 
+        this.watcher.on('all', (event, path) => {
+            console.log(`[CHOKIDAR RAW] ${event}: ${path}`)
+        })
+        
         this.watcher.on('change', (relativePath: string) => {
+            console.log(`[FILE WATCHER] change detected on ${relativePath}`)
             this.handleChange(relativePath, 'changed')
         })
         this.watcher.on('add', (relativePath: string) => {
