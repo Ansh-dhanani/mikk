@@ -19,6 +19,9 @@
     "apps/*"
   ],
   "dependencies": {
-    "@xenova/transformers": "^2.17.2"
+    "@xenova/transformers": "^2.17.2",
+    "cmdk": "^1.1.1",
+    "react-fast-marquee": "^1.6.5",
+    "sonner": "^2.0.7"
   }
 }
