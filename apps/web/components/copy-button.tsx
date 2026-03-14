@@ -1,7 +1,7 @@
 "use client";
 
 import { CheckIcon, CircleXIcon, CopyIcon } from "lucide-react";
-import { AnimatePresence, motion } from "motion/react";
+import { AnimatePresence, motion } from "framer-motion";
 import { useOptimistic, useTransition } from "react";
 
 import type { Event } from "@/lib/events";

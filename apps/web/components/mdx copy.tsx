@@ -7,15 +7,14 @@ import rehypeSlug from "rehype-slug";
 import remarkGfm from "remark-gfm";
 import { visit } from "unist-util-visit";
 
-
 import {
   Tabs,
   TabsContent,
   TabsIndicator,
   TabsList,
   TabsTrigger,
-} from "../src/components/base/ui/tabs";
-import { CodeCollapsibleWrapper } from "../src/components/code-collapsible-wrapper";
+} from "../../../../chanhdai.com/src/components/base/ui/tabs";
+import { CodeCollapsibleWrapper } from "../../../../chanhdai.com/src/components/code-collapsible-wrapper";
 import {
   Table,
   TableBody,
@@ -23,14 +22,14 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "../src/components/ui/table";
-import { Code, Heading } from "../src/components/ui/typography";
-import { SITE_INFO as UTM_PARAMS } from "../src/config/site";
-import { rehypeAddQueryParams } from "../src/lib/rehype-add-query-params";
-import { rehypeComponent } from "../src/lib/rehype-component";
-import { rehypeNpmCommand } from "../src/lib/rehype-npm-command";
-import { remarkCodeImport } from "../src/lib/remark-code-import.js";
-import { cn } from "../src/lib/utils";
+} from "../../../../chanhdai.com/src/components/ui/table";
+import { Code, Heading } from "../../../../chanhdai.com/src/components/ui/typography";
+import { SITE_INFO as UTM_PARAMS } from "../../../../chanhdai.com/src/config/site";
+import { rehypeAddQueryParams } from "../../../../chanhdai.com/src/lib/rehype-add-query-params";
+import { rehypeComponent } from "../../../../chanhdai.com/src/lib/rehype-component";
+import { rehypeNpmCommand } from "../../../../chanhdai.com/src/lib/rehype-npm-command";
+import { remarkCodeImport } from "../../../../chanhdai.com/src/lib/remark-code-import.js";
+import { cn } from "../../../../chanhdai.com/src/lib/utils";
 import {
   Testimonial,
   TestimonialAuthor,
@@ -41,14 +40,14 @@ import {
   TestimonialAvatarRing,
   TestimonialQuote,
   TestimonialVerifiedBadge,
-} from "../src/registry/testimonials-marquee";
-import type { NpmCommands } from "../src/types/unist";
+} from "../../../../chanhdai.com/src/registry/testimonials-marquee";
+import type { NpmCommands } from "../../../../chanhdai.com/src/types/unist";
 
 import { CodeBlockCommand } from "./code-block-command";
 import { CodeTabs } from "./code-tabs";
 import { CopyButton } from "./copy-button";
-import { FramedImage, IframeEmbed, YouTubeEmbed } from "../src/components/embed";
-import { getIconForLanguageExtension, Icons } from "../src/components/icons";
+import { FramedImage, IframeEmbed, YouTubeEmbed } from "../../../../chanhdai.com/src/components/embed";
+import { getIconForLanguageExtension, Icons } from "../../../../chanhdai.com/src/components/icons";
 
 const components: MDXRemoteProps["components"] = {
   h1: (props: React.ComponentProps<"h1">) => <h1 {...props} />,
