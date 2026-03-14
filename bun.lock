@@ -36,6 +36,7 @@
         "class-variance-authority": "^0.7.1",
         "clsx": "^2.1.1",
         "d3": "^7.9.0",
+        "framer-motion": "^12.36.0",
         "fumadocs-core": "^16.6.17",
         "fumadocs-mdx": "^14.2.10",
         "fumadocs-ui": "^16.6.16",
@@ -67,7 +68,7 @@
     },
     "packages/ai-context": {
       "name": "@getmikk/ai-context",
-      "version": "1.7.1",
+      "version": "1.7.0",
       "dependencies": {
         "@getmikk/core": "workspace:*",
         "@getmikk/intent-engine": "workspace:*",
@@ -79,7 +80,7 @@
     },
     "packages/cli": {
       "name": "@getmikk/cli",
-      "version": "1.7.1",
+      "version": "1.7.0",
       "bin": {
         "mikk": "bin/mikk.js",
       },
@@ -104,7 +105,7 @@
     },
     "packages/core": {
       "name": "@getmikk/core",
-      "version": "1.7.1",
+      "version": "1.7.0",
       "dependencies": {
         "@types/better-sqlite3": "^7.6.13",
         "better-sqlite3": "^12.6.2",
@@ -119,7 +120,7 @@
     },
     "packages/diagram-generator": {
       "name": "@getmikk/diagram-generator",
-      "version": "1.7.1",
+      "version": "1.7.0",
       "dependencies": {
         "@getmikk/core": "workspace:*",
       },
@@ -130,7 +131,7 @@
     },
     "packages/intent-engine": {
       "name": "@getmikk/intent-engine",
-      "version": "1.7.1",
+      "version": "1.7.0",
       "dependencies": {
         "@getmikk/core": "workspace:*",
         "zod": "^3.22.0",
@@ -149,7 +150,7 @@
     },
     "packages/mcp-server": {
       "name": "@getmikk/mcp-server",
-      "version": "1.8.1",
+      "version": "1.8.0",
       "bin": {
         "mikk-mcp": "bin/mikk-mcp.js",
       },
@@ -181,7 +182,7 @@
     },
     "packages/watcher": {
       "name": "@getmikk/watcher",
-      "version": "1.7.1",
+      "version": "1.7.0",
       "dependencies": {
         "@getmikk/core": "workspace:*",
         "chokidar": "^4.0.0",
