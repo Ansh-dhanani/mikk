@@ -1,0 +1,322 @@
+{
+  "version": "1.0.0",
+  "project": {
+    "name": "web",
+    "description": "",
+    "language": "typescript",
+    "entryPoints": [
+      "components/kibo-ui/image-zoom/index.tsx",
+      "components/kibo-ui/marquee/index.tsx",
+      "components/kibo-ui/contribution-graph/index.tsx"
+    ]
+  },
+  "declared": {
+    "modules": [
+      {
+        "id": "providers",
+        "name": "Providers",
+        "description": "Root layout; Theme provider; Is typing target",
+        "intent": "",
+        "paths": [
+          "providers/**"
+        ],
+        "entryFunctions": [
+          "RootLayout",
+          "providers",
+          "ThemeProvider"
+        ]
+      },
+      {
+        "id": "components",
+        "name": "Components",
+        "description": "Code block command; ── tiny copy button that grabs text from the sibling <pre...; ── code block figure shell — adds copy button overlay ──",
+        "intent": "",
+        "paths": [
+          "components/**",
+          "components/ui/**",
+          "components/animated-icons/**",
+          "components/base/ui/**"
+        ],
+        "entryFunctions": [
+          "CodeBlockCommand",
+          "CodeBlockFigure",
+          "CodeCollapsibleWrapper",
+          "CodeTabs",
+          "CollapsibleList",
+          "CommandMenu",
+          "ConsentManagerClient",
+          "ConsentManager",
+          "copyToClipboardWithEvent",
+          "CopyButton",
+          "CopyMarkdownButton",
+          "Header",
+          "Markdown",
+          "MDX",
+          "getMDXComponents",
+          "NotFound",
+          "SearchDialog",
+          "Sidebar",
+          "MobileSidebarTrigger",
+          "TOC",
+          "Button",
+          "Collapsible",
+          "CollapsibleTrigger",
+          "CollapsibleContent",
+          "CollapsibleWithContext",
+          "CollapsibleChevronsIcon",
+          "Kbd",
+          "KbdGroup",
+          "Separator",
+          "Tabs",
+          "TabsList",
+          "TabsIndicator",
+          "TabsTrigger",
+          "TabsContent"
+        ]
+      },
+      {
+        "id": "source.config",
+        "name": "Config",
+        "description": "1 files, 0 functions",
+        "intent": "",
+        "paths": [
+          "/**"
+        ],
+        "entryFunctions": []
+      },
+      {
+        "id": "app",
+        "name": "Layout (App)",
+        "description": "Root layout; Page",
+        "intent": "",
+        "paths": [
+          "app/**"
+        ],
+        "entryFunctions": [
+          "RootLayout",
+          "Page"
+        ]
+      },
+      {
+        "id": "lib",
+        "name": "Utils",
+        "description": "Track event; Base options; Cn",
+        "intent": "",
+        "paths": [
+          "lib/**"
+        ],
+        "entryFunctions": [
+          "trackEvent",
+          "baseOptions",
+          "cn"
+        ]
+      },
+      {
+        "id": "app-docs",
+        "name": "Layout (App Docs)",
+        "description": "Docs layout; Page; Generate static params",
+        "intent": "",
+        "paths": [
+          "app/docs/**",
+          "app/docs/[[...slug]]/**"
+        ],
+        "entryFunctions": [
+          "DocsLayout",
+          "Page",
+          "generateStaticParams",
+          "generateMetadata"
+        ]
+      },
+      {
+        "id": "components-animated-icons",
+        "name": "Components (Components Animated Icons)",
+        "description": "2 files, 0 functions",
+        "intent": "",
+        "paths": [
+          "components/animated-icons/**"
+        ],
+        "entryFunctions": []
+      },
+      {
+        "id": "app-api-search",
+        "name": "API",
+        "description": "1 files, 0 functions",
+        "intent": "",
+        "paths": [
+          "app/api/search/**"
+        ],
+        "entryFunctions": []
+      },
+      {
+        "id": "components-base-ui",
+        "name": "Providers (Components Base Ui)",
+        "description": "Tooltip provider; Tooltip root; Tooltip",
+        "intent": "",
+        "paths": [
+          "components/base/ui/**"
+        ],
+        "entryFunctions": [
+          "TooltipProvider",
+          "TooltipRoot",
+          "Tooltip",
+          "TooltipTrigger",
+          "TooltipContent"
+        ]
+      },
+      {
+        "id": "components-kibo-ui-image-zoom",
+        "name": "Media & Components",
+        "description": "primarily contribution, marquee, image operations across 3 files",
+        "intent": "",
+        "paths": [
+          "components/kibo-ui/image-zoom/**",
+          "components/kibo-ui/marquee/**",
+          "components/kibo-ui/contribution-graph/**"
+        ],
+        "entryFunctions": [
+          "ImageZoom",
+          "Marquee",
+          "MarqueeContent",
+          "MarqueeFade",
+          "MarqueeItem",
+          "ContributionGraph",
+          "ContributionGraphBlock",
+          "ContributionGraphCalendar",
+          "ContributionGraphFooter",
+          "ContributionGraphTotalCount",
+          "ContributionGraphLegend"
+        ]
+      },
+      {
+        "id": "components-ui",
+        "name": "Navigation & Components",
+        "description": "Breadcrumb; Breadcrumb list; Breadcrumb item",
+        "intent": "",
+        "paths": [
+          "components/ui/**"
+        ],
+        "entryFunctions": [
+          "Breadcrumb",
+          "BreadcrumbList",
+          "BreadcrumbItem",
+          "BreadcrumbLink",
+          "BreadcrumbPage",
+          "BreadcrumbSeparator",
+          "BreadcrumbEllipsis",
+          "Button",
+          "Command",
+          "CommandDialog",
+          "CommandInput",
+          "CommandList",
+          "CommandEmpty",
+          "CommandGroup",
+          "CommandSeparator",
+          "CommandItem",
+          "CommandShortcut",
+          "ContextMenu",
+          "ContextMenuTrigger",
+          "ContextMenuGroup",
+          "ContextMenuPortal",
+          "ContextMenuSub",
+          "ContextMenuRadioGroup",
+          "ContextMenuSubTrigger",
+          "ContextMenuSubContent",
+          "ContextMenuContent",
+          "ContextMenuItem",
+          "ContextMenuCheckboxItem",
+          "ContextMenuRadioItem",
+          "ContextMenuLabel",
+          "ContextMenuSeparator",
+          "ContextMenuShortcut",
+          "Dialog",
+          "DialogTrigger",
+          "DialogPortal",
+          "DialogClose",
+          "DialogOverlay",
+          "DialogContent",
+          "DialogHeader",
+          "DialogFooter",
+          "DialogTitle",
+          "DialogDescription",
+          "DropdownMenu",
+          "DropdownMenuPortal",
+          "DropdownMenuTrigger",
+          "DropdownMenuContent",
+          "DropdownMenuGroup",
+          "DropdownMenuItem",
+          "DropdownMenuCheckboxItem",
+          "DropdownMenuRadioGroup",
+          "DropdownMenuRadioItem",
+          "DropdownMenuLabel",
+          "DropdownMenuSeparator",
+          "DropdownMenuShortcut",
+          "DropdownMenuSub",
+          "DropdownMenuSubTrigger",
+          "DropdownMenuSubContent",
+          "FormField",
+          "useFormField",
+          "FormItem",
+          "FormLabel",
+          "FormControl",
+          "FormDescription",
+          "FormMessage",
+          "InputGroup",
+          "InputGroupAddon",
+          "InputGroupButton",
+          "InputGroupText",
+          "InputGroupInput",
+          "InputGroupTextarea",
+          "Input",
+          "Label",
+          "NavigationMenu",
+          "NavigationMenuList",
+          "NavigationMenuItem",
+          "NavigationMenuTrigger",
+          "NavigationMenuContent",
+          "NavigationMenuViewport",
+          "NavigationMenuLink",
+          "NavigationMenuIndicator",
+          "ScrollArea",
+          "ScrollBar",
+          "ScrollArea",
+          "ScrollBar",
+          "Sheet",
+          "SheetTrigger",
+          "SheetClose",
+          "SheetContent",
+          "SheetHeader",
+          "SheetFooter",
+          "SheetTitle",
+          "SheetDescription",
+          "Toaster",
+          "Table",
+          "TableHeader",
+          "TableBody",
+          "TableRow",
+          "TableHead",
+          "TableCell",
+          "Tabs",
+          "TabsList",
+          "TabsTrigger",
+          "TabsContent",
+          "Tag",
+          "Textarea",
+          "TooltipProvider",
+          "Tooltip",
+          "TooltipTrigger",
+          "TooltipContent",
+          "Prose",
+          "ProseMono",
+          "Code",
+          "Heading"
+        ]
+      }
+    ],
+    "constraints": [],
+    "decisions": []
+  },
+  "overwrite": {
+    "mode": "never",
+    "requireConfirmation": true
+  }
+}

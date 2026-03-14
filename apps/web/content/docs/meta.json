@@ -1,0 +1,9 @@
+{
+  "title": "Mikk Documentation",
+  "pages": [
+    "index",
+    "core",
+    "guides",
+    "reference"
+  ]
+}

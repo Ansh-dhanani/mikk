@@ -1,0 +1,262 @@
+---
+title: CLI Reference
+description: All 15+ commands for the Mikk CLI — with options, flags, and examples.
+---
+
+## Installation
+
+<Tabs items={["npm", "bun"]}>
+  <Tab value="npm">
+    ```bash
+    npm install -g @getmikk/cli
+    ```
+  </Tab>
+  <Tab value="bun">
+    ```bash
+    bun add -g @getmikk/cli
+    ```
+  </Tab>
+</Tabs>
+
+---
+
+## Core Commands
+
+### `mikk init`
+
+Full codebase scan. Builds the dependency graph, detects modules, writes all artifacts.
+
+```bash
+cd my-project
+mikk init
+```
+
+<TypeTable
+  type={{
+    "--no-diagrams": {
+      description: "Skip Mermaid diagram generation.",
+      type: "flag",
+    },
+    "--no-context": {
+      description: "Skip claude.md and AGENTS.md generation.",
+      type: "flag",
+    },
+    "--force": {
+      description: "Re-initialize even if mikk.json already exists.",
+      type: "flag",
+    },
+  }}
+/>
+
+---
+
+### `mikk analyze`
+
+Re-analyze and update all generated files. Uses incremental analysis — only re-parses files whose Merkle hash changed.
+
+```bash
+mikk analyze
+mikk analyze --full    # force full re-parse (ignore hashes)
+```
+
+---
+
+### `mikk watch`
+
+Start the live file watcher daemon. Keeps the lock file in sync as you edit code.
+
+```bash
+mikk watch
+mikk watch --debounce 500    # debounce delay in ms (default: 300)
+```
+
+<Callout type="info">
+  Enforces a single-instance PID daemon — starting `mikk watch` twice will reuse the existing process, not start a duplicate.
+</Callout>
+
+---
+
+### `mikk diff`
+
+Show what changed since the last analysis.
+
+```bash
+mikk diff
+```
+
+```
+Added:    src/auth/two-factor.ts
+Modified: src/auth/login.ts
+Deleted:  src/auth/legacy-auth.ts
+
+3 files changed (1 added, 1 modified, 1 deleted)
+```
+
+---
+
+## Context Commands
+
+### `mikk context build`
+
+Build an AI context payload for a task description.
+
+```bash
+mikk context build "How does authentication work?"
+mikk context build "Refactor the payments module" --tokens 8000
+mikk context build "Fix the session bug" --format xml --hops 3
+```
+
+<TypeTable
+  type={{
+    "--tokens": {
+      description: "Token budget for the context payload.",
+      type: "number",
+      default: "4000",
+    },
+    "--format": {
+      description: "Output format.",
+      type: '"xml" | "text" | "compact"',
+      default: '"xml"',
+    },
+    "--hops": {
+      description: "BFS depth from seed functions.",
+      type: "number",
+      default: "2",
+    },
+  }}
+/>
+
+---
+
+### `mikk context impact`
+
+Show the full blast radius of changing a file.
+
+```bash
+mikk context impact src/auth/login.ts
+mikk context impact src/auth/login.ts --depth 5
+```
+
+---
+
+### `mikk context query`
+
+Answer an architecture question using the dependency graph.
+
+```bash
+mikk context query "Who calls parseToken?"
+mikk context query "What does src/api/routes.ts depend on?"
+```
+
+---
+
+## Contract Commands
+
+### `mikk contract generate`
+
+Auto-detect modules and generate an initial `mikk.json`.
+
+```bash
+mikk contract generate
+mikk contract generate --force    # overwrite existing contract
+```
+
+---
+
+### `mikk contract validate`
+
+Validate the current codebase against all constraints in `mikk.json`.
+
+```bash
+mikk contract validate
+mikk contract validate --strict              # exit code 1 on any violation
+mikk contract validate --boundaries-only     # check only no-import / layer
+```
+
+<Callout type="warn">
+  Use `--strict` in CI to fail the build on any constraint violation. Without `--strict`, `validate` prints violations but exits with code 0.
+</Callout>
+
+---
+
+### `mikk contract status`
+
+Print a summary of all modules, constraint counts, and current violation state.
+
+```bash
+mikk contract status
+```
+
+---
+
+## Intent Commands
+
+### `mikk intent`
+
+Validate a plain-English plan against your architecture before writing code. Checks all 6 constraint types.
+
+```bash
+mikk intent "Add a caching layer to the auth module"
+mikk intent "Extract shared validation into utils" --verbose
+```
+
+---
+
+## MCP Commands
+
+<Tabs items={["mikk mcp", "mikk mcp install"]}>
+  <Tab value="mikk mcp">
+    Start the MCP server.
+
+    ```bash
+    mikk mcp
+    mikk mcp --port 3333     # custom port (default: 3000)
+    mikk mcp --watch         # auto-restart on file changes
+    ```
+  </Tab>
+  <Tab value="mikk mcp install">
+    Auto-install Mikk into your AI tool of choice.
+
+    ```bash
+    mikk mcp install                     # auto-detect installed tools
+    mikk mcp install --tool claude       # Claude Desktop
+    mikk mcp install --tool cursor       # Cursor
+    mikk mcp install --tool vscode       # VS Code Copilot
+    ```
+  </Tab>
+</Tabs>
+
+---
+
+## Visualization Commands
+
+```bash
+mikk visualize all                        # regenerate all 8 diagram types
+mikk visualize module auth                # specific module
+mikk visualize impact src/auth/login.ts   # blast radius diagram
+```
+
+---
+
+## Utility Commands
+
+<TypeTable
+  type={{
+    "mikk status": {
+      description: "Show project health — module count, violation count, last analysis time.",
+      type: "command",
+    },
+    "mikk clean": {
+      description: "Remove all generated artifacts (lock file, diagrams, context files).",
+      type: "command",
+    },
+    "mikk version": {
+      description: "Print CLI and all package versions.",
+      type: "command",
+    },
+    "mikk help [command]": {
+      description: "Show help for any command.",
+      type: "command",
+    },
+  }}
+/>

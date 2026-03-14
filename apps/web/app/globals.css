@@ -1,0 +1,137 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+@import "fumadocs-ui/style.css";
+
+@custom-variant dark (&:is(.dark *));
+
+/* ─────────────────────────────────────
+   BRAND TOKENS
+───────────────────────────────────── */
+:root {
+  --background: oklch(0.985 0.002 260);
+  --foreground: oklch(0.22 0.01 260);
+
+  --card: oklch(0.97 0.003 260);
+  --card-foreground: oklch(0.22 0.01 260);
+
+  --popover: oklch(0.97 0.003 260);
+  --popover-foreground: oklch(0.22 0.01 260);
+
+  /* Brand accent */
+  --primary: oklch(0.56 0.18 262);
+  --primary-foreground: oklch(0.99 0.01 260);
+
+  --secondary: oklch(0.94 0.01 260);
+  --secondary-foreground: oklch(0.25 0.01 260);
+
+  --muted: oklch(0.94 0.008 260);
+  --muted-foreground: oklch(0.50 0.015 260);
+
+  --accent: oklch(0.94 0.015 260);
+  --accent-foreground: oklch(0.25 0.01 260);
+
+  --destructive: oklch(0.58 0.24 27);
+  --destructive-foreground: oklch(0.99 0 0);
+
+  --border: oklch(0.90 0.006 260);
+  --input: oklch(0.90 0.006 260);
+
+  --ring: oklch(0.56 0.18 262);
+
+  --radius: 0.7rem;
+
+  --fd-primary: var(--primary);
+  --fd-background: var(--background);
+  --fd-foreground: var(--foreground);
+}
+
+.dark {
+  --background: oklch(0.16 0.01 260);
+  --foreground: oklch(0.93 0.005 260);
+
+  --card: oklch(0.19 0.01 260);
+  --card-foreground: oklch(0.93 0.005 260);
+
+  --popover: oklch(0.19 0.01 260);
+  --popover-foreground: oklch(0.93 0.005 260);
+
+  --primary: oklch(0.65 0.20 262);
+  --primary-foreground: oklch(0.15 0.01 260);
+
+  --secondary: oklch(0.26 0.01 260);
+  --secondary-foreground: oklch(0.93 0.005 260);
+
+  --muted: oklch(0.26 0.01 260);
+  --muted-foreground: oklch(0.70 0.01 260);
+
+  --accent: oklch(37.126% 0.0037 264.601);
+  --accent-foreground: oklch(0.93 0.005 260);
+
+  --destructive: oklch(0.62 0.18 27);
+  --destructive-foreground: oklch(0.95 0.005 260);
+
+  --border: oklch(0.30 0.01 260);
+  --input: oklch(0.30 0.01 260);
+
+  --ring: oklch(0.65 0.20 262);
+
+  --fd-primary: var(--primary);
+  --fd-background: var(--background);
+  --fd-foreground: var(--foreground);
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+  --radius-2xl: calc(var(--radius) + 8px);
+}
+
+@layer base {
+  * {
+    @apply border-border/60;
+  }
+
+  body {
+    @apply bg-background text-foreground antialiased min-w-0;
+  }
+}
+
+/* ─────────────────────────────────────
+   STEPS
+───────────────────────────────────── */
+.fd-steps {
+  border-inline-start-color: oklch(60% 0.12 262 / 0.35) !important;
+}
+
+.dark .fd-steps {
+  border-inline-start-color: oklch(47.478% 0.00005 271.152 / 0.35) !important;
+}
+
+.fd-step::before {
+  background-color: var(--secondary) !important;
+  color: rgb(221, 221, 221) !important;
+  border: 1.5px solid var(--accent) !important;
+  font-weight: 700 !important;
+}

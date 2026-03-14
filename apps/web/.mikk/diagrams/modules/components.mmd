@@ -1,0 +1,82 @@
+%%{init: {"theme": "base", "themeVariables": {"primaryColor": "#1e293b", "primaryTextColor": "#e2e8f0", "lineColor": "#64748b", "secondaryColor": "#334155", "tertiaryColor": "#475569", "background": "#0f172a", "mainBkg": "#1e293b", "nodeBorder": "#475569"}}}%%
+graph TD
+    subgraph mod_components["📦 Module: Components (150 internal functions collapsed)"]
+        collapsed_files["📁 +2 more files (2 functions)"]
+        subgraph file_components_mdx_tsx["📄 mdx.tsx"]
+            fn_components_mdx_tsx_pre["⚡ pre"]
+            fn_components_mdx_tsx_code["⚡ code"]
+            fn_components_mdx_tsx_h1["⚡ h1"]
+            fn_components_mdx_tsx_h2["⚡ h2"]
+            fn_components_mdx_tsx_h3["⚡ h3"]
+            fn_components_mdx_tsx_h4["⚡ h4"]
+            fn_components_mdx_tsx_p["⚡ p"]
+            fn_components_mdx_tsx_ul["⚡ ul"]
+            fn_components_mdx_tsx_ol["⚡ ol"]
+            fn_components_mdx_tsx_li["⚡ li"]
+            fn_components_mdx_tsx_blockquote["⚡ blockquote"]
+            fn_components_mdx_tsx_table["⚡ table"]
+        end
+        subgraph file_components_command_menu_tsx["📄 command-menu.tsx"]
+            fn_components_command_menu_tsx_CommandMenu["⚡ CommandMenu"]
+            fn_components_command_menu_tsx_CommandMenuInput["⚡ CommandMenuInput"]
+            fn_components_command_menu_tsx_CommandLinkGroup["⚡ CommandLinkGroup"]
+            fn_components_command_menu_tsx_buildCommandMetaMap["⚡ buildCommandMetaMap"]
+            fn_components_command_menu_tsx_CommandMenuFooter["⚡ CommandMenuFooter"]
+            fn_components_command_menu_tsx_postToCommandLinkItem["⚡ postToCommandLinkItem"]
+        end
+        subgraph file_components_ui_form_tsx["📄 form.tsx"]
+            fn_components_ui_form_tsx_useFormField["λ useFormField"]
+            fn_components_ui_form_tsx_FormLabel["⚡ FormLabel"]
+            fn_components_ui_form_tsx_FormControl["⚡ FormControl"]
+            fn_components_ui_form_tsx_FormDescription["⚡ FormDescription"]
+            fn_components_ui_form_tsx_FormMessage["⚡ FormMessage"]
+        end
+        subgraph file_components_code_block_figure_tsx["📄 code-block-figure.tsx"]
+            fn_components_code_block_figure_tsx_CopyButton["⚡ CopyButton"]
+            fn_components_code_block_figure_tsx_CodeBlockFigure["⚡ CodeBlockFigure"]
+        end
+        subgraph file_components_copy_button_tsx["📄 copy-button.tsx"]
+            fn_components_copy_button_tsx_copyToClipboardWithEvent["λ copyToClipboardWithEvent"]
+            fn_components_copy_button_tsx_CopyButton["⚡ CopyButton"]
+        end
+        subgraph file_components_header_tsx["📄 header.tsx"]
+            fn_components_header_tsx_ThemeToggle["⚡ ThemeToggle"]
+            fn_components_header_tsx_Header["⚡ Header"]
+        end
+        subgraph file_components_code_block_command_tsx["📄 code-block-command.tsx"]
+            fn_components_code_block_command_tsx_CodeBlockCommand["⚡ CodeBlockCommand"]
+        end
+        subgraph file_components_code_collapsible_wrapper_tsx["📄 code-collapsible-wrapper.tsx"]
+            fn_components_code_collapsible_wrapper_tsx_CodeCollapsibleWrapper["⚡ CodeCollapsibleWrapper"]
+        end
+        subgraph file_components_code_tabs_tsx["📄 code-tabs.tsx"]
+            fn_components_code_tabs_tsx_CodeTabs["⚡ CodeTabs"]
+        end
+        subgraph file_components_collapsible_list_tsx["📄 collapsible-list.tsx"]
+            fn_components_collapsible_list_tsx_CollapsibleList["⚡ CollapsibleList"]
+        end
+        subgraph file_components_consent_manager_client_tsx["📄 consent-manager-client.tsx"]
+            fn_components_consent_manager_client_tsx_ConsentManagerClient["⚡ ConsentManagerClient"]
+        end
+        subgraph file_components_consent_manager_tsx["📄 consent-manager.tsx"]
+            fn_components_consent_manager_tsx_ConsentManager["⚡ ConsentManager"]
+        end
+        subgraph file_components_copy_markdown_button_tsx["📄 copy-markdown-button.tsx"]
+            fn_components_copy_markdown_button_tsx_CopyMarkdownButton["⚡ CopyMarkdownButton"]
+        end
+        subgraph file_components_markdown_tsx["📄 markdown.tsx"]
+            fn_components_markdown_tsx_Markdown["⚡ Markdown"]
+        end
+        subgraph file_components_mdx_copy_tsx["📄 mdx copy.tsx"]
+            fn_components_mdx_copy_tsx_MDX["⚡ MDX"]
+        end
+    end
+
+    fn_components_copy_button_tsx_CopyButton --> fn_components_copy_button_tsx_copyToClipboardWithEvent
+    fn_components_ui_form_tsx_FormLabel --> fn_components_ui_form_tsx_useFormField
+    fn_components_ui_form_tsx_FormControl --> fn_components_ui_form_tsx_useFormField
+    fn_components_ui_form_tsx_FormDescription --> fn_components_ui_form_tsx_useFormField
+    fn_components_ui_form_tsx_FormMessage --> fn_components_ui_form_tsx_useFormField
+
+    classDef default fill:#334155,stroke:#64748b,color:#e2e8f0,stroke-width:1px
+    classDef external fill:#1e293b,stroke:#475569,color:#94a3b8,stroke-dasharray: 5 5

@@ -1,0 +1,173 @@
+---
+title: Contract Management
+description: Define module boundaries, enforce architectural constraints, and fail CI on violations — with Mikk's contract system.
+---
+
+<Callout title="Contracts are enforced at CI time" type="info">
+  Define your rules in `mikk.json`. Run `mikk contract validate --strict` in your pipeline.
+  Every constraint violation fails the build with a specific file location and rule citation.
+</Callout>
+
+## Contract Structure
+
+```json title="mikk.json"
+{
+  "modules": {
+    "auth": {
+      "intent": "Handle user authentication and session management",
+      "include": ["src/auth/**"],
+      "publicApi": ["login", "logout", "validateToken"],
+      "constraints": {
+        "no-import": ["payments", "billing"],
+        "layer": 1,
+        "naming": "^handle|^use|^validate"
+      }
+    },
+    "payments": {
+      "intent": "Process payments and subscriptions",
+      "include": ["src/payments/**"],
+      "publicApi": ["createCharge", "refund"],
+      "constraints": {
+        "no-import": ["auth"],
+        "layer": 2,
+        "max-files": 20
+      }
+    }
+  }
+}
+```
+
+## Constraint Types
+
+<TypeTable
+  type={{
+    "no-import": {
+      description: "This module cannot import from the listed modules.",
+      type: 'string[]',
+      default: "[]",
+    },
+    "must-use": {
+      description: "This module must import from all listed modules.",
+      type: 'string[]',
+      default: "[]",
+    },
+    "no-call": {
+      description: "This module cannot call functions from the listed modules.",
+      type: 'string[]',
+      default: "[]",
+    },
+    layer: {
+      description: "Modules with higher layer numbers cannot import from lower-layer modules.",
+      type: "number",
+      default: "undefined",
+    },
+    naming: {
+      description: "All exported functions in this module must match this regex pattern.",
+      type: "string (regex)",
+      default: "undefined",
+    },
+    "max-files": {
+      description: "This module cannot contain more than this many files.",
+      type: "number",
+      default: "undefined",
+    },
+  }}
+/>
+
+## Generating a Contract
+
+<Steps>
+  <Step>
+    ### Auto-detect modules
+
+    ```bash
+    mikk contract generate
+    ```
+
+    Analyzes import patterns, directory structure, and naming conventions to produce an initial `mikk.json`.
+  </Step>
+  <Step>
+    ### Review and tune
+
+    Open `mikk.json` and verify:
+    - Module `intent` descriptions are accurate
+    - `include` globs match the right files
+    - `publicApi` lists the correct exported functions
+    - `constraints` reflect your actual architectural rules
+  </Step>
+  <Step>
+    ### Validate against current codebase
+
+    ```bash
+    mikk contract validate
+    ```
+
+    Fix any existing violations before adding the contract to CI.
+  </Step>
+</Steps>
+
+## Validating
+
+```bash
+mikk contract validate                       # check all constraints
+mikk contract validate --strict              # exit code 1 on any violation
+mikk contract validate --boundaries-only     # fastest: only no-import + layer
+```
+
+Example output:
+
+```
+✗ VIOLATION: auth → payments
+  src/auth/login.ts imports src/payments/subscription.ts
+  Rule: no-import["payments"]
+
+✗ VIOLATION: auth naming
+  src/auth/password-utils.ts exports "hashPassword"
+  Rule: naming[^handle|^use|^validate]
+
+2 violations found.
+```
+
+## Architecture Decision Records
+
+Track significant architectural decisions as ADRs in `mikk.json`:
+
+```json title="mikk.json"
+{
+  "decisions": [
+    {
+      "id": "ADR-001",
+      "title": "Auth module cannot import from Payments",
+      "status": "accepted",
+      "date": "2025-01-15",
+      "rationale": "Prevent circular dependency between auth and billing flows",
+      "constraints": ["auth.no-import.payments"]
+    }
+  ]
+}
+```
+
+## CI Integration
+
+<Tabs items={["GitHub Actions", "Generic shell"]}>
+  <Tab value="GitHub Actions">
+    ```yaml title=".github/workflows/ci.yml"
+    - name: Validate architecture
+      run: mikk contract validate --strict
+    ```
+  </Tab>
+  <Tab value="Generic shell">
+    ```bash
+    # In any CI pipeline
+    mikk contract validate --strict
+    if [ $? -ne 0 ]; then
+      echo "Architecture violations found. Build failed."
+      exit 1
+    fi
+    ```
+  </Tab>
+</Tabs>
+
+<Callout type="success">
+  Once `--strict` is in your CI pipeline, architectural regressions are caught at PR time — not in code review.
+</Callout>

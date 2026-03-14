@@ -1,0 +1,88 @@
+---
+title: Introduction
+description: Mikk gives your AI real codebase intelligence — parsed AST, full dependency graph, Merkle hashing, and a live MCP server. Zero cloud. Zero hallucination.
+---
+
+<Callout title="Your AI doesn't understand your codebase. Mikk fixes that." type="info">
+  Mikk parses your entire project via the TypeScript Compiler API, builds a bidirectional dependency
+  graph, hashes everything with Merkle-tree SHA-256, and serves it through an MCP server that
+  Claude, Cursor, and VS Code Copilot call directly. **Everything stays on your machine.**
+</Callout>
+
+## What is Mikk?
+
+LLMs write great code — for codebases they've never seen. They don't know your module boundaries, can't trace your dependency graph, and have no idea that touching `login.ts` breaks 14 downstream functions across 3 packages.
+
+Mikk fixes that by giving AI assistants **real architectural intelligence** — not guesses.
+
+## The 7-Step Pipeline
+
+Everything happens in ~3 seconds when you run `mikk init`:
+
+<Steps>
+  <Step>
+    ### Parse
+    Every `.ts`, `.tsx`, `.js`, `.jsx`, `.go` file parsed via the **TypeScript Compiler API** — real AST, not regex. Functions, classes, imports, exact line ranges.
+  </Step>
+  <Step>
+    ### Graph
+    Full dependency DAG built in two passes. Both `dependsOn` and `dependedOnBy` maps — O(1) traversal in either direction.
+  </Step>
+  <Step>
+    ### Cluster
+    Files grouped into logical modules via greedy agglomeration — import patterns, naming conventions, directory structure.
+  </Step>
+  <Step>
+    ### Hash
+    SHA-256 Merkle tree at every level: `function → file → module → root`. One hash = full drift detection.
+  </Step>
+  <Step>
+    ### Contract
+    `mikk.json` written — module boundaries, constraint rules, and ADR decisions.
+  </Step>
+  <Step>
+    ### Context
+    `claude.md` + `AGENTS.md` generated — tiered architecture summaries, ready for any AI assistant.
+  </Step>
+  <Step>
+    ### Serve
+    MCP server starts. 15 tools, 3 resources, millisecond response times — all reading from `mikk.lock.json`.
+  </Step>
+</Steps>
+
+## Key Capabilities
+
+<Cards>
+  <Card title="AI Context Builder" description="BFS graph-traced, token-budgeted context payloads with exact file paths and line ranges." />
+  <Card title="Impact Analysis" description="Full blast radius of any file change — every upstream caller, every downstream dependency." />
+  <Card title="Intent Pre-flight" description="Validate a plain-English plan against 6 constraint types before writing a single line." />
+  <Card title="Strict Contracts" description="Define module boundaries in mikk.json. CI fails on violations." />
+  <Card title="MCP Server" description="15 tools, 3 resources. Works with Claude Desktop, Cursor, and VS Code Copilot." />
+  <Card title="Merkle Drift Detection" description="One root hash comparison = full codebase drift check. SQLite WAL mode for concurrent access." />
+  <Card title="Live Watcher" description="Incremental, debounced file watching. Atomic lock writes. PID singleton enforcement." />
+  <Card title="Full AST Parsing" description="TypeScript · TSX · JavaScript · JSX · Go. Compiler-grade parsing — no regex guessing." />
+</Cards>
+
+## Package Ecosystem
+
+Mikk is a Turborepo monorepo with 8 npm packages under `@getmikk`:
+
+| Package | Role |
+|---------|------|
+| `@getmikk/core` | AST parsing, dependency graph, Merkle hashing, contract management |
+| `@getmikk/cli` | 15+ commands — init, analyze, diff, watch, contracts, context, intent |
+| `@getmikk/ai-context` | BFS graph tracing, token budgeting, `claude.md` generation |
+| `@getmikk/mcp-server` | MCP server — 15 tools, 3 resources for AI assistants |
+| `@getmikk/intent-engine` | NL prompt parsing, conflict detection (6 rule types) |
+| `@getmikk/watcher` | Debounced incremental watcher, atomic updates |
+| `@getmikk/diagram-generator` | Mermaid.js diagrams, 8 diagram types |
+| `@getmikk/vscode-extension` | VS Code tree, impact analysis, AI context, status bar |
+
+## Next Steps
+
+<Cards>
+  <Card title="Installation & Quick Start" href="/docs/core/installation" description="Get Mikk running in your project in under 3 minutes." />
+  <Card title="Core Concepts" href="/docs/core/concepts" description="Understand the Mesh, Merkle hashing, and the AI Context Builder." />
+  <Card title="MCP Server" href="/docs/reference/mcp" description="Connect to Claude, Cursor, and VS Code Copilot." />
+  <Card title="CLI Reference" href="/docs/reference/cli" description="All 15+ commands with options and examples." />
+</Cards>
