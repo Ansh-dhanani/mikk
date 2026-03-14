@@ -1,0 +1,36 @@
+%%{init: {"theme": "base", "themeVariables": {"primaryColor": "#1e293b", "primaryTextColor": "#e2e8f0", "lineColor": "#64748b", "secondaryColor": "#334155", "tertiaryColor": "#475569", "background": "#0f172a", "mainBkg": "#1e293b", "nodeBorder": "#475569"}}}%%
+graph TD
+    subgraph mod_components_kibo_ui_image_zoom["📦 Module: Media & Components"]
+        subgraph file_components_kibo_ui_image_zoom_index_tsx["📄 index.tsx"]
+            fn_components_kibo_ui_image_zoom_index_tsx_ImageZoom["⚡ ImageZoom"]
+        end
+        subgraph file_components_kibo_ui_marquee_index_tsx["📄 index.tsx"]
+            fn_components_kibo_ui_marquee_index_tsx_Marquee["⚡ Marquee"]
+            fn_components_kibo_ui_marquee_index_tsx_MarqueeContent["⚡ MarqueeContent"]
+            fn_components_kibo_ui_marquee_index_tsx_MarqueeFade["⚡ MarqueeFade"]
+            fn_components_kibo_ui_marquee_index_tsx_MarqueeItem["⚡ MarqueeItem"]
+        end
+        subgraph file_components_kibo_ui_contribution_graph_index_tsx["📄 index.tsx"]
+            fn_components_kibo_ui_contribution_graph_index_tsx_useContributionGraph["λ useContributionGraph"]
+            fn_components_kibo_ui_contribution_graph_index_tsx_fillHoles["λ fillHoles"]
+            fn_components_kibo_ui_contribution_graph_index_tsx_groupByWeeks["λ groupByWeeks"]
+            fn_components_kibo_ui_contribution_graph_index_tsx_getMonthLabels["λ getMonthLabels"]
+            fn_components_kibo_ui_contribution_graph_index_tsx_ContributionGraph["⚡ ContributionGraph"]
+            fn_components_kibo_ui_contribution_graph_index_tsx_ContributionGraphBlock["⚡ ContributionGraphBlock"]
+            fn_components_kibo_ui_contribution_graph_index_tsx_ContributionGraphCalendar["⚡ ContributionGraphCalendar"]
+            fn_components_kibo_ui_contribution_graph_index_tsx_ContributionGraphFooter["⚡ ContributionGraphFooter"]
+            fn_components_kibo_ui_contribution_graph_index_tsx_ContributionGraphTotalCount["⚡ ContributionGraphTotalCount"]
+            fn_components_kibo_ui_contribution_graph_index_tsx_ContributionGraphLegend["⚡ ContributionGraphLegend"]
+        end
+    end
+
+    fn_components_kibo_ui_contribution_graph_index_tsx_groupByWeeks --> fn_components_kibo_ui_contribution_graph_index_tsx_fillHoles
+    fn_components_kibo_ui_contribution_graph_index_tsx_ContributionGraph --> fn_components_kibo_ui_contribution_graph_index_tsx_groupByWeeks
+    fn_components_kibo_ui_contribution_graph_index_tsx_ContributionGraphBlock --> fn_components_kibo_ui_contribution_graph_index_tsx_useContributionGraph
+    fn_components_kibo_ui_contribution_graph_index_tsx_ContributionGraphCalendar --> fn_components_kibo_ui_contribution_graph_index_tsx_useContributionGraph
+    fn_components_kibo_ui_contribution_graph_index_tsx_ContributionGraphCalendar --> fn_components_kibo_ui_contribution_graph_index_tsx_getMonthLabels
+    fn_components_kibo_ui_contribution_graph_index_tsx_ContributionGraphTotalCount --> fn_components_kibo_ui_contribution_graph_index_tsx_useContributionGraph
+    fn_components_kibo_ui_contribution_graph_index_tsx_ContributionGraphLegend --> fn_components_kibo_ui_contribution_graph_index_tsx_useContributionGraph
+
+    classDef default fill:#334155,stroke:#64748b,color:#e2e8f0,stroke-width:1px
+    classDef external fill:#1e293b,stroke:#475569,color:#94a3b8,stroke-dasharray: 5 5

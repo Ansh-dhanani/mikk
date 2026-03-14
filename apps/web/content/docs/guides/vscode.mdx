@@ -1,0 +1,142 @@
+---
+title: VS Code Extension
+description: The Mikk VS Code extension brings codebase intelligence directly into your editor — module tree, impact analysis, AI context, and MCP integration.
+---
+
+<Callout title="The extension reads from mikk.lock.json" type="info">
+  All extension features are powered by the pre-computed lock file. Run `mikk init` or `mikk watch` first to generate it.
+</Callout>
+
+## Installation
+
+<Steps>
+  <Step>
+    ### Install from VS Code Marketplace
+
+    Search for **"Mikk"** in the Extensions panel, or install from the command line:
+
+    ```bash
+    code --install-extension getmikk.mikk-vscode
+    ```
+  </Step>
+  <Step>
+    ### Initialize Mikk in your project
+
+    ```bash
+    cd my-project
+    mikk init
+    ```
+
+    The extension activates automatically when it detects `mikk.lock.json` in the workspace root.
+  </Step>
+  <Step>
+    ### Connect to GitHub Copilot (optional)
+
+    Run the MCP server and add the connection in VS Code settings:
+
+    ```bash
+    mikk mcp install --tool vscode
+    ```
+  </Step>
+</Steps>
+
+## Features
+
+<Cards>
+  <Card title="Module Tree" description="Sidebar view showing all detected modules, their file counts, and public API surfaces." />
+  <Card title="Impact Analysis" description="Right-click any file → 'Show Impact' to see the full blast radius before editing." />
+  <Card title="AI Context" description="Generate a token-budgeted context payload for the current file or selection." />
+  <Card title="Contract Status" description="Status bar indicator showing current violation count. Click to see full validation output." />
+  <Card title="Function Peek" description="Hover any function call to see its signature, module, and callers inline." />
+  <Card title="MCP Integration" description="Connects Mikk's 15 MCP tools directly to GitHub Copilot Chat." />
+</Cards>
+
+## Commands
+
+All commands are available via the Command Palette (`Ctrl+Shift+P` / `Cmd+Shift+P`):
+
+<TypeTable
+  type={{
+    "Mikk: Show Module Tree": {
+      description: "Open the module tree sidebar view.",
+      type: "command",
+    },
+    "Mikk: Analyze Current File": {
+      description: "Run impact analysis on the currently open file.",
+      type: "command",
+    },
+    "Mikk: Build Context for Task": {
+      description: "Open a prompt to enter a task description and generate a context payload.",
+      type: "command",
+    },
+    "Mikk: Validate Contracts": {
+      description: "Run full contract validation and show violations in the Problems panel.",
+      type: "command",
+    },
+    "Mikk: Re-analyze Workspace": {
+      description: "Trigger a full mikk analyze run on the workspace.",
+      type: "command",
+    },
+    "Mikk: Start Watcher": {
+      description: "Start the mikk watch daemon for the current workspace.",
+      type: "command",
+    },
+    "Mikk: Open Architecture Diagram": {
+      description: "Open the main.mmd Mermaid diagram in a preview panel.",
+      type: "command",
+    },
+  }}
+/>
+
+## Sidebar Views
+
+The extension adds two sidebar panels to the Explorer:
+
+### Module Tree
+
+```
+📦 MIKK MODULES
+  ├── auth (12 files, 3 public API)
+  │   ├── login
+  │   ├── logout
+  │   └── validateToken
+  ├── payments (8 files, 2 public API)
+  │   ├── createCharge
+  │   └── refund
+  └── api (24 files)
+```
+
+### Contract Status
+
+```
+⚡ ARCHITECTURE CONTRACTS
+  ✅ auth — 0 violations
+  ✅ payments — 0 violations
+  ❌ api — 1 violation
+     api/routes.ts imports db directly (Rule: no-call["db"])
+```
+
+## MCP Integration with Copilot
+
+When `mikk mcp install --tool vscode` is run, the extension registers Mikk's MCP tools with GitHub Copilot Chat. You can then ask Copilot:
+
+```
+@mikk What breaks if I change src/auth/login.ts?
+@mikk Build context for: "Add rate limiting to the API layer"
+@mikk Validate the architecture before I start this refactor
+```
+
+<Callout type="success">
+  This gives Copilot the same real architectural grounding as Claude Desktop — module boundaries, exact function locations, and constraint rules — directly in VS Code.
+</Callout>
+
+## Building from Source
+
+```bash
+git clone https://github.com/getmikk/mesh
+cd packages/vscode-extension
+bun install
+bun run compile
+```
+
+Then press `F5` in VS Code to launch the extension in a development host window.

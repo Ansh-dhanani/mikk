@@ -1,0 +1,30 @@
+%%{init: {"theme": "base", "themeVariables": {"primaryColor": "#1e293b", "primaryTextColor": "#e2e8f0", "lineColor": "#64748b", "secondaryColor": "#334155", "tertiaryColor": "#475569", "background": "#0f172a", "mainBkg": "#1e293b", "nodeBorder": "#475569"}}}%%
+graph TD
+
+    providers["🟢 Providers<br/>Cohesion: 100%<br/>Coupling: 0<br/>Functions: 5"]
+    components["🟡 Components<br/>Cohesion: 100%<br/>Coupling: 0<br/>Functions: 190"]
+    source_config["🟡 Config<br/>Cohesion: 50%<br/>Coupling: 0<br/>Functions: 0"]
+    app["🟡 Layout (App)<br/>Cohesion: 50%<br/>Coupling: 0<br/>Functions: 2"]
+    lib["🟡 Utils<br/>Cohesion: 50%<br/>Coupling: 0<br/>Functions: 3"]
+    app_docs["🟡 Layout (App Docs)<br/>Cohesion: 50%<br/>Coupling: 0<br/>Functions: 1"]
+    components_animated_icons["🟡 Components (Components Animated Icons)<br/>Cohesion: 50%<br/>Coupling: 0<br/>Functions: 0"]
+    app_api_search["🟡 API<br/>Cohesion: 50%<br/>Coupling: 0<br/>Functions: 0"]
+    components_base_ui["🟡 Providers (Components Base Ui)<br/>Cohesion: 50%<br/>Coupling: 0<br/>Functions: 0"]
+    components_kibo_ui_image_zoom["🟢 Media & Components<br/>Cohesion: 100%<br/>Coupling: 0<br/>Functions: 15"]
+    components_ui["🟡 Navigation & Components<br/>Cohesion: 50%<br/>Coupling: 0<br/>Functions: 0"]
+
+    classDef healthy fill:#22c55e,stroke:#4ade80,color:#f0fdf4
+    classDef warning fill:#f59e0b,stroke:#fbbf24,color:#1e293b
+    classDef critical fill:#ef4444,stroke:#f87171,color:#fef2f2
+
+    class providers healthy
+    class components warning
+    class source_config warning
+    class app warning
+    class lib warning
+    class app_docs warning
+    class components_animated_icons warning
+    class app_api_search warning
+    class components_base_ui warning
+    class components_kibo_ui_image_zoom healthy
+    class components_ui warning

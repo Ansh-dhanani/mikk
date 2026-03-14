@@ -1,0 +1,198 @@
+---
+title: Core Concepts
+description: The Mesh, Merkle-tree hashing, Module Clusters, AI Context Builder, and Intent Pre-flight — the foundational primitives of Mikk.
+---
+
+## The Mesh
+
+The **Mesh** is Mikk's central data structure — a directed acyclic graph (DAG) where nodes are files, functions, classes, and modules, and edges are imports, calls, and containment relationships.
+
+<Callout title="Two-pass construction for O(n) build time" type="info">
+  **Pass 1 — Nodes:** Every file, function, class, and generic declaration is registered in an index.
+
+  **Pass 2 — Edges:** Import, call, and containment edges are resolved against the full node index.
+
+  The result is both `dependsOn` and `dependedOnBy` maps — enabling O(1) traversal in either direction.
+</Callout>
+
+```
+auth/login.ts
+  → imports → crypto/jwt.ts           (forward: what I depend on)
+  ← imported by ← api/routes.ts       (reverse: who depends on me)
+```
+
+### What Gets Parsed
+
+Mikk uses the **TypeScript Compiler API** — real AST, not regex:
+
+| Node type | Captured fields |
+|-----------|----------------|
+| Functions | Name, params + types, return type, start/end line, internal calls, async/generator flags |
+| Classes | Methods, properties, inheritance chain, decorators, per-method line ranges |
+| Imports | Named, default, namespace, type-only — with full tsconfig alias resolution |
+| Go | Package, function names, imports — regex + stateful scanning |
+
+Every function gets its **exact file path and line range** stored in `mikk.lock.json`. When your AI calls `mikk_get_function_detail`, it receives the real body — not a guess.
+
+---
+
+## Merkle-Tree Hashing
+
+Mikk computes SHA-256 hashes at every level of the codebase hierarchy:
+
+```
+function hash  →  file hash  →  module hash  →  root hash
+```
+
+<Callout title="One hash = full drift detection" type="success">
+  If the root hash matches the stored hash, nothing changed — **zero file reads required**.
+  If it doesn't match, the changed subtree is pinpointed by walking down the tree.
+</Callout>
+
+Hashes persist in **SQLite with WAL mode** — concurrent reads during writes, no lock contention, even while the watcher daemon runs.
+
+### Incremental Analysis
+
+<Steps>
+  <Step>
+    ### Hash changed files
+    Every file modified since the last run is hashed.
+  </Step>
+  <Step>
+    ### Compare against SQLite
+    Hashes are compared against the stored Merkle tree.
+  </Step>
+  <Step>
+    ### Re-parse only mismatches
+    Only files with changed hashes are fully re-parsed.
+  </Step>
+  <Step>
+    ### Propagate up the tree
+    File hash changes bubble up: file → module → root.
+  </Step>
+  <Step>
+    ### Atomic write
+    Updated `mikk.lock.json` is written via temp file → rename. Zero corruption risk.
+  </Step>
+</Steps>
+
+A 100-file change in a 10,000-file project re-parses exactly 100 files.
+
+---
+
+## Module Clusters
+
+Mikk groups files into **logical modules** using greedy agglomeration — analyzing import patterns, naming conventions, and directory structure.
+
+```json title="mikk.json"
+{
+  "modules": {
+    "auth": {
+      "intent": "Handle user authentication and session management",
+      "include": ["src/auth/**"],
+      "publicApi": ["login", "logout", "validateToken"],
+      "constraints": {
+        "no-import": ["payments"],
+        "layer": 1
+      }
+    }
+  }
+}
+```
+
+Modules can be **auto-detected** via `mikk contract generate` or **manually declared** in `mikk.json`.
+
+---
+
+## AI Context Builder
+
+The AI Context Builder turns a task description into a structured, token-budgeted context payload for your LLM.
+
+<Steps>
+  <Step>
+    ### Seed
+    Task keywords are matched against function names, descriptions, and module intents in the lock file.
+  </Step>
+  <Step>
+    ### Walk
+    BFS traces the call graph outward from seed functions. Configurable `maxHops` depth.
+  </Step>
+  <Step>
+    ### Score
+    Each function receives a score: proximity bonus + keyword match + entry-point bonus.
+  </Step>
+  <Step>
+    ### Budget
+    Greedy knapsack: highest-scoring functions are packed within the token limit.
+  </Step>
+  <Step>
+    ### Format
+    Output is formatted per provider: XML tags for Claude · plain text for generic · compact for tight budgets.
+  </Step>
+</Steps>
+
+The result: your AI gets the exact functions it needs — with real file paths, real line ranges, real source bodies.
+
+---
+
+## Intent Pre-flight
+
+`mikk intent` validates a plain-English plan against your architecture before you write any code.
+
+```bash
+mikk intent "Add a caching layer to the auth module"
+```
+
+```
+Intents:    [CREATE] CacheLayer in module:auth  (confidence: 0.85)
+Conflicts:  ⚠ Naming constraint: ^handle|^use|^get
+Affected:   src/auth/login.ts, src/auth/session.ts
+New files:  src/auth/cache-layer.ts
+Result:     ✅ No blocking conflicts. Proceed?
+```
+
+The engine checks against all 6 constraint types:
+
+| Constraint | Description |
+|-----------|-------------|
+| `no-import` | Module cannot import from listed modules |
+| `must-use` | Module must import from listed modules |
+| `no-call` | Module cannot call functions from listed modules |
+| `layer` | Higher-layer modules cannot import lower layers |
+| `naming` | Exported functions must match the regex |
+| `max-files` | Module cannot exceed this file count |
+
+---
+
+## Architecture Diagrams
+
+Mikk generates 8 Mermaid diagram types in `.mikk/diagrams/`:
+
+<Files>
+  <Folder name=".mikk/diagrams" defaultOpen>
+    <File name="main.mmd" />
+    <File name="health.mmd" />
+    <File name="dependency-matrix.mmd" />
+    <Folder name="flows">
+      <File name="[entry-point].mmd" />
+    </Folder>
+    <Folder name="modules">
+      <File name="[module-id].mmd" />
+    </Folder>
+    <Folder name="capsules">
+      <File name="[module-id].mmd" />
+    </Folder>
+    <Folder name="impact">
+      <File name="[file].mmd" />
+    </Folder>
+    <Folder name="exposure">
+      <File name="[module-id].mmd" />
+    </Folder>
+  </Folder>
+</Files>
+
+```bash
+mikk visualize all                    # regenerate all 8 diagram types
+mikk visualize module auth            # specific module only
+mikk visualize impact src/auth/login.ts
+```

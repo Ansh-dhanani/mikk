@@ -1,0 +1,199 @@
+---
+title: Installation & Quick Start
+description: Get Mikk running in your project in under 3 minutes — install the CLI, run mikk init, and connect your AI assistant.
+---
+
+## Requirements
+
+<Cards>
+  <Card title="Node.js ≥ 18 or Bun ≥ 1.x" description="Any modern Node runtime works. Bun is faster for global installs." />
+  <Card title="TypeScript, JavaScript, or Go project" description="Any project with .ts, .tsx, .js, .jsx, or .go files." />
+</Cards>
+
+## Install the CLI
+
+<Tabs items={["npm", "bun", "npx"]}>
+  <Tab value="npm">
+    ```bash
+    npm install -g @getmikk/cli
+    ```
+  </Tab>
+  <Tab value="bun">
+    ```bash
+    bun add -g @getmikk/cli
+    ```
+  </Tab>
+  <Tab value="npx">
+    ```bash
+    # No install needed — run directly
+    npx @getmikk/cli init
+    ```
+  </Tab>
+</Tabs>
+
+Verify the installation:
+
+```bash
+mikk --version
+# 1.7.0
+```
+
+## Initialize Your Project
+
+<Steps>
+  <Step>
+    ### Navigate to your project root
+
+    ```bash
+    cd my-project
+    ```
+  </Step>
+  <Step>
+    ### Run mikk init
+
+    ```bash
+    mikk init
+    ```
+
+    Mikk scans your codebase and writes all artifacts in ~3 seconds:
+
+    ```bash
+    ✓ 2,847 functions across 91 files parsed
+    ✓ Graph: 3,201 nodes, 9,442 edges
+    ✓ 8 modules auto-detected
+    ✓ SHA-256 Merkle tree complete
+    ✓ mikk.lock.json written  (−60% vs raw source)
+    ✓ .mikk/diagrams/ written (8 Mermaid files)
+    ✓ claude.md + AGENTS.md written
+    Done in 3.1s.
+    ```
+  </Step>
+  <Step>
+    ### Review generated files
+
+    <Files>
+      <File name="mikk.json" />
+      <File name="mikk.lock.json" />
+      <File name="claude.md" />
+      <File name="AGENTS.md" />
+      <Folder name=".mikk" defaultOpen>
+        <Folder name="diagrams">
+          <File name="main.mmd" />
+          <File name="health.mmd" />
+          <File name="dependency-matrix.mmd" />
+        </Folder>
+        <File name="hashes.db" />
+      </Folder>
+    </Files>
+
+    | File | Description | Commit? |
+    |------|-------------|---------|
+    | `mikk.json` | Architecture contract — edit to define modules and constraints | ✅ Yes |
+    | `mikk.lock.json` | Full codebase snapshot with Merkle hashes | ✅ Yes |
+    | `claude.md` | AI context for Claude | ✅ Yes |
+    | `AGENTS.md` | AI context for Codex and other agents | ✅ Yes |
+    | `.mikk/diagrams/` | 8 Mermaid architecture diagrams | Optional |
+    | `.mikk/hashes.db` | SQLite Merkle hash store | ❌ No |
+  </Step>
+</Steps>
+
+## Ignore Files
+
+Create `.mikkignore` at your project root — same syntax as `.gitignore`:
+
+```bash title=".mikkignore"
+node_modules/
+dist/
+.next/
+build/
+*.test.ts
+*.spec.ts
+coverage/
+```
+
+<Callout type="info">
+  Mikk also automatically respects `.gitignore`. You only need `.mikkignore` for additional exclusions.
+</Callout>
+
+## Connect to Your AI Assistant
+
+<Tabs items={["Claude Desktop", "Cursor", "VS Code"]}>
+  <Tab value="Claude Desktop">
+    Add to `%APPDATA%\Claude\claude_desktop_config.json` (Windows) or `~/Library/Application Support/Claude/claude_desktop_config.json` (macOS):
+
+    ```json title="claude_desktop_config.json"
+    {
+      "mcpServers": {
+        "mikk": {
+          "command": "npx",
+          "args": ["-y", "@getmikk/mcp-server", "/absolute/path/to/my-project"]
+        }
+      }
+    }
+    ```
+
+    Or use the auto-installer:
+
+    ```bash
+    mikk mcp install --tool claude
+    ```
+  </Tab>
+  <Tab value="Cursor">
+    Add to `.cursor/mcp.json` in your project root:
+
+    ```json title=".cursor/mcp.json"
+    {
+      "mcpServers": {
+        "mikk": {
+          "command": "npx",
+          "args": ["-y", "@getmikk/mcp-server", "/absolute/path/to/my-project"]
+        }
+      }
+    }
+    ```
+
+    Or:
+
+    ```bash
+    mikk mcp install --tool cursor
+    ```
+  </Tab>
+  <Tab value="VS Code">
+    ```bash
+    mikk mcp install --tool vscode
+    ```
+
+    This adds the MCP server configuration to VS Code's settings automatically.
+  </Tab>
+</Tabs>
+
+## Daily Workflow
+
+```bash
+# After making code changes
+mikk analyze
+
+# Keep a live watcher running in the background
+mikk watch
+
+# See blast radius before touching a file
+mikk context impact src/auth/login.ts
+
+# Pre-flight a refactor idea
+mikk intent "Extract shared validation into a utils module"
+
+# Validate architecture in CI
+mikk contract validate --strict
+```
+
+## Supported Languages
+
+| Language | Extensions | Parser |
+|----------|-----------|--------|
+| TypeScript | `.ts`, `.tsx` | TypeScript Compiler API |
+| JavaScript | `.js`, `.jsx`, `.mjs`, `.cjs` | TypeScript Compiler API |
+| Go | `.go` | Regex + stateful scanning |
+
+<Callout type="warn">
+  Go support uses regex-based scanning, not a full AST parser. Function signatures and imports are captured accurately, but complex Go generics may not be fully resolved.
+</Callout>

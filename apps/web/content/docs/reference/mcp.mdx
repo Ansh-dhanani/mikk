@@ -1,0 +1,169 @@
+---
+title: MCP Server
+description: Connect Mikk to Claude Desktop, Cursor, and VS Code Copilot. 15 tools, 3 resources, millisecond responses — all grounded in your real codebase graph.
+---
+
+<Callout title="Every tool reads from mikk.lock.json" type="info">
+  No re-parsing on every call. Response times are in milliseconds because the entire dependency
+  graph, Merkle tree, and function index are pre-computed and stored.
+</Callout>
+
+## Quick Start
+
+```bash
+mikk mcp                          # start the server
+mikk mcp install                  # auto-detect and install into Claude/Cursor/VS Code
+mikk mcp install --tool claude    # install into Claude Desktop specifically
+```
+
+## Connecting AI Assistants
+
+<Tabs items={["Claude Desktop", "Cursor", "VS Code"]}>
+  <Tab value="Claude Desktop">
+    Add to `%APPDATA%\Claude\claude_desktop_config.json` (Windows) or
+    `~/Library/Application Support/Claude/claude_desktop_config.json` (macOS):
+
+    ```json title="claude_desktop_config.json"
+    {
+      "mcpServers": {
+        "mikk": {
+          "command": "npx",
+          "args": ["-y", "@getmikk/mcp-server", "/absolute/path/to/your/project"]
+        }
+      }
+    }
+    ```
+  </Tab>
+  <Tab value="Cursor">
+    ```json title=".cursor/mcp.json"
+    {
+      "mcpServers": {
+        "mikk": {
+          "command": "npx",
+          "args": ["-y", "@getmikk/mcp-server", "/absolute/path/to/your/project"]
+        }
+      }
+    }
+    ```
+  </Tab>
+  <Tab value="VS Code">
+    ```bash
+    mikk mcp install --tool vscode
+    ```
+  </Tab>
+</Tabs>
+
+## Tools Reference
+
+### Codebase Analysis
+
+<TypeTable
+  type={{
+    mikk_get_overview: {
+      description: "Project summary — module count, function count, dependency stats, root Merkle hash.",
+      type: "tool",
+    },
+    mikk_get_modules: {
+      description: "All module names, intents, file counts, and public API surfaces.",
+      type: "tool",
+    },
+    mikk_get_module_detail: {
+      description: "Deep detail on a specific module — all functions, imports, constraints.",
+      type: "tool",
+    },
+    mikk_search_functions: {
+      description: "Fuzzy search across all function names and descriptions in the lock file.",
+      type: "tool",
+    },
+    mikk_get_function_detail: {
+      description: "Full detail on a function — signature, file path, line range, callers, callees, source body.",
+      type: "tool",
+    },
+  }}
+/>
+
+### Dependency Graph
+
+<TypeTable
+  type={{
+    mikk_get_dependencies: {
+      description: "Everything a file imports — forward traversal through the dependency graph.",
+      type: "tool",
+    },
+    mikk_get_dependents: {
+      description: "Everything that imports a file — reverse traversal (who depends on me).",
+      type: "tool",
+    },
+    mikk_get_call_graph: {
+      description: "BFS call graph from a starting function. Configurable depth.",
+      type: "tool",
+    },
+    mikk_get_impact: {
+      description: "Full blast radius of changing a file — all upstream callers across the codebase.",
+      type: "tool",
+    },
+    mikk_find_path: {
+      description: "Shortest dependency path between two files or functions.",
+      type: "tool",
+    },
+  }}
+/>
+
+### AI Context
+
+<TypeTable
+  type={{
+    mikk_build_context: {
+      description: "Build a token-budgeted context payload for a task description using BFS graph tracing.",
+      type: "tool",
+    },
+    mikk_get_context_file: {
+      description: "Return the full claude.md or AGENTS.md content.",
+      type: "tool",
+    },
+  }}
+/>
+
+### Architecture Contracts
+
+<TypeTable
+  type={{
+    mikk_get_contracts: {
+      description: "All declared modules, constraints, and ADR decisions from mikk.json.",
+      type: "tool",
+    },
+    mikk_validate_contracts: {
+      description: "Run full contract validation — returns all violations with file locations.",
+      type: "tool",
+    },
+    mikk_check_intent: {
+      description: "Validate a plain-English intent against all constraints before implementing.",
+      type: "tool",
+    },
+  }}
+/>
+
+## Resources
+
+| Resource | URI | Description |
+|----------|-----|-------------|
+| Lock file | `mikk://lock` | Full `mikk.lock.json` as structured JSON |
+| Architecture | `mikk://architecture` | Current `mikk.json` contract |
+| Context | `mikk://context` | Current `claude.md` content |
+
+## Recommended Workflow
+
+For best results, start every AI session with a context handoff:
+
+```
+You: "Read mikk://context to understand this codebase before we start."
+
+Then: "I want to add rate limiting to the auth module.
+       Use mikk_check_intent to validate this first,
+       then mikk_get_module_detail on 'auth' to understand the current structure."
+```
+
+<Callout title="This gives your AI real architectural grounding" type="success">
+  Module boundaries, existing constraints, exact function locations — all before generating any code.
+  No more hallucinated import paths or nonexistent function names.
+</Callout>

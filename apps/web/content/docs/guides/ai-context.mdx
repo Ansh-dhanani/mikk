@@ -1,0 +1,193 @@
+---
+title: AI Context Guide
+description: How Mikk builds token-budgeted, graph-traced context payloads — and how to tune them for your AI workflow.
+---
+
+<Callout title="The core problem with AI + codebases" type="warn">
+  Dumping your entire codebase into an LLM context window is wasteful and ineffective.
+  Mikk solves this by tracing only the functions your task actually touches — giving AI
+  assistants the **exact** context they need, nothing more.
+</Callout>
+
+## How Context Building Works
+
+### The 5-Step Algorithm
+
+<Steps>
+  <Step>
+    ### Seed — find the entry points
+
+    Mikk matches your task description against function names, descriptions, and module intents stored in `mikk.lock.json`.
+
+    ```bash
+    mikk context build "Fix the session expiry bug"
+    # Seeds: validateToken, refreshSession, getSessionExpiry
+    ```
+  </Step>
+  <Step>
+    ### Walk — BFS graph traversal
+
+    From each seed function, Mikk traces the call graph outward using BFS. Configurable with `--hops` (default: 2).
+
+    ```
+    validateToken  →  parseJWT  →  getKeystore
+                   →  checkExpiry
+    refreshSession →  validateToken
+                   →  writeSession
+    ```
+  </Step>
+  <Step>
+    ### Score — rank every function
+
+    Each reachable function receives a composite score:
+
+    | Factor | Weight |
+    |--------|--------|
+    | Graph proximity to seed | High |
+    | Keyword match with task | Medium |
+    | Entry point bonus | Low |
+    | Module boundary match | Low |
+  </Step>
+  <Step>
+    ### Budget — greedy knapsack
+
+    Functions are packed into the context payload in score order until the token budget is exhausted.
+    Each function's token cost is pre-computed from its source body in `mikk.lock.json`.
+  </Step>
+  <Step>
+    ### Format — provider-specific output
+
+    The payload is formatted for your target AI:
+
+    | Format | Use case |
+    |--------|----------|
+    | `xml` | Claude (default) — structured `<function>` tags |
+    | `text` | Generic — plain text with headers |
+    | `compact` | Tight budgets — minimal whitespace, no source bodies |
+  </Step>
+</Steps>
+
+## CLI Usage
+
+```bash
+# Basic context build
+mikk context build "How does authentication work?"
+
+# With custom token budget
+mikk context build "Refactor the payments module" --tokens 8000
+
+# XML format for Claude, 3 hops deep
+mikk context build "Debug the login flow" --format xml --hops 3
+
+# Compact format for tight context windows
+mikk context build "What does parseToken do?" --format compact --tokens 1000
+```
+
+<TypeTable
+  type={{
+    "--tokens": {
+      description: "Token budget for the context payload.",
+      type: "number",
+      default: "4000",
+    },
+    "--format": {
+      description: "Output format for the context payload.",
+      type: '"xml" | "text" | "compact"',
+      default: '"xml"',
+    },
+    "--hops": {
+      description: "BFS depth from seed functions. Higher values include more context but use more tokens.",
+      type: "number",
+      default: "2",
+    },
+    "--module": {
+      description: "Restrict context building to a specific module.",
+      type: "string",
+    },
+    "--output": {
+      description: "Write the context payload to a file instead of stdout.",
+      type: "string",
+    },
+  }}
+/>
+
+## Impact Analysis
+
+Before touching any file, see what you'd break:
+
+```bash
+mikk context impact src/auth/login.ts
+```
+
+```
+Impact analysis for: src/auth/login.ts
+
+Direct dependents (3):
+  src/api/routes.ts          (imports: login)
+  src/auth/session.ts        (imports: login, validateToken)
+  tests/auth/login.test.ts   (imports: login)
+
+Transitive blast radius (8 files):
+  src/api/middleware.ts
+  src/api/user.ts
+  ...
+
+Estimated impact: HIGH (8 files, 2 public API consumers)
+```
+
+## MCP Usage
+
+When connected via MCP, your AI assistant can call context tools directly:
+
+```
+mikk_build_context({ task: "Add rate limiting to the auth module", tokens: 6000 })
+mikk_get_impact({ file: "src/auth/login.ts" })
+mikk_get_call_graph({ function: "validateToken", depth: 3 })
+```
+
+## Tuning Tips
+
+<Accordions>
+  <Accordion title="Context is too large / hitting token limits">
+    Reduce `--hops` to 1, use `--format compact`, or restrict to a specific module with `--module auth`.
+
+    ```bash
+    mikk context build "Fix login bug" --hops 1 --format compact --tokens 2000
+    ```
+  </Accordion>
+  <Accordion title="Context is missing relevant functions">
+    Increase `--hops` to 3 or add more specific keywords to your task description. The seed matching
+    is keyword-based — more specific descriptions produce better seeds.
+
+    ```bash
+    mikk context build "Fix JWT expiry validation in the token refresh flow" --hops 3
+    ```
+  </Accordion>
+  <Accordion title="claude.md is out of date">
+    Re-run `mikk analyze` after any structural changes. The `claude.md` regenerates automatically.
+
+    ```bash
+    mikk analyze
+    ```
+  </Accordion>
+  <Accordion title="AI is still hallucinating import paths">
+    Make sure you've started the session with the context file:
+
+    ```
+    "Read mikk://context before we start. Then use mikk_get_function_detail
+     to look up any function before referencing it."
+    ```
+  </Accordion>
+</Accordions>
+
+## claude.md Structure
+
+The generated `claude.md` contains tiered architecture information:
+
+| Section | Content |
+|---------|---------|
+| **Tier 1: Overview** | Project name, language, framework, entry points |
+| **Tier 2: Modules** | Each module's intent, file count, public API |
+| **Tier 3: Key functions** | Highest-importance functions with signatures |
+| **Tier 4: Constraints** | All architectural rules in plain English |
+| **Tier 5: Decisions** | ADRs summarized for AI context |

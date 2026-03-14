@@ -1,15 +1,49 @@
 {
-    "extends": "../../tsconfig.base.json",
-    "compilerOptions": {
-        "outDir": "dist",
-        "rootDir": "src",
-        "jsx": "react-jsx"
-    },
-    "include": [
-        "src/**/*"
-    ],
-    "exclude": [
-        "node_modules",
-        "dist"
-    ]
+  "compilerOptions": {
+    "target": "ES2017",
+    "lib": ["dom", "dom.iterable", "esnext"],
+    "allowJs": true,
+    "skipLibCheck": true,
+    "strict": true,
+    "noEmit": true,
+    "esModuleInterop": true,
+    "module": "esnext",
+    "moduleResolution": "bundler",
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "jsx": "react-jsx",
+    "incremental": true,
+    "plugins": [{ "name": "next" }],
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["./*"],
+      "collections/*": [".source/*"]
+    }
+  },
+  "include": [
+    "next-env.d.ts",
+    "**/*.ts",
+    "**/*.tsx",
+    ".next/types/**/*.ts",
+    ".next/dev/types/**/*.ts"
+  ],
+  "exclude": [
+    "node_modules",
+    "components/mdx copy.tsx",
+    "components/markdown.tsx",
+    "components/command-menu.tsx",
+    "components/consent-manager.tsx",
+    "components/consent-manager-client.tsx",
+    "components/code-block-command.tsx",
+    "components/code-collapsible-wrapper.tsx",
+    "components/code-tabs.tsx",
+    "components/collapsible-list.tsx",
+    "components/not-found.tsx",
+    "components/kibo-ui",
+    "components/animated-icons",
+    "components/base",
+    "components/ui/command.tsx",
+    "components/ui/form.tsx",
+    "components/ui/sonner.tsx"
+  ]
 }

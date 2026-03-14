@@ -1,0 +1,20 @@
+%%{init: {"theme": "base", "themeVariables": {"primaryColor": "#1e293b", "primaryTextColor": "#e2e8f0", "lineColor": "#64748b", "secondaryColor": "#334155", "tertiaryColor": "#475569", "background": "#0f172a", "mainBkg": "#1e293b", "nodeBorder": "#475569"}}}%%
+graph TD
+    subgraph mod_providers["📦 Module: Providers"]
+        subgraph file_providers_fuma_provider_tsx["📄 fuma-provider.tsx"]
+            fn_providers_fuma_provider_tsx_RootLayout["⚡ RootLayout"]
+        end
+        subgraph file_providers_providers_tsx["📄 providers.tsx"]
+            fn_providers_providers_tsx_providers["⚡ providers"]
+        end
+        subgraph file_providers_theme_provider_tsx["📄 theme-provider.tsx"]
+            fn_providers_theme_provider_tsx_ThemeProvider["⚡ ThemeProvider"]
+            fn_providers_theme_provider_tsx_isTypingTarget["λ isTypingTarget"]
+            fn_providers_theme_provider_tsx_ThemeHotkey["⚡ ThemeHotkey"]
+        end
+    end
+
+    fn_providers_theme_provider_tsx_ThemeHotkey --> fn_providers_theme_provider_tsx_isTypingTarget
+
+    classDef default fill:#334155,stroke:#64748b,color:#e2e8f0,stroke-width:1px
+    classDef external fill:#1e293b,stroke:#475569,color:#94a3b8,stroke-dasharray: 5 5

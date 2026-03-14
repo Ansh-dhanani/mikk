@@ -1,0 +1,5608 @@
+{
+  "version": "1.7.0",
+  "generatedAt": "2026-03-14T04:55:45.340Z",
+  "generatorVersion": "@getmikk/cli@1.2.1",
+  "projectRoot": "web",
+  "syncState": {
+    "status": "clean",
+    "lastSyncAt": "2026-03-14T04:55:45.340Z",
+    "lockHash": "0e60e62e63376541e05f0479ab309bf258a4709fad68787e2d9a52ea0708c328",
+    "contractHash": "f3ebe1e591cace9976bd17e789f317dd362892836051a403d669a5de0d2b0ff6"
+  },
+  "modules": {
+    "providers": {
+      "id": "providers",
+      "files": [
+        "providers/fuma-provider.tsx",
+        "providers/providers.tsx",
+        "providers/theme-provider.tsx"
+      ],
+      "hash": "415b5bd7ca5b1b694e5bd07128bc57af2b8b2ae520efb80f003b97d86f4e014f",
+      "fragmentPath": ".mikk/fragments/providers.lock"
+    },
+    "components": {
+      "id": "components",
+      "files": [
+        "components/code-block-command.tsx",
+        "components/code-block-figure.tsx",
+        "components/code-collapsible-wrapper.tsx",
+        "components/code-tabs.tsx",
+        "components/collapsible-list.tsx",
+        "components/command-menu.tsx",
+        "components/consent-manager-client.tsx",
+        "components/consent-manager.tsx",
+        "components/copy-button.tsx",
+        "components/copy-markdown-button.tsx",
+        "components/header.tsx",
+        "components/markdown.tsx",
+        "components/mdx copy.tsx",
+        "components/mdx.tsx",
+        "components/not-found.tsx",
+        "components/search-dialog.tsx",
+        "components/sidebar.tsx",
+        "components/toc.tsx",
+        "components/animated-icons/chevrons-down-up-icon.tsx",
+        "components/animated-icons/moon.tsx",
+        "components/animated-icons/sun-medium.tsx",
+        "components/ui/breadcrumb.tsx",
+        "components/ui/button.tsx",
+        "components/ui/button_1.tsx",
+        "components/ui/collapsible.tsx",
+        "components/ui/command.tsx",
+        "components/ui/context-menu.tsx",
+        "components/ui/dialog.tsx",
+        "components/ui/dropdown-menu.tsx",
+        "components/ui/form.tsx",
+        "components/ui/input-group.tsx",
+        "components/ui/input.tsx",
+        "components/ui/kbd.tsx",
+        "components/ui/label.tsx",
+        "components/ui/navigation-menu.tsx",
+        "components/ui/scroll-area copy.tsx",
+        "components/ui/scroll-area.tsx",
+        "components/ui/separator.tsx",
+        "components/ui/sheet.tsx",
+        "components/ui/sonner.tsx",
+        "components/ui/table.tsx",
+        "components/ui/tabs.tsx",
+        "components/ui/tag.tsx",
+        "components/ui/textarea.tsx",
+        "components/ui/tooltip.tsx",
+        "components/ui/typography.tsx",
+        "components/base/ui/tabs.tsx",
+        "components/base/ui/tooltip.tsx"
+      ],
+      "hash": "b47f781d8480798347e7e8b8da8612c74853a7e40b6a83849c9907552f9faa57",
+      "fragmentPath": ".mikk/fragments/components.lock"
+    },
+    "source.config": {
+      "id": "source.config",
+      "files": [],
+      "hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "fragmentPath": ".mikk/fragments/source.config.lock"
+    },
+    "app": {
+      "id": "app",
+      "files": [
+        "app/layout.tsx",
+        "app/page.tsx"
+      ],
+      "hash": "f0ea082bfa16008409e349de655a2cc7be19687e8ffde895faaac91ebc11bdda",
+      "fragmentPath": ".mikk/fragments/app.lock"
+    },
+    "lib": {
+      "id": "lib",
+      "files": [
+        "lib/events.ts",
+        "lib/layout.shared.tsx",
+        "lib/source.ts",
+        "lib/utils.ts"
+      ],
+      "hash": "d1f307be62d0a6d9824e7e9f122f90cba3e6262ea0b119d4b358be66f9e8efb6",
+      "fragmentPath": ".mikk/fragments/lib.lock"
+    },
+    "app-docs": {
+      "id": "app-docs",
+      "files": [
+        "app/docs/layout.tsx"
+      ],
+      "hash": "f194e6566d6b121a095bee42f2e6210123e0b379cae69d8d746275c1cbef38be",
+      "fragmentPath": ".mikk/fragments/app-docs.lock"
+    },
+    "components-animated-icons": {
+      "id": "components-animated-icons",
+      "files": [
+        "components/animated-icons/chevrons-down-up-icon.tsx",
+        "components/animated-icons/moon.tsx",
+        "components/animated-icons/sun-medium.tsx"
+      ],
+      "hash": "f3ceff84da293f7fd3930f83d67a137ca2eca2b31be5e2728c1e94eb9eff9ff3",
+      "fragmentPath": ".mikk/fragments/components-animated-icons.lock"
+    },
+    "app-api-search": {
+      "id": "app-api-search",
+      "files": [
+        "app/api/search/route.ts"
+      ],
+      "hash": "334bd913a220ee11c4d185e1de9c2d566b2ed60e4bc94209a5f6d436f60cb041",
+      "fragmentPath": ".mikk/fragments/app-api-search.lock"
+    },
+    "components-base-ui": {
+      "id": "components-base-ui",
+      "files": [
+        "components/base/ui/tabs.tsx",
+        "components/base/ui/tooltip.tsx"
+      ],
+      "hash": "ddadd24249c8d54ce4f6f226b8903145fe1d1ace1c6c1dedb6d84551db91fba3",
+      "fragmentPath": ".mikk/fragments/components-base-ui.lock"
+    },
+    "components-kibo-ui-image-zoom": {
+      "id": "components-kibo-ui-image-zoom",
+      "files": [
+        "components/kibo-ui/contribution-graph/index.tsx",
+        "components/kibo-ui/image-zoom/index.tsx",
+        "components/kibo-ui/marquee/index.tsx"
+      ],
+      "hash": "6d133d46747877095df8630c66d9a04ae54230aee5ed90f4385d7ad3198e799e",
+      "fragmentPath": ".mikk/fragments/components-kibo-ui-image-zoom.lock"
+    },
+    "components-ui": {
+      "id": "components-ui",
+      "files": [
+        "components/ui/breadcrumb.tsx",
+        "components/ui/button.tsx",
+        "components/ui/button_1.tsx",
+        "components/ui/collapsible.tsx",
+        "components/ui/command.tsx",
+        "components/ui/context-menu.tsx",
+        "components/ui/dialog.tsx",
+        "components/ui/dropdown-menu.tsx",
+        "components/ui/form.tsx",
+        "components/ui/input-group.tsx",
+        "components/ui/input.tsx",
+        "components/ui/kbd.tsx",
+        "components/ui/label.tsx",
+        "components/ui/navigation-menu.tsx",
+        "components/ui/scroll-area copy.tsx",
+        "components/ui/scroll-area.tsx",
+        "components/ui/separator.tsx",
+        "components/ui/sheet.tsx",
+        "components/ui/sonner.tsx",
+        "components/ui/table.tsx",
+        "components/ui/tabs.tsx",
+        "components/ui/tag.tsx",
+        "components/ui/textarea.tsx",
+        "components/ui/tooltip.tsx",
+        "components/ui/typography.tsx"
+      ],
+      "hash": "73690a149e9bf21e3186f4d6457086eb33c75dc83f7ac6ceec80891980a8e4d9",
+      "fragmentPath": ".mikk/fragments/components-ui.lock"
+    }
+  },
+  "functions": {
+    "fn:app/layout.tsx:RootLayout": {
+      "id": "fn:app/layout.tsx:RootLayout",
+      "name": "RootLayout",
+      "file": "app/layout.tsx",
+      "startLine": 50,
+      "endLine": 70,
+      "hash": "e0f38d884edaff447aa447c9293209fd15ae495f8e8a69ec5d6296d4a0d4af17",
+      "calls": [],
+      "calledBy": [],
+      "moduleId": "app",
+      "params": [
+        {
+          "name": "{\r\n  children,\r\n}",
+          "type": "Readonly<{ children: React.ReactNode; }>"
+        }
+      ],
+      "isExported": true,
+      "purpose": "Root layout",
+      "edgeCasesHandled": [],
+      "errorHandling": []
+    },
+    "fn:app/page.tsx:Page": {
+      "id": "fn:app/page.tsx:Page",
+      "name": "Page",
+      "file": "app/page.tsx",
+      "startLine": 106,
+      "endLine": 509,
+      "hash": "36ec1e52ed2747a2c8f1df5921b5679b649cb1ac91d71d67ffc55f6815a29593",
+      "calls": [],
+      "calledBy": [],
+      "moduleId": "app",
+      "isExported": true,
+      "purpose": "Page",
+      "edgeCasesHandled": [],
+      "errorHandling": []
+    },
+    "fn:components/code-block-command.tsx:CodeBlockCommand": {
+      "id": "fn:components/code-block-command.tsx:CodeBlockCommand",
+      "name": "CodeBlockCommand",
+      "file": "components/code-block-command.tsx",
+      "startLine": 19,
+      "endLine": 94,
+      "hash": "ad8a2a376675c0dbec0f3add8f2154f4e9351b457cf15133e66bb4f2715173be",
+      "calls": [],
+      "calledBy": [],
+      "moduleId": "components",
+      "params": [
+        {
+          "name": "{\r\n  __pnpm__,\r\n  __yarn__,\r\n  __npm__,\r\n  __bun__,\r\n}",
+          "type": "NpmCommands"
+        }
+      ],
+      "isExported": true,
+      "purpose": "Code block command",
+      "edgeCasesHandled": [],
+      "errorHandling": []
+    },
+    "fn:components/code-block-figure.tsx:CopyButton": {
+      "id": "fn:components/code-block-figure.tsx:CopyButton",
+      "name": "CopyButton",
+      "file": "components/code-block-figure.tsx",
+      "startLine": 9,
+      "endLine": 33,
+      "hash": "3cf57db8f4aadad079d4e9893c2eef21a390d892f0be449c6ff29a66170d1a58",
+      "calls": [],
+      "calledBy": [],
+      "moduleId": "components",
+      "params": [
+        {
+          "name": "{ getText }",
+          "type": "{ getText: () => string }"
+        }
+      ],
+      "purpose": "── tiny copy button that grabs text from the sibling <pre> ──",
+      "edgeCasesHandled": [],
+      "errorHandling": []
+    },
+    "fn:components/code-block-figure.tsx:CodeBlockFigure": {
+      "id": "fn:components/code-block-figure.tsx:CodeBlockFigure",
+      "name": "CodeBlockFigure",
+      "file": "components/code-block-figure.tsx",
+      "startLine": 36,
+      "endLine": 61,
+      "hash": "2e01198f6cb16935e83d19b9989c64273112787208dbb3d420b070ec0324fb6f",
+      "calls": [],
+      "calledBy": [],
+      "moduleId": "components",
+      "params": [
+        {
+          "name": "{\r\n  children,\r\n  className,\r\n  ...props\r\n}",
+          "type": "HTMLAttributes<HTMLElement> & { children?: ReactNode }"
+        }
+      ],
+      "isExported": true,
+      "purpose": "── code block figure shell — adds copy button overlay ──",
+      "edgeCasesHandled": [],
+      "errorHandling": []
+    },
+    "fn:components/code-collapsible-wrapper.tsx:CodeCollapsibleWrapper": {
+      "id": "fn:components/code-collapsible-wrapper.tsx:CodeCollapsibleWrapper",
+      "name": "CodeCollapsibleWrapper",
+      "file": "components/code-collapsible-wrapper.tsx",
+      "startLine": 12,
+      "endLine": 50,
+      "hash": "9d336f39db40d1d9e6a912514805673369d194082c334ca6755d0ba46c355fb8",
+      "calls": [],
+      "calledBy": [],
+      "moduleId": "components",
+      "params": [
+        {
+          "name": "{\r\n  className,\r\n  children,\r\n  ...props\r\n}",
+          "type": "React.ComponentProps<typeof Collapsible>"
+        }
+      ],
+      "isExported": true,
+      "purpose": "Code collapsible wrapper",
+      "edgeCasesHandled": [],
+      "errorHandling": []
+    },
+    "fn:components/code-tabs.tsx:CodeTabs": {
+      "id": "fn:components/code-tabs.tsx:CodeTabs",
+      "name": "CodeTabs",
+      "file": "components/code-tabs.tsx",
+      "startLine": 9,
+      "endLine": 33,
+      "hash": "cfbb06a54e6037c430da385c619e94a2a2b86cf05df1c48b3e8b1d03ff761289",
+      "calls": [],
+      "calledBy": [],
+      "moduleId": "components",
+      "params": [
+        {
+          "name": "{\r\n  className,\r\n  ...props\r\n}",
+          "type": "React.ComponentProps<typeof Tabs>"
+        }
+      ],
+      "isExported": true,
+      "purpose": "Code tabs",
+      "edgeCasesHandled": [],
+      "errorHandling": []
+    },
+    "fn:components/collapsible-list.tsx:CollapsibleList": {
+      "id": "fn:components/collapsible-list.tsx:CollapsibleList",
+      "name": "CollapsibleList",
+      "file": "components/collapsible-list.tsx",
+      "startLine": 14,
+      "endLine": 78,
+      "hash": "d368bda9bc0eadfe18bfb67a2d455df2ff72ab71ead7dd033ae367691b6964fd",
+      "calls": [],
+      "calledBy": [],
+      "moduleId": "components",
+      "params": [
+        {
+          "name": "{\r\n  items,\r\n  max = 3,\r\n\r\n  keyExtractor,\r\n  renderItem,\r\n}",
+          "type": "{ items: T[]; max?: number; keyExtractor?: (item: T) => string; renderItem: (item: T) => React.ReactNode; }"
+        }
+      ],
+      "isExported": true,
+      "purpose": "Collapsible list",
+      "edgeCasesHandled": [],
+      "errorHandling": []
+    },
+    "fn:components/command-menu.tsx:CommandMenu": {
+      "id": "fn:components/command-menu.tsx:CommandMenu",
+      "name": "CommandMenu",
+      "file": "components/command-menu.tsx",
+      "startLine": 156,
+      "endLine": 406,
+      "hash": "d8aaf4db6b9cb853f4724e46b5218e2e6dee9522ab32b1a3d256696257da0b02",
+      "calls": [],
+      "calledBy": [],
+      "moduleId": "components",
+      "params": [
+        {
+          "name": "{ posts }",
+          "type": "{ posts: Post[] }"
+        }
+      ],
+      "isExported": true,
+      "purpose": "Command menu",
+      "edgeCasesHandled": [],
+      "errorHandling": []
+    },
+    "fn:components/command-menu.tsx:CommandMenuInput": {
+      "id": "fn:components/command-menu.tsx:CommandMenuInput",
+      "name": "CommandMenuInput",
+      "file": "components/command-menu.tsx",
+      "startLine": 408,
+      "endLine": 434,
+      "hash": "91d08b3a9e5ecd5c34523ad2754dfa3ef8bcc94d29b87e681e0bba8f1b141dd2",
+      "calls": [],
+      "calledBy": [],
+      "moduleId": "components",
+      "purpose": "Command menu input",
+      "edgeCasesHandled": [
+        "searchValue.length >= 2"
+      ],
+      "errorHandling": []
+    },
+    "fn:components/command-menu.tsx:CommandLinkGroup": {
+      "id": "fn:components/command-menu.tsx:CommandLinkGroup",
+      "name": "CommandLinkGroup",
+      "file": "components/command-menu.tsx",
+      "startLine": 436,
+      "endLine": 476,
+      "hash": "affb84d88199aa17a54e422be0c2f9dcd0eaa1d158d26c65ede6c31598fbac06",
+      "calls": [],
+      "calledBy": [],
+      "moduleId": "components",
+      "params": [
+        {
+          "name": "{\r\n  heading,\r\n  links,\r\n  fallbackIcon,\r\n  onLinkSelect,\r\n}",
+          "type": "{ heading: string; links: CommandLinkItem[]; fallbackIcon?: React.ComponentType<LucideProps>; onLinkSelect: (href: string, openInNewTab?: boolean) => void; }"
+        }
+      ],
+      "purpose": "Command link group",
+      "edgeCasesHandled": [],
+      "errorHandling": []
+    },
+    "fn:components/command-menu.tsx:buildCommandMetaMap": {
+      "id": "fn:components/command-menu.tsx:buildCommandMetaMap",
+      "name": "buildCommandMetaMap",
+      "file": "components/command-menu.tsx",
+      "startLine": 487,
+      "endLine": 513,
+      "hash": "13ca67da77ef80daa66e05e3ac01b7a223af2216d8ddd9032a7d75ff81341291",
+      "calls": [],
+      "calledBy": [],
+      "moduleId": "components",
+      "purpose": "Build command meta map",
+      "edgeCasesHandled": [],
+      "errorHandling": []
+    },
+    "fn:components/command-menu.tsx:CommandMenuFooter": {
+      "id": "fn:components/command-menu.tsx:CommandMenuFooter",
+      "name": "CommandMenuFooter",
+      "file": "components/command-menu.tsx",
+      "startLine": 523,
+      "endLine": 550,
+      "hash": "1384708882ce1eb96a7e245b9abb0d857f45e05ba600ee5872360b3baf783e19",
+      "calls": [],
+      "calledBy": [],
+      "moduleId": "components",
+      "purpose": "Command menu footer",
+      "edgeCasesHandled": [],
+      "errorHandling": []
+    },
+    "fn:components/command-menu.tsx:postToCommandLinkItem": {
+      "id": "fn:components/command-menu.tsx:postToCommandLinkItem",
+      "name": "postToCommandLinkItem",
+      "file": "components/command-menu.tsx",
+      "startLine": 552,
+      "endLine": 567,
+      "hash": "674b48dd9fb0aad0a069a099245baed12d1c43ff1a2bd92b29563fd65e81fd77",
+      "calls": [],
+      "calledBy": [],
+      "moduleId": "components",
+      "params": [
+        {
+          "name": "post",
+          "type": "Post"
+        }
+      ],
+      "returnType": "CommandLinkItem",
+      "purpose": "Post to command link item",
+      "edgeCasesHandled": [],
+      "errorHandling": []
+    },
+    "fn:components/consent-manager-client.tsx:ConsentManagerClient": {
+      "id": "fn:components/consent-manager-client.tsx:ConsentManagerClient",
+      "name": "ConsentManagerClient",
+      "file": "components/consent-manager-client.tsx",
+      "startLine": 6,
+      "endLine": 26,
+      "hash": "520368dcdb2ef4dfec7d8fff6f17644350562a9427b0a8a9020373e76927afbf",
+      "calls": [],
+      "calledBy": [],
+      "moduleId": "components",
+      "params": [
+        {
+          "name": "{\r\n  children,\r\n}",
+          "type": "{ children: React.ReactNode; }"
+        }
+      ],
+      "isExported": true,
+      "purpose": "Consent manager client",
+      "edgeCasesHandled": [],
+      "errorHandling": []
+    },
+    "fn:components/consent-manager.tsx:ConsentManager": {
+      "id": "fn:components/consent-manager.tsx:ConsentManager",
+      "name": "ConsentManager",
+      "file": "components/consent-manager.tsx",
+      "startLine": 12,
+      "endLine": 170,
+      "hash": "eda60dec25f8934a036c6492178b2ebb7edc3918805b9d1ba4dc02427581d633",
+      "calls": [],
+      "calledBy": [],
+      "moduleId": "components",
+      "params": [
+        {
+          "name": "{ children }",
+          "type": "{ children: React.ReactNode }"
+        }
+      ],
+      "isExported": true,
+      "purpose": "Consent manager",
+      "edgeCasesHandled": [],
+      "errorHandling": []
+    },
+    "fn:components/copy-button.tsx:copyToClipboardWithEvent": {
+      "id": "fn:components/copy-button.tsx:copyToClipboardWithEvent",
+      "name": "copyToClipboardWithEvent",
+      "file": "components/copy-button.tsx",
+      "startLine": 13,
+      "endLine": 18,
+      "hash": "7979aaf97a0d69205b154d49cc88ede1f5017aa4dd5c53bfdc4cdeee4f114256",
+      "calls": [],
+      "calledBy": [
+        "fn:components/copy-button.tsx:CopyButton"
+      ],
+      "moduleId": "components",
+      "params": [
+        {
+          "name": "value",
+          "type": "string"
+        },
+        {
+          "name": "event",
+          "type": "Event",
+          "optional": true
+        }
+      ],
+      "isExported": true,
+      "purpose": "Copy to clipboard with event",
+      "edgeCasesHandled": [],
+      "errorHandling": []
+    },
+    "fn:components/copy-button.tsx:CopyButton": {
+      "id": "fn:components/copy-button.tsx:CopyButton",
+      "name": "CopyButton",
+      "file": "components/copy-button.tsx",
+      "startLine": 33,
+      "endLine": 101,
+      "hash": "cd513b7918c6424fd5fe8733c205c7f67f23a274e1fa285e6a89ee01a9187c5b",
+      "calls": [
+        "fn:components/copy-button.tsx:copyToClipboardWithEvent"
+      ],
+      "calledBy": [],
+      "moduleId": "components",
+      "params": [
+        {
+          "name": "{\r\n  value,\r\n  getValue,\r\n  event,\r\n  className,\r\n  ...props\r\n}",
+          "type": "{ value?: string; getValue?: () => string; event?: Event[\"name\"]; className?: string; }"
+        }
+      ],
+      "isExported": true,
+      "purpose": "Copy button",
+      "edgeCasesHandled": [
+        "getValue",
+        "value"
+      ],
+      "errorHandling": [
+        {
+          "line": 61,
+          "type": "try-catch",
+          "detail": "try-catch block"
+        }
+      ]
+    },
+    "fn:components/copy-markdown-button.tsx:CopyMarkdownButton": {
+      "id": "fn:components/copy-markdown-button.tsx:CopyMarkdownButton",
+      "name": "CopyMarkdownButton",
+      "file": "components/copy-markdown-button.tsx",
+      "startLine": 11,
+      "endLine": 39,
+      "hash": "8c7d640cad4e133b9b2ad6412156764a73a1a74b10a438c3c607f657ba1f4a78",
+      "calls": [],
+      "calledBy": [],
+      "moduleId": "components",
+      "params": [
+        {
+          "name": "{ rawContent }",
+          "type": "CopyMarkdownButtonProps"
+        }
+      ],
+      "isExported": true,
+      "purpose": "Copy markdown button",
+      "edgeCasesHandled": [],
+      "errorHandling": []
+    },
+    "fn:components/header.tsx:ThemeToggle": {
+      "id": "fn:components/header.tsx:ThemeToggle",
+      "name": "ThemeToggle",
+      "file": "components/header.tsx",
+      "startLine": 19,
+      "endLine": 37,
+      "hash": "c13a9cfc085e3f665fc0aca4e26d3beea942b109dd4371b60d6591e3b6883a40",
+      "calls": [],
+      "calledBy": [],
+      "moduleId": "components",
+      "purpose": "Theme toggle",
+      "edgeCasesHandled": [
+        "!mounted"
+      ],
+      "errorHandling": []
+    },
+    "fn:components/header.tsx:useBreadcrumbs": {
+      "id": "fn:components/header.tsx:useBreadcrumbs",
+      "name": "useBreadcrumbs",
+      "file": "components/header.tsx",
+      "startLine": 39,
+      "endLine": 47,
+      "hash": "8b5f3c4aae05762e7d8c5f74e038417df733ec0fb7c2c640f7ddb098301a80e0",
+      "calls": [],
+      "calledBy": [
+        "fn:components/header.tsx:Header"
+      ],
+      "moduleId": "components",
+      "purpose": "Use breadcrumbs",
+      "edgeCasesHandled": [],
+      "errorHandling": []
+    },
+    "fn:components/header.tsx:Header": {
+      "id": "fn:components/header.tsx:Header",
+      "name": "Header",
+      "file": "components/header.tsx",
+      "startLine": 49,
+      "endLine": 143,
+      "hash": "eee95e6d615f5398c77846133eec795d73b51717ea7dac4186814ef357574ab2",
+      "calls": [
+        "fn:components/header.tsx:useBreadcrumbs"
+      ],
+      "calledBy": [],
+      "moduleId": "components",
+      "isExported": true,
+      "purpose": "Header",
+      "edgeCasesHandled": [],
+      "errorHandling": []
+    },
+    "fn:components/markdown.tsx:Markdown": {
+      "id": "fn:components/markdown.tsx:Markdown",
+      "name": "Markdown",
+      "file": "components/markdown.tsx",
+      "startLine": 9,
+      "endLine": 24,
+      "hash": "1084bdb56e656b378fd133f755214434df6f5779e5166b2a3722093aa20fb13d",
+      "calls": [],
+      "calledBy": [],
+      "moduleId": "components",
+      "params": [
+        {
+          "name": "props",
+          "type": "React.ComponentProps<typeof MarkdownAsync>"
+        }
+      ],
+      "isExported": true,
+      "purpose": "Markdown",
+      "edgeCasesHandled": [],
+      "errorHandling": []
+    },
+    "fn:components/mdx copy.tsx:MDX": {
+      "id": "fn:components/mdx copy.tsx:MDX",
+      "name": "MDX",
+      "file": "components/mdx copy.tsx",
+      "startLine": 241,
+      "endLine": 243,
+      "hash": "f77d8e9e78b2cc4ae381d72b9c8ec3ed4dd6721e6f5b505e4b3f7544d5f3a4f9",
+      "calls": [],
+      "calledBy": [],
+      "moduleId": "components",
+      "params": [
+        {
+          "name": "{ code }",
+          "type": "{ code: string }"
+        }
+      ],
+      "isExported": true,
+      "purpose": "Mdx",
+      "edgeCasesHandled": [],
+      "errorHandling": []
+    },
+    "fn:components/mdx.tsx:pre": {
+      "id": "fn:components/mdx.tsx:pre",
+      "name": "pre",
+      "file": "components/mdx.tsx",
+      "startLine": 34,
+      "endLine": 41,
+      "hash": "a22f8cc0ae4bc58cb8a561e2d53a6e6bd5f68ea3d7f3fd9bd22976325278fe1d",
+      "calls": [],
+      "calledBy": [],
+      "moduleId": "components",
+      "params": [
+        {
+          "name": "{ className, ...props }",
+          "type": "HTMLAttributes<HTMLPreElement>"
+        }
+      ],
+      "purpose": "── PRE ─────────────────────────────────────────────────",
+      "edgeCasesHandled": [],
+      "errorHandling": []
+    },
+    "fn:components/mdx.tsx:code": {
+      "id": "fn:components/mdx.tsx:code",
+      "name": "code",
+      "file": "components/mdx.tsx",
+      "startLine": 47,
+      "endLine": 79,
+      "hash": "388b874018fc740bc30e84bdc6c691ac56a7590439222e3545ebe1d0cd18e38e",
+      "calls": [],
+      "calledBy": [],
+      "moduleId": "components",
+      "params": [
+        {
+          "name": "{\r\n  children,\r\n  className,\r\n  ...props\r\n}",
+          "type": "HTMLAttributes<HTMLElement> & { children?: ReactNode }"
+        }
+      ],
+      "purpose": "── CODE ────────────────────────────────────────────────",
+      "edgeCasesHandled": [
+        "!isInline"
+      ],
+      "errorHandling": []
+    },
+    "fn:components/mdx.tsx:h1": {
+      "id": "fn:components/mdx.tsx:h1",
+      "name": "h1",
+      "file": "components/mdx.tsx",
+      "startLine": 82,
+      "endLine": 84,
+      "hash": "601ec864eea50c333f6fa9fa4bdb0b627e92d51f5719fc6558ed14a0a35d0743",
+      "calls": [],
+      "calledBy": [],
+      "moduleId": "components",
+      "params": [
+        {
+          "name": "p",
+          "type": "HTMLAttributes<HTMLHeadingElement>"
+        }
+      ],
+      "purpose": "── HEADINGS ──────────────────────────────────────────",
+      "edgeCasesHandled": [],
+      "errorHandling": []
+    },
+    "fn:components/mdx.tsx:h2": {
+      "id": "fn:components/mdx.tsx:h2",
+      "name": "h2",
+      "file": "components/mdx.tsx",
+      "startLine": 85,
+      "endLine": 87,
+      "hash": "fa81b9d7e06c9df121ce74d383ca3262581ac819833456efa12544582789e411",
+      "calls": [],
+      "calledBy": [],
+      "moduleId": "components",
+      "params": [
+        {
+          "name": "p",
+          "type": "HTMLAttributes<HTMLHeadingElement>"
+        }
+      ],
+      "purpose": "H2 (p)",
+      "edgeCasesHandled": [],
+      "errorHandling": []
+    },
+    "fn:components/mdx.tsx:h3": {
+      "id": "fn:components/mdx.tsx:h3",
+      "name": "h3",
+      "file": "components/mdx.tsx",
+      "startLine": 88,
+      "endLine": 90,
+      "hash": "669d24c14e5f5529f2923ce74af0574eea801b672821b9610fc10872cd5f9870",
+      "calls": [],
+      "calledBy": [],
+      "moduleId": "components",
+      "params": [
+        {
+          "name": "p",
+          "type": "HTMLAttributes<HTMLHeadingElement>"
+        }
+      ],
+      "purpose": "H3 (p)",
+      "edgeCasesHandled": [],
+      "errorHandling": []
+    },
+    "fn:components/mdx.tsx:h4": {
+      "id": "fn:components/mdx.tsx:h4",
+      "name": "h4",
+      "file": "components/mdx.tsx",
+      "startLine": 91,
+      "endLine": 93,
+      "hash": "c4a96108cd25b223cde3958dc9013341dab80795c8c78a13adba4491ec4931a3",
+      "calls": [],
+      "calledBy": [],
+      "moduleId": "components",
+      "params": [
+        {
+          "name": "p",
+          "type": "HTMLAttributes<HTMLHeadingElement>"
+        }
+      ],
+      "purpose": "H4 (p)",
+      "edgeCasesHandled": [],
+      "errorHandling": []
+    },
+    "fn:components/mdx.tsx:p": {
+      "id": "fn:components/mdx.tsx:p",
+      "name": "p",
+      "file": "components/mdx.tsx",
+      "startLine": 96,
+      "endLine": 98,
+      "hash": "dae0bae4d76078839ac35ddd558230fa3aa063deb3387fb944661d46d4b46353",
+      "calls": [],
+      "calledBy": [],
+      "moduleId": "components",
+      "params": [
+        {
+          "name": "p",
+          "type": "HTMLAttributes<HTMLParagraphElement>"
+        }
+      ],
+      "purpose": "── PROSE ─────────────────────────────────────────────",
+      "edgeCasesHandled": [],
+      "errorHandling": []
+    },
+    "fn:components/mdx.tsx:ul": {
+      "id": "fn:components/mdx.tsx:ul",
+      "name": "ul",
+      "file": "components/mdx.tsx",
+      "startLine": 99,
+      "endLine": 101,
+      "hash": "cbd9dda034b851981eb414eb75730b5c85c209249a386ce853873b04f02ae437",
+      "calls": [],
+      "calledBy": [],
+      "moduleId": "components",
+      "params": [
+        {
+          "name": "p",
+          "type": "HTMLAttributes<HTMLUListElement>"
+        }
+      ],
+      "purpose": "Ul (p)",
+      "edgeCasesHandled": [],
+      "errorHandling": []
+    },
+    "fn:components/mdx.tsx:ol": {
+      "id": "fn:components/mdx.tsx:ol",
+      "name": "ol",
+      "file": "components/mdx.tsx",
+      "startLine": 102,
+      "endLine": 104,
+      "hash": "a5b55897dad92986c992044574f874067760b916ac2fca6d99f2a1fd4bf528fb",
+      "calls": [],
+      "calledBy": [],
+      "moduleId": "components",
+      "params": [
+        {
+          "name": "p",
+          "type": "HTMLAttributes<HTMLOListElement>"
+        }
+      ],
+      "purpose": "Ol (p)",
+      "edgeCasesHandled": [],
+      "errorHandling": []
+    },
+    "fn:components/mdx.tsx:li": {
+      "id": "fn:components/mdx.tsx:li",
+      "name": "li",
+      "file": "components/mdx.tsx",
+      "startLine": 105,
+      "endLine": 114,
+      "hash": "3983ccfdeb32ac64d9a3ed872760ae229542e722c83be73f985d30c88a553661",
+      "calls": [],
+      "calledBy": [],
+      "moduleId": "components",
+      "params": [
+        {
+          "name": "p",
+          "type": "HTMLAttributes<HTMLLIElement>"
+        }
+      ],
+      "purpose": "Li (p)",
+      "edgeCasesHandled": [],
+      "errorHandling": []
+    },
+    "fn:components/mdx.tsx:blockquote": {
+      "id": "fn:components/mdx.tsx:blockquote",
+      "name": "blockquote",
+      "file": "components/mdx.tsx",
+      "startLine": 115,
+      "endLine": 120,
+      "hash": "4941a517f005742b8326997ecbc818aba1bf7148520fc78fcab2030021de5683",
+      "calls": [],
+      "calledBy": [],
+      "moduleId": "components",
+      "params": [
+        {
+          "name": "p",
+          "type": "HTMLAttributes<HTMLQuoteElement>"
+        }
+      ],
+      "purpose": "Blockquote (p)",
+      "edgeCasesHandled": [],
+      "errorHandling": []
+    },
+    "fn:components/mdx.tsx:table": {
+      "id": "fn:components/mdx.tsx:table",
+      "name": "table",
+      "file": "components/mdx.tsx",
+      "startLine": 123,
+      "endLine": 127,
+      "hash": "d775d4e504897a8d482ee5762cb6e02a57a76bb6a6eb8106a68faebad390de74",
+      "calls": [],
+      "calledBy": [],
+      "moduleId": "components",
+      "params": [
+        {
+          "name": "p",
+          "type": "HTMLAttributes<HTMLTableElement>"
+        }
+      ],
+      "purpose": "── TABLE ─────────────────────────────────────────────",
+      "edgeCasesHandled": [],
+      "errorHandling": []
+    },
+    "fn:components/mdx.tsx:thead": {
+      "id": "fn:components/mdx.tsx:thead",
+      "name": "thead",
+      "file": "components/mdx.tsx",
+      "startLine": 128,
+      "endLine": 130,
+      "hash": "bde87a940e264ab73777ca5e81c357d0f984164f8d2c5d297d5ef2162dea0602",
+      "calls": [],
+      "calledBy": [],
+      "moduleId": "components",
+      "params": [
+        {
+          "name": "p",
+          "type": "HTMLAttributes<HTMLTableSectionElement>"
+        }
+      ],
+      "purpose": "Thead (p)",
+      "edgeCasesHandled": [],
+      "errorHandling": []
+    },
+    "fn:components/mdx.tsx:tbody": {
+      "id": "fn:components/mdx.tsx:tbody",
+      "name": "tbody",
+      "file": "components/mdx.tsx",
+      "startLine": 131,
+      "endLine": 131,
+      "hash": "6ae683ac438f3502ff7edf83f8e2fc3c57e39163074c4c38c34fdda1d25a3658",
+      "calls": [],
+      "calledBy": [],
+      "moduleId": "components",
+      "params": [
+        {
+          "name": "p",
+          "type": "HTMLAttributes<HTMLTableSectionElement>"
+        }
+      ],
+      "purpose": "Tbody (p)",
+      "edgeCasesHandled": [],
+      "errorHandling": []
+    },
+    "fn:components/mdx.tsx:tr": {
+      "id": "fn:components/mdx.tsx:tr",
+      "name": "tr",
+      "file": "components/mdx.tsx",
+      "startLine": 132,
+      "endLine": 134,
+      "hash": "c480c5be480ca67ffd4e22955e437e14ed3f0926c73ff7609c96855a0fd711b3",
+      "calls": [],
+      "calledBy": [],
+      "moduleId": "components",
+      "params": [
+        {
+          "name": "p",
+          "type": "HTMLAttributes<HTMLTableRowElement>"
+        }
+      ],
+      "purpose": "Tr (p)",
+      "edgeCasesHandled": [],
+      "errorHandling": []
+    },
+    "fn:components/mdx.tsx:th": {
+      "id": "fn:components/mdx.tsx:th",
+      "name": "th",
+      "file": "components/mdx.tsx",
+      "startLine": 135,
+      "endLine": 137,
+      "hash": "c5975d3c2e255f8371283c58be5d8a001eaa9b0c77703f022db523323673b853",
+      "calls": [],
+      "calledBy": [],
+      "moduleId": "components",
+      "params": [
+        {
+          "name": "p",
+          "type": "ThHTMLAttributes<HTMLTableCellElement>"
+        }
+      ],
+      "purpose": "Th (p)",
+      "edgeCasesHandled": [],
+      "errorHandling": []
+    },
+    "fn:components/mdx.tsx:td": {
+      "id": "fn:components/mdx.tsx:td",
+      "name": "td",
+      "file": "components/mdx.tsx",
+      "startLine": 138,
+      "endLine": 140,
+      "hash": "76cf11f5ccb92491fa4d131e8e676438c44945641f96677415d25a8910c83bdd",
+      "calls": [],
+      "calledBy": [],
+      "moduleId": "components",
+      "params": [
+        {
+          "name": "p",
+          "type": "TdHTMLAttributes<HTMLTableCellElement>"
+        }
+      ],
+      "purpose": "Td (p)",
+      "edgeCasesHandled": [],
+      "errorHandling": []
+    },
+    "fn:components/mdx.tsx:hr": {
+      "id": "fn:components/mdx.tsx:hr",
+      "name": "hr",
+      "file": "components/mdx.tsx",
+      "startLine": 143,
+      "endLine": 143,
+      "hash": "f5df04455ed7dfbd39b3fe50d78660985762d90794098922470920c896ce0f3a",
+      "calls": [],
+      "calledBy": [],
+      "moduleId": "components",
+      "purpose": "── MISC ──────────────────────────────────────────────",
+      "edgeCasesHandled": [],
+      "errorHandling": []
+    },
+    "fn:components/mdx.tsx:strong": {
+      "id": "fn:components/mdx.tsx:strong",
+      "name": "strong",
+      "file": "components/mdx.tsx",
+      "startLine": 144,
+      "endLine": 146,
+      "hash": "e78c41e4f91a1652dac6dc5123c707c1d294986ce757d77aad069eb92f0d881f",
+      "calls": [],
+      "calledBy": [],
+      "moduleId": "components",
+      "params": [
+        {
+          "name": "p",
+          "type": "HTMLAttributes<HTMLElement>"
+        }
+      ],
+      "purpose": "Strong (p)",
+      "edgeCasesHandled": [],
+      "errorHandling": []
+    },
+    "fn:components/mdx.tsx:em": {
+      "id": "fn:components/mdx.tsx:em",
+      "name": "em",
+      "file": "components/mdx.tsx",
+      "startLine": 147,
+      "endLine": 149,
+      "hash": "8b25e5d84aabb04dbabc0dbba763b2fdfdfeac3a611dc4d25f68709f53812501",
+      "calls": [],
+      "calledBy": [],
+      "moduleId": "components",
+      "params": [
+        {
+          "name": "p",
+          "type": "HTMLAttributes<HTMLElement>"
+        }
+      ],
+      "purpose": "Em (p)",
+      "edgeCasesHandled": [],
+      "errorHandling": []
+    },
+    "fn:components/mdx.tsx:a": {
+      "id": "fn:components/mdx.tsx:a",
+      "name": "a",
+      "file": "components/mdx.tsx",
+      "startLine": 150,
+      "endLine": 157,
+      "hash": "c4cff08f24363ee00c1022d16d3e3481f57df156da67ee9c93dc6e863d4ceda9",
+      "calls": [],
+      "calledBy": [],
+      "moduleId": "components",
+      "params": [
+        {
+          "name": "p",
+          "type": "HTMLAttributes<HTMLAnchorElement> & { href?: string }"
+        }
+      ],
+      "purpose": "A (p)",
+      "edgeCasesHandled": [],
+      "errorHandling": []
+    },
+    "fn:components/mdx.tsx:getMDXComponents": {
+      "id": "fn:components/mdx.tsx:getMDXComponents",
+      "name": "getMDXComponents",
+      "file": "components/mdx.tsx",
+      "startLine": 169,
+      "endLine": 171,
+      "hash": "d452d4d85447752ed2cd7e06f3f4f9b2c7e6ca50ae916818fcdb9ca75c7b66a2",
+      "calls": [],
+      "calledBy": [],
+      "moduleId": "components",
+      "params": [
+        {
+          "name": "extra",
+          "type": "MDXComponents",
+          "optional": true
+        }
+      ],
+      "returnType": "MDXComponents",
+      "isExported": true,
+      "purpose": "Get mdx components",
+      "edgeCasesHandled": [],
+      "errorHandling": []
+    },
+    "fn:components/not-found.tsx:NotFound": {
+      "id": "fn:components/not-found.tsx:NotFound",
+      "name": "NotFound",
+      "file": "components/not-found.tsx",
+      "startLine": 7,
+      "endLine": 41,
+      "hash": "c3092c8effc2da2a5e20e3c0333195ff8b9208eb267e41a947e9b902dc7c1589",
+      "calls": [],
+      "calledBy": [],
+      "moduleId": "components",
+      "params": [
+        {
+          "name": "{ className }",
+          "type": "{ className?: string }"
+        }
+      ],
+      "isExported": true,
+      "purpose": "Not found",
+      "edgeCasesHandled": [],
+      "errorHandling": []
+    },
+    "fn:components/search-dialog.tsx:stripMark": {
+      "id": "fn:components/search-dialog.tsx:stripMark",
+      "name": "stripMark",
+      "file": "components/search-dialog.tsx",
+      "startLine": 16,
+      "endLine": 18,
+      "hash": "d7ed6acfb1c8cd7aa7500edea3b31d11991f02bf927f14c44b0c5590b5b20b51",
+      "calls": [],
+      "calledBy": [],
+      "moduleId": "components",
+      "params": [
+        {
+          "name": "html",
+          "type": "string"
+        }
+      ],
+      "purpose": "Strip <mark> tags → plain text for display as title",
+      "edgeCasesHandled": [],
+      "errorHandling": []
+    },
+    "fn:components/search-dialog.tsx:Highlighted": {
+      "id": "fn:components/search-dialog.tsx:Highlighted",
+      "name": "Highlighted",
+      "file": "components/search-dialog.tsx",
+      "startLine": 21,
+      "endLine": 36,
+      "hash": "54049e80982c0fd8c31a823423e237a057057c7f9e27c4865f2b2632a4f37956",
+      "calls": [],
+      "calledBy": [],
+      "moduleId": "components",
+      "params": [
+        {
+          "name": "{ html }",
+          "type": "{ html: string }"
+        }
+      ],
+      "purpose": "Render highlighted content safely — <mark> only, nothing else",
+      "edgeCasesHandled": [],
+      "errorHandling": []
+    },
+    "fn:components/search-dialog.tsx:SearchDialog": {
+      "id": "fn:components/search-dialog.tsx:SearchDialog",
+      "name": "SearchDialog",
+      "file": "components/search-dialog.tsx",
+      "startLine": 38,
+      "endLine": 203,
+      "hash": "2f387408ba76c7d0d7ebfbf0d311143deccb7dc1f717a7dbcd1a4ab5da02c43b",
+      "calls": [],
+      "calledBy": [],
+      "moduleId": "components",
+      "params": [
+        {
+          "name": "{ open, onClose }",
+          "type": "SearchDialogProps"
+        }
+      ],
+      "isExported": true,
+      "purpose": "Search dialog",
+      "edgeCasesHandled": [
+        "(e.key === \"k\" && (e.metaKey || e.ctrlKey)) && !open",
+        "type === \"page\"",
+        "type === \"heading\"",
+        "!open"
+      ],
+      "errorHandling": []
+    },
+    "fn:components/sidebar.tsx:getIcon": {
+      "id": "fn:components/sidebar.tsx:getIcon",
+      "name": "getIcon",
+      "file": "components/sidebar.tsx",
+      "startLine": 43,
+      "endLine": 47,
+      "hash": "489c668e48b417a20a683731d579d35866c23da88f8cd103e8f710b6025eed27",
+      "calls": [],
+      "calledBy": [
+        "fn:components/sidebar.tsx:SidebarItem"
+      ],
+      "moduleId": "components",
+      "params": [
+        {
+          "name": "url",
+          "type": "string"
+        }
+      ],
+      "returnType": "React.ElementType",
+      "purpose": "Get icon",
+      "edgeCasesHandled": [],
+      "errorHandling": []
+    },
+    "fn:components/sidebar.tsx:SidebarContents": {
+      "id": "fn:components/sidebar.tsx:SidebarContents",
+      "name": "SidebarContents",
+      "file": "components/sidebar.tsx",
+      "startLine": 52,
+      "endLine": 117,
+      "hash": "14eefcc4cd3423fd56459f60d6f10dca69e9449be5bfba057da07b4261962131",
+      "calls": [],
+      "calledBy": [],
+      "moduleId": "components",
+      "params": [
+        {
+          "name": "{ onNavigate }",
+          "type": "{ onNavigate?: () => void }"
+        }
+      ],
+      "purpose": "──────────────────────────────────────────────",
+      "edgeCasesHandled": [],
+      "errorHandling": []
+    },
+    "fn:components/sidebar.tsx:Sidebar": {
+      "id": "fn:components/sidebar.tsx:Sidebar",
+      "name": "Sidebar",
+      "file": "components/sidebar.tsx",
+      "startLine": 122,
+      "endLine": 136,
+      "hash": "8bb1ba00b6c0d353f2b5ddc408d5ac6b4d80d71c4cd93e92b7e638fb397ad43d",
+      "calls": [],
+      "calledBy": [],
+      "moduleId": "components",
+      "isExported": true,
+      "purpose": "──────────────────────────────────────────────",
+      "edgeCasesHandled": [],
+      "errorHandling": []
+    },
+    "fn:components/sidebar.tsx:MobileSidebarTrigger": {
+      "id": "fn:components/sidebar.tsx:MobileSidebarTrigger",
+      "name": "MobileSidebarTrigger",
+      "file": "components/sidebar.tsx",
+      "startLine": 141,
+      "endLine": 172,
+      "hash": "1f17e5eb3d5534d4dbb5bb772aecd6b4e3e5121d579a94b597e6b3ce6c42f964",
+      "calls": [],
+      "calledBy": [],
+      "moduleId": "components",
+      "isExported": true,
+      "purpose": "──────────────────────────────────────────────",
+      "edgeCasesHandled": [],
+      "errorHandling": []
+    },
+    "fn:components/sidebar.tsx:SidebarItem": {
+      "id": "fn:components/sidebar.tsx:SidebarItem",
+      "name": "SidebarItem",
+      "file": "components/sidebar.tsx",
+      "startLine": 177,
+      "endLine": 287,
+      "hash": "c688c62c40bb6940dd56b64fb143f2c24f4c7d3ffc71ea3621eb5f5892ef9156",
+      "calls": [
+        "fn:components/sidebar.tsx:getIcon"
+      ],
+      "calledBy": [],
+      "moduleId": "components",
+      "params": [
+        {
+          "name": "{\r\n  item,\r\n  pathname,\r\n  depth,\r\n  onNavigate,\r\n}",
+          "type": "{ item: any; pathname: string; depth: number; onNavigate?: () => void; }"
+        }
+      ],
+      "purpose": "──────────────────────────────────────────────",
+      "edgeCasesHandled": [
+        "node.url === pathname",
+        "node.children",
+        "item.type === \"separator\"",
+        "item.type === \"folder\" && depth === 0",
+        "item.type === \"folder\""
+      ],
+      "errorHandling": []
+    },
+    "fn:components/toc.tsx:TOC": {
+      "id": "fn:components/toc.tsx:TOC",
+      "name": "TOC",
+      "file": "components/toc.tsx",
+      "startLine": 8,
+      "endLine": 88,
+      "hash": "85770e1449981775a788e42ef6c0994b85aca2b18d9c5239f344689ea66b13ef",
+      "calls": [],
+      "calledBy": [],
+      "moduleId": "components",
+      "params": [
+        {
+          "name": "{ items }",
+          "type": "{ items: TOCItemType[] }"
+        }
+      ],
+      "isExported": true,
+      "purpose": "Toc",
+      "edgeCasesHandled": [
+        "items.length === 0",
+        "items.length === 0"
+      ],
+      "errorHandling": []
+    },
+    "fn:components/toc.tsx:SlidingPip": {
+      "id": "fn:components/toc.tsx:SlidingPip",
+      "name": "SlidingPip",
+      "file": "components/toc.tsx",
+      "startLine": 90,
+      "endLine": 139,
+      "hash": "c8caac340b409e792a99f5a79c8353582f9ea0c84dcf2da066f469a659053f50",
+      "calls": [],
+      "calledBy": [],
+      "moduleId": "components",
+      "params": [
+        {
+          "name": "{\r\n  items,\r\n  activeId,\r\n  pipIndent,\r\n}",
+          "type": "{ items: TOCItemType[]; activeId: string; pipIndent: number; }"
+        }
+      ],
+      "purpose": "Sliding pip",
+      "edgeCasesHandled": [
+        "!activeId",
+        "!anchor || !track"
+      ],
+      "errorHandling": []
+    },
+    "fn:lib/events.ts:trackEvent": {
+      "id": "fn:lib/events.ts:trackEvent",
+      "name": "trackEvent",
+      "file": "lib/events.ts",
+      "startLine": 8,
+      "endLine": 10,
+      "hash": "a8340f0c88680169d0ead016f2b76ec6e5e1e61a66aefd84bf48358d4b1982d5",
+      "calls": [],
+      "calledBy": [],
+      "moduleId": "lib",
+      "params": [
+        {
+          "name": "_event",
+          "type": "Event"
+        }
+      ],
+      "isExported": true,
+      "purpose": "Track event",
+      "edgeCasesHandled": [],
+      "errorHandling": []
+    },
+    "fn:lib/layout.shared.tsx:baseOptions": {
+      "id": "fn:lib/layout.shared.tsx:baseOptions",
+      "name": "baseOptions",
+      "file": "lib/layout.shared.tsx",
+      "startLine": 2,
+      "endLine": 8,
+      "hash": "c5861936a0ea2778aab7a82976091bd379336806d6b3242154a9b98c994fed61",
+      "calls": [],
+      "calledBy": [],
+      "moduleId": "lib",
+      "returnType": "BaseLayoutProps",
+      "isExported": true,
+      "purpose": "Base options",
+      "edgeCasesHandled": [],
+      "errorHandling": []
+    },
+    "fn:lib/utils.ts:cn": {
+      "id": "fn:lib/utils.ts:cn",
+      "name": "cn",
+      "file": "lib/utils.ts",
+      "startLine": 4,
+      "endLine": 6,
+      "hash": "d35d6a7cba9ab2b6e2ecb8aef80ab24d7e5660c8896279971872c8af7d76a8eb",
+      "calls": [],
+      "calledBy": [],
+      "moduleId": "lib",
+      "params": [
+        {
+          "name": "inputs",
+          "type": "ClassValue[]"
+        }
+      ],
+      "isExported": true,
+      "purpose": "Cn",
+      "edgeCasesHandled": [],
+      "errorHandling": []
+    },
+    "fn:providers/fuma-provider.tsx:RootLayout": {
+      "id": "fn:providers/fuma-provider.tsx:RootLayout",
+      "name": "RootLayout",
+      "file": "providers/fuma-provider.tsx",
+      "startLine": 4,
+      "endLine": 7,
+      "hash": "5aefbf1749be2a1f9950c6b1715b92dceb7a95e85c4e43186ac13b3c450848ea",
+      "calls": [],
+      "calledBy": [],
+      "moduleId": "providers",
+      "params": [
+        {
+          "name": "{ children }",
+          "type": "{ children: ReactNode }"
+        }
+      ],
+      "isExported": true,
+      "purpose": "Root layout",
+      "edgeCasesHandled": [],
+      "errorHandling": []
+    },
+    "fn:providers/providers.tsx:providers": {
+      "id": "fn:providers/providers.tsx:providers",
+      "name": "providers",
+      "file": "providers/providers.tsx",
+      "startLine": 6,
+      "endLine": 17,
+      "hash": "f926e04cc61432f1d69e8f7e6184627624130d6a7f90d3b091842abef22319ae",
+      "calls": [],
+      "calledBy": [],
+      "moduleId": "providers",
+      "params": [
+        {
+          "name": "{ children }",
+          "type": "{ children: React.ReactNode }"
+        }
+      ],
+      "isExported": true,
+      "purpose": "Providers ({ children })",
+      "edgeCasesHandled": [],
+      "errorHandling": []
+    },
+    "fn:providers/theme-provider.tsx:ThemeProvider": {
+      "id": "fn:providers/theme-provider.tsx:ThemeProvider",
+      "name": "ThemeProvider",
+      "file": "providers/theme-provider.tsx",
+      "startLine": 6,
+      "endLine": 22,
+      "hash": "30c44d5a7887d3f19d54dc2fa3d98b5affec67ab19d26c6e4e32747dcd926a49",
+      "calls": [],
+      "calledBy": [],
+      "moduleId": "providers",
+      "params": [
+        {
+          "name": "{\r\n  children,\r\n  ...props\r\n}",
+          "type": "React.ComponentProps<typeof NextThemesProvider>"
+        }
+      ],
+      "isExported": true,
+      "purpose": "Theme provider",
+      "edgeCasesHandled": [],
+      "errorHandling": []
+    },
+    "fn:providers/theme-provider.tsx:isTypingTarget": {
+      "id": "fn:providers/theme-provider.tsx:isTypingTarget",
+      "name": "isTypingTarget",
+      "file": "providers/theme-provider.tsx",
+      "startLine": 24,
+      "endLine": 32,
+      "hash": "873f24d338aa007614da8428b3fea40183cb0a59fa8dfed0ce93a02870a1b469",
+      "calls": [],
+      "calledBy": [
+        "fn:providers/theme-provider.tsx:ThemeHotkey"
+      ],
+      "moduleId": "providers",
+      "params": [
+        {
+          "name": "target",
+          "type": "EventTarget | null"
+        }
+      ],
+      "purpose": "Is typing target",
+      "edgeCasesHandled": [
+        "!(target instanceof HTMLElement)"
+      ],
+      "errorHandling": []
+    },
+    "fn:providers/theme-provider.tsx:ThemeHotkey": {
+      "id": "fn:providers/theme-provider.tsx:ThemeHotkey",
+      "name": "ThemeHotkey",
+      "file": "providers/theme-provider.tsx",
+      "startLine": 34,
+      "endLine": 48,
+      "hash": "b49217bb245e0be6fbfc5eaaa760bb2ed46f56aa4519b5c383e0565469e7cfc6",
+      "calls": [
+        "fn:providers/theme-provider.tsx:isTypingTarget"
+      ],
+      "calledBy": [],
+      "moduleId": "providers",
+      "purpose": "Theme hotkey",
+      "edgeCasesHandled": [
+        "event.defaultPrevented || event.repeat",
+        "event.metaKey || event.ctrlKey || event.altKey",
+        "event.key.toLowerCase() !== \"d\"",
+        "isTypingTarget(event.target)"
+      ],
+      "errorHandling": []
+    },
+    "fn:app/docs/layout.tsx:DocsLayout": {
+      "id": "fn:app/docs/layout.tsx:DocsLayout",
+      "name": "DocsLayout",
+      "file": "app/docs/layout.tsx",
+      "startLine": 5,
+      "endLine": 22,
+      "hash": "518de05cd76f5d3a7dc8a47a87bb550c97e0fe7978179536bd28506d45dec663",
+      "calls": [],
+      "calledBy": [],
+      "moduleId": "app-docs",
+      "params": [
+        {
+          "name": "{ children }",
+          "type": "{ children: ReactNode }"
+        }
+      ],
+      "isExported": true,
+      "purpose": "Docs layout",
+      "edgeCasesHandled": [],
+      "errorHandling": []
+    },
+    "fn:components/ui/breadcrumb.tsx:Breadcrumb": {
+      "id": "fn:components/ui/breadcrumb.tsx:Breadcrumb",
+      "name": "Breadcrumb",
+      "file": "components/ui/breadcrumb.tsx",
+      "startLine": 7,
+      "endLine": 16,
+      "hash": "9c42f39f688320859d4b908cf3db3333418bb80d72bd56fadffd45f66cf09d6b",
+      "calls": [],
+      "calledBy": [],
+      "moduleId": "components",
+      "params": [
+        {
+          "name": "{ className, ...props }",
+          "type": "React.ComponentProps<\"nav\">"
+        }
+      ],
+      "isExported": true,
+      "purpose": "Breadcrumb",
+      "edgeCasesHandled": [],
+      "errorHandling": []
+    },
+    "fn:components/ui/breadcrumb.tsx:BreadcrumbList": {
+      "id": "fn:components/ui/breadcrumb.tsx:BreadcrumbList",
+      "name": "BreadcrumbList",
+      "file": "components/ui/breadcrumb.tsx",
+      "startLine": 18,
+      "endLine": 29,
+      "hash": "59dc42b95cb0bdc55ae37fa4a2c8cbc264de87532eaa8b68816eda3225107ab8",
+      "calls": [],
+      "calledBy": [],
+      "moduleId": "components",
+      "params": [
+        {
+          "name": "{ className, ...props }",
+          "type": "React.ComponentProps<\"ol\">"
+        }
+      ],
+      "isExported": true,
+      "purpose": "Breadcrumb list",
+      "edgeCasesHandled": [],
+      "errorHandling": []
+    },
+    "fn:components/ui/breadcrumb.tsx:BreadcrumbItem": {
+      "id": "fn:components/ui/breadcrumb.tsx:BreadcrumbItem",
+      "name": "BreadcrumbItem",
+      "file": "components/ui/breadcrumb.tsx",
+      "startLine": 31,
+      "endLine": 39,
+      "hash": "22477f6ca50a731732ab434729e32a0048a14da6e0171690353a4297fc710546",
+      "calls": [],
+      "calledBy": [],
+      "moduleId": "components",
+      "params": [
+        {
+          "name": "{ className, ...props }",
+          "type": "React.ComponentProps<\"li\">"
+        }
+      ],
+      "isExported": true,
+      "purpose": "Breadcrumb item",
+      "edgeCasesHandled": [],
+      "errorHandling": []
+    },
+    "fn:components/ui/breadcrumb.tsx:BreadcrumbLink": {
+      "id": "fn:components/ui/breadcrumb.tsx:BreadcrumbLink",
+      "name": "BreadcrumbLink",
+      "file": "components/ui/breadcrumb.tsx",
+      "startLine": 41,
+      "endLine": 57,
+      "hash": "023eeb54165b5466b27fe76ffae6e7310a4107dd20cb6e5a6807aff11ed8b8b4",
+      "calls": [],
+      "calledBy": [],
+      "moduleId": "components",
+      "params": [
+        {
+          "name": "{\n  asChild,\n  className,\n  ...props\n}",
+          "type": "React.ComponentProps<\"a\"> & { asChild?: boolean }"
+        }
+      ],
+      "isExported": true,
+      "purpose": "Breadcrumb link",
+      "edgeCasesHandled": [],
+      "errorHandling": []
+    },
+    "fn:components/ui/breadcrumb.tsx:BreadcrumbPage": {
+      "id": "fn:components/ui/breadcrumb.tsx:BreadcrumbPage",
+      "name": "BreadcrumbPage",
+      "file": "components/ui/breadcrumb.tsx",
+      "startLine": 59,
+      "endLine": 70,
+      "hash": "320a091d3a59f7e7e3c0cb0128c253feff05169f0ae74c04cc903fab603619fe",
+      "calls": [],
+      "calledBy": [],
+      "moduleId": "components",
+      "params": [
+        {
+          "name": "{ className, ...props }",
+          "type": "React.ComponentProps<\"span\">"
+        }
+      ],
+      "isExported": true,
+      "purpose": "Breadcrumb page",
+      "edgeCasesHandled": [],
+      "errorHandling": []
+    },
+    "fn:components/ui/breadcrumb.tsx:BreadcrumbSeparator": {
+      "id": "fn:components/ui/breadcrumb.tsx:BreadcrumbSeparator",
+      "name": "BreadcrumbSeparator",
+      "file": "components/ui/breadcrumb.tsx",
+      "startLine": 72,
+      "endLine": 90,
+      "hash": "c4983864afde575484e5528cc9e315eeaab41dca9f60470e86656e4790553fbd",
+      "calls": [],
+      "calledBy": [],
+      "moduleId": "components",
+      "params": [
+        {
+          "name": "{\n  children,\n  className,\n  ...props\n}",
+          "type": "React.ComponentProps<\"li\">"
+        }
+      ],
+      "isExported": true,
+      "purpose": "Breadcrumb separator",
+      "edgeCasesHandled": [],
+      "errorHandling": []
+    },
+    "fn:components/ui/breadcrumb.tsx:BreadcrumbEllipsis": {
+      "id": "fn:components/ui/breadcrumb.tsx:BreadcrumbEllipsis",
+      "name": "BreadcrumbEllipsis",
+      "file": "components/ui/breadcrumb.tsx",
+      "startLine": 92,
+      "endLine": 112,
+      "hash": "cd8f8314a6964ac47c231defd2ff787f5e184ae7a271481f02f3f9cda4e96944",
+      "calls": [],
+      "calledBy": [],
+      "moduleId": "components",
+      "params": [
+        {
+          "name": "{\n  className,\n  ...props\n}",
+          "type": "React.ComponentProps<\"span\">"
+        }
+      ],
+      "isExported": true,
+      "purpose": "Breadcrumb ellipsis",
+      "edgeCasesHandled": [],
+      "errorHandling": []
+    },
+    "fn:components/ui/button.tsx:Button": {
+      "id": "fn:components/ui/button.tsx:Button",
+      "name": "Button",
+      "file": "components/ui/button.tsx",
+      "startLine": 42,
+      "endLine": 63,
+      "hash": "9d88ab54d7c9fb4a955aba2b89250a012c88a1e6899bcd739dd23c8406764c47",
+      "calls": [],
+      "calledBy": [],
+      "moduleId": "components",
+      "params": [
+        {
+          "name": "{\n  className,\n  variant = \"default\",\n  size = \"default\",\n  asChild = false,\n  ...props\n}",
+          "type": "React.ComponentProps<\"button\"> & VariantProps<typeof buttonVariants> & { asChild?: boolean }"
+        }
+      ],
+      "isExported": true,
+      "purpose": "Button",
+      "edgeCasesHandled": [],
+      "errorHandling": []
+    },
+    "fn:components/ui/button_1.tsx:Button": {
+      "id": "fn:components/ui/button_1.tsx:Button",
+      "name": "Button",
+      "file": "components/ui/button_1.tsx",
+      "startLine": 40,
+      "endLine": 59,
+      "hash": "4bcab2e3a0084b539996b5347ea900a3a14df8873729e95002f9e9310a4ffaf5",
+      "calls": [],
+      "calledBy": [],
+      "moduleId": "components",
+      "params": [
+        {
+          "name": "{\r\n  className,\r\n  variant,\r\n  size,\r\n  asChild = false,\r\n  ...props\r\n}",
+          "type": "React.ComponentProps<\"button\"> & VariantProps<typeof buttonVariants> & { asChild?: boolean; }"
+        }
+      ],
+      "isExported": true,
+      "purpose": "Button",
+      "edgeCasesHandled": [],
+      "errorHandling": []
+    },
+    "fn:components/ui/collapsible.tsx:Collapsible": {
+      "id": "fn:components/ui/collapsible.tsx:Collapsible",
+      "name": "Collapsible",
+      "file": "components/ui/collapsible.tsx",
+      "startLine": 9,
+      "endLine": 13,
+      "hash": "e3e91d1601e6fa5c09b636416ed46f06fe897be163b3f6a74fe50dd97f3315cb",
+      "calls": [],
+      "calledBy": [],
+      "moduleId": "components",
+      "params": [
+        {
+          "name": "props",
+          "type": "React.ComponentProps<typeof CollapsiblePrimitive.Root>"
+        }
+      ],
+      "isExported": true,
+      "purpose": "Collapsible",
+      "edgeCasesHandled": [],
+      "errorHandling": []
+    },
+    "fn:components/ui/collapsible.tsx:CollapsibleTrigger": {
+      "id": "fn:components/ui/collapsible.tsx:CollapsibleTrigger",
+      "name": "CollapsibleTrigger",
+      "file": "components/ui/collapsible.tsx",
+      "startLine": 15,
+      "endLine": 24,
+      "hash": "238afae9f9d63727760277e5be2f34bcbb5ace5af435eaca664c556ffc5780f6",
+      "calls": [],
+      "calledBy": [],
+      "moduleId": "components",
+      "params": [
+        {
+          "name": "props",
+          "type": "React.ComponentProps<typeof CollapsiblePrimitive.CollapsibleTrigger>"
+        }
+      ],
+      "isExported": true,
+      "purpose": "Collapsible trigger",
+      "edgeCasesHandled": [],
+      "errorHandling": []
+    },
+    "fn:components/ui/collapsible.tsx:CollapsibleContent": {
+      "id": "fn:components/ui/collapsible.tsx:CollapsibleContent",
+      "name": "CollapsibleContent",
+      "file": "components/ui/collapsible.tsx",
+      "startLine": 26,
+      "endLine": 35,
+      "hash": "ac51db086747a0101ce6fa3a3950f0397efb99e4def462d1be5d2d47dfd41717",
+      "calls": [],
+      "calledBy": [],
+      "moduleId": "components",
+      "params": [
+        {
+          "name": "props",
+          "type": "React.ComponentProps<typeof CollapsiblePrimitive.CollapsibleContent>"
+        }
+      ],
+      "isExported": true,
+      "purpose": "Collapsible content",
+      "edgeCasesHandled": [],
+      "errorHandling": []
+    },
+    "fn:components/ui/collapsible.tsx:useCollapsible": {
+      "id": "fn:components/ui/collapsible.tsx:useCollapsible",
+      "name": "useCollapsible",
+      "file": "components/ui/collapsible.tsx",
+      "startLine": 43,
+      "endLine": 53,
+      "hash": "2909c4e8403bbef3949d61e630e41728eed40390d3a23d2de4de9c3dbfe2eb6c",
+      "calls": [],
+      "calledBy": [
+        "fn:components/ui/collapsible.tsx:CollapsibleChevronsIcon"
+      ],
+      "moduleId": "components",
+      "purpose": "Hook for collapsible",
+      "edgeCasesHandled": [
+        "!context"
+      ],
+      "errorHandling": [
+        {
+          "line": 47,
+          "type": "throw",
+          "detail": "new Error(\r\n      \"Collapsible components must be used within a CollapsibleWithContext\"\r\n    )"
+        }
+      ]
+    },
+    "fn:components/ui/collapsible.tsx:CollapsibleWithContext": {
+      "id": "fn:components/ui/collapsible.tsx:CollapsibleWithContext",
+      "name": "CollapsibleWithContext",
+      "file": "components/ui/collapsible.tsx",
+      "startLine": 55,
+      "endLine": 66,
+      "hash": "47f43f4ce27a9f5c4f49647bca592f773d925b12833bfa5f33d48cbccf43f579",
+      "calls": [],
+      "calledBy": [],
+      "moduleId": "components",
+      "params": [
+        {
+          "name": "{\r\n  defaultOpen,\r\n  ...props\r\n}",
+          "type": "React.ComponentProps<typeof Collapsible>"
+        }
+      ],
+      "isExported": true,
+      "purpose": "Collapsible with context",
+      "edgeCasesHandled": [],
+      "errorHandling": []
+    },
+    "fn:components/ui/collapsible.tsx:CollapsibleChevronsIcon": {
+      "id": "fn:components/ui/collapsible.tsx:CollapsibleChevronsIcon",
+      "name": "CollapsibleChevronsIcon",
+      "file": "components/ui/collapsible.tsx",
+      "startLine": 68,
+      "endLine": 85,
+      "hash": "a88e1160320de3351ce346c68adc8d024768b894b9e76e7f879e2bd93c0ece23",
+      "calls": [
+        "fn:components/ui/collapsible.tsx:useCollapsible"
+      ],
+      "calledBy": [],
+      "moduleId": "components",
+      "isExported": true,
+      "purpose": "Collapsible chevrons icon",
+      "edgeCasesHandled": [
+        "!controls"
+      ],
+      "errorHandling": []
+    },
+    "fn:components/ui/command.tsx:Command": {
+      "id": "fn:components/ui/command.tsx:Command",
+      "name": "Command",
+      "file": "components/ui/command.tsx",
+      "startLine": 15,
+      "endLine": 29,
+      "hash": "544d914d08f931ab2975a396b7883b9bb8081e0eed6d812620a4b071ccbb3399",
+      "calls": [],
+      "calledBy": [],
+      "moduleId": "components",
+      "params": [
+        {
+          "name": "{\r\n  className,\r\n  ...props\r\n}",
+          "type": "React.ComponentProps<typeof CommandPrimitive>"
+        }
+      ],
+      "isExported": true,
+      "purpose": "Command",
+      "edgeCasesHandled": [],
+      "errorHandling": []
+    },
+    "fn:components/ui/command.tsx:CommandDialog": {
+      "id": "fn:components/ui/command.tsx:CommandDialog",
+      "name": "CommandDialog",
+      "file": "components/ui/command.tsx",
+      "startLine": 31,
+      "endLine": 69,
+      "hash": "9ae3a4c48bc8ba67946f462ec2ac5d0a047d598d218a435e5a3e38fefc78dd71",
+      "calls": [],
+      "calledBy": [],
+      "moduleId": "components",
+      "params": [
+        {
+          "name": "{\r\n  title = \"Command Palette\",\r\n  description = \"Search for a command to run...\",\r\n  children,\r\n  ...props\r\n}",
+          "type": "React.ComponentProps<typeof Dialog> & { title?: string; description?: string; }"
+        }
+      ],
+      "isExported": true,
+      "purpose": "Command dialog",
+      "edgeCasesHandled": [],
+      "errorHandling": []
+    },
+    "fn:components/ui/command.tsx:CommandInput": {
+      "id": "fn:components/ui/command.tsx:CommandInput",
+      "name": "CommandInput",
+      "file": "components/ui/command.tsx",
+      "startLine": 71,
+      "endLine": 105,
+      "hash": "52ca5f3989b1649990de94eb4d4348a6d696fec56df290ed0acdd8212ce64953",
+      "calls": [],
+      "calledBy": [],
+      "moduleId": "components",
+      "params": [
+        {
+          "name": "{\r\n  className,\r\n  ...props\r\n}",
+          "type": "React.ComponentProps<typeof CommandPrimitive.Input>"
+        }
+      ],
+      "isExported": true,
+      "purpose": "Command input",
+      "edgeCasesHandled": [],
+      "errorHandling": []
+    },
+    "fn:components/ui/command.tsx:CommandList": {
+      "id": "fn:components/ui/command.tsx:CommandList",
+      "name": "CommandList",
+      "file": "components/ui/command.tsx",
+      "startLine": 107,
+      "endLine": 121,
+      "hash": "9c1f0e92699f7fdb178d3b0e60528a40905f299f9b6c74a77e76d93f14a0cf41",
+      "calls": [],
+      "calledBy": [],
+      "moduleId": "components",
+      "params": [
+        {
+          "name": "{\r\n  className,\r\n  ...props\r\n}",
+          "type": "React.ComponentProps<typeof CommandPrimitive.List>"
+        }
+      ],
+      "isExported": true,
+      "purpose": "Command list",
+      "edgeCasesHandled": [],
+      "errorHandling": []
+    },
+    "fn:components/ui/command.tsx:CommandEmpty": {
+      "id": "fn:components/ui/command.tsx:CommandEmpty",
+      "name": "CommandEmpty",
+      "file": "components/ui/command.tsx",
+      "startLine": 123,
+      "endLine": 133,
+      "hash": "f8db672a404373112f5cbd1784ebf71d98564eb66a88cc6b12d90d8b70e00517",
+      "calls": [],
+      "calledBy": [],
+      "moduleId": "components",
+      "params": [
+        {
+          "name": "{\r\n  ...props\r\n}",
+          "type": "React.ComponentProps<typeof CommandPrimitive.Empty>"
+        }
+      ],
+      "isExported": true,
+      "purpose": "Command empty",
+      "edgeCasesHandled": [],
+      "errorHandling": []
+    },
+    "fn:components/ui/command.tsx:CommandGroup": {
+      "id": "fn:components/ui/command.tsx:CommandGroup",
+      "name": "CommandGroup",
+      "file": "components/ui/command.tsx",
+      "startLine": 135,
+      "endLine": 150,
+      "hash": "e7f5511455ad342348d9e4fe1e891a4e0d63c628c0d47ae5afe06af5acf55392",
+      "calls": [],
+      "calledBy": [],
+      "moduleId": "components",
+      "params": [
+        {
+          "name": "{\r\n  className,\r\n  ...props\r\n}",
+          "type": "React.ComponentProps<typeof CommandPrimitive.Group>"
+        }
+      ],
+      "isExported": true,
+      "purpose": "Command group",
+      "edgeCasesHandled": [],
+      "errorHandling": []
+    },
+    "fn:components/ui/command.tsx:CommandSeparator": {
+      "id": "fn:components/ui/command.tsx:CommandSeparator",
+      "name": "CommandSeparator",
+      "file": "components/ui/command.tsx",
+      "startLine": 152,
+      "endLine": 163,
+      "hash": "af2daff3f23fd7a85582bc5d739ace6675325471fa05ee98de196873e432f62d",
+      "calls": [],
+      "calledBy": [],
+      "moduleId": "components",
+      "params": [
+        {
+          "name": "{\r\n  className,\r\n  ...props\r\n}",
+          "type": "React.ComponentProps<typeof CommandPrimitive.Separator>"
+        }
+      ],
+      "isExported": true,
+      "purpose": "Command separator",
+      "edgeCasesHandled": [],
+      "errorHandling": []
+    },
+    "fn:components/ui/command.tsx:CommandItem": {
+      "id": "fn:components/ui/command.tsx:CommandItem",
+      "name": "CommandItem",
+      "file": "components/ui/command.tsx",
+      "startLine": 165,
+      "endLine": 179,
+      "hash": "0fb7b3a72d7215ce095a5afaa2a4d13d6b96f4c8cf97b7c807b3485c19201481",
+      "calls": [],
+      "calledBy": [],
+      "moduleId": "components",
+      "params": [
+        {
+          "name": "{\r\n  className,\r\n  ...props\r\n}",
+          "type": "React.ComponentProps<typeof CommandPrimitive.Item>"
+        }
+      ],
+      "isExported": true,
+      "purpose": "Command item",
+      "edgeCasesHandled": [],
+      "errorHandling": []
+    },
+    "fn:components/ui/command.tsx:CommandShortcut": {
+      "id": "fn:components/ui/command.tsx:CommandShortcut",
+      "name": "CommandShortcut",
+      "file": "components/ui/command.tsx",
+      "startLine": 181,
+      "endLine": 195,
+      "hash": "4257b916259afaf1fe01921ebc15e9605dc236dbac18683e040e6f91320d2f6f",
+      "calls": [],
+      "calledBy": [],
+      "moduleId": "components",
+      "params": [
+        {
+          "name": "{\r\n  className,\r\n  ...props\r\n}",
+          "type": "React.ComponentProps<\"span\">"
+        }
+      ],
+      "isExported": true,
+      "purpose": "Command shortcut",
+      "edgeCasesHandled": [],
+      "errorHandling": []
+    },
+    "fn:components/ui/context-menu.tsx:ContextMenu": {
+      "id": "fn:components/ui/context-menu.tsx:ContextMenu",
+      "name": "ContextMenu",
+      "file": "components/ui/context-menu.tsx",
+      "startLine": 9,
+      "endLine": 13,
+      "hash": "b4091945fa584974d9926a4f211a5e237c4142fb85c034327af7d25643b39fff",
+      "calls": [],
+      "calledBy": [],
+      "moduleId": "components",
+      "params": [
+        {
+          "name": "{\r\n  ...props\r\n}",
+          "type": "React.ComponentProps<typeof ContextMenuPrimitive.Root>"
+        }
+      ],
+      "isExported": true,
+      "purpose": "Context menu",
+      "edgeCasesHandled": [],
+      "errorHandling": []
+    },
+    "fn:components/ui/context-menu.tsx:ContextMenuTrigger": {
+      "id": "fn:components/ui/context-menu.tsx:ContextMenuTrigger",
+      "name": "ContextMenuTrigger",
+      "file": "components/ui/context-menu.tsx",
+      "startLine": 15,
+      "endLine": 21,
+      "hash": "71f91bcff3b8c01672ed6b093ae338f96c33ab971a1143db47fd54d2c7a5c5a6",
+      "calls": [],
+      "calledBy": [],
+      "moduleId": "components",
+      "params": [
+        {
+          "name": "{\r\n  ...props\r\n}",
+          "type": "React.ComponentProps<typeof ContextMenuPrimitive.Trigger>"
+        }
+      ],
+      "isExported": true,
+      "purpose": "Context menu trigger",
+      "edgeCasesHandled": [],
+      "errorHandling": []
+    },
+    "fn:components/ui/context-menu.tsx:ContextMenuGroup": {
+      "id": "fn:components/ui/context-menu.tsx:ContextMenuGroup",
+      "name": "ContextMenuGroup",
+      "file": "components/ui/context-menu.tsx",
+      "startLine": 23,
+      "endLine": 29,
+      "hash": "48e425a7e9921a0bc0a8f54f3db363ea2f357c0a50cfb4b7f7ca69ec9c81c2df",
+      "calls": [],
+      "calledBy": [],
+      "moduleId": "components",
+      "params": [
+        {
+          "name": "{\r\n  ...props\r\n}",
+          "type": "React.ComponentProps<typeof ContextMenuPrimitive.Group>"
+        }
+      ],
+      "isExported": true,
+      "purpose": "Context menu group",
+      "edgeCasesHandled": [],
+      "errorHandling": []
+    },
+    "fn:components/ui/context-menu.tsx:ContextMenuPortal": {
+      "id": "fn:components/ui/context-menu.tsx:ContextMenuPortal",
+      "name": "ContextMenuPortal",
+      "file": "components/ui/context-menu.tsx",
+      "startLine": 31,
+      "endLine": 37,
+      "hash": "162ed8bf32ad1f59e7508c5e577c3e1361653d7c984ef721159c92e1d0a87f33",
+      "calls": [],
+      "calledBy": [],
+      "moduleId": "components",
+      "params": [
+        {
+          "name": "{\r\n  ...props\r\n}",
+          "type": "React.ComponentProps<typeof ContextMenuPrimitive.Portal>"
+        }
+      ],
+      "isExported": true,
+      "purpose": "Context menu portal",
+      "edgeCasesHandled": [],
+      "errorHandling": []
+    },
+    "fn:components/ui/context-menu.tsx:ContextMenuSub": {
+      "id": "fn:components/ui/context-menu.tsx:ContextMenuSub",
+      "name": "ContextMenuSub",
+      "file": "components/ui/context-menu.tsx",
+      "startLine": 39,
+      "endLine": 43,
+      "hash": "bc7217251636220bbaa350f88d953369ad1beafe211872dac4526dce4a48a0e3",
+      "calls": [],
+      "calledBy": [],
+      "moduleId": "components",
+      "params": [
+        {
+          "name": "{\r\n  ...props\r\n}",
+          "type": "React.ComponentProps<typeof ContextMenuPrimitive.Sub>"
+        }
+      ],
+      "isExported": true,
+      "purpose": "Context menu sub",
+      "edgeCasesHandled": [],
+      "errorHandling": []
+    },
+    "fn:components/ui/context-menu.tsx:ContextMenuRadioGroup": {
+      "id": "fn:components/ui/context-menu.tsx:ContextMenuRadioGroup",
+      "name": "ContextMenuRadioGroup",
+      "file": "components/ui/context-menu.tsx",
+      "startLine": 45,
+      "endLine": 54,
+      "hash": "6359545239c89db6064f93554a1285e993f674984f52d0435a939de55eb588eb",
+      "calls": [],
+      "calledBy": [],
+      "moduleId": "components",
+      "params": [
+        {
+          "name": "{\r\n  ...props\r\n}",
+          "type": "React.ComponentProps<typeof ContextMenuPrimitive.RadioGroup>"
+        }
+      ],
+      "isExported": true,
+      "purpose": "Context menu radio group",
+      "edgeCasesHandled": [],
+      "errorHandling": []
+    },
+    "fn:components/ui/context-menu.tsx:ContextMenuSubTrigger": {
+      "id": "fn:components/ui/context-menu.tsx:ContextMenuSubTrigger",
+      "name": "ContextMenuSubTrigger",
+      "file": "components/ui/context-menu.tsx",
+      "startLine": 56,
+      "endLine": 78,
+      "hash": "026ba1d2d0407901478f659584cdf664fde777bea69e9a3b19f6e041832baff5",
+      "calls": [],
+      "calledBy": [],
+      "moduleId": "components",
+      "params": [
+        {
+          "name": "{\r\n  className,\r\n  inset,\r\n  children,\r\n  ...props\r\n}",
+          "type": "React.ComponentProps<typeof ContextMenuPrimitive.SubTrigger> & { inset?: boolean; }"
+        }
+      ],
+      "isExported": true,
+      "purpose": "Context menu sub trigger",
+      "edgeCasesHandled": [],
+      "errorHandling": []
+    },
+    "fn:components/ui/context-menu.tsx:ContextMenuSubContent": {
+      "id": "fn:components/ui/context-menu.tsx:ContextMenuSubContent",
+      "name": "ContextMenuSubContent",
+      "file": "components/ui/context-menu.tsx",
+      "startLine": 80,
+      "endLine": 95,
+      "hash": "68fe7d7551ed3b00092ea4599d290e0ea96fe10c367a1287126db6722715e9c2",
+      "calls": [],
+      "calledBy": [],
+      "moduleId": "components",
+      "params": [
+        {
+          "name": "{\r\n  className,\r\n  ...props\r\n}",
+          "type": "React.ComponentProps<typeof ContextMenuPrimitive.SubContent>"
+        }
+      ],
+      "isExported": true,
+      "purpose": "Context menu sub content",
+      "edgeCasesHandled": [],
+      "errorHandling": []
+    },
+    "fn:components/ui/context-menu.tsx:ContextMenuContent": {
+      "id": "fn:components/ui/context-menu.tsx:ContextMenuContent",
+      "name": "ContextMenuContent",
+      "file": "components/ui/context-menu.tsx",
+      "startLine": 97,
+      "endLine": 115,
+      "hash": "f08aff530839faed13b9fb57bdc2895b3ccdbe6611dfaa502984ae708b341f4a",
+      "calls": [],
+      "calledBy": [],
+      "moduleId": "components",
+      "params": [
+        {
+          "name": "{\r\n  className,\r\n  ...props\r\n}",
+          "type": "React.ComponentProps<typeof ContextMenuPrimitive.Content>"
+        }
+      ],
+      "isExported": true,
+      "purpose": "Context menu content",
+      "edgeCasesHandled": [],
+      "errorHandling": []
+    },
+    "fn:components/ui/context-menu.tsx:ContextMenuItem": {
+      "id": "fn:components/ui/context-menu.tsx:ContextMenuItem",
+      "name": "ContextMenuItem",
+      "file": "components/ui/context-menu.tsx",
+      "startLine": 117,
+      "endLine": 138,
+      "hash": "0f77473d1866251756e0de1bc0b7bedabc0cda55030da52a85b147b0099fa7e0",
+      "calls": [],
+      "calledBy": [],
+      "moduleId": "components",
+      "params": [
+        {
+          "name": "{\r\n  className,\r\n  inset,\r\n  variant = \"default\",\r\n  ...props\r\n}",
+          "type": "React.ComponentProps<typeof ContextMenuPrimitive.Item> & { inset?: boolean; variant?: \"default\" | \"destructive\"; }"
+        }
+      ],
+      "isExported": true,
+      "purpose": "Context menu item",
+      "edgeCasesHandled": [],
+      "errorHandling": []
+    },
+    "fn:components/ui/context-menu.tsx:ContextMenuCheckboxItem": {
+      "id": "fn:components/ui/context-menu.tsx:ContextMenuCheckboxItem",
+      "name": "ContextMenuCheckboxItem",
+      "file": "components/ui/context-menu.tsx",
+      "startLine": 140,
+      "endLine": 164,
+      "hash": "1b328108c2bc42e8a5aac77f602be2c87ac556f48c7cd1a4313f5a4cb178b02f",
+      "calls": [],
+      "calledBy": [],
+      "moduleId": "components",
+      "params": [
+        {
+          "name": "{\r\n  className,\r\n  children,\r\n  checked,\r\n  ...props\r\n}",
+          "type": "React.ComponentProps<typeof ContextMenuPrimitive.CheckboxItem>"
+        }
+      ],
+      "isExported": true,
+      "purpose": "Context menu checkbox item",
+      "edgeCasesHandled": [],
+      "errorHandling": []
+    },
+    "fn:components/ui/context-menu.tsx:ContextMenuRadioItem": {
+      "id": "fn:components/ui/context-menu.tsx:ContextMenuRadioItem",
+      "name": "ContextMenuRadioItem",
+      "file": "components/ui/context-menu.tsx",
+      "startLine": 166,
+      "endLine": 188,
+      "hash": "678f9505a91f7065550d356efbf5b4a61f4850a3f88fa43a75d02a294643c539",
+      "calls": [],
+      "calledBy": [],
+      "moduleId": "components",
+      "params": [
+        {
+          "name": "{\r\n  className,\r\n  children,\r\n  ...props\r\n}",
+          "type": "React.ComponentProps<typeof ContextMenuPrimitive.RadioItem>"
+        }
+      ],
+      "isExported": true,
+      "purpose": "Context menu radio item",
+      "edgeCasesHandled": [],
+      "errorHandling": []
+    },
+    "fn:components/ui/context-menu.tsx:ContextMenuLabel": {
+      "id": "fn:components/ui/context-menu.tsx:ContextMenuLabel",
+      "name": "ContextMenuLabel",
+      "file": "components/ui/context-menu.tsx",
+      "startLine": 190,
+      "endLine": 208,
+      "hash": "abede0a1e7a7e01b6e664f491f35e413e1f61c630aadf56fdd8e1156f8602290",
+      "calls": [],
+      "calledBy": [],
+      "moduleId": "components",
+      "params": [
+        {
+          "name": "{\r\n  className,\r\n  inset,\r\n  ...props\r\n}",
+          "type": "React.ComponentProps<typeof ContextMenuPrimitive.Label> & { inset?: boolean; }"
+        }
+      ],
+      "isExported": true,
+      "purpose": "Context menu label",
+      "edgeCasesHandled": [],
+      "errorHandling": []
+    },
+    "fn:components/ui/context-menu.tsx:ContextMenuSeparator": {
+      "id": "fn:components/ui/context-menu.tsx:ContextMenuSeparator",
+      "name": "ContextMenuSeparator",
+      "file": "components/ui/context-menu.tsx",
+      "startLine": 210,
+      "endLine": 221,
+      "hash": "f52415c39a70adf9d0ffbf6b2e389bb26abe5ce9fed633ccdc6abb734007134e",
+      "calls": [],
+      "calledBy": [],
+      "moduleId": "components",
+      "params": [
+        {
+          "name": "{\r\n  className,\r\n  ...props\r\n}",
+          "type": "React.ComponentProps<typeof ContextMenuPrimitive.Separator>"
+        }
+      ],
+      "isExported": true,
+      "purpose": "Context menu separator",
+      "edgeCasesHandled": [],
+      "errorHandling": []
+    },
+    "fn:components/ui/context-menu.tsx:ContextMenuShortcut": {
+      "id": "fn:components/ui/context-menu.tsx:ContextMenuShortcut",
+      "name": "ContextMenuShortcut",
+      "file": "components/ui/context-menu.tsx",
+      "startLine": 223,
+      "endLine": 237,
+      "hash": "a18749e53249856eac29760420d296ffc9af7d3b21059149d077c130fcf01222",
+      "calls": [],
+      "calledBy": [],
+      "moduleId": "components",
+      "params": [
+        {
+          "name": "{\r\n  className,\r\n  ...props\r\n}",
+          "type": "React.ComponentProps<\"span\">"
+        }
+      ],
+      "isExported": true,
+      "purpose": "Context menu shortcut",
+      "edgeCasesHandled": [],
+      "errorHandling": []
+    },
+    "fn:components/ui/dialog.tsx:Dialog": {
+      "id": "fn:components/ui/dialog.tsx:Dialog",
+      "name": "Dialog",
+      "file": "components/ui/dialog.tsx",
+      "startLine": 9,
+      "endLine": 13,
+      "hash": "44b7fabbdba85d5c33211402e566fb2fd0a10e0bb62b8cf6da54519c8611aaf7",
+      "calls": [],
+      "calledBy": [],
+      "moduleId": "components",
+      "params": [
+        {
+          "name": "{\r\n  ...props\r\n}",
+          "type": "React.ComponentProps<typeof DialogPrimitive.Root>"
+        }
+      ],
+      "isExported": true,
+      "purpose": "Dialog",
+      "edgeCasesHandled": [],
+      "errorHandling": []
+    },
+    "fn:components/ui/dialog.tsx:DialogTrigger": {
+      "id": "fn:components/ui/dialog.tsx:DialogTrigger",
+      "name": "DialogTrigger",
+      "file": "components/ui/dialog.tsx",
+      "startLine": 15,
+      "endLine": 19,
+      "hash": "ac804ad61be258891c7921cf711746779df4f73840f6934234977412b0bd78ba",
+      "calls": [],
+      "calledBy": [],
+      "moduleId": "components",
+      "params": [
+        {
+          "name": "{\r\n  ...props\r\n}",
+          "type": "React.ComponentProps<typeof DialogPrimitive.Trigger>"
+        }
+      ],
+      "isExported": true,
+      "purpose": "Dialog trigger",
+      "edgeCasesHandled": [],
+      "errorHandling": []
+    },
+    "fn:components/ui/dialog.tsx:DialogPortal": {
+      "id": "fn:components/ui/dialog.tsx:DialogPortal",
+      "name": "DialogPortal",
+      "file": "components/ui/dialog.tsx",
+      "startLine": 21,
+      "endLine": 25,
+      "hash": "39dc299ce9b69719d03e9f7c0d6eafc6f3f39ce9f73bdcaa90185846dc442fd0",
+      "calls": [],
+      "calledBy": [],
+      "moduleId": "components",
+      "params": [
+        {
+          "name": "{\r\n  ...props\r\n}",
+          "type": "React.ComponentProps<typeof DialogPrimitive.Portal>"
+        }
+      ],
+      "isExported": true,
+      "purpose": "Dialog portal",
+      "edgeCasesHandled": [],
+      "errorHandling": []
+    },
+    "fn:components/ui/dialog.tsx:DialogClose": {
+      "id": "fn:components/ui/dialog.tsx:DialogClose",
+      "name": "DialogClose",
+      "file": "components/ui/dialog.tsx",
+      "startLine": 27,
+      "endLine": 31,
+      "hash": "fb6e46de77d4d990b8b5a673a2b28f1a0450050a6af825702077a3b5f311ce3e",
+      "calls": [],
+      "calledBy": [],
+      "moduleId": "components",
+      "params": [
+        {
+          "name": "{\r\n  ...props\r\n}",
+          "type": "React.ComponentProps<typeof DialogPrimitive.Close>"
+        }
+      ],
+      "isExported": true,
+      "purpose": "Dialog close",
+      "edgeCasesHandled": [],
+      "errorHandling": []
+    },
+    "fn:components/ui/dialog.tsx:DialogOverlay": {
+      "id": "fn:components/ui/dialog.tsx:DialogOverlay",
+      "name": "DialogOverlay",
+      "file": "components/ui/dialog.tsx",
+      "startLine": 33,
+      "endLine": 47,
+      "hash": "52478b378a6c394d0be410878de9106f0438f11342965776cf1fd68a6411a932",
+      "calls": [],
+      "calledBy": [],
+      "moduleId": "components",
+      "params": [
+        {
+          "name": "{\r\n  className,\r\n  ...props\r\n}",
+          "type": "React.ComponentProps<typeof DialogPrimitive.Overlay>"
+        }
+      ],
+      "isExported": true,
+      "purpose": "Dialog overlay",
+      "edgeCasesHandled": [],
+      "errorHandling": []
+    },
+    "fn:components/ui/dialog.tsx:DialogContent": {
+      "id": "fn:components/ui/dialog.tsx:DialogContent",
+      "name": "DialogContent",
+      "file": "components/ui/dialog.tsx",
+      "startLine": 49,
+      "endLine": 76,
+      "hash": "075375850272ab87be3501370140b48b192378d35c25c05e49a1bb0aedb2e5b9",
+      "calls": [],
+      "calledBy": [],
+      "moduleId": "components",
+      "params": [
+        {
+          "name": "{\r\n  className,\r\n  overlay = true,\r\n  children,\r\n  ...props\r\n}",
+          "type": "React.ComponentProps<typeof DialogPrimitive.Content> & { overlay?: boolean; }"
+        }
+      ],
+      "isExported": true,
+      "purpose": "Dialog content",
+      "edgeCasesHandled": [],
+      "errorHandling": []
+    },
+    "fn:components/ui/dialog.tsx:DialogHeader": {
+      "id": "fn:components/ui/dialog.tsx:DialogHeader",
+      "name": "DialogHeader",
+      "file": "components/ui/dialog.tsx",
+      "startLine": 78,
+      "endLine": 86,
+      "hash": "52197cab0696f2493a4ce7e9f6dce4ea75c0dcf1086b41aed79c9828e0c75984",
+      "calls": [],
+      "calledBy": [],
+      "moduleId": "components",
+      "params": [
+        {
+          "name": "{ className, ...props }",
+          "type": "React.ComponentProps<\"div\">"
+        }
+      ],
+      "isExported": true,
+      "purpose": "Dialog header",
+      "edgeCasesHandled": [],
+      "errorHandling": []
+    },
+    "fn:components/ui/dialog.tsx:DialogFooter": {
+      "id": "fn:components/ui/dialog.tsx:DialogFooter",
+      "name": "DialogFooter",
+      "file": "components/ui/dialog.tsx",
+      "startLine": 88,
+      "endLine": 99,
+      "hash": "5b8bb0470af37fb229b8b80cdb77b2310262f1d75ffcf9c3cef00d0530670305",
+      "calls": [],
+      "calledBy": [],
+      "moduleId": "components",
+      "params": [
+        {
+          "name": "{ className, ...props }",
+          "type": "React.ComponentProps<\"div\">"
+        }
+      ],
+      "isExported": true,
+      "purpose": "Dialog footer",
+      "edgeCasesHandled": [],
+      "errorHandling": []
+    },
+    "fn:components/ui/dialog.tsx:DialogTitle": {
+      "id": "fn:components/ui/dialog.tsx:DialogTitle",
+      "name": "DialogTitle",
+      "file": "components/ui/dialog.tsx",
+      "startLine": 101,
+      "endLine": 112,
+      "hash": "f3fcab1c317b97bdf88f1e90b114aaa2749f5aaa3539f84eeb372df473a6f7e0",
+      "calls": [],
+      "calledBy": [],
+      "moduleId": "components",
+      "params": [
+        {
+          "name": "{\r\n  className,\r\n  ...props\r\n}",
+          "type": "React.ComponentProps<typeof DialogPrimitive.Title>"
+        }
+      ],
+      "isExported": true,
+      "purpose": "Dialog title",
+      "edgeCasesHandled": [],
+      "errorHandling": []
+    },
+    "fn:components/ui/dialog.tsx:DialogDescription": {
+      "id": "fn:components/ui/dialog.tsx:DialogDescription",
+      "name": "DialogDescription",
+      "file": "components/ui/dialog.tsx",
+      "startLine": 114,
+      "endLine": 125,
+      "hash": "c6fa5150d9a358b9de0e309cbdca942f9551f76ecddebae3b75e861cef6daaef",
+      "calls": [],
+      "calledBy": [],
+      "moduleId": "components",
+      "params": [
+        {
+          "name": "{\r\n  className,\r\n  ...props\r\n}",
+          "type": "React.ComponentProps<typeof DialogPrimitive.Description>"
+        }
+      ],
+      "isExported": true,
+      "purpose": "Dialog description",
+      "edgeCasesHandled": [],
+      "errorHandling": []
+    },
+    "fn:components/ui/dropdown-menu.tsx:DropdownMenu": {
+      "id": "fn:components/ui/dropdown-menu.tsx:DropdownMenu",
+      "name": "DropdownMenu",
+      "file": "components/ui/dropdown-menu.tsx",
+      "startLine": 9,
+      "endLine": 13,
+      "hash": "13424ca98c35917cffa3e9974a162eff64ffcdb7d1110a03ab5210e5cbf3063d",
+      "calls": [],
+      "calledBy": [],
+      "moduleId": "components",
+      "params": [
+        {
+          "name": "{\r\n  ...props\r\n}",
+          "type": "React.ComponentProps<typeof DropdownMenuPrimitive.Root>"
+        }
+      ],
+      "isExported": true,
+      "purpose": "Dropdown menu",
+      "edgeCasesHandled": [],
+      "errorHandling": []
+    },
+    "fn:components/ui/dropdown-menu.tsx:DropdownMenuPortal": {
+      "id": "fn:components/ui/dropdown-menu.tsx:DropdownMenuPortal",
+      "name": "DropdownMenuPortal",
+      "file": "components/ui/dropdown-menu.tsx",
+      "startLine": 15,
+      "endLine": 21,
+      "hash": "f9e4daffc62772ac2d32fcbe36fa618854be95fba2666f2143cced44dc088921",
+      "calls": [],
+      "calledBy": [],
+      "moduleId": "components",
+      "params": [
+        {
+          "name": "{\r\n  ...props\r\n}",
+          "type": "React.ComponentProps<typeof DropdownMenuPrimitive.Portal>"
+        }
+      ],
+      "isExported": true,
+      "purpose": "Dropdown menu portal",
+      "edgeCasesHandled": [],
+      "errorHandling": []
+    },
+    "fn:components/ui/dropdown-menu.tsx:DropdownMenuTrigger": {
+      "id": "fn:components/ui/dropdown-menu.tsx:DropdownMenuTrigger",
+      "name": "DropdownMenuTrigger",
+      "file": "components/ui/dropdown-menu.tsx",
+      "startLine": 23,
+      "endLine": 32,
+      "hash": "a304b379aa2e5902531367cb9351819705f1245e96d11f031d7befc845f8e790",
+      "calls": [],
+      "calledBy": [],
+      "moduleId": "components",
+      "params": [
+        {
+          "name": "{\r\n  ...props\r\n}",
+          "type": "React.ComponentProps<typeof DropdownMenuPrimitive.Trigger>"
+        }
+      ],
+      "isExported": true,
+      "purpose": "Dropdown menu trigger",
+      "edgeCasesHandled": [],
+      "errorHandling": []
+    },
+    "fn:components/ui/dropdown-menu.tsx:DropdownMenuContent": {
+      "id": "fn:components/ui/dropdown-menu.tsx:DropdownMenuContent",
+      "name": "DropdownMenuContent",
+      "file": "components/ui/dropdown-menu.tsx",
+      "startLine": 34,
+      "endLine": 53,
+      "hash": "c51e53f65f9668dd40bc5f667ab764ac5454b3899a8a809c89261bf6c7e63636",
+      "calls": [],
+      "calledBy": [],
+      "moduleId": "components",
+      "params": [
+        {
+          "name": "{\r\n  className,\r\n  sideOffset = 4,\r\n  ...props\r\n}",
+          "type": "React.ComponentProps<typeof DropdownMenuPrimitive.Content>"
+        }
+      ],
+      "isExported": true,
+      "purpose": "Dropdown menu content",
+      "edgeCasesHandled": [],
+      "errorHandling": []
+    },
+    "fn:components/ui/dropdown-menu.tsx:DropdownMenuGroup": {
+      "id": "fn:components/ui/dropdown-menu.tsx:DropdownMenuGroup",
+      "name": "DropdownMenuGroup",
+      "file": "components/ui/dropdown-menu.tsx",
+      "startLine": 55,
+      "endLine": 61,
+      "hash": "153f9d879c836345b59b1d6f47702d896cace0545b779a511304aade17fea56b",
+      "calls": [],
+      "calledBy": [],
+      "moduleId": "components",
+      "params": [
+        {
+          "name": "{\r\n  ...props\r\n}",
+          "type": "React.ComponentProps<typeof DropdownMenuPrimitive.Group>"
+        }
+      ],
+      "isExported": true,
+      "purpose": "Dropdown menu group",
+      "edgeCasesHandled": [],
+      "errorHandling": []
+    },
+    "fn:components/ui/dropdown-menu.tsx:DropdownMenuItem": {
+      "id": "fn:components/ui/dropdown-menu.tsx:DropdownMenuItem",
+      "name": "DropdownMenuItem",
+      "file": "components/ui/dropdown-menu.tsx",
+      "startLine": 63,
+      "endLine": 84,
+      "hash": "c42e8dc9d9b32a01a8b5e037aa512ae4b5d42ae95fa24b729ea9eb85b16180c8",
+      "calls": [],
+      "calledBy": [],
+      "moduleId": "components",
+      "params": [
+        {
+          "name": "{\r\n  className,\r\n  inset,\r\n  variant = \"default\",\r\n  ...props\r\n}",
+          "type": "React.ComponentProps<typeof DropdownMenuPrimitive.Item> & { inset?: boolean; variant?: \"default\" | \"destructive\"; }"
+        }
+      ],
+      "isExported": true,
+      "purpose": "Dropdown menu item",
+      "edgeCasesHandled": [],
+      "errorHandling": []
+    },
+    "fn:components/ui/dropdown-menu.tsx:DropdownMenuCheckboxItem": {
+      "id": "fn:components/ui/dropdown-menu.tsx:DropdownMenuCheckboxItem",
+      "name": "DropdownMenuCheckboxItem",
+      "file": "components/ui/dropdown-menu.tsx",
+      "startLine": 86,
+      "endLine": 110,
+      "hash": "0bd7b9a757e81c6a88dd11f6a57ae129136d6451b737a8cf3b82c5bcb722295f",
+      "calls": [],
+      "calledBy": [],
+      "moduleId": "components",
+      "params": [
+        {
+          "name": "{\r\n  className,\r\n  children,\r\n  checked,\r\n  ...props\r\n}",
+          "type": "React.ComponentProps<typeof DropdownMenuPrimitive.CheckboxItem>"
+        }
+      ],
+      "isExported": true,
+      "purpose": "Dropdown menu checkbox item",
+      "edgeCasesHandled": [],
+      "errorHandling": []
+    },
+    "fn:components/ui/dropdown-menu.tsx:DropdownMenuRadioGroup": {
+      "id": "fn:components/ui/dropdown-menu.tsx:DropdownMenuRadioGroup",
+      "name": "DropdownMenuRadioGroup",
+      "file": "components/ui/dropdown-menu.tsx",
+      "startLine": 112,
+      "endLine": 121,
+      "hash": "9ab6f7c7056b303943ae618d85e6277adffe429a33a0dadfae84f1a3c667e66a",
+      "calls": [],
+      "calledBy": [],
+      "moduleId": "components",
+      "params": [
+        {
+          "name": "{\r\n  ...props\r\n}",
+          "type": "React.ComponentProps<typeof DropdownMenuPrimitive.RadioGroup>"
+        }
+      ],
+      "isExported": true,
+      "purpose": "Dropdown menu radio group",
+      "edgeCasesHandled": [],
+      "errorHandling": []
+    },
+    "fn:components/ui/dropdown-menu.tsx:DropdownMenuRadioItem": {
+      "id": "fn:components/ui/dropdown-menu.tsx:DropdownMenuRadioItem",
+      "name": "DropdownMenuRadioItem",
+      "file": "components/ui/dropdown-menu.tsx",
+      "startLine": 123,
+      "endLine": 145,
+      "hash": "39a940ca9e256f82e5168147882f54de07e5cd8bc51142fac66ce6b1b58b705d",
+      "calls": [],
+      "calledBy": [],
+      "moduleId": "components",
+      "params": [
+        {
+          "name": "{\r\n  className,\r\n  children,\r\n  ...props\r\n}",
+          "type": "React.ComponentProps<typeof DropdownMenuPrimitive.RadioItem>"
+        }
+      ],
+      "isExported": true,
+      "purpose": "Dropdown menu radio item",
+      "edgeCasesHandled": [],
+      "errorHandling": []
+    },
+    "fn:components/ui/dropdown-menu.tsx:DropdownMenuLabel": {
+      "id": "fn:components/ui/dropdown-menu.tsx:DropdownMenuLabel",
+      "name": "DropdownMenuLabel",
+      "file": "components/ui/dropdown-menu.tsx",
+      "startLine": 147,
+      "endLine": 165,
+      "hash": "b86ac3f7e2c7baf241f88d0508b6224a21167fd9a6aa33e6a45a9f672208e43c",
+      "calls": [],
+      "calledBy": [],
+      "moduleId": "components",
+      "params": [
+        {
+          "name": "{\r\n  className,\r\n  inset,\r\n  ...props\r\n}",
+          "type": "React.ComponentProps<typeof DropdownMenuPrimitive.Label> & { inset?: boolean; }"
+        }
+      ],
+      "isExported": true,
+      "purpose": "Dropdown menu label",
+      "edgeCasesHandled": [],
+      "errorHandling": []
+    },
+    "fn:components/ui/dropdown-menu.tsx:DropdownMenuSeparator": {
+      "id": "fn:components/ui/dropdown-menu.tsx:DropdownMenuSeparator",
+      "name": "DropdownMenuSeparator",
+      "file": "components/ui/dropdown-menu.tsx",
+      "startLine": 167,
+      "endLine": 178,
+      "hash": "b628546dacdc6a7e0372ff9aabb253e04adc85349ffac73ee8c0529c0a7a4ff6",
+      "calls": [],
+      "calledBy": [],
+      "moduleId": "components",
+      "params": [
+        {
+          "name": "{\r\n  className,\r\n  ...props\r\n}",
+          "type": "React.ComponentProps<typeof DropdownMenuPrimitive.Separator>"
+        }
+      ],
+      "isExported": true,
+      "purpose": "Dropdown menu separator",
+      "edgeCasesHandled": [],
+      "errorHandling": []
+    },
+    "fn:components/ui/dropdown-menu.tsx:DropdownMenuShortcut": {
+      "id": "fn:components/ui/dropdown-menu.tsx:DropdownMenuShortcut",
+      "name": "DropdownMenuShortcut",
+      "file": "components/ui/dropdown-menu.tsx",
+      "startLine": 180,
+      "endLine": 194,
+      "hash": "306dbc7047949fd79c18edd95558aac59736294ed1421933cdf9615b57ec37e7",
+      "calls": [],
+      "calledBy": [],
+      "moduleId": "components",
+      "params": [
+        {
+          "name": "{\r\n  className,\r\n  ...props\r\n}",
+          "type": "React.ComponentProps<\"span\">"
+        }
+      ],
+      "isExported": true,
+      "purpose": "Dropdown menu shortcut",
+      "edgeCasesHandled": [],
+      "errorHandling": []
+    },
+    "fn:components/ui/dropdown-menu.tsx:DropdownMenuSub": {
+      "id": "fn:components/ui/dropdown-menu.tsx:DropdownMenuSub",
+      "name": "DropdownMenuSub",
+      "file": "components/ui/dropdown-menu.tsx",
+      "startLine": 196,
+      "endLine": 200,
+      "hash": "72140faf651d25ec518a3cb0fe5028c0770ef49586aa315337446188cc681436",
+      "calls": [],
+      "calledBy": [],
+      "moduleId": "components",
+      "params": [
+        {
+          "name": "{\r\n  ...props\r\n}",
+          "type": "React.ComponentProps<typeof DropdownMenuPrimitive.Sub>"
+        }
+      ],
+      "isExported": true,
+      "purpose": "Dropdown menu sub",
+      "edgeCasesHandled": [],
+      "errorHandling": []
+    },
+    "fn:components/ui/dropdown-menu.tsx:DropdownMenuSubTrigger": {
+      "id": "fn:components/ui/dropdown-menu.tsx:DropdownMenuSubTrigger",
+      "name": "DropdownMenuSubTrigger",
+      "file": "components/ui/dropdown-menu.tsx",
+      "startLine": 202,
+      "endLine": 224,
+      "hash": "84f71f5fc3e9df919c59ad041f7dca90a5e88f67fc0fc446f7ef3ba9dd3e0db4",
+      "calls": [],
+      "calledBy": [],
+      "moduleId": "components",
+      "params": [
+        {
+          "name": "{\r\n  className,\r\n  inset,\r\n  children,\r\n  ...props\r\n}",
+          "type": "React.ComponentProps<typeof DropdownMenuPrimitive.SubTrigger> & { inset?: boolean; }"
+        }
+      ],
+      "isExported": true,
+      "purpose": "Dropdown menu sub trigger",
+      "edgeCasesHandled": [],
+      "errorHandling": []
+    },
+    "fn:components/ui/dropdown-menu.tsx:DropdownMenuSubContent": {
+      "id": "fn:components/ui/dropdown-menu.tsx:DropdownMenuSubContent",
+      "name": "DropdownMenuSubContent",
+      "file": "components/ui/dropdown-menu.tsx",
+      "startLine": 226,
+      "endLine": 241,
+      "hash": "6b97ed61eabec1c9b397ed2c803eff13588376d55e5211fbed57826eb5622341",
+      "calls": [],
+      "calledBy": [],
+      "moduleId": "components",
+      "params": [
+        {
+          "name": "{\r\n  className,\r\n  ...props\r\n}",
+          "type": "React.ComponentProps<typeof DropdownMenuPrimitive.SubContent>"
+        }
+      ],
+      "isExported": true,
+      "purpose": "Dropdown menu sub content",
+      "edgeCasesHandled": [],
+      "errorHandling": []
+    },
+    "fn:components/ui/form.tsx:FormField": {
+      "id": "fn:components/ui/form.tsx:FormField",
+      "name": "FormField",
+      "file": "components/ui/form.tsx",
+      "startLine": 34,
+      "endLine": 45,
+      "hash": "a997057251a4138f9b7d7f74dc5011bf63c1f05a7e608bc799b2362e489e33c7",
+      "calls": [],
+      "calledBy": [],
+      "moduleId": "components",
+      "params": [
+        {
+          "name": "{\r\n  ...props\r\n}",
+          "type": "ControllerProps<TFieldValues, TName>"
+        }
+      ],
+      "isExported": true,
+      "purpose": "Form field ({\r\n  ...props\r\n})",
+      "edgeCasesHandled": [],
+      "errorHandling": []
+    },
+    "fn:components/ui/form.tsx:useFormField": {
+      "id": "fn:components/ui/form.tsx:useFormField",
+      "name": "useFormField",
+      "file": "components/ui/form.tsx",
+      "startLine": 47,
+      "endLine": 68,
+      "hash": "6b082eeb17f801b88685c7bcbc138f0e5402cdaff61b45422228ac5cab95b194",
+      "calls": [],
+      "calledBy": [
+        "fn:components/ui/form.tsx:FormLabel",
+        "fn:components/ui/form.tsx:FormControl",
+        "fn:components/ui/form.tsx:FormDescription",
+        "fn:components/ui/form.tsx:FormMessage"
+      ],
+      "moduleId": "components",
+      "isExported": true,
+      "purpose": "Hook for form field",
+      "edgeCasesHandled": [
+        "!fieldContext"
+      ],
+      "errorHandling": [
+        {
+          "line": 55,
+          "type": "throw",
+          "detail": "new Error(\"useFormField should be used within <FormField>\")"
+        }
+      ]
+    },
+    "fn:components/ui/form.tsx:FormItem": {
+      "id": "fn:components/ui/form.tsx:FormItem",
+      "name": "FormItem",
+      "file": "components/ui/form.tsx",
+      "startLine": 78,
+      "endLine": 90,
+      "hash": "cb6c419b8535831ce7697ed690177c21a77013080c983a1d8ee7b566c87b7279",
+      "calls": [],
+      "calledBy": [],
+      "moduleId": "components",
+      "params": [
+        {
+          "name": "{ className, ...props }",
+          "type": "React.ComponentProps<\"div\">"
+        }
+      ],
+      "isExported": true,
+      "purpose": "Form item",
+      "edgeCasesHandled": [],
+      "errorHandling": []
+    },
+    "fn:components/ui/form.tsx:FormLabel": {
+      "id": "fn:components/ui/form.tsx:FormLabel",
+      "name": "FormLabel",
+      "file": "components/ui/form.tsx",
+      "startLine": 92,
+      "endLine": 107,
+      "hash": "dc75004880c0238ed1fb0d251cdd0650b3dc911d49430769c9d547502ea0d643",
+      "calls": [
+        "fn:components/ui/form.tsx:useFormField"
+      ],
+      "calledBy": [],
+      "moduleId": "components",
+      "params": [
+        {
+          "name": "{\r\n  className,\r\n  ...props\r\n}",
+          "type": "React.ComponentProps<typeof LabelPrimitive.Root>"
+        }
+      ],
+      "isExported": true,
+      "purpose": "Form label",
+      "edgeCasesHandled": [],
+      "errorHandling": []
+    },
+    "fn:components/ui/form.tsx:FormControl": {
+      "id": "fn:components/ui/form.tsx:FormControl",
+      "name": "FormControl",
+      "file": "components/ui/form.tsx",
+      "startLine": 109,
+      "endLine": 126,
+      "hash": "b800efcdceba752168f41fd963cd7a0e564c554a5d5fc20e116bff5cec0bb294",
+      "calls": [
+        "fn:components/ui/form.tsx:useFormField"
+      ],
+      "calledBy": [],
+      "moduleId": "components",
+      "params": [
+        {
+          "name": "{ ...props }",
+          "type": "React.ComponentProps<typeof Slot>"
+        }
+      ],
+      "isExported": true,
+      "purpose": "Form control",
+      "edgeCasesHandled": [],
+      "errorHandling": []
+    },
+    "fn:components/ui/form.tsx:FormDescription": {
+      "id": "fn:components/ui/form.tsx:FormDescription",
+      "name": "FormDescription",
+      "file": "components/ui/form.tsx",
+      "startLine": 128,
+      "endLine": 139,
+      "hash": "370936867db963abd62f56c282810da02aa54cdfcf6ea3fc1605436fac6de9d5",
+      "calls": [
+        "fn:components/ui/form.tsx:useFormField"
+      ],
+      "calledBy": [],
+      "moduleId": "components",
+      "params": [
+        {
+          "name": "{ className, ...props }",
+          "type": "React.ComponentProps<\"p\">"
+        }
+      ],
+      "isExported": true,
+      "purpose": "Form description",
+      "edgeCasesHandled": [],
+      "errorHandling": []
+    },
+    "fn:components/ui/form.tsx:FormMessage": {
+      "id": "fn:components/ui/form.tsx:FormMessage",
+      "name": "FormMessage",
+      "file": "components/ui/form.tsx",
+      "startLine": 141,
+      "endLine": 159,
+      "hash": "6b5af033e22d729bf3f381ebf5b81d8eeb34dd89879eff9fb5e1b6c85f01c284",
+      "calls": [
+        "fn:components/ui/form.tsx:useFormField"
+      ],
+      "calledBy": [],
+      "moduleId": "components",
+      "params": [
+        {
+          "name": "{ className, ...props }",
+          "type": "React.ComponentProps<\"p\">"
+        }
+      ],
+      "isExported": true,
+      "purpose": "Form message",
+      "edgeCasesHandled": [
+        "!body"
+      ],
+      "errorHandling": []
+    },
+    "fn:components/ui/input-group.tsx:InputGroup": {
+      "id": "fn:components/ui/input-group.tsx:InputGroup",
+      "name": "InputGroup",
+      "file": "components/ui/input-group.tsx",
+      "startLine": 11,
+      "endLine": 37,
+      "hash": "ce3fe6ed224ad88fc6007aced76c75f885c156b177c66ec2341c901f56272c11",
+      "calls": [],
+      "calledBy": [],
+      "moduleId": "components",
+      "params": [
+        {
+          "name": "{ className, ...props }",
+          "type": "React.ComponentProps<\"div\">"
+        }
+      ],
+      "isExported": true,
+      "purpose": "Input group",
+      "edgeCasesHandled": [],
+      "errorHandling": []
+    },
+    "fn:components/ui/input-group.tsx:InputGroupAddon": {
+      "id": "fn:components/ui/input-group.tsx:InputGroupAddon",
+      "name": "InputGroupAddon",
+      "file": "components/ui/input-group.tsx",
+      "startLine": 60,
+      "endLine": 80,
+      "hash": "977106d5eb9466cce9b4888e801e5512fc928b062c6772c9ed88d31c0fff6ffc",
+      "calls": [],
+      "calledBy": [],
+      "moduleId": "components",
+      "params": [
+        {
+          "name": "{\r\n  className,\r\n  align = \"inline-start\",\r\n  ...props\r\n}",
+          "type": "React.ComponentProps<\"div\"> & VariantProps<typeof inputGroupAddonVariants>"
+        }
+      ],
+      "isExported": true,
+      "purpose": "Input group addon",
+      "edgeCasesHandled": [
+        "(e.target as HTMLElement).closest(\"button\")"
+      ],
+      "errorHandling": []
+    },
+    "fn:components/ui/input-group.tsx:InputGroupButton": {
+      "id": "fn:components/ui/input-group.tsx:InputGroupButton",
+      "name": "InputGroupButton",
+      "file": "components/ui/input-group.tsx",
+      "startLine": 99,
+      "endLine": 116,
+      "hash": "30f9e18356b9a9a7f2fcfaa142d164dea4966637912fd5fbed9b862ddd0b5725",
+      "calls": [],
+      "calledBy": [],
+      "moduleId": "components",
+      "params": [
+        {
+          "name": "{\r\n  className,\r\n  type = \"button\",\r\n  variant = \"ghost\",\r\n  size = \"xs\",\r\n  ...props\r\n}",
+          "type": "Omit<React.ComponentProps<typeof Button>, \"size\"> & VariantProps<typeof inputGroupButtonVariants>"
+        }
+      ],
+      "isExported": true,
+      "purpose": "Input group button",
+      "edgeCasesHandled": [],
+      "errorHandling": []
+    },
+    "fn:components/ui/input-group.tsx:InputGroupText": {
+      "id": "fn:components/ui/input-group.tsx:InputGroupText",
+      "name": "InputGroupText",
+      "file": "components/ui/input-group.tsx",
+      "startLine": 118,
+      "endLine": 128,
+      "hash": "e4dd2b9629bab2c2f9e7e30ba67151d062a8987d0eae69bc6206c3c46e3add72",
+      "calls": [],
+      "calledBy": [],
+      "moduleId": "components",
+      "params": [
+        {
+          "name": "{ className, ...props }",
+          "type": "React.ComponentProps<\"span\">"
+        }
+      ],
+      "isExported": true,
+      "purpose": "Input group text",
+      "edgeCasesHandled": [],
+      "errorHandling": []
+    },
+    "fn:components/ui/input-group.tsx:InputGroupInput": {
+      "id": "fn:components/ui/input-group.tsx:InputGroupInput",
+      "name": "InputGroupInput",
+      "file": "components/ui/input-group.tsx",
+      "startLine": 130,
+      "endLine": 144,
+      "hash": "5a1eac253e52d06d2a445590da3da7fb25b5ff0682bf3aeab3d3c0c1d97a5512",
+      "calls": [],
+      "calledBy": [],
+      "moduleId": "components",
+      "params": [
+        {
+          "name": "{\r\n  className,\r\n  ...props\r\n}",
+          "type": "React.ComponentProps<\"input\">"
+        }
+      ],
+      "isExported": true,
+      "purpose": "Input group input",
+      "edgeCasesHandled": [],
+      "errorHandling": []
+    },
+    "fn:components/ui/input-group.tsx:InputGroupTextarea": {
+      "id": "fn:components/ui/input-group.tsx:InputGroupTextarea",
+      "name": "InputGroupTextarea",
+      "file": "components/ui/input-group.tsx",
+      "startLine": 146,
+      "endLine": 160,
+      "hash": "7153342a01634c605679124fada9622dfa8108c64fe0f62e0920343bb4bccf74",
+      "calls": [],
+      "calledBy": [],
+      "moduleId": "components",
+      "params": [
+        {
+          "name": "{\r\n  className,\r\n  ...props\r\n}",
+          "type": "React.ComponentProps<\"textarea\">"
+        }
+      ],
+      "isExported": true,
+      "purpose": "Input group textarea",
+      "edgeCasesHandled": [],
+      "errorHandling": []
+    },
+    "fn:components/ui/input.tsx:Input": {
+      "id": "fn:components/ui/input.tsx:Input",
+      "name": "Input",
+      "file": "components/ui/input.tsx",
+      "startLine": 5,
+      "endLine": 19,
+      "hash": "31b9c60173c0e09d241c09b70ec905218afb044a35880a494191e49a72348dfe",
+      "calls": [],
+      "calledBy": [],
+      "moduleId": "components",
+      "params": [
+        {
+          "name": "{ className, type, ...props }",
+          "type": "React.ComponentProps<\"input\">"
+        }
+      ],
+      "isExported": true,
+      "purpose": "Input",
+      "edgeCasesHandled": [],
+      "errorHandling": []
+    },
+    "fn:components/ui/kbd.tsx:Kbd": {
+      "id": "fn:components/ui/kbd.tsx:Kbd",
+      "name": "Kbd",
+      "file": "components/ui/kbd.tsx",
+      "startLine": 3,
+      "endLine": 17,
+      "hash": "74ec71111e52c787e7be3c5e4a836fb5c0ad43473e5176257ee5c08d3a53dc8a",
+      "calls": [],
+      "calledBy": [],
+      "moduleId": "components",
+      "params": [
+        {
+          "name": "{ className, ...props }",
+          "type": "React.ComponentProps<\"kbd\">"
+        }
+      ],
+      "isExported": true,
+      "purpose": "Kbd",
+      "edgeCasesHandled": [],
+      "errorHandling": []
+    },
+    "fn:components/ui/kbd.tsx:KbdGroup": {
+      "id": "fn:components/ui/kbd.tsx:KbdGroup",
+      "name": "KbdGroup",
+      "file": "components/ui/kbd.tsx",
+      "startLine": 19,
+      "endLine": 27,
+      "hash": "bc80e3f57d269e2d1294dd3885a6fd349aadd388bd2701db9fb28cfeae9ba704",
+      "calls": [],
+      "calledBy": [],
+      "moduleId": "components",
+      "params": [
+        {
+          "name": "{ className, ...props }",
+          "type": "React.ComponentProps<\"div\">"
+        }
+      ],
+      "isExported": true,
+      "purpose": "Kbd group",
+      "edgeCasesHandled": [],
+      "errorHandling": []
+    },
+    "fn:components/ui/label.tsx:Label": {
+      "id": "fn:components/ui/label.tsx:Label",
+      "name": "Label",
+      "file": "components/ui/label.tsx",
+      "startLine": 8,
+      "endLine": 22,
+      "hash": "8929f0b72239d8a8156c2ac78dbbf11ec68c6f0b363ace523a455e99d08f3c56",
+      "calls": [],
+      "calledBy": [],
+      "moduleId": "components",
+      "params": [
+        {
+          "name": "{\r\n  className,\r\n  ...props\r\n}",
+          "type": "React.ComponentProps<typeof LabelPrimitive.Root>"
+        }
+      ],
+      "isExported": true,
+      "purpose": "Label",
+      "edgeCasesHandled": [],
+      "errorHandling": []
+    },
+    "fn:components/ui/navigation-menu.tsx:NavigationMenu": {
+      "id": "fn:components/ui/navigation-menu.tsx:NavigationMenu",
+      "name": "NavigationMenu",
+      "file": "components/ui/navigation-menu.tsx",
+      "startLine": 8,
+      "endLine": 30,
+      "hash": "d0ee3016c975b1ed1fac9b83144299ea7ce7e71c475d8b074b581cf455e6d502",
+      "calls": [],
+      "calledBy": [],
+      "moduleId": "components",
+      "params": [
+        {
+          "name": "{\n  className,\n  children,\n  viewport = true,\n  ...props\n}",
+          "type": "React.ComponentProps<typeof NavigationMenuPrimitive.Root> & { viewport?: boolean }"
+        }
+      ],
+      "isExported": true,
+      "purpose": "Navigation menu",
+      "edgeCasesHandled": [],
+      "errorHandling": []
+    },
+    "fn:components/ui/navigation-menu.tsx:NavigationMenuList": {
+      "id": "fn:components/ui/navigation-menu.tsx:NavigationMenuList",
+      "name": "NavigationMenuList",
+      "file": "components/ui/navigation-menu.tsx",
+      "startLine": 32,
+      "endLine": 46,
+      "hash": "7fa594588c123adcd9d0419d6c0ebca879fa92726787a7b77ec99e0eb80eb530",
+      "calls": [],
+      "calledBy": [],
+      "moduleId": "components",
+      "params": [
+        {
+          "name": "{\n  className,\n  ...props\n}",
+          "type": "React.ComponentProps<typeof NavigationMenuPrimitive.List>"
+        }
+      ],
+      "isExported": true,
+      "purpose": "Navigation menu list",
+      "edgeCasesHandled": [],
+      "errorHandling": []
+    },
+    "fn:components/ui/navigation-menu.tsx:NavigationMenuItem": {
+      "id": "fn:components/ui/navigation-menu.tsx:NavigationMenuItem",
+      "name": "NavigationMenuItem",
+      "file": "components/ui/navigation-menu.tsx",
+      "startLine": 48,
+      "endLine": 59,
+      "hash": "3d3b36b6d6c64ff786027b702bef19b8d74d137426ad814932209a2c9432d093",
+      "calls": [],
+      "calledBy": [],
+      "moduleId": "components",
+      "params": [
+        {
+          "name": "{\n  className,\n  ...props\n}",
+          "type": "React.ComponentProps<typeof NavigationMenuPrimitive.Item>"
+        }
+      ],
+      "isExported": true,
+      "purpose": "Navigation menu item",
+      "edgeCasesHandled": [],
+      "errorHandling": []
+    },
+    "fn:components/ui/navigation-menu.tsx:NavigationMenuTrigger": {
+      "id": "fn:components/ui/navigation-menu.tsx:NavigationMenuTrigger",
+      "name": "NavigationMenuTrigger",
+      "file": "components/ui/navigation-menu.tsx",
+      "startLine": 65,
+      "endLine": 80,
+      "hash": "c65854ffe07d88ba53252c68083d28d886ca1d3da9f904a044d4be35e6a15a0a",
+      "calls": [],
+      "calledBy": [],
+      "moduleId": "components",
+      "params": [
+        {
+          "name": "{\n  className,\n  children,\n  ...props\n}",
+          "type": "React.ComponentProps<typeof NavigationMenuPrimitive.Trigger>"
+        }
+      ],
+      "isExported": true,
+      "purpose": "Navigation menu trigger",
+      "edgeCasesHandled": [],
+      "errorHandling": []
+    },
+    "fn:components/ui/navigation-menu.tsx:NavigationMenuContent": {
+      "id": "fn:components/ui/navigation-menu.tsx:NavigationMenuContent",
+      "name": "NavigationMenuContent",
+      "file": "components/ui/navigation-menu.tsx",
+      "startLine": 82,
+      "endLine": 96,
+      "hash": "ee1c2e40c3ccdac4f6b8b2b2aebb28b3fe019cedb2328265d1f962db7771d9b2",
+      "calls": [],
+      "calledBy": [],
+      "moduleId": "components",
+      "params": [
+        {
+          "name": "{\n  className,\n  ...props\n}",
+          "type": "React.ComponentProps<typeof NavigationMenuPrimitive.Content>"
+        }
+      ],
+      "isExported": true,
+      "purpose": "Navigation menu content",
+      "edgeCasesHandled": [],
+      "errorHandling": []
+    },
+    "fn:components/ui/navigation-menu.tsx:NavigationMenuViewport": {
+      "id": "fn:components/ui/navigation-menu.tsx:NavigationMenuViewport",
+      "name": "NavigationMenuViewport",
+      "file": "components/ui/navigation-menu.tsx",
+      "startLine": 98,
+      "endLine": 118,
+      "hash": "0896f408a00f94954f1661d1cd891d822795d18a5b6bfd21f38bccab27da55dc",
+      "calls": [],
+      "calledBy": [],
+      "moduleId": "components",
+      "params": [
+        {
+          "name": "{\n  className,\n  ...props\n}",
+          "type": "React.ComponentProps<typeof NavigationMenuPrimitive.Viewport>"
+        }
+      ],
+      "isExported": true,
+      "purpose": "Navigation menu viewport",
+      "edgeCasesHandled": [],
+      "errorHandling": []
+    },
+    "fn:components/ui/navigation-menu.tsx:NavigationMenuLink": {
+      "id": "fn:components/ui/navigation-menu.tsx:NavigationMenuLink",
+      "name": "NavigationMenuLink",
+      "file": "components/ui/navigation-menu.tsx",
+      "startLine": 120,
+      "endLine": 134,
+      "hash": "909dce8de992e0d7daa1881f87a0aec57391e672553280f4056ae50033115d54",
+      "calls": [],
+      "calledBy": [],
+      "moduleId": "components",
+      "params": [
+        {
+          "name": "{\n  className,\n  ...props\n}",
+          "type": "React.ComponentProps<typeof NavigationMenuPrimitive.Link>"
+        }
+      ],
+      "isExported": true,
+      "purpose": "Navigation menu link",
+      "edgeCasesHandled": [],
+      "errorHandling": []
+    },
+    "fn:components/ui/navigation-menu.tsx:NavigationMenuIndicator": {
+      "id": "fn:components/ui/navigation-menu.tsx:NavigationMenuIndicator",
+      "name": "NavigationMenuIndicator",
+      "file": "components/ui/navigation-menu.tsx",
+      "startLine": 136,
+      "endLine": 152,
+      "hash": "f1262c6d253c23603c94b40b75aae02607601796dc8bca036d494833e7dc62ca",
+      "calls": [],
+      "calledBy": [],
+      "moduleId": "components",
+      "params": [
+        {
+          "name": "{\n  className,\n  ...props\n}",
+          "type": "React.ComponentProps<typeof NavigationMenuPrimitive.Indicator>"
+        }
+      ],
+      "isExported": true,
+      "purpose": "Navigation menu indicator",
+      "edgeCasesHandled": [],
+      "errorHandling": []
+    },
+    "fn:components/ui/scroll-area copy.tsx:ScrollArea": {
+      "id": "fn:components/ui/scroll-area copy.tsx:ScrollArea",
+      "name": "ScrollArea",
+      "file": "components/ui/scroll-area copy.tsx",
+      "startLine": 8,
+      "endLine": 29,
+      "hash": "1bdadc4ad24da3203a42fe48555b19a90d98b6deeda8bb9aaf1311c5d2416c26",
+      "calls": [],
+      "calledBy": [],
+      "moduleId": "components",
+      "params": [
+        {
+          "name": "{\r\n  className,\r\n  children,\r\n  ...props\r\n}",
+          "type": "React.ComponentProps<typeof ScrollAreaPrimitive.Root>"
+        }
+      ],
+      "isExported": true,
+      "purpose": "Scroll area",
+      "edgeCasesHandled": [],
+      "errorHandling": []
+    },
+    "fn:components/ui/scroll-area copy.tsx:ScrollBar": {
+      "id": "fn:components/ui/scroll-area copy.tsx:ScrollBar",
+      "name": "ScrollBar",
+      "file": "components/ui/scroll-area copy.tsx",
+      "startLine": 31,
+      "endLine": 56,
+      "hash": "3a2df0de0e930d4ac51df70c59f52ae1fe4b83cc4722d811f1b921b7216c3412",
+      "calls": [],
+      "calledBy": [],
+      "moduleId": "components",
+      "params": [
+        {
+          "name": "{\r\n  className,\r\n  orientation = \"vertical\",\r\n  ...props\r\n}",
+          "type": "React.ComponentProps<typeof ScrollAreaPrimitive.ScrollAreaScrollbar>"
+        }
+      ],
+      "isExported": true,
+      "purpose": "Scroll bar",
+      "edgeCasesHandled": [],
+      "errorHandling": []
+    },
+    "fn:components/ui/scroll-area.tsx:ScrollArea": {
+      "id": "fn:components/ui/scroll-area.tsx:ScrollArea",
+      "name": "ScrollArea",
+      "file": "components/ui/scroll-area.tsx",
+      "startLine": 8,
+      "endLine": 29,
+      "hash": "5989376afbdb795e128394a9acf168ed6d40d751d9c30f4535435789f508d575",
+      "calls": [],
+      "calledBy": [],
+      "moduleId": "components",
+      "params": [
+        {
+          "name": "{\n  className,\n  children,\n  ...props\n}",
+          "type": "React.ComponentProps<typeof ScrollAreaPrimitive.Root>"
+        }
+      ],
+      "isExported": true,
+      "purpose": "Scroll area",
+      "edgeCasesHandled": [],
+      "errorHandling": []
+    },
+    "fn:components/ui/scroll-area.tsx:ScrollBar": {
+      "id": "fn:components/ui/scroll-area.tsx:ScrollBar",
+      "name": "ScrollBar",
+      "file": "components/ui/scroll-area.tsx",
+      "startLine": 31,
+      "endLine": 53,
+      "hash": "b49fa3a2ac4f35a0d8e9b25b1581c4c5ee8ef41fcf0d2fea424803906906cedc",
+      "calls": [],
+      "calledBy": [],
+      "moduleId": "components",
+      "params": [
+        {
+          "name": "{\n  className,\n  orientation = \"vertical\",\n  ...props\n}",
+          "type": "React.ComponentProps<typeof ScrollAreaPrimitive.ScrollAreaScrollbar>"
+        }
+      ],
+      "isExported": true,
+      "purpose": "Scroll bar",
+      "edgeCasesHandled": [],
+      "errorHandling": []
+    },
+    "fn:components/ui/separator.tsx:Separator": {
+      "id": "fn:components/ui/separator.tsx:Separator",
+      "name": "Separator",
+      "file": "components/ui/separator.tsx",
+      "startLine": 8,
+      "endLine": 26,
+      "hash": "53b92cc83dc01cecd70cfd9724363580de0f4b0f8afd90a9566f7ad88d5bf4b6",
+      "calls": [],
+      "calledBy": [],
+      "moduleId": "components",
+      "params": [
+        {
+          "name": "{\n  className,\n  orientation = \"horizontal\",\n  decorative = true,\n  ...props\n}",
+          "type": "React.ComponentProps<typeof SeparatorPrimitive.Root>"
+        }
+      ],
+      "isExported": true,
+      "purpose": "Separator",
+      "edgeCasesHandled": [],
+      "errorHandling": []
+    },
+    "fn:components/ui/sheet.tsx:Sheet": {
+      "id": "fn:components/ui/sheet.tsx:Sheet",
+      "name": "Sheet",
+      "file": "components/ui/sheet.tsx",
+      "startLine": 10,
+      "endLine": 12,
+      "hash": "a8aafdc5be8ad1cee27ec6430a90bc5208a82438f90bd99dbb7fe2133013a2ad",
+      "calls": [],
+      "calledBy": [],
+      "moduleId": "components",
+      "params": [
+        {
+          "name": "{ ...props }",
+          "type": "React.ComponentProps<typeof SheetPrimitive.Root>"
+        }
+      ],
+      "isExported": true,
+      "purpose": "Sheet",
+      "edgeCasesHandled": [],
+      "errorHandling": []
+    },
+    "fn:components/ui/sheet.tsx:SheetTrigger": {
+      "id": "fn:components/ui/sheet.tsx:SheetTrigger",
+      "name": "SheetTrigger",
+      "file": "components/ui/sheet.tsx",
+      "startLine": 14,
+      "endLine": 18,
+      "hash": "9a9c19219445d3d5e0f952a7647820ca00751ad41b173ce50ac42d6af9887f22",
+      "calls": [],
+      "calledBy": [],
+      "moduleId": "components",
+      "params": [
+        {
+          "name": "{\n  ...props\n}",
+          "type": "React.ComponentProps<typeof SheetPrimitive.Trigger>"
+        }
+      ],
+      "isExported": true,
+      "purpose": "Sheet trigger",
+      "edgeCasesHandled": [],
+      "errorHandling": []
+    },
+    "fn:components/ui/sheet.tsx:SheetClose": {
+      "id": "fn:components/ui/sheet.tsx:SheetClose",
+      "name": "SheetClose",
+      "file": "components/ui/sheet.tsx",
+      "startLine": 20,
+      "endLine": 24,
+      "hash": "251a16d55c214fc9ea294a5e04b9896f3b980d8af3bd3903a9df04f7be76cf93",
+      "calls": [],
+      "calledBy": [],
+      "moduleId": "components",
+      "params": [
+        {
+          "name": "{\n  ...props\n}",
+          "type": "React.ComponentProps<typeof SheetPrimitive.Close>"
+        }
+      ],
+      "isExported": true,
+      "purpose": "Sheet close",
+      "edgeCasesHandled": [],
+      "errorHandling": []
+    },
+    "fn:components/ui/sheet.tsx:SheetPortal": {
+      "id": "fn:components/ui/sheet.tsx:SheetPortal",
+      "name": "SheetPortal",
+      "file": "components/ui/sheet.tsx",
+      "startLine": 26,
+      "endLine": 30,
+      "hash": "5edbf53904fe3d33b2a10ae327a7221b7e24862a3340227633649b937b2bc79a",
+      "calls": [],
+      "calledBy": [],
+      "moduleId": "components",
+      "params": [
+        {
+          "name": "{\n  ...props\n}",
+          "type": "React.ComponentProps<typeof SheetPrimitive.Portal>"
+        }
+      ],
+      "purpose": "Sheet portal",
+      "edgeCasesHandled": [],
+      "errorHandling": []
+    },
+    "fn:components/ui/sheet.tsx:SheetOverlay": {
+      "id": "fn:components/ui/sheet.tsx:SheetOverlay",
+      "name": "SheetOverlay",
+      "file": "components/ui/sheet.tsx",
+      "startLine": 32,
+      "endLine": 46,
+      "hash": "9d02f971b19e29c840c893117b4762687f2a30f8e0d6ae88705b43d430196fe6",
+      "calls": [],
+      "calledBy": [],
+      "moduleId": "components",
+      "params": [
+        {
+          "name": "{\n  className,\n  ...props\n}",
+          "type": "React.ComponentProps<typeof SheetPrimitive.Overlay>"
+        }
+      ],
+      "purpose": "Sheet overlay",
+      "edgeCasesHandled": [],
+      "errorHandling": []
+    },
+    "fn:components/ui/sheet.tsx:SheetContent": {
+      "id": "fn:components/ui/sheet.tsx:SheetContent",
+      "name": "SheetContent",
+      "file": "components/ui/sheet.tsx",
+      "startLine": 48,
+      "endLine": 87,
+      "hash": "8f54c2a739605c49349cc6781a08b84fe42e86076f55d03c25b9867244b9432c",
+      "calls": [],
+      "calledBy": [],
+      "moduleId": "components",
+      "params": [
+        {
+          "name": "{\n  className,\n  children,\n  side = \"right\",\n  showCloseButton = true,\n  ...props\n}",
+          "type": "React.ComponentProps<typeof SheetPrimitive.Content> & { side?: \"top\" | \"right\" | \"bottom\" | \"left\" showCloseButton?: boolean }"
+        }
+      ],
+      "isExported": true,
+      "purpose": "Sheet content",
+      "edgeCasesHandled": [],
+      "errorHandling": []
+    },
+    "fn:components/ui/sheet.tsx:SheetHeader": {
+      "id": "fn:components/ui/sheet.tsx:SheetHeader",
+      "name": "SheetHeader",
+      "file": "components/ui/sheet.tsx",
+      "startLine": 89,
+      "endLine": 97,
+      "hash": "d0ec73f793b6bd6b163e37588b0291c13eb78e67da5250a047a4f1418fbd708c",
+      "calls": [],
+      "calledBy": [],
+      "moduleId": "components",
+      "params": [
+        {
+          "name": "{ className, ...props }",
+          "type": "React.ComponentProps<\"div\">"
+        }
+      ],
+      "isExported": true,
+      "purpose": "Sheet header",
+      "edgeCasesHandled": [],
+      "errorHandling": []
+    },
+    "fn:components/ui/sheet.tsx:SheetFooter": {
+      "id": "fn:components/ui/sheet.tsx:SheetFooter",
+      "name": "SheetFooter",
+      "file": "components/ui/sheet.tsx",
+      "startLine": 99,
+      "endLine": 107,
+      "hash": "0ecfa8b7c3dbd9fdaa1e33ff69d305bd35b1b5d7edffdfee34b0c6dc0a7ad4f5",
+      "calls": [],
+      "calledBy": [],
+      "moduleId": "components",
+      "params": [
+        {
+          "name": "{ className, ...props }",
+          "type": "React.ComponentProps<\"div\">"
+        }
+      ],
+      "isExported": true,
+      "purpose": "Sheet footer",
+      "edgeCasesHandled": [],
+      "errorHandling": []
+    },
+    "fn:components/ui/sheet.tsx:SheetTitle": {
+      "id": "fn:components/ui/sheet.tsx:SheetTitle",
+      "name": "SheetTitle",
+      "file": "components/ui/sheet.tsx",
+      "startLine": 109,
+      "endLine": 120,
+      "hash": "f28af14893b4f8cff6ee4d02d51266294eb796c689fa1154fba259daf8fda212",
+      "calls": [],
+      "calledBy": [],
+      "moduleId": "components",
+      "params": [
+        {
+          "name": "{\n  className,\n  ...props\n}",
+          "type": "React.ComponentProps<typeof SheetPrimitive.Title>"
+        }
+      ],
+      "isExported": true,
+      "purpose": "Sheet title",
+      "edgeCasesHandled": [],
+      "errorHandling": []
+    },
+    "fn:components/ui/sheet.tsx:SheetDescription": {
+      "id": "fn:components/ui/sheet.tsx:SheetDescription",
+      "name": "SheetDescription",
+      "file": "components/ui/sheet.tsx",
+      "startLine": 122,
+      "endLine": 133,
+      "hash": "bf8f82274898c09dbc19b08e6006b01cefa18478c6285e10bcd208f0b5946e73",
+      "calls": [],
+      "calledBy": [],
+      "moduleId": "components",
+      "params": [
+        {
+          "name": "{\n  className,\n  ...props\n}",
+          "type": "React.ComponentProps<typeof SheetPrimitive.Description>"
+        }
+      ],
+      "isExported": true,
+      "purpose": "Sheet description",
+      "edgeCasesHandled": [],
+      "errorHandling": []
+    },
+    "fn:components/ui/sonner.tsx:Toaster": {
+      "id": "fn:components/ui/sonner.tsx:Toaster",
+      "name": "Toaster",
+      "file": "components/ui/sonner.tsx",
+      "startLine": 9,
+      "endLine": 36,
+      "hash": "f6a9e1bfc0f9db08323b1c81ca8a79b1b0b7bbd01ee0ecf5cbd1a0ccae42008e",
+      "calls": [],
+      "calledBy": [],
+      "moduleId": "components",
+      "params": [
+        {
+          "name": "{ ...props }",
+          "type": "ToasterProps"
+        }
+      ],
+      "isExported": true,
+      "purpose": "Toaster ({ ...props })",
+      "edgeCasesHandled": [],
+      "errorHandling": []
+    },
+    "fn:components/ui/table.tsx:Table": {
+      "id": "fn:components/ui/table.tsx:Table",
+      "name": "Table",
+      "file": "components/ui/table.tsx",
+      "startLine": 5,
+      "endLine": 21,
+      "hash": "f84f01672cf148047f13fc09e2bafd6f2e7b57392adab3953980d0fcd220410c",
+      "calls": [],
+      "calledBy": [],
+      "moduleId": "components",
+      "params": [
+        {
+          "name": "{ className, ...props }",
+          "type": "React.ComponentProps<\"table\">"
+        }
+      ],
+      "isExported": true,
+      "purpose": "Table",
+      "edgeCasesHandled": [],
+      "errorHandling": []
+    },
+    "fn:components/ui/table.tsx:TableHeader": {
+      "id": "fn:components/ui/table.tsx:TableHeader",
+      "name": "TableHeader",
+      "file": "components/ui/table.tsx",
+      "startLine": 23,
+      "endLine": 31,
+      "hash": "1e935de87237e3bff967c99377db21023db8f6aeb834adb725d1e07d1cfe36de",
+      "calls": [],
+      "calledBy": [],
+      "moduleId": "components",
+      "params": [
+        {
+          "name": "{ className, ...props }",
+          "type": "React.ComponentProps<\"thead\">"
+        }
+      ],
+      "isExported": true,
+      "purpose": "Table header",
+      "edgeCasesHandled": [],
+      "errorHandling": []
+    },
+    "fn:components/ui/table.tsx:TableBody": {
+      "id": "fn:components/ui/table.tsx:TableBody",
+      "name": "TableBody",
+      "file": "components/ui/table.tsx",
+      "startLine": 33,
+      "endLine": 41,
+      "hash": "5afc4f2faf854a0e4ef3e3db364b20e4a4abc20023495c9ce0892746bb586f58",
+      "calls": [],
+      "calledBy": [],
+      "moduleId": "components",
+      "params": [
+        {
+          "name": "{ className, ...props }",
+          "type": "React.ComponentProps<\"tbody\">"
+        }
+      ],
+      "isExported": true,
+      "purpose": "Table body",
+      "edgeCasesHandled": [],
+      "errorHandling": []
+    },
+    "fn:components/ui/table.tsx:TableRow": {
+      "id": "fn:components/ui/table.tsx:TableRow",
+      "name": "TableRow",
+      "file": "components/ui/table.tsx",
+      "startLine": 43,
+      "endLine": 51,
+      "hash": "6324ce5659901a818fad410b575802f5ce198e2611a25901454d7dba345b73be",
+      "calls": [],
+      "calledBy": [],
+      "moduleId": "components",
+      "params": [
+        {
+          "name": "{ className, ...props }",
+          "type": "React.ComponentProps<\"tr\">"
+        }
+      ],
+      "isExported": true,
+      "purpose": "Table row",
+      "edgeCasesHandled": [],
+      "errorHandling": []
+    },
+    "fn:components/ui/table.tsx:TableHead": {
+      "id": "fn:components/ui/table.tsx:TableHead",
+      "name": "TableHead",
+      "file": "components/ui/table.tsx",
+      "startLine": 53,
+      "endLine": 61,
+      "hash": "071969f7825194f47c158ea5e0044684d1439aa3e3eccb895df7252788f9c2fe",
+      "calls": [],
+      "calledBy": [],
+      "moduleId": "components",
+      "params": [
+        {
+          "name": "{ className, ...props }",
+          "type": "React.ComponentProps<\"th\">"
+        }
+      ],
+      "isExported": true,
+      "purpose": "Table head",
+      "edgeCasesHandled": [],
+      "errorHandling": []
+    },
+    "fn:components/ui/table.tsx:TableCell": {
+      "id": "fn:components/ui/table.tsx:TableCell",
+      "name": "TableCell",
+      "file": "components/ui/table.tsx",
+      "startLine": 63,
+      "endLine": 71,
+      "hash": "d170a2a56caca4aa9a42aacbb7de188f3cf0c500b25ee3de003f130e707fd264",
+      "calls": [],
+      "calledBy": [],
+      "moduleId": "components",
+      "params": [
+        {
+          "name": "{ className, ...props }",
+          "type": "React.ComponentProps<\"td\">"
+        }
+      ],
+      "isExported": true,
+      "purpose": "Table cell",
+      "edgeCasesHandled": [],
+      "errorHandling": []
+    },
+    "fn:components/ui/tabs.tsx:Tabs": {
+      "id": "fn:components/ui/tabs.tsx:Tabs",
+      "name": "Tabs",
+      "file": "components/ui/tabs.tsx",
+      "startLine": 8,
+      "endLine": 19,
+      "hash": "6841ad05719e4fb94b17bae3d299a997c116e47cef71f4d4dfb25a04b63150bc",
+      "calls": [],
+      "calledBy": [],
+      "moduleId": "components",
+      "params": [
+        {
+          "name": "{\r\n  className,\r\n  ...props\r\n}",
+          "type": "React.ComponentProps<typeof TabsPrimitive.Root>"
+        }
+      ],
+      "isExported": true,
+      "purpose": "Tabs",
+      "edgeCasesHandled": [],
+      "errorHandling": []
+    },
+    "fn:components/ui/tabs.tsx:TabsList": {
+      "id": "fn:components/ui/tabs.tsx:TabsList",
+      "name": "TabsList",
+      "file": "components/ui/tabs.tsx",
+      "startLine": 21,
+      "endLine": 36,
+      "hash": "e9987fdff078c723038df671c0a61c1771a46832655c8a4ee170dacb241b5ffe",
+      "calls": [],
+      "calledBy": [],
+      "moduleId": "components",
+      "params": [
+        {
+          "name": "{\r\n  className,\r\n  ...props\r\n}",
+          "type": "React.ComponentProps<typeof TabsPrimitive.List>"
+        }
+      ],
+      "isExported": true,
+      "purpose": "Tabs list",
+      "edgeCasesHandled": [],
+      "errorHandling": []
+    },
+    "fn:components/ui/tabs.tsx:TabsTrigger": {
+      "id": "fn:components/ui/tabs.tsx:TabsTrigger",
+      "name": "TabsTrigger",
+      "file": "components/ui/tabs.tsx",
+      "startLine": 38,
+      "endLine": 53,
+      "hash": "6e3bb3fd0ba4095ab66b3ea29755338ae82b0a99e57f6539799bf892cc796330",
+      "calls": [],
+      "calledBy": [],
+      "moduleId": "components",
+      "params": [
+        {
+          "name": "{\r\n  className,\r\n  ...props\r\n}",
+          "type": "React.ComponentProps<typeof TabsPrimitive.Trigger>"
+        }
+      ],
+      "isExported": true,
+      "purpose": "Tabs trigger",
+      "edgeCasesHandled": [],
+      "errorHandling": []
+    },
+    "fn:components/ui/tabs.tsx:TabsContent": {
+      "id": "fn:components/ui/tabs.tsx:TabsContent",
+      "name": "TabsContent",
+      "file": "components/ui/tabs.tsx",
+      "startLine": 55,
+      "endLine": 66,
+      "hash": "a7465c0e88a5193360ea3636c74a1264a5392970a31ff1eb09f46779b886d5f0",
+      "calls": [],
+      "calledBy": [],
+      "moduleId": "components",
+      "params": [
+        {
+          "name": "{\r\n  className,\r\n  ...props\r\n}",
+          "type": "React.ComponentProps<typeof TabsPrimitive.Content>"
+        }
+      ],
+      "isExported": true,
+      "purpose": "Tabs content",
+      "edgeCasesHandled": [],
+      "errorHandling": []
+    },
+    "fn:components/ui/tag.tsx:Tag": {
+      "id": "fn:components/ui/tag.tsx:Tag",
+      "name": "Tag",
+      "file": "components/ui/tag.tsx",
+      "startLine": 5,
+      "endLine": 17,
+      "hash": "72c1888cef563b82fe0b8f4c17e4ff945562cdf777e2b8a41ca388c1d14908bf",
+      "calls": [],
+      "calledBy": [],
+      "moduleId": "components",
+      "params": [
+        {
+          "name": "{ className, ...props }",
+          "type": "React.ComponentProps<\"span\">"
+        }
+      ],
+      "isExported": true,
+      "purpose": "Tag",
+      "edgeCasesHandled": [],
+      "errorHandling": []
+    },
+    "fn:components/ui/textarea.tsx:Textarea": {
+      "id": "fn:components/ui/textarea.tsx:Textarea",
+      "name": "Textarea",
+      "file": "components/ui/textarea.tsx",
+      "startLine": 5,
+      "endLine": 16,
+      "hash": "350409c81e16c228fd744bfdbcb29b13d1928454ffec996f25ea89a2f03403af",
+      "calls": [],
+      "calledBy": [],
+      "moduleId": "components",
+      "params": [
+        {
+          "name": "{ className, ...props }",
+          "type": "React.ComponentProps<\"textarea\">"
+        }
+      ],
+      "isExported": true,
+      "purpose": "Textarea",
+      "edgeCasesHandled": [],
+      "errorHandling": []
+    },
+    "fn:components/ui/tooltip.tsx:TooltipProvider": {
+      "id": "fn:components/ui/tooltip.tsx:TooltipProvider",
+      "name": "TooltipProvider",
+      "file": "components/ui/tooltip.tsx",
+      "startLine": 8,
+      "endLine": 19,
+      "hash": "997b20b5978f1fe9e77549d1bbc4487fafb08ca4f1ee844bfa8bfc8390940de9",
+      "calls": [],
+      "calledBy": [],
+      "moduleId": "components",
+      "params": [
+        {
+          "name": "{\r\n  delayDuration = 0,\r\n  ...props\r\n}",
+          "type": "React.ComponentProps<typeof TooltipPrimitive.Provider>"
+        }
+      ],
+      "isExported": true,
+      "purpose": "Tooltip provider",
+      "edgeCasesHandled": [],
+      "errorHandling": []
+    },
+    "fn:components/ui/tooltip.tsx:Tooltip": {
+      "id": "fn:components/ui/tooltip.tsx:Tooltip",
+      "name": "Tooltip",
+      "file": "components/ui/tooltip.tsx",
+      "startLine": 21,
+      "endLine": 29,
+      "hash": "33160f21d2d7449baed6a34e2372122e884a0b351a16a0077f23e4001a9914d3",
+      "calls": [],
+      "calledBy": [],
+      "moduleId": "components",
+      "params": [
+        {
+          "name": "{\r\n  ...props\r\n}",
+          "type": "React.ComponentProps<typeof TooltipPrimitive.Root>"
+        }
+      ],
+      "isExported": true,
+      "purpose": "Tooltip",
+      "edgeCasesHandled": [],
+      "errorHandling": []
+    },
+    "fn:components/ui/tooltip.tsx:TooltipTrigger": {
+      "id": "fn:components/ui/tooltip.tsx:TooltipTrigger",
+      "name": "TooltipTrigger",
+      "file": "components/ui/tooltip.tsx",
+      "startLine": 31,
+      "endLine": 35,
+      "hash": "0c1d8cda0bfafdd890c23acb6dd71065d69ed2b27441d00c054bb574e8e69e94",
+      "calls": [],
+      "calledBy": [],
+      "moduleId": "components",
+      "params": [
+        {
+          "name": "{\r\n  ...props\r\n}",
+          "type": "React.ComponentProps<typeof TooltipPrimitive.Trigger>"
+        }
+      ],
+      "isExported": true,
+      "purpose": "Tooltip trigger",
+      "edgeCasesHandled": [],
+      "errorHandling": []
+    },
+    "fn:components/ui/tooltip.tsx:TooltipContent": {
+      "id": "fn:components/ui/tooltip.tsx:TooltipContent",
+      "name": "TooltipContent",
+      "file": "components/ui/tooltip.tsx",
+      "startLine": 37,
+      "endLine": 58,
+      "hash": "755ed5c6f5b0e8cf55f034aa2f754a7e723a73e1b40657d37361cc37ce0b26b9",
+      "calls": [],
+      "calledBy": [],
+      "moduleId": "components",
+      "params": [
+        {
+          "name": "{\r\n  className,\r\n  sideOffset = 4,\r\n  children,\r\n  ...props\r\n}",
+          "type": "React.ComponentProps<typeof TooltipPrimitive.Content>"
+        }
+      ],
+      "isExported": true,
+      "purpose": "Tooltip content ({\r\n  className,\r\n  sideOffset = 4,\r\n  children,\r\n  ...props\r\n})",
+      "edgeCasesHandled": [],
+      "errorHandling": []
+    },
+    "fn:components/ui/typography.tsx:Prose": {
+      "id": "fn:components/ui/typography.tsx:Prose",
+      "name": "Prose",
+      "file": "components/ui/typography.tsx",
+      "startLine": 9,
+      "endLine": 34,
+      "hash": "1465a7e35544edab9bd2e3b543e42012ff532ce37be2c17a4472ccca30a7fbb5",
+      "calls": [],
+      "calledBy": [],
+      "moduleId": "components",
+      "params": [
+        {
+          "name": "{\r\n  className,\r\n  asChild = false,\r\n  ...props\r\n}",
+          "type": "React.ComponentProps<\"div\"> & { asChild?: boolean; }"
+        }
+      ],
+      "isExported": true,
+      "purpose": "Prose",
+      "edgeCasesHandled": [],
+      "errorHandling": []
+    },
+    "fn:components/ui/typography.tsx:ProseMono": {
+      "id": "fn:components/ui/typography.tsx:ProseMono",
+      "name": "ProseMono",
+      "file": "components/ui/typography.tsx",
+      "startLine": 36,
+      "endLine": 46,
+      "hash": "b1b8238decb4edf1d6543f61fb819aaee762e96a6867993bc48c2d6ba1d01940",
+      "calls": [],
+      "calledBy": [],
+      "moduleId": "components",
+      "params": [
+        {
+          "name": "{\r\n  className,\r\n  ...props\r\n}",
+          "type": "React.ComponentProps<typeof Prose>"
+        }
+      ],
+      "isExported": true,
+      "purpose": "Prose mono",
+      "edgeCasesHandled": [],
+      "errorHandling": []
+    },
+    "fn:components/ui/typography.tsx:Code": {
+      "id": "fn:components/ui/typography.tsx:Code",
+      "name": "Code",
+      "file": "components/ui/typography.tsx",
+      "startLine": 48,
+      "endLine": 62,
+      "hash": "c34b044dc0003bf654ff25194483e187e59a6a138daed58ccd62130e1a3346e5",
+      "calls": [],
+      "calledBy": [],
+      "moduleId": "components",
+      "params": [
+        {
+          "name": "{ className, ...props }",
+          "type": "React.ComponentProps<\"code\">"
+        }
+      ],
+      "isExported": true,
+      "purpose": "Code",
+      "edgeCasesHandled": [],
+      "errorHandling": []
+    },
+    "fn:components/ui/typography.tsx:Heading": {
+      "id": "fn:components/ui/typography.tsx:Heading",
+      "name": "Heading",
+      "file": "components/ui/typography.tsx",
+      "startLine": 69,
+      "endLine": 95,
+      "hash": "cc1a0be240c914d74abd8193ddf63cb16fa1842db723dca769a127f56a63cbdc",
+      "calls": [],
+      "calledBy": [],
+      "moduleId": "components",
+      "params": [
+        {
+          "name": "{\r\n  as,\r\n  className,\r\n  ...props\r\n}",
+          "type": "HeadingProps<T>"
+        }
+      ],
+      "returnType": "React.ReactElement",
+      "isExported": true,
+      "purpose": "Heading",
+      "edgeCasesHandled": [
+        "!props.id"
+      ],
+      "errorHandling": []
+    },
+    "fn:app/docs/[[...slug]]/page.tsx:Page": {
+      "id": "fn:app/docs/[[...slug]]/page.tsx:Page",
+      "name": "Page",
+      "file": "app/docs/[[...slug]]/page.tsx",
+      "startLine": 10,
+      "endLine": 79,
+      "hash": "979becefc382505ed5b7df88be6797397a3f00c351236984442ebd13ee387e13",
+      "calls": [],
+      "calledBy": [],
+      "moduleId": "unknown",
+      "params": [
+        {
+          "name": "props",
+          "type": "{ params: Promise<{ slug?: string[] }>; }"
+        }
+      ],
+      "isAsync": true,
+      "isExported": true,
+      "purpose": "Page",
+      "edgeCasesHandled": [],
+      "errorHandling": [
+        {
+          "line": 22,
+          "type": "try-catch",
+          "detail": "try-catch block"
+        }
+      ]
+    },
+    "fn:app/docs/[[...slug]]/page.tsx:generateStaticParams": {
+      "id": "fn:app/docs/[[...slug]]/page.tsx:generateStaticParams",
+      "name": "generateStaticParams",
+      "file": "app/docs/[[...slug]]/page.tsx",
+      "startLine": 81,
+      "endLine": 83,
+      "hash": "f4aaf3aba55110948ab394100577db8c204b951c9d2df31882fd509b20ee7bf1",
+      "calls": [],
+      "calledBy": [],
+      "moduleId": "unknown",
+      "isAsync": true,
+      "isExported": true,
+      "purpose": "Generate static params",
+      "edgeCasesHandled": [],
+      "errorHandling": []
+    },
+    "fn:app/docs/[[...slug]]/page.tsx:generateMetadata": {
+      "id": "fn:app/docs/[[...slug]]/page.tsx:generateMetadata",
+      "name": "generateMetadata",
+      "file": "app/docs/[[...slug]]/page.tsx",
+      "startLine": 85,
+      "endLine": 95,
+      "hash": "983205c32ca1dad2528fd0a666cda7231e2a4660b40994254fd2539e57f20d6e",
+      "calls": [],
+      "calledBy": [],
+      "moduleId": "unknown",
+      "params": [
+        {
+          "name": "props",
+          "type": "{ params: Promise<{ slug?: string[] }>; }"
+        }
+      ],
+      "returnType": "Promise<Metadata>",
+      "isAsync": true,
+      "isExported": true,
+      "purpose": "Generate metadata",
+      "edgeCasesHandled": [],
+      "errorHandling": []
+    },
+    "fn:components/base/ui/tabs.tsx:Tabs": {
+      "id": "fn:components/base/ui/tabs.tsx:Tabs",
+      "name": "Tabs",
+      "file": "components/base/ui/tabs.tsx",
+      "startLine": 7,
+      "endLine": 15,
+      "hash": "910bbc1a6f774378c9ee683c532d0ed21aadeac15940ad07ac4c9f2e1fed1cbe",
+      "calls": [],
+      "calledBy": [],
+      "moduleId": "components",
+      "params": [
+        {
+          "name": "{ className, ...props }",
+          "type": "TabsPrimitive.Root.Props"
+        }
+      ],
+      "isExported": true,
+      "purpose": "Tabs",
+      "edgeCasesHandled": [],
+      "errorHandling": []
+    },
+    "fn:components/base/ui/tabs.tsx:TabsList": {
+      "id": "fn:components/base/ui/tabs.tsx:TabsList",
+      "name": "TabsList",
+      "file": "components/base/ui/tabs.tsx",
+      "startLine": 17,
+      "endLine": 29,
+      "hash": "9d967902500d31fbe453b120a335a22fd6c8a7fc736620d3c098521ce1223c8f",
+      "calls": [],
+      "calledBy": [],
+      "moduleId": "components",
+      "params": [
+        {
+          "name": "{ className, ...props }",
+          "type": "TabsPrimitive.List.Props"
+        }
+      ],
+      "isExported": true,
+      "purpose": "Tabs list",
+      "edgeCasesHandled": [],
+      "errorHandling": []
+    },
+    "fn:components/base/ui/tabs.tsx:TabsIndicator": {
+      "id": "fn:components/base/ui/tabs.tsx:TabsIndicator",
+      "name": "TabsIndicator",
+      "file": "components/base/ui/tabs.tsx",
+      "startLine": 31,
+      "endLine": 42,
+      "hash": "f09fdb8f283b4fa2bd9b49f2b5fcf0fa8171dfeda578d362a43b2e206042b38f",
+      "calls": [],
+      "calledBy": [],
+      "moduleId": "components",
+      "params": [
+        {
+          "name": "{ className, ...props }",
+          "type": "TabsPrimitive.Indicator.Props"
+        }
+      ],
+      "isExported": true,
+      "purpose": "Tabs indicator",
+      "edgeCasesHandled": [],
+      "errorHandling": []
+    },
+    "fn:components/base/ui/tabs.tsx:TabsTrigger": {
+      "id": "fn:components/base/ui/tabs.tsx:TabsTrigger",
+      "name": "TabsTrigger",
+      "file": "components/base/ui/tabs.tsx",
+      "startLine": 44,
+      "endLine": 55,
+      "hash": "4decbe3cbe5cf7fd62b53eb71faea92435a6c63904ba8f1b4292a95125723f72",
+      "calls": [],
+      "calledBy": [],
+      "moduleId": "components",
+      "params": [
+        {
+          "name": "{ className, ...props }",
+          "type": "TabsPrimitive.Tab.Props"
+        }
+      ],
+      "isExported": true,
+      "purpose": "Tabs trigger",
+      "edgeCasesHandled": [],
+      "errorHandling": []
+    },
+    "fn:components/base/ui/tabs.tsx:TabsContent": {
+      "id": "fn:components/base/ui/tabs.tsx:TabsContent",
+      "name": "TabsContent",
+      "file": "components/base/ui/tabs.tsx",
+      "startLine": 57,
+      "endLine": 65,
+      "hash": "07950ce8e4caa3f6655aef1e28268bb75e1c2e2f23e5b920cc329f75eff6f1d9",
+      "calls": [],
+      "calledBy": [],
+      "moduleId": "components",
+      "params": [
+        {
+          "name": "{ className, ...props }",
+          "type": "TabsPrimitive.Panel.Props"
+        }
+      ],
+      "isExported": true,
+      "purpose": "Tabs content",
+      "edgeCasesHandled": [],
+      "errorHandling": []
+    },
+    "fn:components/base/ui/tooltip.tsx:TooltipProvider": {
+      "id": "fn:components/base/ui/tooltip.tsx:TooltipProvider",
+      "name": "TooltipProvider",
+      "file": "components/base/ui/tooltip.tsx",
+      "startLine": 7,
+      "endLine": 18,
+      "hash": "e06387d40d58f48b19cc4f59b4cda588c9260cbf014c8dcb93e5b9b44cc58310",
+      "calls": [],
+      "calledBy": [],
+      "moduleId": "components",
+      "params": [
+        {
+          "name": "{\r\n  delay = 0,\r\n  ...props\r\n}",
+          "type": "TooltipPrimitive.Provider.Props"
+        }
+      ],
+      "isExported": true,
+      "purpose": "Tooltip provider",
+      "edgeCasesHandled": [],
+      "errorHandling": []
+    },
+    "fn:components/base/ui/tooltip.tsx:TooltipRoot": {
+      "id": "fn:components/base/ui/tooltip.tsx:TooltipRoot",
+      "name": "TooltipRoot",
+      "file": "components/base/ui/tooltip.tsx",
+      "startLine": 20,
+      "endLine": 22,
+      "hash": "4bea21bde5e0f82dd90b4891cdd2c1f9fba2aeb38e86b1f95c14fe99858fdb8e",
+      "calls": [],
+      "calledBy": [],
+      "moduleId": "components",
+      "params": [
+        {
+          "name": "props",
+          "type": "TooltipPrimitive.Root.Props"
+        }
+      ],
+      "isExported": true,
+      "purpose": "Tooltip root",
+      "edgeCasesHandled": [],
+      "errorHandling": []
+    },
+    "fn:components/base/ui/tooltip.tsx:Tooltip": {
+      "id": "fn:components/base/ui/tooltip.tsx:Tooltip",
+      "name": "Tooltip",
+      "file": "components/base/ui/tooltip.tsx",
+      "startLine": 24,
+      "endLine": 30,
+      "hash": "c9ed838a094ed500f4e27b600ba9076db0bc135b48230989a6ff79823705e9a3",
+      "calls": [],
+      "calledBy": [],
+      "moduleId": "components",
+      "params": [
+        {
+          "name": "props",
+          "type": "TooltipPrimitive.Root.Props"
+        }
+      ],
+      "isExported": true,
+      "purpose": "Tooltip",
+      "edgeCasesHandled": [],
+      "errorHandling": []
+    },
+    "fn:components/base/ui/tooltip.tsx:TooltipTrigger": {
+      "id": "fn:components/base/ui/tooltip.tsx:TooltipTrigger",
+      "name": "TooltipTrigger",
+      "file": "components/base/ui/tooltip.tsx",
+      "startLine": 32,
+      "endLine": 34,
+      "hash": "549fa2d9f74bf68b1b45c7d955f02b267802215ada4b4e1e59a4d249d0932dfd",
+      "calls": [],
+      "calledBy": [],
+      "moduleId": "components",
+      "params": [
+        {
+          "name": "props",
+          "type": "TooltipPrimitive.Trigger.Props"
+        }
+      ],
+      "isExported": true,
+      "purpose": "Tooltip trigger",
+      "edgeCasesHandled": [],
+      "errorHandling": []
+    },
+    "fn:components/base/ui/tooltip.tsx:TooltipContent": {
+      "id": "fn:components/base/ui/tooltip.tsx:TooltipContent",
+      "name": "TooltipContent",
+      "file": "components/base/ui/tooltip.tsx",
+      "startLine": 36,
+      "endLine": 81,
+      "hash": "d1def7444cd0fb904f7159b990dfd1a966f0ce36642e87827dc35aa71f17be9e",
+      "calls": [],
+      "calledBy": [],
+      "moduleId": "components",
+      "params": [
+        {
+          "name": "{\r\n  className,\r\n  side = \"top\",\r\n  sideOffset = 8,\r\n  align = \"center\",\r\n  alignOffset = 0,\r\n  children,\r\n  ...props\r\n}",
+          "type": "TooltipPrimitive.Popup.Props & Pick< TooltipPrimitive.Positioner.Props, \"align\" | \"alignOffset\" | \"side\" | \"sideOffset\" >"
+        }
+      ],
+      "isExported": true,
+      "purpose": "Tooltip content",
+      "edgeCasesHandled": [],
+      "errorHandling": []
+    },
+    "fn:components/kibo-ui/contribution-graph/index.tsx:useContributionGraph": {
+      "id": "fn:components/kibo-ui/contribution-graph/index.tsx:useContributionGraph",
+      "name": "useContributionGraph",
+      "file": "components/kibo-ui/contribution-graph/index.tsx",
+      "startLine": 105,
+      "endLine": 115,
+      "hash": "5a18a1e583e465f9ba1fa0b010ade7d1f81ee65d1ad36a57777b975afcdf9909",
+      "calls": [],
+      "calledBy": [
+        "fn:components/kibo-ui/contribution-graph/index.tsx:ContributionGraphBlock",
+        "fn:components/kibo-ui/contribution-graph/index.tsx:ContributionGraphCalendar",
+        "fn:components/kibo-ui/contribution-graph/index.tsx:ContributionGraphTotalCount",
+        "fn:components/kibo-ui/contribution-graph/index.tsx:ContributionGraphLegend"
+      ],
+      "moduleId": "components-kibo-ui-image-zoom",
+      "purpose": "Hook for contribution graph",
+      "edgeCasesHandled": [
+        "!context"
+      ],
+      "errorHandling": [
+        {
+          "line": 109,
+          "type": "throw",
+          "detail": "new Error(\r\n      \"ContributionGraph components must be used within a ContributionGraph\"\r\n    )"
+        }
+      ]
+    },
+    "fn:components/kibo-ui/contribution-graph/index.tsx:fillHoles": {
+      "id": "fn:components/kibo-ui/contribution-graph/index.tsx:fillHoles",
+      "name": "fillHoles",
+      "file": "components/kibo-ui/contribution-graph/index.tsx",
+      "startLine": 117,
+      "endLine": 154,
+      "hash": "dac6ac1a4612a78b304038adbb188733512b2f9a1d3a113714780a1a3ec70215",
+      "calls": [],
+      "calledBy": [
+        "fn:components/kibo-ui/contribution-graph/index.tsx:groupByWeeks"
+      ],
+      "moduleId": "components-kibo-ui-image-zoom",
+      "params": [
+        {
+          "name": "activities",
+          "type": "Activity[]"
+        }
+      ],
+      "returnType": "Activity[]",
+      "purpose": "Fill holes (activities)",
+      "edgeCasesHandled": [
+        "activities.length === 0",
+        "!lastActivity",
+        "calendar.has(date)"
+      ],
+      "errorHandling": []
+    },
+    "fn:components/kibo-ui/contribution-graph/index.tsx:groupByWeeks": {
+      "id": "fn:components/kibo-ui/contribution-graph/index.tsx:groupByWeeks",
+      "name": "groupByWeeks",
+      "file": "components/kibo-ui/contribution-graph/index.tsx",
+      "startLine": 156,
+      "endLine": 186,
+      "hash": "f569d216e9b86f7b1607d15913acbd378a731b32c4a21ee4ec98eb6676234ebe",
+      "calls": [
+        "fn:components/kibo-ui/contribution-graph/index.tsx:fillHoles"
+      ],
+      "calledBy": [
+        "fn:components/kibo-ui/contribution-graph/index.tsx:ContributionGraph"
+      ],
+      "moduleId": "components-kibo-ui-image-zoom",
+      "params": [
+        {
+          "name": "activities",
+          "type": "Activity[]"
+        },
+        {
+          "name": "weekStart",
+          "type": "WeekDay",
+          "optional": true
+        }
+      ],
+      "returnType": "Week[]",
+      "purpose": "Group by weeks (activities, weekStart)",
+      "edgeCasesHandled": [
+        "activities.length === 0"
+      ],
+      "errorHandling": []
+    },
+    "fn:components/kibo-ui/contribution-graph/index.tsx:getMonthLabels": {
+      "id": "fn:components/kibo-ui/contribution-graph/index.tsx:getMonthLabels",
+      "name": "getMonthLabels",
+      "file": "components/kibo-ui/contribution-graph/index.tsx",
+      "startLine": 188,
+      "endLine": 234,
+      "hash": "d61facf0ec638040c7e7263ad48864ddff06325581cf5ea327ec12c52ff29e78",
+      "calls": [],
+      "calledBy": [
+        "fn:components/kibo-ui/contribution-graph/index.tsx:ContributionGraphCalendar"
+      ],
+      "moduleId": "components-kibo-ui-image-zoom",
+      "params": [
+        {
+          "name": "weeks",
+          "type": "Week[]"
+        },
+        {
+          "name": "monthNames",
+          "type": "string[]",
+          "optional": true
+        }
+      ],
+      "returnType": "MonthLabel[]",
+      "purpose": "Get month labels (weeks, monthNames)",
+      "edgeCasesHandled": [
+        "!firstActivity",
+        "!month",
+        "weekIndex === 0 || !prevLabel || prevLabel.label !== month",
+        "index === 0",
+        "index === labels.length - 1"
+      ],
+      "errorHandling": [
+        {
+          "line": 197,
+          "type": "throw",
+          "detail": "new Error(\r\n          `Unexpected error: Week ${weekIndex + 1} is empty: [${week}].`\r\n        )"
+        },
+        {
+          "line": 208,
+          "type": "throw",
+          "detail": "new Error(\r\n          `Unexpected error: undefined month label for ${monthName}.`\r\n        )"
+        }
+      ]
+    },
+    "fn:components/kibo-ui/contribution-graph/index.tsx:ContributionGraph": {
+      "id": "fn:components/kibo-ui/contribution-graph/index.tsx:ContributionGraph",
+      "name": "ContributionGraph",
+      "file": "components/kibo-ui/contribution-graph/index.tsx",
+      "startLine": 251,
+      "endLine": 315,
+      "hash": "618ab3f5dcc2be2f9673d5074420458c4bd6310131d5918d59cf11b8a2216895",
+      "calls": [
+        "fn:components/kibo-ui/contribution-graph/index.tsx:groupByWeeks"
+      ],
+      "calledBy": [],
+      "moduleId": "components-kibo-ui-image-zoom",
+      "params": [
+        {
+          "name": "{\r\n  data,\r\n  blockMargin = 4,\r\n  blockRadius = 2,\r\n  blockSize = 12,\r\n  fontSize = 14,\r\n  labels: labelsProp = undefined,\r\n  maxLevel: maxLevelProp = 4,\r\n  style = {},\r\n  totalCount: totalCountProp = undefined,\r\n  weekStart = 0,\r\n  className,\r\n  ...props\r\n}",
+          "type": "ContributionGraphProps"
+        }
+      ],
+      "isExported": true,
+      "purpose": "Contribution graph ({\r\n  data,\r\n  blockMargin = 4,\r\n  blockRadius = 2,\r\n  blockSize = 12,\r\n  fontSize = 14,\r\n  labels: labelsProp = undefined,\r\n  maxLevel: maxLevelProp = 4,\r\n  style = {},\r\n  totalCount: totalCountProp = undefined,\r\n  weekStart = 0,\r\n  className,\r\n  ...props\r\n})",
+      "edgeCasesHandled": [
+        "data.length === 0"
+      ],
+      "errorHandling": []
+    },
+    "fn:components/kibo-ui/contribution-graph/index.tsx:ContributionGraphBlock": {
+      "id": "fn:components/kibo-ui/contribution-graph/index.tsx:ContributionGraphBlock",
+      "name": "ContributionGraphBlock",
+      "file": "components/kibo-ui/contribution-graph/index.tsx",
+      "startLine": 323,
+      "endLine": 354,
+      "hash": "f573750f1fc34fe02790135d4bd4565c572bd0656380292199331bb0e2eedda4",
+      "calls": [
+        "fn:components/kibo-ui/contribution-graph/index.tsx:useContributionGraph"
+      ],
+      "calledBy": [],
+      "moduleId": "components-kibo-ui-image-zoom",
+      "params": [
+        {
+          "name": "{\r\n  activity,\r\n  dayIndex,\r\n  weekIndex,\r\n  className,\r\n  ...props\r\n}",
+          "type": "ContributionGraphBlockProps"
+        }
+      ],
+      "isExported": true,
+      "purpose": "Contribution graph block ({\r\n  activity,\r\n  dayIndex,\r\n  weekIndex,\r\n  className,\r\n  ...props\r\n})",
+      "edgeCasesHandled": [
+        "activity.level < 0 || activity.level > maxLevel"
+      ],
+      "errorHandling": [
+        {
+          "line": 334,
+          "type": "throw",
+          "detail": "new RangeError(\r\n      `Provided activity level ${activity.level} for ${activity.date} is out of range. It must be between 0 and ${maxLevel}.`\r\n    )"
+        }
+      ]
+    },
+    "fn:components/kibo-ui/contribution-graph/index.tsx:ContributionGraphCalendar": {
+      "id": "fn:components/kibo-ui/contribution-graph/index.tsx:ContributionGraphCalendar",
+      "name": "ContributionGraphCalendar",
+      "file": "components/kibo-ui/contribution-graph/index.tsx",
+      "startLine": 369,
+      "endLine": 425,
+      "hash": "a42f1a9ad224a177039e50af05b2e138d1c6428b06b846ea1bfe654c2e92fca4",
+      "calls": [
+        "fn:components/kibo-ui/contribution-graph/index.tsx:useContributionGraph",
+        "fn:components/kibo-ui/contribution-graph/index.tsx:getMonthLabels"
+      ],
+      "calledBy": [],
+      "moduleId": "components-kibo-ui-image-zoom",
+      "params": [
+        {
+          "name": "{\r\n  title = \"Contribution Graph\",\r\n  hideMonthLabels = false,\r\n  className,\r\n  children,\r\n  ...props\r\n}",
+          "type": "ContributionGraphCalendarProps"
+        }
+      ],
+      "isExported": true,
+      "purpose": "Contribution graph calendar ({\r\n  title = \"Contribution Graph\",\r\n  hideMonthLabels = false,\r\n  className,\r\n  children,\r\n  ...props\r\n})",
+      "edgeCasesHandled": [
+        "!activity"
+      ],
+      "errorHandling": []
+    },
+    "fn:components/kibo-ui/contribution-graph/index.tsx:ContributionGraphFooter": {
+      "id": "fn:components/kibo-ui/contribution-graph/index.tsx:ContributionGraphFooter",
+      "name": "ContributionGraphFooter",
+      "file": "components/kibo-ui/contribution-graph/index.tsx",
+      "startLine": 429,
+      "endLine": 440,
+      "hash": "9ec3cf3034f146087a38ca3646c63c34f0f1ac228428813c38686380a84050f3",
+      "calls": [],
+      "calledBy": [],
+      "moduleId": "components-kibo-ui-image-zoom",
+      "params": [
+        {
+          "name": "{\r\n  className,\r\n  ...props\r\n}",
+          "type": "ContributionGraphFooterProps"
+        }
+      ],
+      "isExported": true,
+      "purpose": "Contribution graph footer ({\r\n  className,\r\n  ...props\r\n})",
+      "edgeCasesHandled": [],
+      "errorHandling": []
+    },
+    "fn:components/kibo-ui/contribution-graph/index.tsx:ContributionGraphTotalCount": {
+      "id": "fn:components/kibo-ui/contribution-graph/index.tsx:ContributionGraphTotalCount",
+      "name": "ContributionGraphTotalCount",
+      "file": "components/kibo-ui/contribution-graph/index.tsx",
+      "startLine": 449,
+      "endLine": 469,
+      "hash": "628d6faa718eef4b0c80a28a98a596e211dbea46a47491dd3c7b39df80a127a1",
+      "calls": [
+        "fn:components/kibo-ui/contribution-graph/index.tsx:useContributionGraph"
+      ],
+      "calledBy": [],
+      "moduleId": "components-kibo-ui-image-zoom",
+      "params": [
+        {
+          "name": "{\r\n  className,\r\n  children,\r\n  ...props\r\n}",
+          "type": "ContributionGraphTotalCountProps"
+        }
+      ],
+      "isExported": true,
+      "purpose": "Contribution graph total count ({\r\n  className,\r\n  children,\r\n  ...props\r\n})",
+      "edgeCasesHandled": [
+        "children"
+      ],
+      "errorHandling": []
+    },
+    "fn:components/kibo-ui/contribution-graph/index.tsx:ContributionGraphLegend": {
+      "id": "fn:components/kibo-ui/contribution-graph/index.tsx:ContributionGraphLegend",
+      "name": "ContributionGraphLegend",
+      "file": "components/kibo-ui/contribution-graph/index.tsx",
+      "startLine": 478,
+      "endLine": 515,
+      "hash": "2072cc02fb3371d4e831d3882f05b14d6731b7880c74126a5790ee0d3d7764f3",
+      "calls": [
+        "fn:components/kibo-ui/contribution-graph/index.tsx:useContributionGraph"
+      ],
+      "calledBy": [],
+      "moduleId": "components-kibo-ui-image-zoom",
+      "params": [
+        {
+          "name": "{\r\n  className,\r\n  children,\r\n  ...props\r\n}",
+          "type": "ContributionGraphLegendProps"
+        }
+      ],
+      "isExported": true,
+      "purpose": "Contribution graph legend ({\r\n  className,\r\n  children,\r\n  ...props\r\n})",
+      "edgeCasesHandled": [],
+      "errorHandling": []
+    },
+    "fn:components/kibo-ui/image-zoom/index.tsx:ImageZoom": {
+      "id": "fn:components/kibo-ui/image-zoom/index.tsx:ImageZoom",
+      "name": "ImageZoom",
+      "file": "components/kibo-ui/image-zoom/index.tsx",
+      "startLine": 17,
+      "endLine": 53,
+      "hash": "a7ed20354ef9b4ba5c1d1a7a2f2cbf493ec715dee22a5a13bfd946ef92008d3a",
+      "calls": [],
+      "calledBy": [],
+      "moduleId": "components-kibo-ui-image-zoom",
+      "params": [
+        {
+          "name": "{\r\n  className,\r\n  backdropClassName,\r\n  ...props\r\n}",
+          "type": "ImageZoomProps"
+        }
+      ],
+      "isExported": true,
+      "purpose": "Image zoom ({\r\n  className,\r\n  backdropClassName,\r\n  ...props\r\n})",
+      "edgeCasesHandled": [],
+      "errorHandling": []
+    },
+    "fn:components/kibo-ui/marquee/index.tsx:Marquee": {
+      "id": "fn:components/kibo-ui/marquee/index.tsx:Marquee",
+      "name": "Marquee",
+      "file": "components/kibo-ui/marquee/index.tsx",
+      "startLine": 11,
+      "endLine": 16,
+      "hash": "ab1fe1d18346c98f3a29b85a9a8cf26ed8f35b7475e57d5149e7a3068c8464ab",
+      "calls": [],
+      "calledBy": [],
+      "moduleId": "components-kibo-ui-image-zoom",
+      "params": [
+        {
+          "name": "{ className, ...props }",
+          "type": "MarqueeProps"
+        }
+      ],
+      "isExported": true,
+      "purpose": "Marquee ({ className, ...props })",
+      "edgeCasesHandled": [],
+      "errorHandling": []
+    },
+    "fn:components/kibo-ui/marquee/index.tsx:MarqueeContent": {
+      "id": "fn:components/kibo-ui/marquee/index.tsx:MarqueeContent",
+      "name": "MarqueeContent",
+      "file": "components/kibo-ui/marquee/index.tsx",
+      "startLine": 20,
+      "endLine": 32,
+      "hash": "7be20fc1274de70dc0102fef287f4b5261686b08e39fda00484f92b5fca71966",
+      "calls": [],
+      "calledBy": [],
+      "moduleId": "components-kibo-ui-image-zoom",
+      "params": [
+        {
+          "name": "{\r\n  loop = 0,\r\n  autoFill = true,\r\n  pauseOnHover = true,\r\n  ...props\r\n}",
+          "type": "MarqueeContentProps"
+        }
+      ],
+      "isExported": true,
+      "purpose": "Marquee content ({\r\n  loop = 0,\r\n  autoFill = true,\r\n  pauseOnHover = true,\r\n  ...props\r\n})",
+      "edgeCasesHandled": [],
+      "errorHandling": []
+    },
+    "fn:components/kibo-ui/marquee/index.tsx:MarqueeFade": {
+      "id": "fn:components/kibo-ui/marquee/index.tsx:MarqueeFade",
+      "name": "MarqueeFade",
+      "file": "components/kibo-ui/marquee/index.tsx",
+      "startLine": 38,
+      "endLine": 51,
+      "hash": "32c4e488bfc7f48295423e85c4327c7b66a5a9a99fb6a6180abfee15cd345993",
+      "calls": [],
+      "calledBy": [],
+      "moduleId": "components-kibo-ui-image-zoom",
+      "params": [
+        {
+          "name": "{\r\n  className,\r\n  side,\r\n  ...props\r\n}",
+          "type": "MarqueeFadeProps"
+        }
+      ],
+      "isExported": true,
+      "purpose": "Marquee fade ({\r\n  className,\r\n  side,\r\n  ...props\r\n})",
+      "edgeCasesHandled": [],
+      "errorHandling": []
+    },
+    "fn:components/kibo-ui/marquee/index.tsx:MarqueeItem": {
+      "id": "fn:components/kibo-ui/marquee/index.tsx:MarqueeItem",
+      "name": "MarqueeItem",
+      "file": "components/kibo-ui/marquee/index.tsx",
+      "startLine": 55,
+      "endLine": 57,
+      "hash": "c1bfb4ca1c54fc04b275b15fa2ba9d31eeaa2cf32c13559259bb99057f5ccff9",
+      "calls": [],
+      "calledBy": [],
+      "moduleId": "components-kibo-ui-image-zoom",
+      "params": [
+        {
+          "name": "{ className, ...props }",
+          "type": "MarqueeItemProps"
+        }
+      ],
+      "isExported": true,
+      "purpose": "Marquee item ({ className, ...props })",
+      "edgeCasesHandled": [],
+      "errorHandling": []
+    }
+  },
+  "generics": {
+    "const:app/layout.tsx:metadata": {
+      "id": "const:app/layout.tsx:metadata",
+      "name": "metadata",
+      "type": "const",
+      "file": "app/layout.tsx",
+      "startLine": 17,
+      "endLine": 48,
+      "moduleId": "app",
+      "isExported": true,
+      "purpose": "Metadata"
+    },
+    "const:components/copy-button.tsx:motionIconVariants": {
+      "id": "const:components/copy-button.tsx:motionIconVariants",
+      "name": "motionIconVariants",
+      "type": "const",
+      "file": "components/copy-button.tsx",
+      "startLine": 20,
+      "endLine": 24,
+      "moduleId": "components",
+      "isExported": true,
+      "purpose": "Motion icon variants"
+    },
+    "const:components/copy-button.tsx:motionIconProps": {
+      "id": "const:components/copy-button.tsx:motionIconProps",
+      "name": "motionIconProps",
+      "type": "const",
+      "file": "components/copy-button.tsx",
+      "startLine": 26,
+      "endLine": 31,
+      "moduleId": "components",
+      "isExported": true,
+      "purpose": "Motion icon props"
+    },
+    "const:components/mdx.tsx:defaultMdxComponents": {
+      "id": "const:components/mdx.tsx:defaultMdxComponents",
+      "name": "defaultMdxComponents",
+      "type": "const",
+      "file": "components/mdx.tsx",
+      "startLine": 160,
+      "endLine": 167,
+      "moduleId": "components",
+      "isExported": true,
+      "purpose": "── EXPORTS ───────────────────────────────────────────"
+    },
+    "type:lib/events.ts:Event": {
+      "id": "type:lib/events.ts:Event",
+      "name": "Event",
+      "type": "type",
+      "file": "lib/events.ts",
+      "startLine": 3,
+      "endLine": 6,
+      "moduleId": "lib",
+      "isExported": true,
+      "purpose": "Stub events module — satisfies imports from legacy components"
+    },
+    "const:lib/source.ts:source": {
+      "id": "const:lib/source.ts:source",
+      "name": "source",
+      "type": "const",
+      "file": "lib/source.ts",
+      "startLine": 5,
+      "endLine": 8,
+      "moduleId": "lib",
+      "isExported": true,
+      "purpose": "Source"
+    },
+    "type:components/animated-icons/chevrons-down-up-icon.tsx:ChevronsDownUpIconHandle": {
+      "id": "type:components/animated-icons/chevrons-down-up-icon.tsx:ChevronsDownUpIconHandle",
+      "name": "ChevronsDownUpIconHandle",
+      "type": "type",
+      "file": "components/animated-icons/chevrons-down-up-icon.tsx",
+      "startLine": 6,
+      "endLine": 9,
+      "moduleId": "components",
+      "isExported": true,
+      "purpose": "Chevrons down up icon handle"
+    },
+    "type:components/animated-icons/chevrons-down-up-icon.tsx:ChevronsDownUpIconProps": {
+      "id": "type:components/animated-icons/chevrons-down-up-icon.tsx:ChevronsDownUpIconProps",
+      "name": "ChevronsDownUpIconProps",
+      "type": "type",
+      "file": "components/animated-icons/chevrons-down-up-icon.tsx",
+      "startLine": 11,
+      "endLine": 11,
+      "moduleId": "components",
+      "isExported": true,
+      "purpose": "Chevrons down up icon props"
+    },
+    "const:components/animated-icons/chevrons-down-up-icon.tsx:ChevronsDownUpIcon": {
+      "id": "const:components/animated-icons/chevrons-down-up-icon.tsx:ChevronsDownUpIcon",
+      "name": "ChevronsDownUpIcon",
+      "type": "const",
+      "file": "components/animated-icons/chevrons-down-up-icon.tsx",
+      "startLine": 13,
+      "endLine": 73,
+      "moduleId": "components",
+      "isExported": true,
+      "purpose": "Chevrons down up icon"
+    },
+    "intf:components/animated-icons/moon.tsx:MoonIconHandle": {
+      "id": "intf:components/animated-icons/moon.tsx:MoonIconHandle",
+      "name": "MoonIconHandle",
+      "type": "interface",
+      "file": "components/animated-icons/moon.tsx",
+      "startLine": 10,
+      "endLine": 13,
+      "moduleId": "components",
+      "isExported": true,
+      "purpose": "Moon icon handle"
+    },
+    "const:components/animated-icons/moon.tsx:MoonIcon": {
+      "id": "const:components/animated-icons/moon.tsx:MoonIcon",
+      "name": "MoonIcon",
+      "type": "const",
+      "file": "components/animated-icons/moon.tsx",
+      "startLine": 33,
+      "endLine": 94,
+      "moduleId": "components",
+      "isExported": true,
+      "purpose": "Moon icon"
+    },
+    "intf:components/animated-icons/sun-medium.tsx:SunMediumIconHandle": {
+      "id": "intf:components/animated-icons/sun-medium.tsx:SunMediumIconHandle",
+      "name": "SunMediumIconHandle",
+      "type": "interface",
+      "file": "components/animated-icons/sun-medium.tsx",
+      "startLine": 10,
+      "endLine": 13,
+      "moduleId": "components",
+      "isExported": true,
+      "purpose": "Sun medium icon handle"
+    },
+    "const:components/animated-icons/sun-medium.tsx:SunMediumIcon": {
+      "id": "const:components/animated-icons/sun-medium.tsx:SunMediumIcon",
+      "name": "SunMediumIcon",
+      "type": "const",
+      "file": "components/animated-icons/sun-medium.tsx",
+      "startLine": 27,
+      "endLine": 104,
+      "moduleId": "components",
+      "isExported": true,
+      "purpose": "Sun medium icon"
+    },
+    "const:components/ui/button.tsx:buttonVariants": {
+      "id": "const:components/ui/button.tsx:buttonVariants",
+      "name": "buttonVariants",
+      "type": "const",
+      "file": "components/ui/button.tsx",
+      "startLine": 7,
+      "endLine": 40,
+      "moduleId": "components",
+      "isExported": true,
+      "purpose": "Button variants",
+      "alsoIn": [
+        "components/ui/button_1.tsx"
+      ]
+    },
+    "const:components/ui/form.tsx:Form": {
+      "id": "const:components/ui/form.tsx:Form",
+      "name": "Form",
+      "type": "const",
+      "file": "components/ui/form.tsx",
+      "startLine": 21,
+      "endLine": 21,
+      "moduleId": "components",
+      "isExported": true,
+      "purpose": "Form"
+    },
+    "const:components/ui/navigation-menu.tsx:navigationMenuTriggerStyle": {
+      "id": "const:components/ui/navigation-menu.tsx:navigationMenuTriggerStyle",
+      "name": "navigationMenuTriggerStyle",
+      "type": "const",
+      "file": "components/ui/navigation-menu.tsx",
+      "startLine": 61,
+      "endLine": 63,
+      "moduleId": "components",
+      "isExported": true,
+      "purpose": "Navigation menu trigger style"
+    },
+    "type:components/kibo-ui/contribution-graph/index.tsx:Activity": {
+      "id": "type:components/kibo-ui/contribution-graph/index.tsx:Activity",
+      "name": "Activity",
+      "type": "type",
+      "file": "components/kibo-ui/contribution-graph/index.tsx",
+      "startLine": 29,
+      "endLine": 33,
+      "moduleId": "components-kibo-ui-image-zoom",
+      "isExported": true,
+      "purpose": "Activity"
+    },
+    "type:components/kibo-ui/contribution-graph/index.tsx:Labels": {
+      "id": "type:components/kibo-ui/contribution-graph/index.tsx:Labels",
+      "name": "Labels",
+      "type": "type",
+      "file": "components/kibo-ui/contribution-graph/index.tsx",
+      "startLine": 37,
+      "endLine": 45,
+      "moduleId": "components-kibo-ui-image-zoom",
+      "isExported": true,
+      "purpose": "Labels"
+    },
+    "type:components/kibo-ui/contribution-graph/index.tsx:ContributionGraphProps": {
+      "id": "type:components/kibo-ui/contribution-graph/index.tsx:ContributionGraphProps",
+      "name": "ContributionGraphProps",
+      "type": "type",
+      "file": "components/kibo-ui/contribution-graph/index.tsx",
+      "startLine": 236,
+      "endLine": 249,
+      "moduleId": "components-kibo-ui-image-zoom",
+      "isExported": true,
+      "purpose": "Contribution graph props"
+    },
+    "type:components/kibo-ui/contribution-graph/index.tsx:ContributionGraphBlockProps": {
+      "id": "type:components/kibo-ui/contribution-graph/index.tsx:ContributionGraphBlockProps",
+      "name": "ContributionGraphBlockProps",
+      "type": "type",
+      "file": "components/kibo-ui/contribution-graph/index.tsx",
+      "startLine": 317,
+      "endLine": 321,
+      "moduleId": "components-kibo-ui-image-zoom",
+      "isExported": true,
+      "purpose": "Contribution graph block props"
+    },
+    "type:components/kibo-ui/contribution-graph/index.tsx:ContributionGraphCalendarProps": {
+      "id": "type:components/kibo-ui/contribution-graph/index.tsx:ContributionGraphCalendarProps",
+      "name": "ContributionGraphCalendarProps",
+      "type": "type",
+      "file": "components/kibo-ui/contribution-graph/index.tsx",
+      "startLine": 356,
+      "endLine": 367,
+      "moduleId": "components-kibo-ui-image-zoom",
+      "isExported": true,
+      "purpose": "Contribution graph calendar props"
+    },
+    "type:components/kibo-ui/contribution-graph/index.tsx:ContributionGraphFooterProps": {
+      "id": "type:components/kibo-ui/contribution-graph/index.tsx:ContributionGraphFooterProps",
+      "name": "ContributionGraphFooterProps",
+      "type": "type",
+      "file": "components/kibo-ui/contribution-graph/index.tsx",
+      "startLine": 427,
+      "endLine": 427,
+      "moduleId": "components-kibo-ui-image-zoom",
+      "isExported": true,
+      "purpose": "Contribution graph footer props"
+    },
+    "type:components/kibo-ui/contribution-graph/index.tsx:ContributionGraphTotalCountProps": {
+      "id": "type:components/kibo-ui/contribution-graph/index.tsx:ContributionGraphTotalCountProps",
+      "name": "ContributionGraphTotalCountProps",
+      "type": "type",
+      "file": "components/kibo-ui/contribution-graph/index.tsx",
+      "startLine": 442,
+      "endLine": 447,
+      "moduleId": "components-kibo-ui-image-zoom",
+      "isExported": true,
+      "purpose": "Contribution graph total count props"
+    },
+    "type:components/kibo-ui/contribution-graph/index.tsx:ContributionGraphLegendProps": {
+      "id": "type:components/kibo-ui/contribution-graph/index.tsx:ContributionGraphLegendProps",
+      "name": "ContributionGraphLegendProps",
+      "type": "type",
+      "file": "components/kibo-ui/contribution-graph/index.tsx",
+      "startLine": 471,
+      "endLine": 476,
+      "moduleId": "components-kibo-ui-image-zoom",
+      "isExported": true,
+      "purpose": "Contribution graph legend props"
+    },
+    "type:components/kibo-ui/image-zoom/index.tsx:ImageZoomProps": {
+      "id": "type:components/kibo-ui/image-zoom/index.tsx:ImageZoomProps",
+      "name": "ImageZoomProps",
+      "type": "type",
+      "file": "components/kibo-ui/image-zoom/index.tsx",
+      "startLine": 10,
+      "endLine": 15,
+      "moduleId": "components-kibo-ui-image-zoom",
+      "isExported": true,
+      "purpose": "Image zoom props"
+    },
+    "type:components/kibo-ui/marquee/index.tsx:MarqueeProps": {
+      "id": "type:components/kibo-ui/marquee/index.tsx:MarqueeProps",
+      "name": "MarqueeProps",
+      "type": "type",
+      "file": "components/kibo-ui/marquee/index.tsx",
+      "startLine": 9,
+      "endLine": 9,
+      "moduleId": "components-kibo-ui-image-zoom",
+      "isExported": true,
+      "purpose": "Marquee props"
+    },
+    "type:components/kibo-ui/marquee/index.tsx:MarqueeContentProps": {
+      "id": "type:components/kibo-ui/marquee/index.tsx:MarqueeContentProps",
+      "name": "MarqueeContentProps",
+      "type": "type",
+      "file": "components/kibo-ui/marquee/index.tsx",
+      "startLine": 18,
+      "endLine": 18,
+      "moduleId": "components-kibo-ui-image-zoom",
+      "isExported": true,
+      "purpose": "Marquee content props"
+    },
+    "type:components/kibo-ui/marquee/index.tsx:MarqueeFadeProps": {
+      "id": "type:components/kibo-ui/marquee/index.tsx:MarqueeFadeProps",
+      "name": "MarqueeFadeProps",
+      "type": "type",
+      "file": "components/kibo-ui/marquee/index.tsx",
+      "startLine": 34,
+      "endLine": 36,
+      "moduleId": "components-kibo-ui-image-zoom",
+      "isExported": true,
+      "purpose": "Marquee fade props"
+    },
+    "type:components/kibo-ui/marquee/index.tsx:MarqueeItemProps": {
+      "id": "type:components/kibo-ui/marquee/index.tsx:MarqueeItemProps",
+      "name": "MarqueeItemProps",
+      "type": "type",
+      "file": "components/kibo-ui/marquee/index.tsx",
+      "startLine": 53,
+      "endLine": 53,
+      "moduleId": "components-kibo-ui-image-zoom",
+      "isExported": true,
+      "purpose": "Marquee item props"
+    },
+    "const:.source/server.ts:docs": {
+      "id": "const:.source/server.ts:docs",
+      "name": "docs",
+      "type": "const",
+      "file": ".source/server.ts",
+      "startLine": 23,
+      "endLine": 23,
+      "moduleId": "unknown",
+      "isExported": true,
+      "purpose": "Docs"
+    },
+    "const:.source/server.ts:meta": {
+      "id": "const:.source/server.ts:meta",
+      "name": "meta",
+      "type": "const",
+      "file": ".source/server.ts",
+      "startLine": 25,
+      "endLine": 25,
+      "moduleId": "unknown",
+      "isExported": true,
+      "purpose": "Meta"
+    }
+  },
+  "files": {
+    "source.config.ts": {
+      "path": "source.config.ts",
+      "hash": "ab53e81cb8a1a121b974aeaac2f1f34593180493a122affff4432f556dcb85bc",
+      "moduleId": "unknown",
+      "lastModified": "2026-03-14T04:55:36.800Z"
+    },
+    "app/layout.tsx": {
+      "path": "app/layout.tsx",
+      "hash": "a14bb4adfa1a20f5f03bf857c976f31dfba72886083fb07df4a2d55682a59b70",
+      "moduleId": "app",
+      "lastModified": "2026-03-14T04:55:36.808Z"
+    },
+    "app/page.tsx": {
+      "path": "app/page.tsx",
+      "hash": "e80cbf5e73680c3a7d87fbb971b88def4ab001b651e0c3a7f2a34ec76fed4749",
+      "moduleId": "app",
+      "lastModified": "2026-03-14T04:55:36.830Z"
+    },
+    "components/code-block-command.tsx": {
+      "path": "components/code-block-command.tsx",
+      "hash": "131c80a169be38431c7ad1483dd1f571ba62c8588af39c5a2ea445de9dbc8a09",
+      "moduleId": "components",
+      "lastModified": "2026-03-14T04:55:36.834Z",
+      "imports": [
+        "components/copy-button.tsx"
+      ]
+    },
+    "components/code-block-figure.tsx": {
+      "path": "components/code-block-figure.tsx",
+      "hash": "d936c30df26720bb29b6476fc2564b385fbe9e3c7988a98d20555cc5000efd44",
+      "moduleId": "components",
+      "lastModified": "2026-03-14T04:55:36.840Z"
+    },
+    "components/code-collapsible-wrapper.tsx": {
+      "path": "components/code-collapsible-wrapper.tsx",
+      "hash": "3ddd31ff9028f4844a6828f4c8e078495a2ba76f96066b5f296e07d40c891563",
+      "moduleId": "components",
+      "lastModified": "2026-03-14T04:55:36.842Z"
+    },
+    "components/code-tabs.tsx": {
+      "path": "components/code-tabs.tsx",
+      "hash": "be926369cebf1b8057b45ea90b4af1940598a503730384338c082eb70c7755f5",
+      "moduleId": "components",
+      "lastModified": "2026-03-14T04:55:36.844Z",
+      "imports": [
+        "components/base/ui/tabs.tsx"
+      ]
+    },
+    "components/collapsible-list.tsx": {
+      "path": "components/collapsible-list.tsx",
+      "hash": "d7f7bb5cc2decb041471a77ad6eae63e8ffc0dffcab8356d307bf7ad1997dc5d",
+      "moduleId": "components",
+      "lastModified": "2026-03-14T04:55:36.847Z"
+    },
+    "components/command-menu.tsx": {
+      "path": "components/command-menu.tsx",
+      "hash": "4ccce23e569c519db27ddc974c3032b3362d264ddac686745f9e37b21f2b7e1d",
+      "moduleId": "components",
+      "lastModified": "2026-03-14T04:55:36.860Z",
+      "imports": [
+        "components/ui/button.tsx",
+        "components/ui/kbd.tsx",
+        "components/ui/separator.tsx"
+      ]
+    },
+    "components/consent-manager-client.tsx": {
+      "path": "components/consent-manager-client.tsx",
+      "hash": "b5c246dffe18ca68394f21370967e7f981228320adacb8ace035167b1aa6e329",
+      "moduleId": "components",
+      "lastModified": "2026-03-14T04:55:36.862Z"
+    },
+    "components/consent-manager.tsx": {
+      "path": "components/consent-manager.tsx",
+      "hash": "2fe1917e4740b4811419b9a3ba173849674d83990e9ceb9d69b77d38697b4545",
+      "moduleId": "components",
+      "lastModified": "2026-03-14T04:55:36.864Z",
+      "imports": [
+        "components/consent-manager-client.tsx"
+      ]
+    },
+    "components/copy-button.tsx": {
+      "path": "components/copy-button.tsx",
+      "hash": "584ceb4d7b6841ace9f1540b038b8f71663bb67e381417cb144fd3746902b9bd",
+      "moduleId": "components",
+      "lastModified": "2026-03-14T04:55:36.867Z",
+      "imports": [
+        "components/ui/button.tsx"
+      ]
+    },
+    "components/copy-markdown-button.tsx": {
+      "path": "components/copy-markdown-button.tsx",
+      "hash": "1face21471c129b7a60d0edbf220fd875242feb0a5d34f1a02ff59a59d8314b5",
+      "moduleId": "components",
+      "lastModified": "2026-03-14T04:55:36.869Z"
+    },
+    "components/header.tsx": {
+      "path": "components/header.tsx",
+      "hash": "628c13aa7345d0c3192d1cbea60a4e8ed3183819d7a5f3c1455393aea2d926ad",
+      "moduleId": "components",
+      "lastModified": "2026-03-14T04:55:36.872Z"
+    },
+    "components/markdown.tsx": {
+      "path": "components/markdown.tsx",
+      "hash": "f48b1e23c93dce1d180f45f767517298342cacdb2ad2a90cc796886ee145bf56",
+      "moduleId": "components",
+      "lastModified": "2026-03-14T04:55:36.873Z"
+    },
+    "components/mdx copy.tsx": {
+      "path": "components/mdx copy.tsx",
+      "hash": "93bc1d8a733aa0683f36441aa092d1a59dd606b1571c0cdd4a516661721e2afa",
+      "moduleId": "components",
+      "lastModified": "2026-03-14T04:55:36.877Z",
+      "imports": [
+        "components/code-block-command.tsx",
+        "components/code-tabs.tsx",
+        "components/copy-button.tsx"
+      ]
+    },
+    "components/mdx.tsx": {
+      "path": "components/mdx.tsx",
+      "hash": "30190912a3c06c0998e53cb098206cdc446d35bf699fecd6958f42867f6c9dca",
+      "moduleId": "components",
+      "lastModified": "2026-03-14T04:55:36.882Z"
+    },
+    "components/not-found.tsx": {
+      "path": "components/not-found.tsx",
+      "hash": "0470ce8fe46caa557c2a8e4eff3d323b0ad0ed15c4fee477f09e55f4e98ecd82",
+      "moduleId": "components",
+      "lastModified": "2026-03-14T04:55:36.883Z"
+    },
+    "components/search-dialog.tsx": {
+      "path": "components/search-dialog.tsx",
+      "hash": "d1a9a5f2f1b62d3c681e60c59b5a2a5dbae15d54d20d1d51407966d9c8258cb2",
+      "moduleId": "components",
+      "lastModified": "2026-03-14T04:55:36.887Z"
+    },
+    "components/sidebar.tsx": {
+      "path": "components/sidebar.tsx",
+      "hash": "2eb2ea163b5d96501c789e45ca867d1e394b900abf5cf5f595daa5983c228f06",
+      "moduleId": "components",
+      "lastModified": "2026-03-14T04:55:36.891Z"
+    },
+    "components/toc.tsx": {
+      "path": "components/toc.tsx",
+      "hash": "6146e42461cfdb65ddfe3ede3f4e1e315379a63589aa7e6f367f7cfcf90b4a4a",
+      "moduleId": "components",
+      "lastModified": "2026-03-14T04:55:36.894Z"
+    },
+    "lib/events.ts": {
+      "path": "lib/events.ts",
+      "hash": "27f1160a712b9978cc8ef7daaf7e3ecbf5867dce2521f6698700b34488104801",
+      "moduleId": "lib",
+      "lastModified": "2026-03-14T04:55:36.895Z"
+    },
+    "lib/layout.shared.tsx": {
+      "path": "lib/layout.shared.tsx",
+      "hash": "abf6838113abaa26983fd776935c9000828dfc846b2fee6752f204d3c2aaa6da",
+      "moduleId": "lib",
+      "lastModified": "2026-03-14T04:55:36.895Z"
+    },
+    "lib/source.ts": {
+      "path": "lib/source.ts",
+      "hash": "d57f3144c44a2f1063f11e45d8b84e59b13f4f5636302c880b0a0fb57782a804",
+      "moduleId": "lib",
+      "lastModified": "2026-03-14T04:55:36.896Z"
+    },
+    "lib/utils.ts": {
+      "path": "lib/utils.ts",
+      "hash": "7c8c3dfc0cdd370d44932828eb067ef771c8fe7996693221d5d4b90af6d54f2d",
+      "moduleId": "lib",
+      "lastModified": "2026-03-14T04:55:36.896Z"
+    },
+    "providers/fuma-provider.tsx": {
+      "path": "providers/fuma-provider.tsx",
+      "hash": "b216d8a0ab10eec3a39e7a2279c79b0b5bfbe62a1e4ed9bfc3fb88ca5182c3a3",
+      "moduleId": "providers",
+      "lastModified": "2026-03-14T04:55:36.896Z"
+    },
+    "providers/providers.tsx": {
+      "path": "providers/providers.tsx",
+      "hash": "89d8ad6ff72cb1e196bd453a66889aeb2744918a2b2dfa3fb7e5a9926aa5c77b",
+      "moduleId": "providers",
+      "lastModified": "2026-03-14T04:55:36.897Z",
+      "imports": [
+        "providers/fuma-provider.tsx",
+        "providers/theme-provider.tsx"
+      ]
+    },
+    "providers/theme-provider.tsx": {
+      "path": "providers/theme-provider.tsx",
+      "hash": "b32eb0900f2f1d1ba5c06b4006dedb06e3f28de0032935fd3c44443687cf49d8",
+      "moduleId": "providers",
+      "lastModified": "2026-03-14T04:55:36.898Z"
+    },
+    "app/docs/layout.tsx": {
+      "path": "app/docs/layout.tsx",
+      "hash": "1344eb81a88a7f9a7b4060d314a5ed7f55d9e82b675a358fbe7eecc49c23f37d",
+      "moduleId": "app-docs",
+      "lastModified": "2026-03-14T04:55:36.899Z"
+    },
+    "components/animated-icons/chevrons-down-up-icon.tsx": {
+      "path": "components/animated-icons/chevrons-down-up-icon.tsx",
+      "hash": "50127c44e6c3d30e34874809f8da788ceb719fafc70b766e8f8a3faefa793647",
+      "moduleId": "components",
+      "lastModified": "2026-03-14T04:55:36.900Z"
+    },
+    "components/animated-icons/moon.tsx": {
+      "path": "components/animated-icons/moon.tsx",
+      "hash": "74a152d7bc5dbf8c7db03441fa1b9be7a67b88de2eebc4f333c1cc45ac3843c6",
+      "moduleId": "components",
+      "lastModified": "2026-03-14T04:55:36.901Z"
+    },
+    "components/animated-icons/sun-medium.tsx": {
+      "path": "components/animated-icons/sun-medium.tsx",
+      "hash": "32d63f5748b4502f14c5af099f9ba8fba4c8854940de4089841a8a9bfc39c0d9",
+      "moduleId": "components",
+      "lastModified": "2026-03-14T04:55:36.903Z"
+    },
+    "components/ui/breadcrumb.tsx": {
+      "path": "components/ui/breadcrumb.tsx",
+      "hash": "2b47430223f5097256d2ff5c8471a053cb67afba5af905c97fa3a8d5f160f1fb",
+      "moduleId": "components",
+      "lastModified": "2026-03-14T04:55:36.905Z"
+    },
+    "components/ui/button.tsx": {
+      "path": "components/ui/button.tsx",
+      "hash": "92b5afc25aca32f40b55b3b21fec0c23c5f17451a1955f6d21d34331a56c9b4e",
+      "moduleId": "components",
+      "lastModified": "2026-03-14T04:55:36.906Z"
+    },
+    "components/ui/button_1.tsx": {
+      "path": "components/ui/button_1.tsx",
+      "hash": "3a50247df68ebef6c1685ab23ebc20ebc9af8bbddd635663905716406d54b7dd",
+      "moduleId": "components",
+      "lastModified": "2026-03-14T04:55:36.907Z"
+    },
+    "components/ui/collapsible.tsx": {
+      "path": "components/ui/collapsible.tsx",
+      "hash": "28148aafd77cc5762f3ce48fc3e7dfb33ab96b088aedffe6ca1053444210b42c",
+      "moduleId": "components",
+      "lastModified": "2026-03-14T04:55:36.908Z",
+      "imports": [
+        "components/animated-icons/chevrons-down-up-icon.tsx"
+      ]
+    },
+    "components/ui/command.tsx": {
+      "path": "components/ui/command.tsx",
+      "hash": "058ff3c19e0fc1b32ef9d8046d3adcda513ea3a3f27379a0c5a2133976e5118f",
+      "moduleId": "components",
+      "lastModified": "2026-03-14T04:55:36.911Z"
+    },
+    "components/ui/context-menu.tsx": {
+      "path": "components/ui/context-menu.tsx",
+      "hash": "af05b9ce1b805167a66f6beaad7551debadd7e91272778ca0f31525ab573cc72",
+      "moduleId": "components",
+      "lastModified": "2026-03-14T04:55:36.913Z"
+    },
+    "components/ui/dialog.tsx": {
+      "path": "components/ui/dialog.tsx",
+      "hash": "f02087fabc840bd5636ead865295b55c4065f425052bba567fb2b667b5ed1eaa",
+      "moduleId": "components",
+      "lastModified": "2026-03-14T04:55:36.915Z"
+    },
+    "components/ui/dropdown-menu.tsx": {
+      "path": "components/ui/dropdown-menu.tsx",
+      "hash": "a2ff8d149b2d5a70439035f331c950070cfec41e91dd29b70bbef8fa6a60c757",
+      "moduleId": "components",
+      "lastModified": "2026-03-14T04:55:36.917Z"
+    },
+    "components/ui/form.tsx": {
+      "path": "components/ui/form.tsx",
+      "hash": "1f602e42f147664a9d8a11d14ad4bad6ad5a560268cf94070596004a153d7c7a",
+      "moduleId": "components",
+      "lastModified": "2026-03-14T04:55:36.919Z"
+    },
+    "components/ui/input-group.tsx": {
+      "path": "components/ui/input-group.tsx",
+      "hash": "3fed86a1446922d3b1cecb3d296763c4c989d6fed880619179166dff0e91176e",
+      "moduleId": "components",
+      "lastModified": "2026-03-14T04:55:36.921Z"
+    },
+    "components/ui/input.tsx": {
+      "path": "components/ui/input.tsx",
+      "hash": "9b931775678d9487d420ae64d638bf9bb8a47567f7a88e29d476b5db255d7fb3",
+      "moduleId": "components",
+      "lastModified": "2026-03-14T04:55:36.922Z"
+    },
+    "components/ui/kbd.tsx": {
+      "path": "components/ui/kbd.tsx",
+      "hash": "1234f0bd6e6a321b3d0ee297636166c10b1a344635992f2bfdb555b22451fbb8",
+      "moduleId": "components",
+      "lastModified": "2026-03-14T04:55:36.923Z"
+    },
+    "components/ui/label.tsx": {
+      "path": "components/ui/label.tsx",
+      "hash": "b8a51193998db2f5b73e78d30d09f0195179b6a09cb327a36ae2dc9c63b78f59",
+      "moduleId": "components",
+      "lastModified": "2026-03-14T04:55:36.924Z"
+    },
+    "components/ui/navigation-menu.tsx": {
+      "path": "components/ui/navigation-menu.tsx",
+      "hash": "06e067c0113466bfa488c09609e2608d4ac263de618c5cc003570c80d4e2e48c",
+      "moduleId": "components",
+      "lastModified": "2026-03-14T04:55:36.926Z"
+    },
+    "components/ui/scroll-area copy.tsx": {
+      "path": "components/ui/scroll-area copy.tsx",
+      "hash": "c6b164b6bddeaaaff908837d30fee5ecf4c086f446c22d69e7d9d74659d8f598",
+      "moduleId": "components",
+      "lastModified": "2026-03-14T04:55:36.927Z"
+    },
+    "components/ui/scroll-area.tsx": {
+      "path": "components/ui/scroll-area.tsx",
+      "hash": "c3e7e2201d33bc24e439b18f3d3eb2568578eb017ca995c899ed0924a569b15d",
+      "moduleId": "components",
+      "lastModified": "2026-03-14T04:55:36.928Z"
+    },
+    "components/ui/separator.tsx": {
+      "path": "components/ui/separator.tsx",
+      "hash": "c924a82e99fda03684c17238d04eec857edc83977da2ee601795e94e52b4828f",
+      "moduleId": "components",
+      "lastModified": "2026-03-14T04:55:36.928Z"
+    },
+    "components/ui/sheet.tsx": {
+      "path": "components/ui/sheet.tsx",
+      "hash": "d8873f28505b1bf68d4ccfc6e39c98f73072a4b8e92870044156a27be76e75e7",
+      "moduleId": "components",
+      "lastModified": "2026-03-14T04:55:36.930Z"
+    },
+    "components/ui/sonner.tsx": {
+      "path": "components/ui/sonner.tsx",
+      "hash": "7577989e16a5153aa3b394899434cb71bb84005ded10bacdae1f5bdbebc840e6",
+      "moduleId": "components",
+      "lastModified": "2026-03-14T04:55:36.931Z"
+    },
+    "components/ui/table.tsx": {
+      "path": "components/ui/table.tsx",
+      "hash": "82ce2ce0dad2cb0984b88bf286050f10b06c373f8791adda32b0b633612c5f9d",
+      "moduleId": "components",
+      "lastModified": "2026-03-14T04:55:36.932Z"
+    },
+    "components/ui/tabs.tsx": {
+      "path": "components/ui/tabs.tsx",
+      "hash": "ae1a5ab78c00391b99481a415ce99ab56beb72b1bb044247df4e3b208b9ae36a",
+      "moduleId": "components",
+      "lastModified": "2026-03-14T04:55:36.933Z"
+    },
+    "components/ui/tag.tsx": {
+      "path": "components/ui/tag.tsx",
+      "hash": "46e170f8915841094c94cea83f7f2aefad86831a4534837c6512e6e82cedbc9f",
+      "moduleId": "components",
+      "lastModified": "2026-03-14T04:55:36.934Z"
+    },
+    "components/ui/textarea.tsx": {
+      "path": "components/ui/textarea.tsx",
+      "hash": "ef0bdba8aafa59184577d49116214a50c96c0daf4081e137b5cb61ef4af27def",
+      "moduleId": "components",
+      "lastModified": "2026-03-14T04:55:36.934Z"
+    },
+    "components/ui/tooltip.tsx": {
+      "path": "components/ui/tooltip.tsx",
+      "hash": "83f79902d3486a0ac8ab12e5bd7143cf3340b1ef67e409e84bd53b031a0ede85",
+      "moduleId": "components",
+      "lastModified": "2026-03-14T04:55:36.935Z"
+    },
+    "components/ui/typography.tsx": {
+      "path": "components/ui/typography.tsx",
+      "hash": "3d31595b8144939ac8a6b9d84bd69d4bffdf18252672f22b5d8e5f5e9343e371",
+      "moduleId": "components",
+      "lastModified": "2026-03-14T04:55:36.936Z"
+    },
+    "app/api/search/route.ts": {
+      "path": "app/api/search/route.ts",
+      "hash": "353e088b13a0c3701c4a3539b0f9c60335cee195433f5ff245e20981abdd8799",
+      "moduleId": "app-api-search",
+      "lastModified": "2026-03-14T04:55:36.937Z"
+    },
+    "app/docs/[[...slug]]/page.tsx": {
+      "path": "app/docs/[[...slug]]/page.tsx",
+      "hash": "78e6a497e6ae5944e5ec92f5a1943ae9a36dbd7dd47f064f908788e1d0756026",
+      "moduleId": "unknown",
+      "lastModified": "2026-03-14T04:55:36.939Z"
+    },
+    "components/base/ui/tabs.tsx": {
+      "path": "components/base/ui/tabs.tsx",
+      "hash": "39d0c51ca0d623a68db2f80155745cea12975932b20aa1bc1f7d700321cbcc04",
+      "moduleId": "components",
+      "lastModified": "2026-03-14T04:55:36.940Z"
+    },
+    "components/base/ui/tooltip.tsx": {
+      "path": "components/base/ui/tooltip.tsx",
+      "hash": "003f88de787ee1a8cf3111202949bd8cec9d05127f64d7b341e95af957a60028",
+      "moduleId": "components",
+      "lastModified": "2026-03-14T04:55:36.941Z"
+    },
+    "components/kibo-ui/contribution-graph/index.tsx": {
+      "path": "components/kibo-ui/contribution-graph/index.tsx",
+      "hash": "2c6f058a628b3bc5c805104c70fc551a6d673d1ecf802e31a3a11ae8960f4bfb",
+      "moduleId": "components-kibo-ui-image-zoom",
+      "lastModified": "2026-03-14T04:55:36.947Z"
+    },
+    "components/kibo-ui/image-zoom/index.tsx": {
+      "path": "components/kibo-ui/image-zoom/index.tsx",
+      "hash": "db751cf16686918b6f229f2f42555f5452e3f976868f40f5f2ad94fd374c62aa",
+      "moduleId": "components-kibo-ui-image-zoom",
+      "lastModified": "2026-03-14T04:55:36.948Z"
+    },
+    "components/kibo-ui/marquee/index.tsx": {
+      "path": "components/kibo-ui/marquee/index.tsx",
+      "hash": "98c35a0edf03f5774b5bd39ded5c5c9dcb6f88f0cb2e49a6543a10fd5816cd89",
+      "moduleId": "components-kibo-ui-image-zoom",
+      "lastModified": "2026-03-14T04:55:36.949Z"
+    },
+    ".source/server.ts": {
+      "path": ".source/server.ts",
+      "hash": "fb152a480fcb751f8283c6838917719cd0a974fe03847cf258c49e52487eb39d",
+      "moduleId": "unknown",
+      "lastModified": "2026-03-14T04:55:45.325Z"
+    }
+  },
+  "graph": {
+    "nodes": 364,
+    "edges": 248,
+    "rootHash": "33188029b9671a747c0c6ae0c0126145f9499641fc236523144a903500cfeedf"
+  }
+}
