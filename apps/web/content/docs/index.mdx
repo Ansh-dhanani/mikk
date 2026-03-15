@@ -1,24 +1,42 @@
 ---
-title: Introduction
-description: Mikk gives your AI real codebase intelligence — parsed AST, full dependency graph, Merkle hashing, and a live MCP server. Zero cloud. Zero hallucination.
+title: "Introduction"
+description: "Mikk gives your AI real codebase intelligence — parsed AST, full dependency graph, Merkle hashing, and a live MCP server. Zero cloud. Zero hallucination."
 ---
 
+export const SectionSpacer = () => <div style={{ marginTop: '2rem' }} />;
+export const Table = ({ children }) => (
+  <div style={{ marginTop: '2rem', overflowX: 'auto' }}>
+    <table className="w-full border-collapse border border-border/40 text-sm">
+      {children}
+    </table>
+  </div>
+);
+
+<SectionSpacer />
 <Callout title="Your AI doesn't understand your codebase. Mikk fixes that." type="info">
   Mikk parses your entire project via the TypeScript Compiler API, builds a bidirectional dependency
   graph, hashes everything with Merkle-tree SHA-256, and serves it through an MCP server that
   Claude, Cursor, and VS Code Copilot call directly. **Everything stays on your machine.**
 </Callout>
 
+<SectionSpacer />
 ## What is Mikk?
 
 LLMs write great code — for codebases they've never seen. They don't know your module boundaries, can't trace your dependency graph, and have no idea that touching `login.ts` breaks 14 downstream functions across 3 packages.
 
 Mikk fixes that by giving AI assistants **real architectural intelligence** — not guesses.
 
+<SectionSpacer />
 ## The 7-Step Pipeline
+
+
+<SectionSpacer />
 
 Everything happens in ~3 seconds when you run `mikk init`:
 
+<SectionSpacer />
+
+<SectionSpacer />
 <Steps>
   <Step>
     ### Parse
@@ -50,8 +68,10 @@ Everything happens in ~3 seconds when you run `mikk init`:
   </Step>
 </Steps>
 
+<SectionSpacer />
 ## Key Capabilities
 
+<SectionSpacer />
 <Cards>
   <Card title="AI Context Builder" description="BFS graph-traced, token-budgeted context payloads with exact file paths and line ranges." />
   <Card title="Impact Analysis" description="Full blast radius of any file change — every upstream caller, every downstream dependency." />
@@ -63,23 +83,58 @@ Everything happens in ~3 seconds when you run `mikk init`:
   <Card title="Full AST Parsing" description="TypeScript · TSX · JavaScript · JSX · Go. Compiler-grade parsing — no regex guessing." />
 </Cards>
 
+<SectionSpacer />
 ## Package Ecosystem
 
 Mikk is a Turborepo monorepo with 8 npm packages under `@getmikk`:
 
-| Package | Role |
-|---------|------|
-| `@getmikk/core` | AST parsing, dependency graph, Merkle hashing, contract management |
-| `@getmikk/cli` | 15+ commands — init, analyze, diff, watch, contracts, context, intent |
-| `@getmikk/ai-context` | BFS graph tracing, token budgeting, `claude.md` generation |
-| `@getmikk/mcp-server` | MCP server — 15 tools, 3 resources for AI assistants |
-| `@getmikk/intent-engine` | NL prompt parsing, conflict detection (6 rule types) |
-| `@getmikk/watcher` | Debounced incremental watcher, atomic updates |
-| `@getmikk/diagram-generator` | Mermaid.js diagrams, 8 diagram types |
-| `@getmikk/vscode-extension` | VS Code tree, impact analysis, AI context, status bar |
+<Table>
+  <thead>
+    <tr>
+      <th>Package</th>
+      <th>Role</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>@getmikk/core</td>
+      <td>AST parsing, dependency graph, Merkle hashing, contract management</td>
+    </tr>
+    <tr>
+      <td>@getmikk/cli</td>
+      <td>15+ commands — init, analyze, diff, watch, contracts, context, intent</td>
+    </tr>
+    <tr>
+      <td>@getmikk/ai-context</td>
+      <td>BFS graph tracing, token budgeting, claude.md generation</td>
+    </tr>
+    <tr>
+      <td>@getmikk/mcp-server</td>
+      <td>MCP server — 15 tools, 3 resources for AI assistants</td>
+    </tr>
+    <tr>
+      <td>@getmikk/intent-engine</td>
+      <td>NL prompt parsing, conflict detection (6 rule types)</td>
+    </tr>
+    <tr>
+      <td>@getmikk/watcher</td>
+      <td>Debounced incremental watcher, atomic updates</td>
+    </tr>
+    <tr>
+      <td>@getmikk/diagram-generator</td>
+      <td>Mermaid.js diagrams, 8 diagram types</td>
+    </tr>
+    <tr>
+      <td>@getmikk/vscode-extension</td>
+      <td>VS Code tree, impact analysis, AI context, status bar</td>
+    </tr>
+  </tbody>
+</Table>
 
+<SectionSpacer />
 ## Next Steps
 
+<SectionSpacer />
 <Cards>
   <Card title="Installation & Quick Start" href="/docs/core/installation" description="Get Mikk running in your project in under 3 minutes." />
   <Card title="Core Concepts" href="/docs/core/concepts" description="Understand the Mesh, Merkle hashing, and the AI Context Builder." />

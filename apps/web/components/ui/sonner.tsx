@@ -1,38 +1,49 @@
-"use client";
+"use client"
 
-import { useTheme } from "next-themes";
-import type { ToasterProps } from "sonner";
-import { Toaster as Sonner } from "sonner";
-
-import { cn } from "@/lib/utils";
+import { useTheme } from "next-themes"
+import { Toaster as Sonner, type ToasterProps } from "sonner"
+import { CircleCheckIcon, InfoIcon, TriangleAlertIcon, OctagonXIcon, Loader2Icon } from "lucide-react"
 
 const Toaster = ({ ...props }: ToasterProps) => {
-  const { theme = "system" } = useTheme();
+  const { theme = "system" } = useTheme()
 
   return (
     <Sonner
       theme={theme as ToasterProps["theme"]}
       className="toaster group"
-      toastOptions={{
-        classNames: {
-          toast: cn(
-            "group-[.toaster]:border-none! group-[.toaster]:shadow-md!",
-            "group-[.toaster]:backdrop-blur-md supports-backdrop-filter:group-[.toaster]:bg-popover/90!",
-            "group-[.toaster]:ring-1! group-[.toaster]:ring-black/10! dark:group-[.toaster]:ring-white/15!"
-          ),
-        },
+      icons={{
+        success: (
+          <CircleCheckIcon className="size-4" />
+        ),
+        info: (
+          <InfoIcon className="size-4" />
+        ),
+        warning: (
+          <TriangleAlertIcon className="size-4" />
+        ),
+        error: (
+          <OctagonXIcon className="size-4" />
+        ),
+        loading: (
+          <Loader2Icon className="size-4 animate-spin" />
+        ),
       }}
       style={
         {
-          "--normal-bg": "var(--cd-popover)",
-          "--normal-text": "var(--cd-popover-foreground)",
-          "--normal-border": "var(--cd-border)",
-          "--border-radius": "var(--radius-xl)",
+          "--normal-bg": "var(--popover)",
+          "--normal-text": "var(--popover-foreground)",
+          "--normal-border": "var(--border)",
+          "--border-radius": "var(--radius)",
         } as React.CSSProperties
       }
+      toastOptions={{
+        classNames: {
+          toast: "cn-toast",
+        },
+      }}
       {...props}
     />
-  );
-};
+  )
+}
 
-export { Toaster };
+export { Toaster }

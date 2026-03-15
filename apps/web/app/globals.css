@@ -10,35 +10,24 @@
 :root {
   --background: oklch(0.985 0.002 260);
   --foreground: oklch(0.22 0.01 260);
-
   --card: oklch(0.97 0.003 260);
   --card-foreground: oklch(0.22 0.01 260);
-
   --popover: oklch(0.97 0.003 260);
   --popover-foreground: oklch(0.22 0.01 260);
-
-  /* Brand accent */
   --primary: oklch(0.56 0.18 262);
   --primary-foreground: oklch(0.99 0.01 260);
-
   --secondary: oklch(0.94 0.01 260);
   --secondary-foreground: oklch(0.25 0.01 260);
-
   --muted: oklch(0.94 0.008 260);
   --muted-foreground: oklch(0.50 0.015 260);
-
   --accent: oklch(0.94 0.015 260);
   --accent-foreground: oklch(0.25 0.01 260);
-
   --destructive: oklch(0.58 0.24 27);
   --destructive-foreground: oklch(0.99 0 0);
-
   --border: oklch(0.90 0.006 260);
   --input: oklch(0.90 0.006 260);
-
   --ring: oklch(0.56 0.18 262);
-
-  --radius: 0.7rem;
+  --radius: 0.5rem;
 
   --fd-primary: var(--primary);
   --fd-background: var(--background);
@@ -48,31 +37,22 @@
 .dark {
   --background: oklch(0.16 0.01 260);
   --foreground: oklch(0.93 0.005 260);
-
   --card: oklch(0.19 0.01 260);
   --card-foreground: oklch(0.93 0.005 260);
-
   --popover: oklch(0.19 0.01 260);
   --popover-foreground: oklch(0.93 0.005 260);
-
   --primary: oklch(0.65 0.20 262);
   --primary-foreground: oklch(0.15 0.01 260);
-
   --secondary: oklch(0.26 0.01 260);
   --secondary-foreground: oklch(0.93 0.005 260);
-
   --muted: oklch(0.26 0.01 260);
-  --muted-foreground: oklch(0.70 0.01 260);
-
-  --accent: oklch(37.126% 0.0037 264.601);
+  --muted-foreground: oklch(0.65 0.01 260);
+  --accent: oklch(0.26 0.01 260);
   --accent-foreground: oklch(0.93 0.005 260);
-
   --destructive: oklch(0.62 0.18 27);
   --destructive-foreground: oklch(0.95 0.005 260);
-
   --border: oklch(0.30 0.01 260);
   --input: oklch(0.30 0.01 260);
-
   --ring: oklch(0.65 0.20 262);
 
   --fd-primary: var(--primary);
@@ -101,37 +81,32 @@
   --color-input: var(--input);
   --color-ring: var(--ring);
 
-  --radius-sm: calc(var(--radius) - 4px);
-  --radius-md: calc(var(--radius) - 2px);
-  --radius-lg: var(--radius);
-  --radius-xl: calc(var(--radius) + 4px);
-  --radius-2xl: calc(var(--radius) + 8px);
+  --radius-sm: calc(var(--radius) - 2px);
+  --radius-md: var(--radius);
+  --radius-lg: calc(var(--radius) + 2px);
+  --radius-xl: calc(var(--radius) + 6px);
+  --radius-2xl: calc(var(--radius) + 10px);
 }
 
 @layer base {
-  * {
-    @apply border-border/60;
-  }
-
-  body {
-    @apply bg-background text-foreground antialiased min-w-0;
-  }
+  * { @apply border-border/60; }
+  body { @apply bg-background text-foreground antialiased min-w-0; }
 }
 
 /* ─────────────────────────────────────
-   STEPS
+   STEPS CONNECTOR LINE
+   Must be outside @layer to beat the
+   * { border-color } reset in base.
 ───────────────────────────────────── */
 .fd-steps {
-  border-inline-start-color: oklch(60% 0.12 262 / 0.35) !important;
-}
-
-.dark .fd-steps {
-  border-inline-start-color: oklch(47.478% 0.00005 271.152 / 0.35) !important;
+  border-inline-start-color: var(--color-fd-primary, var(--border)) !important;
+  opacity: 0.9;
 }
 
 .fd-step::before {
-  background-color: var(--secondary) !important;
-  color: rgb(221, 221, 221) !important;
-  border: 1.5px solid var(--accent) !important;
-  font-weight: 700 !important;
+  background-color: var(--color-fd-secondary, var(--secondary)) !important;
+  color: var(--color-fd-primary, var(--primary)) !important;
+  border: 1.5px solid var(--color-fd-primary, var(--border)) !important;
+  font-weight: 600 !important;
+  font-size: 0.7rem !important;
 }

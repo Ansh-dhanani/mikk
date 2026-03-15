@@ -111,18 +111,16 @@ export function TOCItem({ ...props }: TOCItemProps) {
 /* ── MAIN TOC COMPONENT ─────────────────────────────── */
 export function TOC({ items }: { items: TOCItemType[] }) {
   if (!items || items.length === 0) return null;
-
   return (
-    <div className="py-2">
+    <div className="xl:sticky xl:top-0 xl:max-h-screen xl:overflow-auto py-10">
       <div className="flex items-center gap-2.5 mb-6 group px-4">
         <AlignLeft className="h-3.5 w-3.5 text-primary/40 group-hover:text-primary transition-colors" />
         <span className="font-mono text-[10px] text-muted-foreground/40 uppercase tracking-[0.2em] font-bold">
           On this page
         </span>
       </div>
-
       <AnchorProvider toc={items}>
-        <div className="relative px-4">
+        <div className="relative ">
           <ActiveIndicatorWrapper items={items} />
           <ul className="space-y-[4px] relative z-10">
             {items.map((item) => (

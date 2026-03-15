@@ -3,6 +3,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { cn } from "@/lib/utils";
 import Providers from "@/providers/providers";
+import { Toaster } from "@/components/ui/sonner";
 
 const fontSans = Geist({
   subsets: ["latin"],
@@ -64,6 +65,7 @@ export default function RootLayout({
     >
       <body>
         <Providers>{children}</Providers>
+        <Toaster />
       </body>
     </html>
   );
