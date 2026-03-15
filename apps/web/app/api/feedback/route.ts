@@ -23,6 +23,7 @@
 
 import { NextRequest, NextResponse } from "next/server";
 import { App, Octokit } from "octokit";
+import { z } from "zod";
 
 const OWNER = process.env.GITHUB_REPO_OWNER ?? "ansh-dhanani";
 const REPO = process.env.GITHUB_REPO_NAME ?? "mikk";
@@ -106,15 +107,10 @@ async function findDiscussion(
   octokit: Octokit,
   title: string
 ): Promise<{ id: string; url: string } | null> {
-  // GitHub search: repo:owner/repo in:title "Feedback for /docs/..."
-  const result = await octokit.graphql<{
-    search: {
-      nodes: { id: string; url: string; title: string }[];
-    };
-  }>(`
-    query {
+  const query = `
+    query($searchString: String!) {
       search(
-        query: "repo:${OWNER}/${REPO} in:title \\"${title}\\"",
+        query: $searchString,
         type: DISCUSSION,
         first: 5
       ) {
@@ -123,8 +119,11 @@ async function findDiscussion(
         }
       }
     }
-  `);
-
+  `;
+  const variables = {
+    searchString: `repo:${OWNER}/${REPO} in:title \"${title}\"`
+  };
+  const result = await octokit.graphql<{ search: { nodes: { id: string; url: string; title: string }[] } }>(query, variables);
   return (
     result.search.nodes.find((n) => n.title === title) ?? null
   );
@@ -133,11 +132,17 @@ async function findDiscussion(
 // ── Main handler ─────────────────────────────────────────────
 export async function POST(req: NextRequest) {
   try {
-    const body = await req.json() as {
-      rating: "good" | "bad";
-      message?: string;
-      path: string;
-    };
+    const feedbackSchema = z.object({
+      rating: z.enum(["good", "bad"]),
+      path: z.string(),
+      message: z.string().optional()
+    });
+    const bodyRaw = await req.json();
+    const parsed = feedbackSchema.safeParse(bodyRaw);
+    if (!parsed.success) {
+      return NextResponse.json({ ok: false, error: "Invalid input", details: parsed.error.issues }, { status: 400 });
+    }
+    const body = parsed.data;
 
     const octokit = await getOctokit();
     if (!octokit) {
@@ -195,7 +200,10 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ ok: true, url: discussion.url });
   } catch (err) {
     console.error("[feedback]", err);
-    // Never expose errors to the user
+    if (process.env.NODE_ENV === "development") {
+      return NextResponse.json({ ok: false, error: err instanceof Error ? err.message : String(err), stack: err instanceof Error ? err.stack : undefined }, { status: 500 });
+    }
+    // Never expose errors to the user in production
     return NextResponse.json({ ok: true });
   }
 }

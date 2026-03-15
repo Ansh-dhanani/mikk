@@ -223,9 +223,9 @@ export function HowItWorks() {
 
   // Auto-advance every 6 seconds
   useEffect(() => {
-    const t = setInterval(() => setActive(a => (a + 1) % STEPS.length), 6000);
-    return () => clearInterval(t);
-  }, []);
+    const t = setTimeout(() => setActive(a => (a + 1) % STEPS.length), 6000);
+    return () => clearTimeout(t);
+  }, [active]);
 
   const step = STEPS[active];
 
@@ -236,7 +236,10 @@ export function HowItWorks() {
         {STEPS.map((s, i) => (
           <button
             key={s.id}
-            onClick={() => setActive(i)}
+            onClick={() => {
+              setActive(i);
+              // trackEvent('landing_stepper_select', { stepId: s.id, index: i, stepName: s.title });
+            }}
             className={cn(
               "group flex items-start gap-4 p-4 rounded-xl text-left transition-all duration-200",
               active === i

@@ -24,19 +24,23 @@ export function FeedbackBlock() {
     if (!rating) return;
     setLoading(true);
     try {
-      await fetch("/api/feedback", {
+      const res = await fetch("/api/feedback", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ rating, message: message.trim(), path: pathname }),
       });
-      toast.success("Feedback submitted!", {
-        description: "Thank you for helping us improve."
-      });
+      if (res.ok) {
+        toast.success("Feedback submitted!", {
+          description: "Thank you for helping us improve."
+        });
+        setState("submitted");
+      } else {
+        toast.error("Feedback submission failed.");
+      }
     } catch {
       toast.error("Feedback submission failed.");
     } finally {
       setLoading(false);
-      setState("submitted");
     }
   }
 

@@ -276,8 +276,8 @@ export default function Page() {
           </div>
           <div className="flex items-center gap-6 text-sm text-muted-foreground">
             <Link href="/docs" className="hover:text-foreground transition-colors">Docs</Link>
-            <Link href="https://github.com/ansh-dhanani/mikk" target="_blank" className="hover:text-foreground transition-colors">GitHub</Link>
-            <Link href="https://www.npmjs.com/org/getmikk" target="_blank" className="hover:text-foreground transition-colors">npm</Link>
+            <Link href="https://github.com/ansh-dhanani/mikk" target="_blank" rel="noopener noreferrer" className="hover:text-foreground transition-colors">GitHub</Link>
+            <Link href="https://www.npmjs.com/org/getmikk" target="_blank" rel="noopener noreferrer" className="hover:text-foreground transition-colors">npm</Link>
           </div>
         </div>
       </footer>

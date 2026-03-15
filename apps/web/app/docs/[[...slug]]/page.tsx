@@ -23,7 +23,6 @@ export default async function Page(props: {
   const page = source.getPage(params.slug);
   if (!page) notFound();
 
-  // @ts-expect-error — Fumadocs MDX compiled body
   const MDX = page.data.body;
 
   let rawContent = "";
