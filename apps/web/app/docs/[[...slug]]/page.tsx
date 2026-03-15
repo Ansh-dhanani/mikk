@@ -59,10 +59,10 @@ export default async function Page(props: {
       breadcrumb={{ enabled: true }}
       tableOfContent={{ style: "clerk" }}
     >
-      {/* ── Header: title + action buttons on same line ── */}
-      <div className="flex items-start justify-between gap-4 mb-1">
+      {/* ── Header: title + action buttons (stack on small screens) ── */}
+      <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between md:gap-4 mb-1">
         <DocsTitle>{page.data.title ?? ""}</DocsTitle>
-        <div className="flex items-center gap-2 pt-1 shrink-0">
+        <div className="flex flex-wrap items-center gap-2 pt-1 md:pt-1">
           <CopyMarkdownButton rawContent={rawContent} />
           <OpenMenu
             rawContent={rawContent}

@@ -226,12 +226,6 @@ export default function Page() {
         ),
         body: (
           <div className="mt-10 text-[15px] md:text-base text-muted-foreground">
-            <div className="inline-flex items-center gap-2">
-              <Sparkles className="size-4 text-primary/80" />
-              Instant answers for <span className="text-foreground/80">dependents</span>,{" "}
-              <span className="text-foreground/80">impact</span>, and <span className="text-foreground/80">constraints</span>.
-            </div>
-
             <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
               <Link
                 href="/docs"
