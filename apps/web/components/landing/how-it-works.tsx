@@ -12,8 +12,8 @@ const STEPS = [
     id: 1,
     icon: GitBranch,
     label: "Parse",
-    title: "Real AST parsing — not regex",
-    body: "Mikk reads every .ts, .tsx, .js, and .go file via the TypeScript Compiler API. It extracts functions, classes, imports, and exact line numbers — building a complete picture of your project.",
+    title: "Real AST parsing - not regex",
+    body: "Mikk reads every .ts, .tsx, .js, and .go file via the TypeScript Compiler API. It extracts functions, classes, imports, and exact line numbers - building a complete picture of your project.",
     visual: "parse",
   },
   {
@@ -21,7 +21,7 @@ const STEPS = [
     icon: Hash,
     label: "Graph + Hash",
     title: "Dependency graph with Merkle hashing",
-    body: "A bidirectional DAG maps every import and function call. SHA-256 hashes roll up from function → file → module → root. One comparison tells you if anything changed.",
+    body: "A bidirectional DAG maps every import and function call. SHA-256 hashes roll up from function -> file -> module -> root. One comparison tells you if anything changed.",
     visual: "graph",
   },
   {
@@ -29,7 +29,7 @@ const STEPS = [
     icon: Plug,
     label: "Connect",
     title: "Connect your AI assistant via MCP",
-    body: "Start the MCP server with one command. Claude Desktop, Cursor, and VS Code Copilot can call any of the 15 tools directly — impact analysis, context building, contract validation.",
+    body: "Start the MCP server with one command. Claude Desktop, Cursor, and VS Code Copilot can call any of the 18 tools directly - impact analysis, context building, contract validation.",
     visual: "connect",
   },
   {
@@ -42,7 +42,7 @@ const STEPS = [
   },
 ];
 
-/* ── Visuals ──────────────────────────────────────────────── */
+/* Visuals */
 
 function ParseVisual() {
   const lines = [
@@ -54,7 +54,7 @@ function ParseVisual() {
     { t: "kw",  s: "  return " , rest: "createSession(user.id);" },
     { t: "dim", s: "}" },
     { t: "empty", s: "" },
-    { t: "dim", s: "// Extracted →" },
+    { t: "dim", s: "// Extracted ->" },
     { t: "tag",  s: '{ name: "login", file: "src/auth/login.ts", line: 2, calls: ["db.findUser", "createSession"] }' },
   ];
 
@@ -132,7 +132,7 @@ function GraphVisual() {
         ))}
       </svg>
       <div className="mt-2 text-xs font-mono text-muted-foreground/60 text-center">
-        3,201 nodes · 9,442 edges · O(1) lookups
+        3,201 nodes - 9,442 edges - O(1) lookups
       </div>
     </div>
   );
@@ -174,7 +174,7 @@ function ConnectVisual() {
         className="flex items-center gap-2 text-xs text-green-600 dark:text-green-400 font-mono"
       >
         <CheckCircle2 className="size-3.5" />
-        Mikk connected · 15 tools available
+        Mikk connected - 18 tools available
       </motion.div>
     </div>
   );
@@ -193,9 +193,9 @@ function AskVisual() {
       {/* Tool call */}
       <motion.div initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4 }}
         className="bg-muted/40 border border-border/60 rounded-lg px-4 py-3 font-mono text-[11px] text-muted-foreground/70 space-y-1">
-        <div className="text-primary/70">→ mikk_check_intent("Add rate limiting to auth")</div>
-        <div className="text-muted-foreground/50">→ mikk_get_module_detail("auth")</div>
-        <div className="text-muted-foreground/50">→ mikk_get_impact("src/auth/login.ts")</div>
+        <div className="text-primary/70">{"->"} mikk_check_intent("Add rate limiting to auth")</div>
+        <div className="text-muted-foreground/50">{"->"} mikk_get_module_detail("auth")</div>
+        <div className="text-muted-foreground/50">{"->"} mikk_get_impact("src/auth/login.ts")</div>
       </motion.div>
 
       {/* Claude answer */}
@@ -203,7 +203,7 @@ function AskVisual() {
         className="bg-card border border-border/60 rounded-lg px-4 py-3 text-sm text-foreground/75 leading-relaxed">
         <div className="text-xs font-medium text-foreground/80 mb-2">Claude</div>
         I&apos;ll add rate limiting to <code className="text-primary text-xs">src/auth/login.ts</code> (line 2).
-        The auth module has a <code className="text-primary text-xs">no-import: [&quot;payments&quot;]</code> constraint —
+        The auth module has a <code className="text-primary text-xs">no-import: [&quot;payments&quot;]</code> constraint -
         I&apos;ll use the existing <code className="text-primary text-xs">@getmikk/core</code> rate-limit util at line 47.
       </motion.div>
     </div>
@@ -217,7 +217,7 @@ const VISUALS: Record<string, React.ReactNode> = {
   ask:     <AskVisual />,
 };
 
-/* ── Main component ───────────────────────────────────────── */
+/* Main component */
 export function HowItWorks() {
   const [active, setActive] = useState(0);
 
@@ -231,7 +231,7 @@ export function HowItWorks() {
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-[1fr_1.4fr] gap-8 lg:gap-12 items-start">
-      {/* ── Step list ── */}
+      {/* Step list */}
       <div className="flex flex-col gap-1">
         {STEPS.map((s, i) => (
           <button
@@ -293,7 +293,7 @@ export function HowItWorks() {
         </div>
       </div>
 
-      {/* ── Visual panel ── */}
+      {/* Visual panel */}
       <div className="rounded-xl border border-border/60 bg-background dark:bg-card overflow-hidden">
         {/* Chrome bar */}
         <div className="flex items-center gap-2 px-4 py-3 border-b border-border/60 bg-muted/30">

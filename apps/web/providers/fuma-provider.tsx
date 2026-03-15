@@ -34,7 +34,7 @@ export function RootLayout({ children }: { children: ReactNode }) {
     <RootProvider
       theme={{
         attribute: "class",
-        defaultTheme: "dark",
+        defaultTheme: "light",
         enableSystem: false,
         disableTransitionOnChange: true,
       }}

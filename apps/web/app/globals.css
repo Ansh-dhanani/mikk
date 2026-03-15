@@ -4,9 +4,7 @@
 
 @custom-variant dark (&:is(.dark *));
 
-/* ─────────────────────────────────────
-   BRAND TOKENS
-───────────────────────────────────── */
+/* BRAND TOKENS */
 :root {
   --background: oklch(0.985 0.002 260);
   --foreground: oklch(0.22 0.01 260);
@@ -89,24 +87,75 @@
 }
 
 @layer base {
-  * { @apply border-border/60; }
-  body { @apply bg-background text-foreground antialiased min-w-0; }
+  * {
+    @apply border-border/60;
+  }
+  html {
+    height: 100%;
+  }
+  body {
+    @apply bg-background text-foreground antialiased min-w-0;
+    font-family: var(--font-sans), ui-sans-serif, system-ui, sans-serif;
+  }
+  code,
+  kbd,
+  pre,
+  samp {
+    font-family: var(--font-mono), ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono",
+      "Courier New", monospace;
+  }
 }
 
-/* ─────────────────────────────────────
-   STEPS CONNECTOR LINE
-   Must be outside @layer to beat the
-   * { border-color } reset in base.
-───────────────────────────────────── */
+@layer utilities {
+  .font-brand-serif {
+    font-family: var(--font-serif), ui-serif, Georgia, Cambria, "Times New Roman", Times, serif;
+  }
+}
+
+/* STEPS CONNECTOR LINE
+   Must be outside @layer to beat the `* { border-color }` reset in base. */
 .fd-steps {
-  border-inline-start-color: var(--color-fd-primary, var(--border)) !important;
-  opacity: 0.9;
+  border-inline-start: 1.5px solid
+    color-mix(
+      in srgb,
+      var(--color-fd-secondary, var(--secondary)) 45%,
+      var(--foreground) 10%
+    ) !important;
+  opacity: 1;
 }
 
 .fd-step::before {
   background-color: var(--color-fd-secondary, var(--secondary)) !important;
   color: var(--color-fd-primary, var(--primary)) !important;
-  border: 1.5px solid var(--color-fd-primary, var(--border)) !important;
+  border: 1.5px solid
+    color-mix(
+      in srgb,
+      var(--color-fd-secondary, var(--secondary)) 65%,
+      var(--foreground) 10%
+    ) !important;
   font-weight: 600 !important;
   font-size: 0.7rem !important;
+}
+
+/* Landing deck nav: bottom-right by default, centered on small screens. */
+.deck-nav {
+  /* Use layered fallbacks so if a browser can't parse `env()` or `max()`, we still pin correctly. */
+  position: fixed !important;
+  right: 1.75rem !important;
+  right: max(1.75rem, env(safe-area-inset-right, 0px)) !important;
+  bottom: 1.75rem !important;
+  bottom: calc(1.75rem + env(safe-area-inset-bottom, 0px)) !important;
+  left: auto !important;
+  transform: none !important;
+  z-index: 50;
+}
+
+@media (max-width: 520px) {
+  .deck-nav {
+    left: 50% !important;
+    right: auto !important;
+    bottom: 0.75rem !important;
+    bottom: calc(0.75rem + env(safe-area-inset-bottom, 0px)) !important;
+    transform: translateX(-50%) !important;
+  }
 }

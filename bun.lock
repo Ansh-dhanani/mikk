@@ -13,7 +13,10 @@
       "devDependencies": {
         "@types/bun": "^1.3.9",
         "@types/node": "^22.0.0",
+        "fumadocs-ui": "^16.6.16",
+        "tailwindcss": "^4.1.18",
         "turbo": "^2.0.0",
+        "tw-animate-css": "^1.4.0",
         "typescript": "^5.7.0",
       },
     },
@@ -63,6 +66,7 @@
         "@types/node": "^25.1.0",
         "@types/react": "^19.2.10",
         "@types/react-dom": "^19.2.3",
+        "cross-env": "^7.0.3",
         "eslint": "^9.39.2",
         "eslint-config-next": "16.1.6",
         "postcss": "^8",
@@ -74,7 +78,7 @@
     },
     "packages/ai-context": {
       "name": "@getmikk/ai-context",
-      "version": "1.7.0",
+      "version": "1.7.1",
       "dependencies": {
         "@getmikk/core": "workspace:*",
         "@getmikk/intent-engine": "workspace:*",
@@ -86,7 +90,7 @@
     },
     "packages/cli": {
       "name": "@getmikk/cli",
-      "version": "1.7.0",
+      "version": "1.7.1",
       "bin": {
         "mikk": "bin/mikk.js",
       },
@@ -111,7 +115,7 @@
     },
     "packages/core": {
       "name": "@getmikk/core",
-      "version": "1.7.0",
+      "version": "1.7.1",
       "dependencies": {
         "@types/better-sqlite3": "^7.6.13",
         "better-sqlite3": "^12.6.2",
@@ -126,7 +130,7 @@
     },
     "packages/diagram-generator": {
       "name": "@getmikk/diagram-generator",
-      "version": "1.7.0",
+      "version": "1.7.1",
       "dependencies": {
         "@getmikk/core": "workspace:*",
       },
@@ -137,7 +141,7 @@
     },
     "packages/intent-engine": {
       "name": "@getmikk/intent-engine",
-      "version": "1.7.0",
+      "version": "1.7.1",
       "dependencies": {
         "@getmikk/core": "workspace:*",
         "zod": "^3.22.0",
@@ -156,7 +160,7 @@
     },
     "packages/mcp-server": {
       "name": "@getmikk/mcp-server",
-      "version": "1.8.0",
+      "version": "1.8.1",
       "bin": {
         "mikk-mcp": "bin/mikk-mcp.js",
       },
@@ -188,7 +192,7 @@
     },
     "packages/watcher": {
       "name": "@getmikk/watcher",
-      "version": "1.7.0",
+      "version": "1.7.1",
       "dependencies": {
         "@getmikk/core": "workspace:*",
         "chokidar": "^4.0.0",
@@ -1099,6 +1103,8 @@
     "cors": ["cors@2.8.6", "", { "dependencies": { "object-assign": "^4", "vary": "^1" } }, "sha512-tJtZBBHA6vjIAaF6EnIaq6laBBP9aq/Y3ouVJjEfoHbRBcHBAHYcMh/w8LDrk2PvIMMq8gmopa5D4V8RmbrxGw=="],
 
     "cosmiconfig": ["cosmiconfig@9.0.1", "", { "dependencies": { "env-paths": "^2.2.1", "import-fresh": "^3.3.0", "js-yaml": "^4.1.0", "parse-json": "^5.2.0" }, "peerDependencies": { "typescript": ">=4.9.5" }, "optionalPeers": ["typescript"] }, "sha512-hr4ihw+DBqcvrsEDioRO31Z17x71pUYoNe/4h6Z0wB72p7MU7/9gH8Q3s12NFhHPfYBBOV3qyfUxmr/Yn3shnQ=="],
+
+    "cross-env": ["cross-env@7.0.3", "", { "dependencies": { "cross-spawn": "^7.0.1" }, "bin": { "cross-env": "src/bin/cross-env.js", "cross-env-shell": "src/bin/cross-env-shell.js" } }, "sha512-+/HKd6EgcQCJGh2PSjZuUitQBQynKor4wrFbRg4DtAgS1aWO+gU52xpH7M9ScGgXSYmAVS9bIJ8EzuaGw0oNAw=="],
 
     "cross-spawn": ["cross-spawn@7.0.6", "", { "dependencies": { "path-key": "^3.1.0", "shebang-command": "^2.0.0", "which": "^2.0.1" } }, "sha512-uV2QOWP2nWzsy2aMp8aRibhi9dlzF5Hgh5SHaB9OiTGEyDTiJJyx0uy51QXdyWbtAHNua4XJzUKca3OzKUd3vA=="],
 

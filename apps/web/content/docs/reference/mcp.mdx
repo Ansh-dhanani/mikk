@@ -1,11 +1,10 @@
 ---
 title: MCP Server
-description: Connect Mikk to Claude Desktop, Cursor, and VS Code Copilot. 15 tools, 3 resources, millisecond responses — all grounded in your real codebase graph.
+description: Connect Mikk to Claude Desktop, Cursor, and VS Code Copilot. 18 tools, 3 resources, millisecond responses - all grounded in your real codebase graph.
 ---
 
 <Callout title="Every tool reads from mikk.lock.json" type="info">
-  No re-parsing on every call. Response times are in milliseconds because the entire dependency
-  graph, Merkle tree, and function index are pre-computed and stored.
+  No re-parsing on every call. Response times are fast because the dependency graph, hashes, and indexes are precomputed and stored on disk.
 </Callout>
 
 ## Quick Start
@@ -53,91 +52,122 @@ mikk mcp install --tool claude    # install into Claude Desktop specifically
   </Tab>
 </Tabs>
 
+## Staleness Warning (Context Drift)
+
+If your lock file is out of sync with the source (drifted), tools return a `warning` field.
+Refresh with `mikk analyze`, or keep it updated continuously with `mikk watch`.
+
 ## Tools Reference
 
-### Codebase Analysis
+### Project Overview
 
 <TypeTable
   type={{
-    mikk_get_overview: {
-      description: "Project summary — module count, function count, dependency stats, root Merkle hash.",
+    mikk_get_project_overview: {
+      description: "High-level overview: modules, function counts, file counts, tech stack.",
       type: "tool",
     },
-    mikk_get_modules: {
-      description: "All module names, intents, file counts, and public API surfaces.",
+    mikk_get_session_context: {
+      description: "One-shot session start: overview, changes, hot modules, constraint status.",
+      type: "tool",
+    },
+    mikk_get_changes: {
+      description: "Files changed since the last analysis (drift list).",
+      type: "tool",
+    },
+  }}
+/>
+
+### Understanding The Codebase
+
+<TypeTable
+  type={{
+    mikk_query_context: {
+      description: "Ask an architecture question. Returns graph-traced, token-budgeted context.",
+      type: "tool",
+    },
+    mikk_list_modules: {
+      description: "List all declared modules with file/function counts and entry points.",
       type: "tool",
     },
     mikk_get_module_detail: {
-      description: "Deep detail on a specific module — all functions, imports, constraints.",
-      type: "tool",
-    },
-    mikk_search_functions: {
-      description: "Fuzzy search across all function names and descriptions in the lock file.",
+      description: "Deep module detail: files, functions, exported API, internal call graph.",
       type: "tool",
     },
     mikk_get_function_detail: {
-      description: "Full detail on a function — signature, file path, line range, callers, callees, source body.",
+      description: "Function detail: params, return type, call graph, source body, line range.",
+      type: "tool",
+    },
+    mikk_search_functions: {
+      description: "Fast substring search across function names (case-insensitive).",
+      type: "tool",
+    },
+    mikk_semantic_search: {
+      description: "Natural-language search for functions (local embeddings; optional dependency).",
       type: "tool",
     },
   }}
 />
 
-### Dependency Graph
+### Safe Edits (Middleman Tools)
 
 <TypeTable
   type={{
-    mikk_get_dependencies: {
-      description: "Everything a file imports — forward traversal through the dependency graph.",
+    mikk_before_edit: {
+      description: "Call before editing any file. Returns blast radius, exported APIs at risk, constraints, and warnings.",
       type: "tool",
     },
-    mikk_get_dependents: {
-      description: "Everything that imports a file — reverse traversal (who depends on me).",
+    mikk_impact_analysis: {
+      description: "Blast radius of changing a file. Includes risk breakdown and top impacted functions.",
       type: "tool",
     },
-    mikk_get_call_graph: {
-      description: "BFS call graph from a starting function. Configurable depth.",
-      type: "tool",
-    },
-    mikk_get_impact: {
-      description: "Full blast radius of changing a file — all upstream callers across the codebase.",
-      type: "tool",
-    },
-    mikk_find_path: {
-      description: "Shortest dependency path between two files or functions.",
+    mikk_find_usages: {
+      description: "Find everything that calls a function (rename safely).",
       type: "tool",
     },
   }}
 />
 
-### AI Context
+### Reading Files
 
 <TypeTable
   type={{
-    mikk_build_context: {
-      description: "Build a token-budgeted context payload for a task description using BFS graph tracing.",
+    mikk_get_file: {
+      description: "Read raw source of a project file (path traversal guarded).",
       type: "tool",
     },
-    mikk_get_context_file: {
-      description: "Return the full claude.md or AGENTS.md content.",
+    mikk_read_file: {
+      description: "Read raw source, scoped to specific functions to save tokens.",
       type: "tool",
     },
   }}
 />
 
-### Architecture Contracts
+### Constraints, ADRs, Health
 
 <TypeTable
   type={{
-    mikk_get_contracts: {
-      description: "All declared modules, constraints, and ADR decisions from mikk.json.",
+    mikk_get_constraints: {
+      description: "All architectural constraints and design decisions (from mikk.json).",
       type: "tool",
     },
-    mikk_validate_contracts: {
-      description: "Run full contract validation — returns all violations with file locations.",
+    mikk_manage_adr: {
+      description: "Manage ADRs (architecture decisions) stored in the project.",
       type: "tool",
     },
-    mikk_check_intent: {
-      description: "Validate a plain-English intent against all constraints before implementing.",
+    mikk_dead_code: {
+      description: "Detect dead code from the dependency graph and exports.",
+      type: "tool",
+    },
+  }}
+/>
+
+### Routes
+
+<TypeTable
+  type={{
+    mikk_get_routes: {
+      description: "Detected HTTP routes (Express / Koa / Hono style).",
       type: "tool",
     },
   }}
@@ -147,23 +177,21 @@ mikk mcp install --tool claude    # install into Claude Desktop specifically
 
 | Resource | URI | Description |
 |----------|-----|-------------|
-| Lock file | `mikk://lock` | Full `mikk.lock.json` as structured JSON |
-| Architecture | `mikk://architecture` | Current `mikk.json` contract |
+| Contract | `mikk://contract` | Full `mikk.json` contract as JSON |
+| Lock file | `mikk://lock` | Full `mikk.lock.json` as JSON |
 | Context | `mikk://context` | Current `claude.md` content |
 
 ## Recommended Workflow
 
-For best results, start every AI session with a context handoff:
-
 ```
-You: "Read mikk://context to understand this codebase before we start."
-
-Then: "I want to add rate limiting to the auth module.
-       Use mikk_check_intent to validate this first,
-       then mikk_get_module_detail on 'auth' to understand the current structure."
+1) Start: mikk_get_session_context
+2) Before editing: mikk_before_edit(["src/whatever.ts"])
+3) Impact: mikk_impact_analysis({ file: "src/whatever.ts" })
+4) Understanding: mikk_query_context({ question: "How does X work?", tokenBudget: 6000 })
 ```
 
-<Callout title="This gives your AI real architectural grounding" type="success">
-  Module boundaries, existing constraints, exact function locations — all before generating any code.
-  No more hallucinated import paths or nonexistent function names.
+<Callout title="Middleman > giant pastes" type="success">
+  The lock file can be large. Instead of pasting it, keep it fresh with `mikk analyze` or `mikk watch`,
+  then let the assistant call focused tools like `mikk_before_edit` and `mikk_impact_analysis` when it needs specifics.
 </Callout>
+

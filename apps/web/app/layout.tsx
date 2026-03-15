@@ -1,8 +1,7 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import { Geist, Geist_Mono, Instrument_Serif } from "next/font/google";
 import "./globals.css";
 import { cn } from "@/lib/utils";
-import Providers from "@/providers/providers";
 import { Toaster } from "@/components/ui/sonner";
 
 const fontSans = Geist({
@@ -15,10 +14,17 @@ const fontMono = Geist_Mono({
   variable: "--font-mono",
 });
 
+const fontSerif = Instrument_Serif({
+  subsets: ["latin"],
+  weight: ["400"],
+  style: ["normal", "italic"],
+  variable: "--font-serif",
+});
+
 export const metadata: Metadata = {
   title: {
-    default: "Mikk — Codebase Intelligence for AI",
-    template: "%s — Mikk",
+    default: "Mikk - Codebase Intelligence for AI",
+    template: "%s - Mikk",
   },
   description:
     "The codebase nervous system. Parses your architecture, maps every dependency, and delivers the exact context your AI needs. Zero cloud. Zero config. Zero hallucination.",
@@ -34,7 +40,7 @@ export const metadata: Metadata = {
   ],
   authors: [{ name: "Ansh Dhanani" }],
   openGraph: {
-    title: "Mikk — Codebase Intelligence for AI",
+    title: "Mikk - Codebase Intelligence for AI",
     description:
       "Your AI doesn't understand your codebase. Mikk fixes that. Parse, graph, hash, and serve your entire architecture to any AI assistant.",
     type: "website",
@@ -42,7 +48,7 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "Mikk — Codebase Intelligence for AI",
+    title: "Mikk - Codebase Intelligence for AI",
     description:
       "Your AI doesn't understand your codebase. Mikk fixes that.",
   },
@@ -60,11 +66,13 @@ export default function RootLayout({
       className={cn(
         "antialiased",
         fontSans.variable,
-        fontMono.variable
+        fontMono.variable,
+        fontSerif.variable
       )}
     >
-      <body>
-        <Providers>{children}</Providers>
+      {/* Ignore hydration mismatches caused by browser extensions adding attributes (e.g. cz-shortcut-listen). */}
+      <body className="min-h-dvh" suppressHydrationWarning>
+        {children}
         <Toaster />
       </body>
     </html>

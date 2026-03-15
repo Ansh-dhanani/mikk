@@ -37,6 +37,7 @@ export function CopyButton({
   className,
   variant,
   size,
+  label,
   children,
   ...props
 }: {
@@ -46,6 +47,7 @@ export function CopyButton({
   className?: string;
   variant?: any;
   size?: any;
+  label?: string;
   children?: React.ReactNode;
 }) {
   const [state, setState] = useOptimistic<"idle" | "copied" | "failed">("idle");
@@ -61,7 +63,7 @@ export function CopyButton({
     <Button
       size={size ?? "icon-xs"}
       variant={variant ?? "secondary"}
-      className={cn("z-10", !size && "size-6", !variant && "rounded-md", className)}
+      className={cn(!size && "size-6", !variant && "rounded-md", className)}
       onClick={() => {
         startTransition(async () => {
           try {
@@ -89,23 +91,29 @@ export function CopyButton({
       {children ? (
         children
       ) : (
-        <AnimatePresence mode="popLayout" initial={false}>
-          {state === "idle" ? (
-            <motion.span key="idle" {...motionIconProps}>
-              <CopyIcon className="size-3" />
-            </motion.span>
-          ) : state === "copied" ? (
-            <motion.span key="copied" {...motionIconProps}>
-              <CheckIcon className="size-3" strokeWidth={3} />
-            </motion.span>
-          ) : state === "failed" ? (
-            <motion.span key="failed" {...motionIconProps}>
-              <CircleXIcon className="size-3" />
-            </motion.span>
-          ) : null}
-        </AnimatePresence>
+        <>
+          <AnimatePresence mode="popLayout" initial={false}>
+            {state === "idle" ? (
+              <motion.span key="idle" {...motionIconProps}>
+                <CopyIcon className="size-3" />
+              </motion.span>
+            ) : state === "copied" ? (
+              <motion.span key="copied" {...motionIconProps}>
+                <CheckIcon className="size-3" strokeWidth={3} />
+              </motion.span>
+            ) : state === "failed" ? (
+              <motion.span key="failed" {...motionIconProps}>
+                <CircleXIcon className="size-3" />
+              </motion.span>
+            ) : null}
+          </AnimatePresence>
+          {label ? (
+            <span className="ml-2 text-xs font-medium leading-none">{label}</span>
+          ) : (
+            <span className="sr-only">Copy</span>
+          )}
+        </>
       )}
-      {!children && <span className="sr-only">Copy</span>}
     </Button>
   );
 }

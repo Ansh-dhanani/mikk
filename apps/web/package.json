@@ -4,8 +4,9 @@
   "type": "module",
   "private": true,
   "scripts": {
-    "dev": "next dev --turbopack",
-    "build": "next build",
+    "dev": "cross-env NEXT_WEBPACK=1 next dev --webpack",
+    "dev:turbo": "next dev --turbo",
+    "build": "cross-env NEXT_WEBPACK=1 next build --webpack",
     "start": "next start",
     "lint": "eslint",
     "format": "prettier --write \"**/*.{ts,tsx}\"",
@@ -48,6 +49,7 @@
     "prettier": "^3.8.1",
     "prettier-plugin-tailwindcss": "^0.7.2",
     "postcss": "^8",
+    "cross-env": "^7.0.3",
     "tailwindcss": "^4.1.18",
     "typescript": "^5.9.3"
   }

@@ -13,17 +13,15 @@ export function CopyMarkdownButton({ rawContent }: CopyMarkdownButtonProps) {
     <div className="flex items-center">
       <CopyButton
         value={rawContent}
+        label="Copy Markdown"
+        size="sm"
+        variant="secondary"
         className={cn(
-          "inline-flex items-center gap-1.5 h-8 px-3 w-auto",
-          "text-xs font-medium font-mono",
-          "border border-border/60 bg-muted/10 rounded-none",
-          "text-muted-foreground hover:text-foreground hover:bg-muted/30 hover:border-border",
-          "transition-colors duration-150"
+          "inline-flex items-center gap-2 h-9 px-3 w-auto",
+          "rounded-md border border-border/60 bg-muted/15",
+          "text-foreground hover:bg-muted/30 hover:border-border transition-colors duration-150"
         )}
-      >
-        <FileTextIcon className="h-3.5 w-3.5" />
-        Copy Markdown
-      </CopyButton>
+      />
     </div>
   );
 }
