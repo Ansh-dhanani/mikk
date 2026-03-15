@@ -52,21 +52,21 @@ export default function sitemap(): MetadataRoute.Sitemap {
     {
       url: `${baseUrl}/`,
       lastModified: now,
-      changeFrequency: "weekly",
+      changeFrequency: "weekly" as const,
       priority: 1,
     },
     {
       url: `${baseUrl}/docs`,
       lastModified: now,
-      changeFrequency: "weekly",
+      changeFrequency: "weekly" as const,
       priority: 0.9,
     },
   ];
 
-  const docsRoutes = collectDocsRoutes().map(({ route, lastModified }) => ({
+  const docsRoutes: MetadataRoute.Sitemap = collectDocsRoutes().map(({ route, lastModified }) => ({
     url: `${baseUrl}${route}`,
     lastModified,
-    changeFrequency: "weekly",
+    changeFrequency: "weekly" as const,
     priority: 0.8,
   }));
 
