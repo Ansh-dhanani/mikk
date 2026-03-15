@@ -1,108 +1,145 @@
 "use client";
 
 import { useState } from "react";
-import { ThumbsUp, ThumbsDown, Check, CornerDownRight } from "lucide-react";
+import { toast } from "sonner";
+import { usePathname } from "next/navigation";
+import { ThumbsUp, ThumbsDown } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { Button } from "@/components/ui/button";
+
+type State = "idle" | "rated" | "submitted";
 
 export function FeedbackBlock() {
-  const [submitted, setSubmitted] = useState(false);
+  // Build GitHub discussions URL
+  const repoOwner = process.env.NEXT_PUBLIC_GITHUB_REPO_OWNER || "ansh-dhanani";
+  const repoName = process.env.NEXT_PUBLIC_GITHUB_REPO_NAME || "mikk";
+  const feedbackCategory = process.env.NEXT_PUBLIC_DOCS_FEEDBACK_CATEGORY || "Docs Feedback";
+  const githubDiscussionsUrl = `https://github.com/${repoOwner}/${repoName}/discussions/categories/${encodeURIComponent(feedbackCategory)}`;
+  const pathname = usePathname();
+  const [state, setState] = useState<State>("idle");
   const [rating, setRating] = useState<"good" | "bad" | null>(null);
+  const [message, setMessage] = useState("");
+  const [loading, setLoading] = useState(false);
 
-  if (submitted) {
+  async function submit() {
+    if (!rating) return;
+    setLoading(true);
+    try {
+      const res = await fetch("/api/feedback", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ rating, message: message.trim(), path: pathname }),
+      });
+      if (res.ok) {
+        toast.success("Feedback submitted!", {
+          description: "Thank you for helping us improve."
+        });
+        setState("submitted");
+      } else {
+        toast.error("Feedback submission failed.");
+      }
+    } catch {
+      toast.error("Feedback submission failed.");
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  function handleRating(r: "good" | "bad") {
+    setRating(r);
+    setState("rated");
+  }
+
+
+  if (state === "submitted") {
     return (
-      <div className="mt-16 p-10 border border-border/40 rounded-2xl bg-muted/20 flex flex-col items-center justify-center text-center animate-in fade-in zoom-in-95 duration-500">
-        <div className="h-12 w-12 bg-primary/10 rounded-xl flex items-center justify-center mb-5 border border-primary/20 shadow-[0_0_20px_-10px_var(--primary)]">
-          <Check className="h-6 w-6 text-primary" />
-        </div>
-        <h3 className="text-sm font-mono font-bold uppercase tracking-wider mb-2 text-foreground/90">Feedback Received</h3>
-        <p className="text-[11px] font-mono text-muted-foreground/60 uppercase tracking-[0.1em] max-w-xs leading-relaxed">
-          Your input has been indexed. This helps us optimize Mikk for everyone.
+      <div className="not-prose mt-12 pt-8 border-t border-fd-border ">
+        <p className="text-sm text-fd-muted-foreground">
+          Thank you for the feedback!
         </p>
+        <a
+          href={githubDiscussionsUrl}
+          target="_blank"
+          rel="noopener noreferrer"
+            className="mt-4 inline-block px-4 py-2 rounded-md bg-fd-primary text-fd-primary-foreground text-sm font-medium hover:bg-fd-primary/80 transition"
+          >
+            View feedback on GitHub
+        </a>
       </div>
     );
   }
 
   return (
-    <div className="mt-20 pt-16 border-t border-border/40">
-      <div className="max-w-2xl mx-auto flex flex-col gap-8">
-        <div className="flex flex-col gap-4">
-          <div className="flex items-center gap-2 overflow-hidden">
-            <CornerDownRight className="size-3.5 text-muted-foreground/60 shrink-0" />
-            <span className="text-[10px] font-mono font-bold uppercase tracking-[0.2em] text-muted-foreground/60">
-              Was this page helpful?
-            </span>
-          </div>
+    <div className="not-prose mt-12 pt-8 border-t border-fd-border">
+      <div className="flex flex-col gap-3">
+        <p className="text-sm font-medium text-fd-foreground">
+          Was this page helpful?
+        </p>
 
-          <div className="flex items-center gap-2">
-            <button
-              onClick={() => setRating("good")}
-              className={cn(
-                "group flex items-center gap-3 px-5 py-2.5 rounded-lg border font-mono text-[11px] uppercase tracking-wider transition-all duration-200",
-                rating === "good"
-                  ? "bg-primary border-primary/40 text-primary-foreground shadow-[0_0_15px_-8px_var(--primary)]"
-                  : "border-border/40 hover:border-primary/30 text-muted-foreground hover:text-foreground hover:bg-muted/10"
-              )}
-            >
-              <ThumbsUp className={cn("h-3.5 w-3.5 transition-transform group-hover:-translate-y-0.5", rating === "good" ? "fill-primary-foreground/20" : "")} />
-              <span>Yes</span>
-            </button>
-            <button
-              onClick={() => setRating("bad")}
-              className={cn(
-                "group flex items-center gap-3 px-5 py-2.5 rounded-lg border font-mono text-[11px] uppercase tracking-wider transition-all duration-200",
-                rating === "bad"
-                  ? "bg-destructive/10 border-destructive/40 text-destructive shadow-[0_0_15px_-8px_var(--destructive)]"
-                  : "border-border/40 hover:border-destructive/30 text-muted-foreground/60 hover:text-foreground hover:bg-muted/10"
-              )}
-            >
-              <ThumbsDown className={cn("h-3.5 w-3.5 transition-transform group-hover:translate-y-0.5", rating === "bad" ? "fill-destructive/20" : "")} />
-              <span>No</span>
-            </button>
-          </div>
+        {/* Rating buttons */}
+        <div className="flex items-center gap-2">
+          <button
+            disabled={loading}
+            onClick={() => handleRating("good")}
+            className={cn(
+              "inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md border text-sm",
+              "transition-colors duration-150 disabled:opacity-50",
+              rating === "good"
+                ? "border-fd-primary/40 bg-fd-primary/10 text-fd-primary"
+                : "border-fd-border text-fd-muted-foreground hover:border-fd-primary/30 hover:text-fd-foreground"
+            )}
+          >
+            <ThumbsUp className="size-3.5" />
+            Yes
+          </button>
+
+          <button
+            disabled={loading}
+            onClick={() => handleRating("bad")}
+            className={cn(
+              "inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md border text-sm",
+              "transition-colors duration-150 disabled:opacity-50",
+              rating === "bad"
+                ? "border-red-400/40 bg-red-400/10 text-red-500 dark:text-red-400"
+                : "border-fd-border text-fd-muted-foreground hover:border-red-400/30 hover:text-fd-foreground"
+            )}
+          >
+            <ThumbsDown className="size-3.5" />
+            No
+          </button>
         </div>
 
-        <div className="flex flex-col gap-4">
-          <div className="relative group">
+        {/* Comment box and submit button for both ratings */}
+        {state === "rated" && rating && (
+          <div className="flex flex-col gap-2 mt-1">
             <textarea
-              placeholder="How can we make this better? (Optional)"
+              value={message}
+              onChange={(e) => setMessage(e.target.value)}
+              placeholder={
+                rating === "good"
+                  ? "Any additional comments? (optional)"
+                  : "What could be improved? (optional)"
+              }
+              rows={3}
               className={cn(
-                "w-full min-h-[140px] p-5 rounded-xl border border-border/40 bg-card/50 outline-none transition-all duration-300 font-mono text-[13px] leading-relaxed",
-                "focus:border-primary/40 focus:bg-accent/10 text-foreground placeholder:text-muted-foreground/30",
-                "resize-none overflow-hidden"
+                "w-full max-w-sm resize-none rounded-md border border-fd-border",
+                "bg-fd-background px-3 py-2 text-sm text-fd-foreground",
+                "placeholder:text-fd-muted-foreground/50 outline-none",
+                "focus:border-fd-primary/40 transition-colors"
               )}
             />
-            <div className="absolute top-0 right-0 p-3 opacity-0 group-focus-within:opacity-100 transition-opacity">
-              <span className="text-[9px] font-mono text-muted-foreground/50 uppercase tracking-[0.2em] pointer-events-none">
-                Compose Mode
-              </span>
-            </div>
-          </div>
-
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3 text-[9px] font-mono text-muted-foreground/40 uppercase tracking-[0.2em]">
-              <div className="h-1 w-1 rounded-full bg-primary/60" />
-              Studio Indexing Active
-            </div>
-            <Button
-              onClick={() => setSubmitted(true)}
-              disabled={!rating}
+            <button
+              disabled={loading}
+              onClick={submit}
               className={cn(
-                "px-8 h-10 text-[11px] font-mono font-bold uppercase tracking-widest rounded-lg transition-all border border-border/40",
-                "bg-foreground text-background hover:bg-foreground/90 disabled:opacity-30 disabled:grayscale",
-                "shadow-[0_4px_12px_-4px_rgba(0,0,0,0.5)]"
+                "self-start inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md",
+                "border border-fd-border bg-fd-secondary text-fd-secondary-foreground",
+                "text-sm transition-colors hover:bg-fd-accent disabled:opacity-50"
               )}
             >
-              Submit Response
-            </Button>
+              {loading ? "Submitting…" : "Submit feedback"}
+            </button>
           </div>
-        </div>
-      </div>
-
-      <div className="mt-16 border-t border-border/10 py-6 flex items-center justify-center opacity-30 hover:opacity-60 transition-opacity">
-        <span className="text-[8.5px] font-mono uppercase tracking-[0.3em] flex items-center gap-3 text-muted-foreground">
-          Metadata Tracking <span className="text-primary">●</span> Community Powered
-        </span>
+        )}
       </div>
     </div>
   );

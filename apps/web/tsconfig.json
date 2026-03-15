@@ -44,6 +44,6 @@
     "components/base",
     "components/ui/command.tsx",
     "components/ui/form.tsx",
-    "components/ui/sonner.tsx"
+    "components/toc.tsx"
   ]
 }
