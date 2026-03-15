@@ -4,6 +4,7 @@ import "./globals.css";
 import { cn } from "@/lib/utils";
 import { Toaster } from "@/components/ui/sonner";
 import { siteConfig } from "@/lib/site-config";
+import { Analytics } from "@vercel/analytics/react";
 
 const fontSans = Geist({
   subsets: ["latin"],
@@ -151,6 +152,7 @@ export default function RootLayout({
       <body className="min-h-dvh" suppressHydrationWarning>
         {children}
         <Toaster />
+        <Analytics />
       </body>
     </html>
   );
