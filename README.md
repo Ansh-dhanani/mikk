@@ -18,7 +18,7 @@
 <br />
 
 <p align="center">
-  <em>The codebase nervous system — parses your architecture, maps every dependency,<br/>and delivers the exact context your AI needs. Zero cloud. Zero config. Zero hallucination.</em>
+  <em>The codebase nervous system — parses your architecture, maps every dependency,<br/>and delivers the exact context your AI needs. Zero cloud. Zero config.</em>
 </p>
  
 <br />
