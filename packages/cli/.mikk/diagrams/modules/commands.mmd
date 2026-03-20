@@ -1,0 +1,84 @@
+%%{init: {"theme": "base", "themeVariables": {"primaryColor": "#1e293b", "primaryTextColor": "#e2e8f0", "lineColor": "#64748b", "secondaryColor": "#334155", "tertiaryColor": "#475569", "background": "#0f172a", "mainBkg": "#1e293b", "nodeBorder": "#475569"}}}%%
+graph TD
+    subgraph mod_commands["📦 Module: CLI (Commands)"]
+        subgraph file_src_commands_adr_ts["📄 adr.ts"]
+            fn_src_commands_adr_ts_registerAdrCommand["⚡ registerAdrCommand"]
+        end
+        subgraph file_src_commands_analyze_ts["📄 analyze.ts"]
+            fn_src_commands_analyze_ts_registerAnalyzeCommand["⚡ registerAnalyzeCommand"]
+        end
+        subgraph file_src_commands_ci_ts["📄 ci.ts"]
+            fn_src_commands_ci_ts_registerCiCommand["⚡ registerCiCommand"]
+            fn_src_commands_ci_ts_buildGraphFromLock["λ buildGraphFromLock"]
+        end
+        subgraph file_src_commands_context_ts["📄 context.ts"]
+            fn_src_commands_context_ts_parseIntOption["λ parseIntOption"]
+            fn_src_commands_context_ts_registerContextCommands["⚡ registerContextCommands"]
+            fn_src_commands_context_ts_loadContractAndLock["λ loadContractAndLock"]
+            fn_src_commands_context_ts_printMeta["λ printMeta"]
+        end
+        subgraph file_src_commands_dead_code_ts["📄 dead-code.ts"]
+            fn_src_commands_dead_code_ts_registerDeadCodeCommand["⚡ registerDeadCodeCommand"]
+            fn_src_commands_dead_code_ts_buildGraphFromLock["λ buildGraphFromLock"]
+        end
+        subgraph file_src_commands_diff_ts["📄 diff.ts"]
+            fn_src_commands_diff_ts_registerDiffCommand["⚡ registerDiffCommand"]
+        end
+        subgraph file_src_commands_doctor_ts["📄 doctor.ts"]
+            fn_src_commands_doctor_ts_registerDoctorCommand["⚡ registerDoctorCommand"]
+        end
+        subgraph file_src_commands_init_ts["📄 init.ts"]
+            fn_src_commands_init_ts_registerInitCommand["⚡ registerInitCommand"]
+        end
+        subgraph file_src_commands_intent_ts["📄 intent.ts"]
+            fn_src_commands_intent_ts_registerIntentCommand["⚡ registerIntentCommand"]
+        end
+        subgraph file_src_commands_mcp_ts["📄 mcp.ts"]
+            fn_src_commands_mcp_ts_registerMcpCommand["⚡ registerMcpCommand"]
+            fn_src_commands_mcp_ts_installMcpConfig["λ installMcpConfig"]
+            fn_src_commands_mcp_ts_buildTargets["λ buildTargets"]
+            fn_src_commands_mcp_ts_buildMcpEntry["λ buildMcpEntry"]
+            fn_src_commands_mcp_ts_parseJsonSafe["λ parseJsonSafe"]
+            fn_src_commands_mcp_ts_patchClaudeConfig["λ patchClaudeConfig"]
+            fn_src_commands_mcp_ts_patchCursorConfig["λ patchCursorConfig"]
+            fn_src_commands_mcp_ts_patchVSCodeConfig["λ patchVSCodeConfig"]
+        end
+        subgraph file_src_commands_remove_ts["📄 remove.ts"]
+            fn_src_commands_remove_ts_confirm["λ confirm"]
+            fn_src_commands_remove_ts_registerRemoveCommand["⚡ registerRemoveCommand"]
+        end
+        subgraph file_src_commands_stats_ts["📄 stats.ts"]
+            fn_src_commands_stats_ts_registerStatsCommand["⚡ registerStatsCommand"]
+            fn_src_commands_stats_ts_buildGraphFromLock["λ buildGraphFromLock"]
+        end
+        subgraph file_src_commands_visualize_ts["📄 visualize.ts"]
+            fn_src_commands_visualize_ts_loadProjectContext["λ loadProjectContext"]
+            fn_src_commands_visualize_ts_registerVisualizeCommands["⚡ registerVisualizeCommands"]
+        end
+        subgraph file_src_commands_watch_ts["📄 watch.ts"]
+            fn_src_commands_watch_ts_registerWatchCommand["⚡ registerWatchCommand"]
+        end
+    end
+
+    fn_src_commands_ci_ts_registerCiCommand --> fn_src_commands_ci_ts_buildGraphFromLock
+    fn_src_commands_context_ts_registerContextCommands --> fn_src_commands_context_ts_loadContractAndLock
+    fn_src_commands_context_ts_registerContextCommands --> fn_src_commands_context_ts_parseIntOption
+    fn_src_commands_context_ts_registerContextCommands --> fn_src_commands_context_ts_printMeta
+    fn_src_commands_dead_code_ts_registerDeadCodeCommand --> fn_src_commands_dead_code_ts_buildGraphFromLock
+    fn_src_commands_mcp_ts_registerMcpCommand --> fn_src_commands_mcp_ts_installMcpConfig
+    fn_src_commands_mcp_ts_installMcpConfig --> fn_src_commands_mcp_ts_buildTargets
+    fn_src_commands_mcp_ts_buildTargets --> fn_src_commands_mcp_ts_patchClaudeConfig
+    fn_src_commands_mcp_ts_buildTargets --> fn_src_commands_mcp_ts_patchCursorConfig
+    fn_src_commands_mcp_ts_buildTargets --> fn_src_commands_mcp_ts_patchVSCodeConfig
+    fn_src_commands_mcp_ts_patchClaudeConfig --> fn_src_commands_mcp_ts_parseJsonSafe
+    fn_src_commands_mcp_ts_patchClaudeConfig --> fn_src_commands_mcp_ts_buildMcpEntry
+    fn_src_commands_mcp_ts_patchCursorConfig --> fn_src_commands_mcp_ts_parseJsonSafe
+    fn_src_commands_mcp_ts_patchCursorConfig --> fn_src_commands_mcp_ts_buildMcpEntry
+    fn_src_commands_mcp_ts_patchVSCodeConfig --> fn_src_commands_mcp_ts_parseJsonSafe
+    fn_src_commands_mcp_ts_patchVSCodeConfig --> fn_src_commands_mcp_ts_buildMcpEntry
+    fn_src_commands_remove_ts_registerRemoveCommand --> fn_src_commands_remove_ts_confirm
+    fn_src_commands_stats_ts_registerStatsCommand --> fn_src_commands_stats_ts_buildGraphFromLock
+    fn_src_commands_visualize_ts_registerVisualizeCommands --> fn_src_commands_visualize_ts_loadProjectContext
+
+    classDef default fill:#334155,stroke:#64748b,color:#e2e8f0,stroke-width:1px
+    classDef external fill:#1e293b,stroke:#475569,color:#94a3b8,stroke-dasharray: 5 5
