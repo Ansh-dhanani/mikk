@@ -161,6 +161,7 @@ mikk contract show-boundaries # All cross-module dependencies
 mikk adr list                 # List all architectural decisions
 mikk adr add                  # Add a new architectural decision
 mikk adr get <id>             # Get details for a specific decision
+mikk remove                   # Uninstall Mikk and delete all generated artifacts
 mikk mcp                      # Start MCP server
 ```
 

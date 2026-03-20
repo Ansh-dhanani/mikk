@@ -26,6 +26,7 @@ import { registerCiCommand } from './commands/ci.js'
 import { registerDoctorCommand } from './commands/doctor.js'
 import { registerStatsCommand } from './commands/stats.js'
 import { registerAdrCommand } from './commands/adr.js'
+import { registerRemoveCommand } from './commands/remove.js'
 
 declare const __MIKK_VERSION__: string
 
@@ -63,5 +64,6 @@ registerCiCommand(program)
 registerDoctorCommand(program)
 registerStatsCommand(program)
 registerAdrCommand(program)
+registerRemoveCommand(program)
 
 program.parse()

@@ -64,8 +64,8 @@ describe('ClaudeMdGenerator', () => {
     test('generates valid markdown', () => {
         const gen = new ClaudeMdGenerator(mockContract, mockLock)
         const md = gen.generate()
-        expect(md).toContain('# TestProject')
-        expect(md).toContain('Architecture Overview')
+        expect(md).toContain('<name>TestProject</name>')
+        expect(md).toContain('<repository_context>')
     })
 
     test('includes project description', () => {
@@ -77,8 +77,8 @@ describe('ClaudeMdGenerator', () => {
     test('includes module sections', () => {
         const gen = new ClaudeMdGenerator(mockContract, mockLock)
         const md = gen.generate()
-        expect(md).toContain('Authentication module')
-        expect(md).toContain('API module')
+        expect(md).toContain('<module id="auth">')
+        expect(md).toContain('<module id="api">')
     })
 
     test('includes function names', () => {
@@ -105,7 +105,7 @@ describe('ClaudeMdGenerator', () => {
         const gen = new ClaudeMdGenerator(mockContract, mockLock)
         const md = gen.generate()
         // API depends on Auth (handleLogin calls verifyToken)
-        expect(md).toContain('Depends on')
+        expect(md).toContain('<depends_on>Authentication</depends_on>')
     })
 
     test('respects token budget', () => {
@@ -119,8 +119,8 @@ describe('ClaudeMdGenerator', () => {
     test('includes stats', () => {
         const gen = new ClaudeMdGenerator(mockContract, mockLock)
         const md = gen.generate()
-        expect(md).toContain('3 functions')
-        expect(md).toContain('2 modules')
+        expect(md).toContain('<functions>3</functions>')
+        expect(md).toContain('<modules>2</modules>')
     })
 
     test('shows purpose when available', () => {
@@ -132,7 +132,7 @@ describe('ClaudeMdGenerator', () => {
     test('shows calledBy count for key functions', () => {
         const gen = new ClaudeMdGenerator(mockContract, mockLock)
         const md = gen.generate()
-        expect(md).toContain('called by 1')
+        expect(md).toContain('callers="1"')
     })
 
     describe('Edge Cases and Fault Tolerance', () => {
@@ -149,9 +149,9 @@ describe('ClaudeMdGenerator', () => {
             }
             const gen = new ClaudeMdGenerator(emptyContract, emptyLock)
             const md = gen.generate()
-            expect(md).toContain('# Empty')
-            expect(md).toContain('0 modules')
-            expect(md).toContain('0 functions')
+            expect(md).toContain('<name>Empty</name>')
+            expect(md).toContain('<modules>0</modules>')
+            expect(md).toContain('<functions>0</functions>')
         })
 
         test('handles missing optional fields gracefully', () => {
@@ -175,7 +175,7 @@ describe('ClaudeMdGenerator', () => {
             }
             const gen = new ClaudeMdGenerator(partialContract, partialLock)
             const md = gen.generate()
-            expect(md).toContain('Core module')
+            expect(md).toContain('<name>Core</name>')
             expect(md).toContain('func')
         })
 
@@ -197,7 +197,7 @@ describe('ClaudeMdGenerator', () => {
         test('truncates extremely strict token budgets without losing core layout', () => {
             const gen = new ClaudeMdGenerator(mockContract, mockLock, 50) 
             const md = gen.generate()
-            expect(md).toContain('Architecture')
+            expect(md).toContain('<repository_context>')
             expect(md).not.toContain('Use JWT') 
         })
         
