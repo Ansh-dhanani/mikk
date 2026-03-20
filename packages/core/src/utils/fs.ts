@@ -2,27 +2,27 @@ import * as fs from 'node:fs/promises'
 import * as path from 'node:path'
 import fg from 'fast-glob'
 
-// ─── Well-known patterns for schema/config/route files ─────────────
+// --- Well-known patterns for schema/config/route files ---------------------
 // These are structural files an AI agent needs but aren't source code.
 // Mikk auto-discovers them so the AI doesn't have to explore the filesystem.
-// Patterns are language-agnostic — unused patterns simply return zero matches.
+// Patterns are language-agnostic -- unused patterns simply return zero matches.
 const CONTEXT_FILE_PATTERNS = [
-    // Data models / schemas — JS/TS
+    // Data models / schemas -- JS/TS
     '**/prisma/schema.prisma',
     '**/drizzle/**/*.ts',
     '**/schema/**/*.{ts,js,graphql,gql,sql}',
     '**/models/**/*.{ts,js}',
     '**/*.schema.{ts,js}',
     '**/*.model.{ts,js}',
-    // Data models / schemas — Python
+    // Data models / schemas -- Python
     '**/models.py',
     '**/schemas.py',
     '**/serializers.py',
     '**/models/**/*.py',
-    // Data models / schemas — Ruby
+    // Data models / schemas -- Ruby
     '**/app/models/**/*.rb',
     '**/db/schema.rb',
-    // Data models / schemas — Go / Rust / Java / PHP
+    // Data models / schemas -- Go / Rust / Java / PHP
     '**/models/*.go',
     '**/*_model.go',
     '**/schema.rs',
@@ -42,7 +42,7 @@ const CONTEXT_FILE_PATTERNS = [
     // Route definitions
     '**/routes/**/*.{ts,js}',
     '**/router.{ts,js}',
-    // Database migrations (latest only) — multi-language
+    // Database migrations (latest only) -- multi-language
     '**/migrations/**/migration.sql',
     '**/db/migrate/**/*.rb',
     '**/alembic/**/*.py',
@@ -56,7 +56,7 @@ const CONTEXT_FILE_PATTERNS = [
     '**/Dockerfile',
     '.env.example',
     '.env.local.example',
-    // Schema definitions — general
+    // Schema definitions -- general
     '**/schema.{yaml,yml,json}',
     '**/*.avsc',
     '**/*.thrift',
@@ -115,10 +115,10 @@ export interface ContextFile {
     size: number
 }
 
-/** Maximum size (in bytes) for a single context file — skip huge files */
+/** Maximum size (in bytes) for a single context file -- skip huge files */
 const MAX_CONTEXT_FILE_SIZE = 50_000 // ~50KB
 
-// ─── .mikkignore support ───────────────────────────────────────────
+// --- .mikkignore support ----------------------------------------------------
 
 /**
  * Read a .mikkignore file from the project root and parse it into
@@ -138,7 +138,7 @@ export async function readMikkIgnore(projectRoot: string): Promise<string[]> {
         const content = await fs.readFile(ignorePath, 'utf-8')
         return parseMikkIgnore(content)
     } catch {
-        return [] // no .mikkignore — that's fine
+        return [] // no .mikkignore -- that's fine
     }
 }
 
@@ -151,24 +151,24 @@ export function parseMikkIgnore(content: string): string[] {
         if (line.startsWith('!')) continue // negations not yet supported
 
         const isDir = line.endsWith('/')
-        // If pattern has no slash (ignoring trailing slash), match anywhere → prepend **/
+        // If pattern has no slash (ignoring trailing slash), match anywhere -> prepend **/
         const stripped = isDir ? line.slice(0, -1) : line
         const hasSlash = stripped.includes('/')
 
         if (!hasSlash) {
             if (isDir) {
-                // e.g. "dist/" → "**/{dist}/**" — ignore the directory and everything within it
+                // e.g. "dist/" -> "**/{dist}/**" -- ignore the directory and everything within it
                 patterns.push(`**/${stripped}/**`)
             } else {
-                // e.g. "*.svg" → "**/*.svg"
+                // e.g. "*.svg" -> "**/*.svg"
                 patterns.push(`**/${line}`)
             }
         } else {
             if (isDir) {
-                // e.g. "packages/*/tests/" → "packages/*/tests/**"
+                // e.g. "packages/*/tests/" -> "packages/*/tests/**"
                 patterns.push(`${stripped}/**`)
             } else {
-                // e.g. "components/ui/**" — relative to root, already valid
+                // e.g. "components/ui/**" -- relative to root, already valid
                 patterns.push(line)
             }
         }
@@ -181,7 +181,7 @@ export function parseMikkIgnore(content: string): string[] {
  * the project's data models, API definitions, route structure, and config.
  *
  * This is technology-agnostic: it works for Prisma, Drizzle, GraphQL, SQL,
- * Protobuf, Docker, OpenAPI, and more — anything with a well-known file pattern.
+ * Protobuf, Docker, OpenAPI, and more -- anything with a well-known file pattern.
  */
 export async function discoverContextFiles(projectRoot: string): Promise<ContextFile[]> {
     const mikkIgnore = await readMikkIgnore(projectRoot)
@@ -194,7 +194,7 @@ export async function discoverContextFiles(projectRoot: string): Promise<Context
 
     const normalised = files.map(f => f.replace(/\\/g, '/'))
 
-    // Deduplicate — some patterns overlap (e.g. models/*.ts also matched by source discovery)
+    // Deduplicate -- some patterns overlap (e.g. models/*.ts also matched by source discovery)
     const unique = [...new Set(normalised)]
 
     const results: ContextFile[] = []
@@ -211,7 +211,7 @@ export async function discoverContextFiles(projectRoot: string): Promise<Context
 
             results.push({ path: relPath, content, type, size: stat.size })
         } catch {
-            // File unreadable — skip
+            // File unreadable -- skip
         }
     }
 
@@ -229,7 +229,7 @@ export async function discoverContextFiles(projectRoot: string): Promise<Context
     results.sort((a, b) => priority[a.type] - priority[b.type])
 
     // If we have a schema file (e.g. prisma/schema.prisma), the migrations
-    // are redundant — they represent historical deltas, not the current state.
+    // are redundant -- they represent historical deltas, not the current state.
     // Including them wastes AI tokens and can be actively misleading.
     const hasSchema = results.some(f => f.type === 'schema')
     if (hasSchema) {
@@ -242,7 +242,7 @@ export async function discoverContextFiles(projectRoot: string): Promise<Context
 /** Infer the context file's category from its path */
 function inferContextFileType(filePath: string): ContextFileType {
     const lower = filePath.toLowerCase()
-    // Schema files — multi-language
+    // Schema files -- multi-language
     if (lower.includes('prisma/schema') || lower.endsWith('.prisma')) return 'schema'
     if (lower.includes('drizzle/') || lower.includes('.schema.')) return 'schema'
     if (lower.endsWith('.graphql') || lower.endsWith('.gql')) return 'schema'
@@ -251,12 +251,12 @@ function inferContextFileType(filePath: string): ContextFileType {
     if (lower.endsWith('schema.rs')) return 'schema'
     if (lower.endsWith('.proto')) return 'api-spec'
     if (lower.includes('openapi') || lower.includes('swagger')) return 'api-spec'
-    // Migrations — multi-language
+    // Migrations -- multi-language
     if (lower.endsWith('.sql') && lower.includes('migration')) return 'migration'
     if (lower.includes('db/migrate/')) return 'migration'
     if (lower.includes('alembic/')) return 'migration'
     if (lower.endsWith('.sql')) return 'schema'
-    // Models — any language
+    // Models -- any language
     if (lower.includes('/models/') || lower.includes('/model/')) return 'model'
     if (lower.endsWith('.model.ts') || lower.endsWith('.model.js') || lower.endsWith('.model.go')) return 'model'
     if (lower.endsWith('models.py') || lower.endsWith('serializers.py') || lower.endsWith('schemas.py')) return 'model'
@@ -286,7 +286,7 @@ export async function detectProjectLanguage(projectRoot: string): Promise<Projec
         const matches = await fg(pattern, { cwd: projectRoot, onlyFiles: true, deep: 1 })
         return matches.length > 0
     }
-    // Check in priority order — most specific first
+    // Check in priority order -- most specific first
     if (await exists('tsconfig.json') || await hasGlob('tsconfig.*.json')) return 'typescript'
     if (await exists('Cargo.toml')) return 'rust'
     if (await exists('go.mod')) return 'go'
@@ -432,7 +432,7 @@ export async function setupMikkDirectory(projectRoot: string): Promise<void> {
     }
 }
 
-// ─── .mikkignore auto-generation ────────────────────────────────────
+// --- .mikkignore auto-generation --------------------------------------------
 
 /** Default ignore patterns shared across all languages */
 const COMMON_IGNORE_PATTERNS = [
@@ -520,7 +520,7 @@ const LANGUAGE_IGNORE_TEMPLATES: Record<ProjectLanguage, string[]> = {
         '',
     ],
     rust: [
-        '# Test files (inline tests are kept — only test binaries excluded)',
+        '# Test files (inline tests are kept -- only test binaries excluded)',
         'target/',
         'tests/fixtures/',
         '',
@@ -589,7 +589,7 @@ export async function generateMikkIgnore(projectRoot: string, language: ProjectL
     if (await fileExists(ignorePath)) return false
 
     const lines: string[] = [
-        '# .mikkignore — files/directories Mikk should skip during analysis',
+        '# .mikkignore -- files/directories Mikk should skip during analysis',
         '# Syntax: gitignore-style patterns. Lines starting with # are comments.',
         '# Paths without / match anywhere. Paths with / are relative to project root.',
         '',
@@ -607,7 +607,7 @@ export async function generateMikkIgnore(projectRoot: string, language: ProjectL
             : pkg.workspaces?.packages
 
         if (workspaces && workspaces.length > 0) {
-            lines.push('# Monorepo — test/fixture directories across all packages')
+            lines.push('# Monorepo -- test/fixture directories across all packages')
             for (const ws of workspaces) {
                 // ws is like "packages/*" or "apps/*"
                 const base = ws.replace(/\/?\*$/, '')
@@ -618,13 +618,13 @@ export async function generateMikkIgnore(projectRoot: string, language: ProjectL
             lines.push('')
         }
     } catch {
-        // No package.json or not JSON — skip monorepo detection
+        // No package.json or not JSON -- skip monorepo detection
     }
 
     // Turbo / pnpm workspace detection
     try {
         const turboRaw = await fs.readFile(path.join(projectRoot, 'turbo.json'), 'utf-8')
-        // turbo.json exists — likely a monorepo already handled above
+        // turbo.json exists -- likely a monorepo already handled above
         void turboRaw
     } catch {
         // not a turbo project
@@ -639,7 +639,7 @@ export async function generateMikkIgnore(projectRoot: string, language: ProjectL
             .map(l => l.replace(/^\s*-\s*['"]?/, '').replace(/['"]?\s*$/, '').trim())
 
         if (packageLines.length > 0 && !lines.some(l => l.includes('Monorepo'))) {
-            lines.push('# Monorepo (pnpm) — test/fixture directories across all packages')
+            lines.push('# Monorepo (pnpm) -- test/fixture directories across all packages')
             for (const ws of packageLines) {
                 const base = ws.replace(/\/?\*$/, '')
                 lines.push(`${base}/*/tests/`)

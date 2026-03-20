@@ -4,11 +4,34 @@ graph TD
         subgraph file_packages_vscode_extension_src_extension_ts["📄 extension.ts"]
             fn_packages_vscode_extension_src_extension_ts_activate["⚡ activate"]
             fn_packages_vscode_extension_src_extension_ts_deactivate["⚡ deactivate"]
+            fn_packages_vscode_extension_src_extension_ts_runInTerminal["λ runInTerminal"]
+            fn_packages_vscode_extension_src_extension_ts_updateStatusBar["λ updateStatusBar"]
+            fn_packages_vscode_extension_src_extension_ts_MikkDataProvider_constructor["⚡ MikkDataProvider.constructor"]
+            fn_packages_vscode_extension_src_extension_ts_MikkDataProvider_reload["⚡ MikkDataProvider.reload"]
+            fn_packages_vscode_extension_src_extension_ts_MikkDataProvider_getContract["⚡ MikkDataProvider.getContract"]
+            fn_packages_vscode_extension_src_extension_ts_MikkDataProvider_getLock["⚡ MikkDataProvider.getLock"]
+            fn_packages_vscode_extension_src_extension_ts_MikkDataProvider_getModules["⚡ MikkDataProvider.getModules"]
+            fn_packages_vscode_extension_src_extension_ts_MikkDataProvider_getFunctionsForModule["⚡ MikkDataProvider.getFunctionsForModule"]
+            fn_packages_vscode_extension_src_extension_ts_MikkDataProvider_getFilesForModule["⚡ MikkDataProvider.getFilesForModule"]
+            fn_packages_vscode_extension_src_extension_ts_MikkDataProvider_getAllFunctions["⚡ MikkDataProvider.getAllFunctions"]
+            fn_packages_vscode_extension_src_extension_ts_MikkDataProvider_readJson["⚡ MikkDataProvider.readJson"]
+            fn_packages_vscode_extension_src_extension_ts_ModulesTreeProvider_constructor["⚡ ModulesTreeProvider.constructor"]
+            fn_packages_vscode_extension_src_extension_ts_ModulesTreeProvider_refresh["⚡ ModulesTreeProvider.refresh"]
             fn_packages_vscode_extension_src_extension_ts_ModulesTreeProvider_getTreeItem["⚡ ModulesTreeProvider.getTreeItem"]
             fn_packages_vscode_extension_src_extension_ts_ModulesTreeProvider_getChildren["⚡ ModulesTreeProvider.getChildren"]
+            fn_packages_vscode_extension_src_extension_ts_FunctionsTreeProvider_constructor["⚡ FunctionsTreeProvider.constructor"]
+            fn_packages_vscode_extension_src_extension_ts_FunctionsTreeProvider_refresh["⚡ FunctionsTreeProvider.refresh"]
+            fn_packages_vscode_extension_src_extension_ts_FunctionsTreeProvider_getTreeItem["⚡ FunctionsTreeProvider.getTreeItem"]
+            fn_packages_vscode_extension_src_extension_ts_FunctionsTreeProvider_getChildren["⚡ FunctionsTreeProvider.getChildren"]
+            fn_packages_vscode_extension_src_extension_ts_HealthTreeProvider_constructor["⚡ HealthTreeProvider.constructor"]
+            fn_packages_vscode_extension_src_extension_ts_HealthTreeProvider_refresh["⚡ HealthTreeProvider.refresh"]
+            fn_packages_vscode_extension_src_extension_ts_HealthTreeProvider_getTreeItem["⚡ HealthTreeProvider.getTreeItem"]
+            fn_packages_vscode_extension_src_extension_ts_HealthTreeProvider_getChildren["⚡ HealthTreeProvider.getChildren"]
         end
     end
 
+    fn_packages_vscode_extension_src_extension_ts_activate --> fn_packages_vscode_extension_src_extension_ts_updateStatusBar
+    fn_packages_vscode_extension_src_extension_ts_activate --> fn_packages_vscode_extension_src_extension_ts_runInTerminal
 
     classDef default fill:#334155,stroke:#64748b,color:#e2e8f0,stroke-width:1px
     classDef external fill:#1e293b,stroke:#475569,color:#94a3b8,stroke-dasharray: 5 5

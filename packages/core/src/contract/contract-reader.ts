@@ -3,7 +3,7 @@ import { MikkContractSchema, type MikkContract } from './schema.js'
 import { ContractNotFoundError } from '../utils/errors.js'
 
 /**
- * ContractReader — reads and validates mikk.json from disk.
+ * ContractReader -- reads and validates mikk.json from disk.
  */
 export class ContractReader {
     /** Read and validate mikk.json */
@@ -15,7 +15,7 @@ export class ContractReader {
             throw new ContractNotFoundError(contractPath)
         }
 
-        const json = JSON.parse(content)
+        const json = JSON.parse(content.replace(/^\uFEFF/, ''))
         const result = MikkContractSchema.safeParse(json)
 
         if (!result.success) {

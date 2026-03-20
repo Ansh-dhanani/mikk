@@ -1,5 +1,6 @@
 import * as path from 'node:path'
 import * as fs from 'node:fs/promises'
+import { execSync } from 'node:child_process'
 import { createHash } from 'node:crypto'
 import type { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js'
 import { z } from 'zod'
@@ -9,12 +10,13 @@ import {
     BoundaryChecker,
     type MikkContract, type MikkLock,
     type DependencyGraph, type GraphNode, type GraphEdge,
+    BM25Index, buildFunctionTokens, reciprocalRankFusion, tokenize,
 } from '@getmikk/core'
 import { ContextBuilder, getProvider } from '@getmikk/ai-context'
 import { SemanticSearcher } from '@getmikk/intent-engine'
 import type { ContextQuery } from '@getmikk/ai-context'
 
-// ─── Caching ─────────────────────────────────────────────────────────────────
+
 // Cache contract+lock+graph per project root with 30s TTL to avoid re-reading
 // from disk on every MCP tool call (~200ms I/O saved per call)
 
@@ -33,7 +35,7 @@ function invalidateCache(projectRoot: string): void {
     projectCache.delete(projectRoot)
 }
 
-// Singleton per projectRoot — pipeline load is ~1-2s, must not repeat per request
+// Singleton per projectRoot ” pipeline load is ~1-2s, must not repeat per request
 const semanticSearchers = new Map<string, SemanticSearcher>()
 function getSemanticSearcher(projectRoot: string): SemanticSearcher {
     let s = semanticSearchers.get(projectRoot)
@@ -58,16 +60,28 @@ async function quickHashFile(filePath: string): Promise<string> {
 }
 
 /**
- * Register all MCP tools — actions an AI assistant can invoke.
+ * Register all MCP tools ” actions an AI assistant can invoke.
  */
 export function registerTools(server: McpServer, projectRoot: string) {
 
-    // ─────────────────────────────────────────────────────────────────────
+
+    // TOOL: mikk_test_tool
+
+    server.tool(
+        'mikk_test_tool',
+        'A simple test tool that returns a static message.',
+        {},
+        async () => {
+            return { content: [{ type: 'text', text: 'Mikk test tool executed successfully.' }] }
+        },
+    )
+
+
     // TOOL: mikk_get_project_overview
-    // ─────────────────────────────────────────────────────────────────────
+
     server.tool(
         'mikk_get_project_overview',
-        'Get a high-level overview of the project: modules, function counts, file counts, tech stack',
+        'Get a high-level overview: modules, function counts, file counts, constraints. WHEN TO USE: When you need raw project stats. For session start, prefer mikk_get_session_context instead. AFTER THIS: Use mikk_query_context with your task, or mikk_list_modules to drill into a module.',
         {},
         async () => {
             const { contract, lock, staleness } = await loadContractAndLock(projectRoot)
@@ -101,12 +115,12 @@ export function registerTools(server: McpServer, projectRoot: string) {
         },
     )
 
-    // ─────────────────────────────────────────────────────────────────────
+
     // TOOL: mikk_query_context
-    // ─────────────────────────────────────────────────────────────────────
+
     server.tool(
         'mikk_query_context',
-        'Ask an architecture question — returns graph-traced context with relevant functions, files, and call chains. Use this to understand how code flows through the project.',
+        'Ask an architecture question ” returns graph-traced context with relevant functions, files, and call chains. Use this to understand how code flows through the project.',
         {
             question: z.string().describe('The architecture question or task description'),
             maxHops: z.number().optional().default(4).describe('Graph traversal depth (default: 4)'),
@@ -137,8 +151,8 @@ export function registerTools(server: McpServer, projectRoot: string) {
                     content: [{
                         type: 'text' as const,
                         text: `No context found for "${question}". ${focusFile
-                                ? `The file "${focusFile}" may not exist in the lock.`
-                                : 'The project may have no analyzed functions.'
+                            ? `The file "${focusFile}" may not exist in the lock.`
+                            : 'The project may have no analyzed functions.'
                             } Run \`mikk analyze\` or check the file path.`,
                     }],
                     isError: true,
@@ -155,12 +169,12 @@ export function registerTools(server: McpServer, projectRoot: string) {
         },
     )
 
-    // ─────────────────────────────────────────────────────────────────────
+
     // TOOL: mikk_impact_analysis
-    // ─────────────────────────────────────────────────────────────────────
+
     server.tool(
         'mikk_impact_analysis',
-        'Analyze the blast radius of changing a specific file. Returns which functions and modules would be impacted.',
+        'Analyze the blast radius of changing a file. Returns impacted functions classified by severity (critical/high/medium/low). WHEN TO USE: Before refactoring, renaming, or modifying shared code. AFTER THIS: Use mikk_get_function_detail on critical/high items to review them.',
         {
             file: z.string().describe('The file path (relative to project root) to analyze impact for'),
         },
@@ -218,12 +232,72 @@ export function registerTools(server: McpServer, projectRoot: string) {
         },
     )
 
-    // ─────────────────────────────────────────────────────────────────────
+
+    // TOOL: mikk_search_functions
+
+    server.tool(
+        'mikk_search_functions',
+        'Search for functions by name or ID using a hybrid BM25+substring search. WHEN TO USE: When you need to find a function but are unsure of its exact name or location. AFTER THIS: Use mikk_get_function_detail to get more information about a specific function.',
+        {
+            query: z.string().describe('The search query for function names or IDs'),
+            limit: z.number().optional().default(10).describe('Maximum number of results to return'),
+        },
+        async ({ query, limit }) => {
+            const { lock, staleness } = await loadContractAndLock(projectRoot)
+            const allFunctions = Object.values(lock.functions)
+            const queryLower = query.toLowerCase()
+
+            // --- Substring matches (fast, deterministic) ---
+            const substringMatches = allFunctions
+                .filter(fn => fn.name.toLowerCase().includes(queryLower) || fn.id.toLowerCase().includes(queryLower))
+                .map((fn, i) => ({ id: fn.id, score: 100 - i }))
+
+            // --- BM25 matches (ranked by relevance) ---
+            const bm25 = new BM25Index()
+            for (const fn of allFunctions) {
+                bm25.addDocument(fn.id, buildFunctionTokens(fn))
+            }
+            const bm25Matches = bm25.search(query, limit * 2)
+
+            // --- Reciprocal Rank Fusion to merge both lists ---
+            const fused = reciprocalRankFusion(substringMatches, bm25Matches)
+
+            const matches = fused
+                .slice(0, limit)
+                .map(result => {
+                    const fn = lock.functions[result.id]
+                    if (!fn) return null
+                    return {
+                        name: fn.name,
+                        file: fn.file,
+                        module: fn.moduleId,
+                        exported: fn.isExported,
+                        lines: `${fn.startLine}-${fn.endLine}`,
+                        relevance: Math.round(result.score * 10000) / 10000,
+                    }
+                })
+                .filter(Boolean)
+
+            if (matches.length === 0) {
+                return { content: [{ type: 'text' as const, text: `No functions matching "${query}" found.` }] }
+            }
+
+            const response = {
+                matches,
+                searchMethod: 'hybrid (BM25 + substring via RRF)',
+                warning: staleness,
+            }
+
+            return { content: [{ type: 'text' as const, text: JSON.stringify(response, null, 2) }] }
+        },
+    )
+
+
     // TOOL: mikk_before_edit
-    // ─────────────────────────────────────────────────────────────────────
+
     server.tool(
         'mikk_before_edit',
-        'Call this BEFORE editing any file. Returns the blast radius, exported functions at risk, architectural constraint violations, and circular dependency warnings. This is your safety check.',
+        'MANDATORY: Call BEFORE editing any file. Returns blast radius, exported functions at risk, constraint violations (6 rule types), and circular dependency warnings. WHEN TO USE: ALWAYS before modifying files. AFTER THIS: If constraintStatus is fail, redesign your approach. If pass, proceed with edits. TIP: Pass multiple files for combined blast radius.',
         {
             files: z.array(z.string()).describe('The file paths (relative to project root) you are about to edit'),
         },
@@ -272,7 +346,7 @@ export function registerTools(server: McpServer, projectRoot: string) {
                     rule: v.rule,
                     from: `${v.from.moduleName}::${v.from.functionName}`,
                     to: `${v.to.moduleName}::${v.to.functionName}`,
-                    message: `❌ ${v.from.moduleName}::${v.from.functionName} → ${v.to.moduleName}::${v.to.functionName} violates: "${v.rule}"`,
+                    message: `${v.from.moduleName}::${v.from.functionName} -> ${v.to.moduleName}::${v.to.functionName} violates: "${v.rule}"`,
                 }))
 
                 // Detect circular dependencies for this file's functions
@@ -306,7 +380,7 @@ export function registerTools(server: McpServer, projectRoot: string) {
                 files: fileReports,
                 warning: staleness,
                 hint: totalViolations > 0
-                    ? '⚠️ Constraint violations detected! Review the violations before proceeding. Use mikk_get_constraints for full rule context.'
+                    ? ' Constraint violations detected! Review the violations before proceeding. Use mikk_get_constraints for full rule context.'
                     : 'All constraints satisfied. If safe, proceed with your edits.',
             }
 
@@ -314,12 +388,12 @@ export function registerTools(server: McpServer, projectRoot: string) {
         },
     )
 
-    // ─────────────────────────────────────────────────────────────────────
+
     // TOOL: mikk_list_modules
-    // ─────────────────────────────────────────────────────────────────────
+
     server.tool(
         'mikk_list_modules',
-        'List all declared modules with their file/function counts and descriptions',
+        'List all declared modules with file counts, function counts, entry points, and descriptions. WHEN TO USE: To explore the project structure. Good starting point after mikk_get_session_context. AFTER THIS: Use mikk_get_module_detail with a specific moduleId.',
         {},
         async () => {
             const { contract, lock, staleness } = await loadContractAndLock(projectRoot)
@@ -347,12 +421,12 @@ export function registerTools(server: McpServer, projectRoot: string) {
         },
     )
 
-    // ─────────────────────────────────────────────────────────────────────
+
     // TOOL: mikk_get_module_detail
-    // ─────────────────────────────────────────────────────────────────────
+
     server.tool(
         'mikk_get_module_detail',
-        'Get detailed information about a specific module: its functions, files, exported API, and internal call graph',
+        'Deep dive into a single module: all functions, files, exported API surface, internal call graph. WHEN TO USE: After mikk_list_modules to understand a specific module. AFTER THIS: Use mikk_get_function_detail for specific functions, or mikk_before_edit if modifying files in this module.',
         {
             moduleId: z.string().describe('The module ID (e.g., "packages-core", "lib-auth")'),
         },
@@ -394,12 +468,12 @@ export function registerTools(server: McpServer, projectRoot: string) {
         },
     )
 
-    // ─────────────────────────────────────────────────────────────────────
+
     // TOOL: mikk_get_function_detail
-    // ─────────────────────────────────────────────────────────────────────
+
     server.tool(
         'mikk_get_function_detail',
-        'Get detailed info about a specific function by name: params, return type, call graph, error handling, etc.',
+        '360-degree view of a function: params, return type, source body, call graph (who calls it + what it calls), error handling, edge cases. WHEN TO USE: When you need to understand a specific function in depth. AFTER THIS: Use mikk_find_usages to see all callers. TIP: Pass full qualified name (e.g. GraphBuilder.build) for class methods.',
         {
             name: z.string().describe('Function name to search for (e.g., "parseFiles", "GraphBuilder.build")'),
         },
@@ -426,7 +500,7 @@ export function registerTools(server: McpServer, projectRoot: string) {
                     const fileContent = await fs.readFile(absPath, 'utf-8')
                     const lines = fileContent.split('\n')
                     body = lines.slice(fn.startLine - 1, fn.endLine).join('\n')
-                } catch { /* non-fatal — body may not be available */ }
+                } catch { /* non-fatal ” body may not be available */ }
 
                 return {
                     id: fn.id,
@@ -452,50 +526,12 @@ export function registerTools(server: McpServer, projectRoot: string) {
         },
     )
 
-    // ─────────────────────────────────────────────────────────────────────
-    // TOOL: mikk_search_functions
-    // ─────────────────────────────────────────────────────────────────────
-    server.tool(
-        'mikk_search_functions',
-        'Search for functions by name pattern (substring match). Returns matching function names, files, and modules.',
-        {
-            query: z.string().describe('Search query — matched against function names (case-insensitive)'),
-            limit: z.number().optional().default(20).describe('Max results to return (default: 20)'),
-        },
-        async ({ query, limit }) => {
-            const { lock, staleness } = await loadContractAndLock(projectRoot)
-            const queryLower = query.toLowerCase()
 
-            const matches = Object.values(lock.functions)
-                .filter(fn => fn.name.toLowerCase().includes(queryLower) || fn.id.toLowerCase().includes(queryLower))
-                .slice(0, limit)
-                .map(fn => ({
-                    name: fn.name,
-                    file: fn.file,
-                    module: fn.moduleId,
-                    exported: fn.isExported,
-                    lines: `${fn.startLine}-${fn.endLine}`,
-                }))
-
-            if (matches.length === 0) {
-                return { content: [{ type: 'text' as const, text: `No functions matching "${query}" found.` }] }
-            }
-
-            const response = {
-                matches,
-                warning: staleness,
-            }
-
-            return { content: [{ type: 'text' as const, text: JSON.stringify(response, null, 2) }] }
-        },
-    )
-
-    // ─────────────────────────────────────────────────────────────────────
     // TOOL: mikk_semantic_search
-    // ─────────────────────────────────────────────────────────────────────
+
     server.tool(
         'mikk_semantic_search',
-        'Find functions by meaning, not by name. Uses local vector embeddings (Xenova/all-MiniLM-L6-v2) to rank functions by semantic similarity to a natural-language query. Requires @xenova/transformers to be installed.',
+        'Find functions by meaning using local vector embeddings. Query "validate JWT" returns verifyToken ranked by cosine similarity. WHEN TO USE: When you dont know the function name but know what it does. Complements mikk_search_functions (keyword). AFTER THIS: Use mikk_get_function_detail on top matches. Requires @xenova/transformers (22MB model, downloads once).',
         {
             query: z.string().describe('Natural-language description of what you are looking for (e.g. "validate a JWT token", "send an email notification")'),
             topK: z.number().optional().default(10).describe('Number of results to return (default: 10)'),
@@ -507,7 +543,7 @@ export function registerTools(server: McpServer, projectRoot: string) {
                     content: [{
                         type: 'text' as const,
                         text: [
-                            '❌ Semantic search requires @xenova/transformers.',
+                            'Œ Semantic search requires @xenova/transformers.',
                             '',
                             'Install it in your project root:',
                             '  npm install @xenova/transformers',
@@ -539,12 +575,12 @@ export function registerTools(server: McpServer, projectRoot: string) {
         },
     )
 
-    // ─────────────────────────────────────────────────────────────────────
+
     // TOOL: mikk_get_constraints
-    // ─────────────────────────────────────────────────────────────────────
+
     server.tool(
         'mikk_get_constraints',
-        'Get all declared architectural constraints and design decisions for this project',
+        'Get all architectural constraints and ADRs. WHEN TO USE: Before cross-module changes, or when mikk_before_edit reports violations. Understand WHY a constraint exists. AFTER THIS: Use mikk_manage_adr to add/update decisions. 6 constraint types: no-import, must-use, no-call, layer, naming, max-files.',
         {},
         async () => {
             const { contract, staleness } = await loadContractAndLock(projectRoot)
@@ -560,12 +596,12 @@ export function registerTools(server: McpServer, projectRoot: string) {
         },
     )
 
-    // ─────────────────────────────────────────────────────────────────────
+
     // TOOL: mikk_get_file
-    // ─────────────────────────────────────────────────────────────────────
+
     server.tool(
         'mikk_get_file',
-        'Read the raw source content of any file in the project. Use this to see the actual code before editing.',
+        'Read raw source of a file. TIP: Prefer mikk_read_file with function names to save tokens. WHEN TO USE: When you need entire file content (config files, small files). AFTER THIS: Use mikk_before_edit before making changes.',
         {
             file: z.string().describe('File path relative to project root (e.g., "src/auth/verify.ts")'),
         },
@@ -600,12 +636,12 @@ export function registerTools(server: McpServer, projectRoot: string) {
         },
     )
 
-    // ─────────────────────────────────────────────────────────────────────
+
     // TOOL: mikk_find_usages
-    // ─────────────────────────────────────────────────────────────────────
+
     server.tool(
         'mikk_find_usages',
-        'Find everything that calls a specific function. Essential before renaming or changing a function signature.',
+        'Find every function that calls a specific function. Essential before renaming or changing signatures. WHEN TO USE: Before renaming, refactoring, or changing a function interface. AFTER THIS: Review each caller to ensure your change wont break them. Use mikk_read_file to see caller code.',
         {
             name: z.string().describe('Function name to find callers of'),
         },
@@ -646,12 +682,12 @@ export function registerTools(server: McpServer, projectRoot: string) {
         },
     )
 
-    // ─────────────────────────────────────────────────────────────────────
+
     // TOOL: mikk_get_routes
-    // ─────────────────────────────────────────────────────────────────────
+
     server.tool(
         'mikk_get_routes',
-        'Get all detected HTTP routes (Express/Koa/Hono style) with their methods, paths, handlers, and middlewares',
+        'Get all detected HTTP routes with methods, paths, handlers, and middleware chains. WHEN TO USE: When working on API endpoints. Shows Express/Koa/Hono route registrations detected from AST. AFTER THIS: Use mikk_get_function_detail on a handler to see its implementation.',
         {},
         async () => {
             const { lock, staleness } = await loadContractAndLock(projectRoot)
@@ -670,12 +706,12 @@ export function registerTools(server: McpServer, projectRoot: string) {
         },
     )
 
-    // ─────────────────────────────────────────────────────────────────────
+
     // TOOL: mikk_dead_code
-    // ─────────────────────────────────────────────────────────────────────
+
     server.tool(
         'mikk_dead_code',
-        'Detect dead code — functions with zero callers after exempting exports, entry points, route handlers, tests, and constructors. Use this before refactoring or cleanup.',
+        'Detect dead code ” functions with zero callers after exempting exports, entry points, route handlers, tests, and constructors. Use this before refactoring or cleanup.',
         {
             moduleId: z.string().optional().describe('Filter results to a specific module ID'),
         },
@@ -704,12 +740,12 @@ export function registerTools(server: McpServer, projectRoot: string) {
         },
     )
 
-    // ─────────────────────────────────────────────────────────────────────
+
     // TOOL: mikk_manage_adr
-    // ─────────────────────────────────────────────────────────────────────
+
     server.tool(
         'mikk_manage_adr',
-        'Manage Architectural Decision Records (ADRs) in mikk.json. Actions: list, get, add, update, remove. ADRs document WHY architectural constraints exist.',
+        'CRUD for Architectural Decision Records (ADRs) in mikk.json. Actions: list, get, add, update, remove. WHEN TO USE: When making architectural changes — document WHY so future AI agents understand. AFTER THIS: ADRs automatically surface in mikk_query_context responses. Required for add: id, title, reason.',
         {
             action: z.enum(['list', 'get', 'add', 'update', 'remove']).describe('The CRUD action to perform'),
             id: z.string().optional().describe('ADR id (required for get, update, remove)'),
@@ -765,12 +801,12 @@ export function registerTools(server: McpServer, projectRoot: string) {
         },
     )
 
-    // ─────────────────────────────────────────────────────────────────────
+
     // TOOL: mikk_get_changes  (Phase 2)
-    // ─────────────────────────────────────────────────────────────────────
+
     server.tool(
         'mikk_get_changes',
-        'Detect files that have changed since last analysis. Call this at the start of every AI session to understand what\'s different. Returns added, modified, and deleted files.',
+        'Detect files added, modified, and deleted since last mikk analyze. WHEN TO USE: At session start (after mikk_get_session_context), or after making edits to see what drifted. AFTER THIS: Run mikk analyze to update the lock, then mikk_impact_analysis on modified files. Uses SHA-256 hash comparison for accurate drift detection.',
         {},
         async () => {
             const { lock, staleness } = await loadContractAndLock(projectRoot)
@@ -811,7 +847,7 @@ export function registerTools(server: McpServer, projectRoot: string) {
                         }
                     } catch { /* dir doesn't exist */ }
                 }
-            } catch { /* scan failed — non-fatal */ }
+            } catch { /* scan failed ” non-fatal */ }
 
             const response = {
                 added: added.slice(0, 50),
@@ -829,12 +865,12 @@ export function registerTools(server: McpServer, projectRoot: string) {
         },
     )
 
-    // ─────────────────────────────────────────────────────────────────────
+
     // TOOL: mikk_read_file  (Phase 2)
-    // ─────────────────────────────────────────────────────────────────────
+
     server.tool(
         'mikk_read_file',
-        'Read file content scoped to specific functions. Returns function bodies with metadata headers (params, returnType, calledBy) instead of dumping the whole file. Use this instead of mikk_get_file when you know which functions you need.',
+        'Read file scoped to specific functions. Returns bodies with metadata headers (params, calls, calledBy). WHEN TO USE: When you know which functions you need — saves tokens vs mikk_get_file. AFTER THIS: Use mikk_before_edit before making changes. TIP: This is the preferred way to read code — always specify function names when possible.',
         {
             file: z.string().describe('File path relative to project root'),
             functions: z.array(z.string()).optional().describe('Function names to extract. If omitted, returns the whole file.'),
@@ -876,16 +912,16 @@ export function registerTools(server: McpServer, projectRoot: string) {
             for (const fnName of fnNames) {
                 const fn = Object.values(lock.functions).find(
                     f => (f.name === fnName || f.name.endsWith(`.${fnName}`)) &&
-                         (f.file === normalizedFile || f.file.endsWith('/' + normalizedFile))
+                        (f.file === normalizedFile || f.file.endsWith('/' + normalizedFile))
                 )
 
                 if (!fn) {
-                    sections.push(`// ❌ Function "${fnName}" not found in ${file}`)
+                    sections.push(`// Œ Function "${fnName}" not found in ${file}`)
                     continue
                 }
 
                 const header = [
-                    `// ── ${fn.name} ──`,
+                    `//  ${fn.name} `,
                     `// File: ${fn.file}:${fn.startLine}-${fn.endLine}`,
                     `// Module: ${fn.moduleId}`,
                     fn.purpose ? `// Purpose: ${fn.purpose}` : null,
@@ -908,12 +944,10 @@ export function registerTools(server: McpServer, projectRoot: string) {
         },
     )
 
-    // ─────────────────────────────────────────────────────────────────────
     // TOOL: mikk_get_session_context  (Phase 2)
-    // ─────────────────────────────────────────────────────────────────────
     server.tool(
         'mikk_get_session_context',
-        'One-shot context for AI session start. Combines project overview + recent changes + hot modules + constraint status in a single call. Call this at the beginning of every new AI conversation.',
+        'CALL THIS FIRST. One-shot context for session start: project overview + constraint status + hot modules + recently modified files + active decisions. WHEN TO USE: At the very beginning of every AI conversation. This is your onboarding. AFTER THIS: Use mikk_query_context with your task description, or mikk_get_changes for detailed drift.',
         {},
         async () => {
             const { contract, lock, staleness } = await loadContractAndLock(projectRoot)
@@ -946,7 +980,7 @@ export function registerTools(server: McpServer, projectRoot: string) {
                 } catch { changedCount++ }
             }
 
-            // Hot modules — modules with most modified files
+
             const moduleChanges = new Map<string, number>()
             for (const f of modifiedFiles) {
                 const fileInfo = lock.files[f]
@@ -987,9 +1021,120 @@ export function registerTools(server: McpServer, projectRoot: string) {
             return { content: [{ type: 'text' as const, text: JSON.stringify(response, null, 2) }] }
         },
     )
-}
 
-// ─── Helpers ─────────────────────────────────────────────────────────────────
+    // TOOL: mikk_git_diff_impact
+    server.tool(
+        'mikk_git_diff_impact',
+        'Map git diff hunks to affected symbols. Shows which functions were modified/added/deleted. WHEN TO USE: After commits/merges to understand symbol-level changes. AFTER THIS: Use mikk_impact_analysis on affected files.',
+        {
+            ref: z.string().optional().default('HEAD~1').describe('Git ref to diff against (default: HEAD~1)'),
+            staged: z.boolean().optional().default(false).describe('If true, diff staged changes only'),
+        },
+        async ({ ref, staged }) => {
+            const { lock, staleness } = await loadContractAndLock(projectRoot)
+            try {
+                const diffArgs = staged ? '--cached' : ref
+                const rawDiff = execSync(`git diff ${diffArgs} --unified=0 --no-color`, {
+                    cwd: projectRoot, encoding: 'utf-8', maxBuffer: 10 * 1024 * 1024,
+                })
+                if (!rawDiff.trim()) {
+                    return { content: [{ type: 'text' as const, text: 'No changes found in git diff.' }] }
+                }
+                const fileHunks = parseDiffHunks(rawDiff)
+                const affectedSymbols: { file: string; type: string; functions: { name: string; moduleId: string }[] }[] = []
+                for (const hunk of fileHunks) {
+                    const fileFns = Object.values(lock.functions).filter(fn => fn.file === hunk.file || fn.file.endsWith(hunk.file))
+                    const affected = fileFns.filter(fn => hunk.changedLines.some(l => l >= fn.startLine && l <= fn.endLine))
+                    if (affected.length > 0 || hunk.isNew || hunk.isDeleted) {
+                        affectedSymbols.push({
+                            file: hunk.file,
+                            type: hunk.isNew ? 'added' : hunk.isDeleted ? 'deleted' : 'modified',
+                            functions: affected.map(fn => ({ name: fn.name, moduleId: fn.moduleId })),
+                        })
+                    }
+                }
+                const totalFns = affectedSymbols.reduce((s, f) => s + f.functions.length, 0)
+                return { content: [{ type: 'text' as const, text: JSON.stringify({
+                    summary: `${affectedSymbols.length} file(s), ${totalFns} function(s) affected`,
+                    affectedSymbols, warning: staleness,
+                }, null, 2) }] }
+            } catch (err: any) {
+                return { content: [{ type: 'text' as const, text: `Git diff failed: ${err.message}` }], isError: true }
+            }
+        },
+    )
+
+    // TOOL: mikk_rename
+    server.tool(
+        'mikk_rename',
+        'Plan a coordinated multi-file rename. Finds all call sites and import locations for a function and provides a step-by-step edit plan. WHEN TO USE: Before renaming any function — ensures you update ALL call sites. AFTER THIS: Execute the edit plan, then run mikk analyze.',
+        {
+            functionName: z.string().describe('The current function name to rename'),
+            newName: z.string().describe('The desired new name'),
+        },
+        async ({ functionName, newName }) => {
+            const { lock, staleness } = await loadContractAndLock(projectRoot)
+
+            const targetFn = Object.values(lock.functions).find(fn =>
+                fn.name === functionName || fn.id.endsWith(`:${functionName}`)
+            )
+
+            if (!targetFn) {
+                return {
+                    content: [{
+                        type: 'text' as const,
+                        text: `Function "${functionName}" not found. Use mikk_search_functions to find the correct name.`,
+                    }],
+                    isError: true,
+                }
+            }
+
+            const callers = targetFn.calledBy
+                .map(callerId => lock.functions[callerId])
+                .filter(Boolean)
+                .map(fn => ({
+                    callerName: fn.name,
+                    file: fn.file,
+                    module: fn.moduleId,
+                    lineRange: `${fn.startLine}-${fn.endLine}`,
+                }))
+
+            const filesImporting = Object.values(lock.files).filter(file =>
+                file.imports?.some(imp => imp.includes(functionName) || imp.includes(targetFn.file))
+            )
+
+            const instructions = [
+                `1. Rename definition in ${targetFn.file}:${targetFn.startLine}`,
+                ...callers.map((c, i) => `${i + 2}. Update call in ${c.file} (${c.callerName}, lines ${c.lineRange})`),
+                ...(targetFn.isExported
+                    ? filesImporting.map((f, i) => `${callers.length + i + 2}. Update import in ${f.path}`)
+                    : []),
+                `${callers.length + (targetFn.isExported ? filesImporting.length : 0) + 2}. Run \`mikk analyze\` to update the lock`,
+            ]
+
+            return {
+                content: [{
+                    type: 'text' as const,
+                    text: JSON.stringify({
+                        target: {
+                            currentName: functionName,
+                            newName,
+                            file: targetFn.file,
+                            line: targetFn.startLine,
+                            module: targetFn.moduleId,
+                            isExported: targetFn.isExported,
+                        },
+                        callSites: callers,
+                        importSites: filesImporting.map(f => ({ file: f.path, module: f.moduleId })),
+                        totalEdits: 1 + callers.length + filesImporting.length,
+                        instructions,
+                        warning: staleness,
+                    }, null, 2),
+                }],
+            }
+        },
+    )
+}
 
 /**
  * Load contract + lock from disk with 30s caching and active staleness detection.
@@ -1013,7 +1158,7 @@ async function loadContractAndLock(projectRoot: string) {
     let staleness: string | null = null
 
     if (syncStatus === 'drifted' || syncStatus === 'conflict') {
-        staleness = `⚠️ Lock file is ${syncStatus}. Run \`mikk analyze\` for accurate results.`
+        staleness = ` Lock file is ${syncStatus}. Run \`mikk analyze\` for accurate results.`
     }
 
     // Active staleness detection: check mtime of a sample of tracked files
@@ -1043,7 +1188,7 @@ async function loadContractAndLock(projectRoot: string) {
         }
 
         if (mismatched > 0) {
-            staleness = `⚠️ STALE: ${mismatched} file(s) changed since last analysis (${mismatchedFiles.slice(0, 3).join(', ')}${mismatched > 3 ? '...' : ''}). Run \`mikk analyze\`.`
+            staleness = ` STALE: ${mismatched} file(s) changed since last analysis (${mismatchedFiles.slice(0, 3).join(', ')}${mismatched > 3 ? '...' : ''}). Run \`mikk analyze\`.`
         }
     }
 
@@ -1059,7 +1204,7 @@ async function loadContractAndLock(projectRoot: string) {
 
 /**
  * Build a DependencyGraph from the lock file in O(n) time.
- * The lock already has fn.calls and fn.calledBy arrays — we just wire them up.
+ * The lock already has fn.calls and fn.calledBy arrays ” we just wire them up.
  */
 function buildGraphFromLock(lock: MikkLock): DependencyGraph {
     const nodes = new Map<string, GraphNode>()
@@ -1136,7 +1281,7 @@ function detectCircularDeps(
                 const cycleStart = cyclePath.indexOf(id)
                 const cycle = cyclePath.slice(cycleStart).map(cid => lock.functions[cid]?.name ?? cid)
                 cycle.push(lock.functions[id]?.name ?? id)
-                warnings.push(`⚠️ Circular: ${cycle.join(' → ')}`)
+                warnings.push(` Circular: ${cycle.join(' †’ ')}`)
                 return true
             }
             if (visited.has(id)) return false
@@ -1185,4 +1330,38 @@ async function walkDir(dir: string, projectRoot: string): Promise<string[]> {
 function isSourceFile(filePath: string): boolean {
     const ext = path.extname(filePath)
     return ['.ts', '.tsx', '.js', '.jsx', '.mjs', '.cjs', '.go', '.py'].includes(ext)
+}
+
+/** Parse unified diff into per-file hunk info with changed line numbers */
+function parseDiffHunks(diff: string): { file: string; changedLines: number[]; isNew: boolean; isDeleted: boolean }[] {
+    const files = new Map<string, { changedLines: number[]; isNew: boolean; isDeleted: boolean }>()
+    let currentFile = ''
+    let nextIsNew = false
+
+    for (const line of diff.split('\n')) {
+        if (line.startsWith('--- ') && line.includes('/dev/null')) {
+            nextIsNew = true
+        } else if (line.startsWith('+++ ')) {
+            currentFile = line.slice(6)
+            if (currentFile !== '/dev/null' && !files.has(currentFile)) {
+                files.set(currentFile, { changedLines: [], isNew: nextIsNew, isDeleted: false })
+            }
+            if (currentFile === '/dev/null') {
+                // deletion — mark previous file
+                const prev = [...files.keys()].pop()
+                if (prev) files.get(prev)!.isDeleted = true
+            }
+            nextIsNew = false
+        } else if (line.startsWith('@@ ') && currentFile && files.has(currentFile)) {
+            const match = line.match(/@@ -\d+(?:,\d+)? \+(\d+)(?:,(\d+))? @@/)
+            if (match) {
+                const start = parseInt(match[1], 10)
+                const count = parseInt(match[2] ?? '1', 10)
+                const entry = files.get(currentFile)!
+                for (let i = 0; i < count; i++) entry.changedLines.push(start + i)
+            }
+        }
+    }
+
+    return [...files.entries()].map(([file, data]) => ({ file, ...data }))
 }

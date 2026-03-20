@@ -1,6 +1,6 @@
 ---
 title: CLI Reference
-description: All 15+ commands for the Mikk CLI — with options, flags, and examples.
+description: All 17+ commands for the Mikk CLI — with options, flags, and examples.
 ---
 
 ## Installation
@@ -189,6 +189,39 @@ mikk contract status
 
 ---
 
+## Architectural Decision Records (ADRs)
+
+### `mikk adr list`
+
+List all architectural decisions tracked by Mikk.
+
+```bash
+mikk adr list
+```
+
+---
+
+### `mikk adr get`
+
+Get the full details and reasoning for a specific decision.
+
+```bash
+mikk adr get wasm-parsing
+```
+
+---
+
+### `mikk adr add` / `mikk adr rm`
+
+Add a new decision or remove an existing one. Options include `--id`, `--title`, and `--reason`.
+
+```bash
+mikk adr add --id "hybrid-search" --title "Use BM25" --reason "We need keyword support"
+mikk adr rm hybrid-search
+```
+
+---
+
 ## Intent Commands
 
 ### `mikk intent`
@@ -198,6 +231,28 @@ Validate a plain-English plan against your architecture before writing code. Che
 ```bash
 mikk intent "Add a caching layer to the auth module"
 mikk intent "Extract shared validation into utils" --verbose
+```
+
+---
+
+## Refactoring & Version Control commands
+
+### `mikk rename`
+
+Execute a multi-file coordinated rename. Finds the definition, updates the original export, and updates every call-site/import-site.
+
+```bash
+mikk rename
+```
+
+---
+
+### `mikk git-diff-impact`
+
+Trace Git diff hunks to actual affected functions and modules. See what code changes actually mean for execution flow.
+
+```bash
+mikk git-diff-impact
 ```
 
 ---

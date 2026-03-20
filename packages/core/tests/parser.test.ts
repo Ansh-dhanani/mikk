@@ -134,13 +134,13 @@ describe('TypeScriptExtractor', () => {
 describe('TypeScriptParser', () => {
     const parser = new TypeScriptParser()
 
-    it('returns correct language', () => {
-        const result = parser.parse('src/test.ts', 'const x = 1')
+    it('returns correct language', async () => {
+        const result = await parser.parse('src/test.ts', 'const x = 1')
         expect(result.language).toBe('typescript')
     })
 
-    it('parses a complete file', () => {
-        const result = parser.parse('src/auth.ts', `
+    it('parses a complete file', async () => {
+        const result = await parser.parse('src/auth.ts', `
       import { jwtDecode } from '../utils/jwt'
       export function verifyToken(token: string): boolean {
         return jwtDecode(token).exp > Date.now()
@@ -213,6 +213,6 @@ describe('getParser', () => {
     })
 
     it('throws for unsupported extensions', () => {
-        expect(() => getParser('src/auth.rb')).toThrow(UnsupportedLanguageError)
+        expect(() => getParser('src/auth.xyz')).toThrow(UnsupportedLanguageError)
     })
 })

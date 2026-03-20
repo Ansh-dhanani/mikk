@@ -6,7 +6,7 @@ import type { ParsedFile, ParsedImport } from './types.js'
  */
 export abstract class BaseParser {
     /** Given raw file content as a string, return ParsedFile */
-    abstract parse(filePath: string, content: string): ParsedFile
+    abstract parse(filePath: string, content: string): Promise<ParsedFile>
 
     /** Given a list of parsed files, resolve all import paths to absolute project paths */
     abstract resolveImports(files: ParsedFile[], projectRoot: string): ParsedFile[]

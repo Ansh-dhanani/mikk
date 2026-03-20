@@ -116,7 +116,7 @@ export class IncrementalAnalyzer {
             try {
                 const content = await fs.readFile(fullPath, 'utf-8')
                 const parser = getParser(changedFile)
-                const parsedFile = parser.parse(changedFile, content)
+                const parsedFile = await parser.parse(changedFile, content)
 
                 // Race condition check: re-hash after parse
                 try {
@@ -137,7 +137,7 @@ export class IncrementalAnalyzer {
         try {
             const content = await fs.readFile(fullPath, 'utf-8')
             const parser = getParser(changedFile)
-            return parser.parse(changedFile, content)
+            return await parser.parse(changedFile, content)
         } catch {
             return null
         }

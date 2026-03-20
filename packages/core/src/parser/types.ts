@@ -89,7 +89,7 @@ export interface ParsedGeneric {
 /** Everything extracted from a single file */
 export interface ParsedFile {
     path: string            // "src/auth/verify.ts"
-    language: 'typescript' | 'javascript' | 'python' | 'go'
+    language: 'python' | 'go' | 'typescript' | 'javascript' | 'java' | 'c' | 'cpp' | 'csharp' | 'rust' | 'php' | 'ruby' | 'unknown'
     functions: ParsedFunction[]
     classes: ParsedClass[]
     generics: ParsedGeneric[]

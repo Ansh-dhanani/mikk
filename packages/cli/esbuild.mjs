@@ -15,6 +15,9 @@ await esbuild.build({
   external: ['@xenova/transformers'],
   define: {
     '__MIKK_VERSION__': JSON.stringify(version)
+  },
+  logOverride: {
+    'empty-import-meta': 'silent'
   }
 })
 

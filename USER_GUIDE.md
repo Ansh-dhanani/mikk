@@ -1,6 +1,6 @@
 # Mikk User Guide
 
-Welcome to Mikk! Mikk is an intelligent, codebase nervous system designed to help you instantly understand architecture, pull context for your AI assistants, and safely manage changes with impact analysis.
+Welcome to Mikk! Mikk is an intelligent, codebase nervous system designed to help you instantly understand architecture across **13+ programming languages** (TypeScript, Python, Java, Go, Rust, C++, etc.), pull context for your AI assistants, and safely manage changes with impact analysis.
 
 This guide will walk you through the core CLI commands and demonstrate how to use Mikk effectively in your day-to-day workflow.
 
@@ -67,6 +67,24 @@ The `mikk context` command suite is specifically built for AI assistants to grab
   mikk context for "Add a new backend route for user profile"
   ```
   *Mikk will output a streamlined context payload you can paste directly into an LLM prompt.*
+
+---
+
+## 🛠️ Refactoring & Version Control
+
+Mikk now deeply understands your refactoring intents and text-level VCS changes.
+
+- **Perform a coordinated multi-file rename**:
+  ```bash
+  mikk rename
+  ```
+  *Finds a function definition and all of its call sites and imports, generating a precise step-by-step edit plan.*
+
+- **See the architectural impact of a Git diff**:
+  ```bash
+  mikk git-diff-impact
+  ```
+  *Maps raw git diff hunks to the actual functions and modules that were changed, allowing you to see what processes were genuinely affected.*
 
 ---
 

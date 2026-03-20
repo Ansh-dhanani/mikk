@@ -3,7 +3,7 @@ import { MikkLockSchema, type MikkLock } from './schema.js'
 import { LockNotFoundError } from '../utils/errors.js'
 
 /**
- * LockReader — reads and validates mikk.lock.json from disk.
+ * LockReader -- reads and validates mikk.lock.json from disk.
  * Uses compact format on disk: default values are omitted to save space.
  * Hydrates omitted fields before validation; compactifies before writing.
  */
@@ -17,7 +17,7 @@ export class LockReader {
             throw new LockNotFoundError()
         }
 
-        const json = JSON.parse(content)
+        const json = JSON.parse(content.replace(/^\uFEFF/, ''))
         const hydrated = hydrateLock(json)
         const result = MikkLockSchema.safeParse(hydrated)
 
@@ -38,11 +38,11 @@ export class LockReader {
 }
 
 // ---------------------------------------------------------------------------
-// Compact format — omit-defaults serialization
+// Compact format -- omit-defaults serialization
 // ---------------------------------------------------------------------------
 // Rules:
 //   1. Never write a field whose value equals its default ([], "", undefined, "unknown")
-//   2. id/name/file/path are derivable from the record key — omit them
+//   2. id/name/file/path are derivable from the record key  omit them
 //   3. Line ranges become tuples: [startLine, endLine]
 //   4. errorHandling becomes tuples: [line, type, detail]
 //   5. detailedLines becomes tuples: [startLine, endLine, blockType]
@@ -65,7 +65,7 @@ function compactifyLock(lock: MikkLock): any {
     fnKeys.forEach((k, i) => fnIndexMap.set(k, i))
     out.fnIndex = fnKeys
 
-    // Functions — biggest savings
+    // Functions -- biggest savings
     out.functions = {}
     for (let idx = 0; idx < fnKeys.length; idx++) {
         const fn = lock.functions[fnKeys[idx]]
@@ -123,10 +123,10 @@ function compactifyLock(lock: MikkLock): any {
         }
     }
 
-    // Modules — keep as-is (already small)
+    // Modules -- keep as-is (already small)
     out.modules = lock.modules
 
-    // Files — strip redundant path (it's the key)
+    // Files -- strip redundant path (it's the key)
     out.files = {}
     for (const [key, file] of Object.entries(lock.files)) {
         const c: any = {
@@ -138,12 +138,12 @@ function compactifyLock(lock: MikkLock): any {
         out.files[key] = c
     }
 
-    // Context files — paths/type only, no content
+    // Context files -- paths/type only, no content
     if (lock.contextFiles && lock.contextFiles.length > 0) {
         out.contextFiles = lock.contextFiles.map(({ path, type, size }) => ({ path, type, size }))
     }
 
-    // Routes — keep as-is (already compact)
+    // Routes -- keep as-is (already compact)
     if (lock.routes && lock.routes.length > 0) {
         out.routes = lock.routes
     }
@@ -158,7 +158,7 @@ function hydrateLock(raw: any): any {
     // If it already has the old format (functions have id/name/file), pass through
     const firstFn = Object.values(raw.functions || {})[0] as any
     if (firstFn && typeof firstFn === 'object' && 'id' in firstFn && 'name' in firstFn && 'file' in firstFn) {
-        return raw // Already in full format — no hydration needed
+        return raw // Already in full format -- no hydration needed
     }
 
     const out: any = {
@@ -174,7 +174,7 @@ function hydrateLock(raw: any): any {
     const fnIndex: string[] = raw.fnIndex || []
     const hasFnIndex = fnIndex.length > 0
 
-    // P6: build file→moduleId map before function loop
+    // P6: build file->moduleId map before function loop
     const fileModuleMap: Record<string, string> = {}
     for (const [key, c] of Object.entries(raw.files || {}) as [string, any][]) {
         fileModuleMap[key] = c.moduleId || 'unknown'
@@ -183,11 +183,11 @@ function hydrateLock(raw: any): any {
     // Hydrate functions
     out.functions = {}
     for (const [key, c] of Object.entries(raw.functions || {}) as [string, any][]) {
-        // P7: key is integer index → look up full ID via fnIndex
+        // P7: key is integer index -> look up full ID via fnIndex
         const fullId = hasFnIndex ? (fnIndex[parseInt(key)] || key) : key
         const { name, file } = parseEntityKey(fullId, 'fn:')
         const lines = c.lines || [c.startLine || 0, c.endLine || 0]
-        // P7: integer calls/calledBy → resolve to full string IDs (backward compat: strings pass through)
+        // P7: integer calls/calledBy -> resolve to full string IDs (backward compat: strings pass through)
         const calls = (c.calls || []).map((v: any) => typeof v === 'number' ? (fnIndex[v] ?? null) : v).filter(Boolean)
         const calledBy = (c.calledBy || []).map((v: any) => typeof v === 'number' ? (fnIndex[v] ?? null) : v).filter(Boolean)
 
@@ -277,7 +277,7 @@ function hydrateLock(raw: any): any {
         }
     }
 
-    // Modules — already in full format
+    // Modules -- already in full format
     out.modules = raw.modules
 
     // Pass through

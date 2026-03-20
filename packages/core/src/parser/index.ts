@@ -18,6 +18,8 @@ export { JavaScriptParser } from './javascript/js-parser.js'
 export { JavaScriptExtractor } from './javascript/js-extractor.js'
 export { JavaScriptResolver } from './javascript/js-resolver.js'
 export { BoundaryChecker } from './boundary-checker.js'
+export { TreeSitterParser } from './tree-sitter/parser.js'
+import { TreeSitterParser } from './tree-sitter/parser.js'
 
 /** Get the appropriate parser for a file based on its extension */
 export function getParser(filePath: string): BaseParser {
@@ -32,7 +34,19 @@ export function getParser(filePath: string): BaseParser {
         case '.jsx':
             return new JavaScriptParser()
         case '.go':
-            return new GoParser()
+            return new GoParser() // Mikk's custom Regex Go parser
+        case '.py':
+        case '.java':
+        case '.c':
+        case '.h':
+        case '.cpp':
+        case '.cc':
+        case '.hpp':
+        case '.cs':
+        case '.rs':
+        case '.php':
+        case '.rb':
+            return new TreeSitterParser()
         default:
             throw new UnsupportedLanguageError(ext)
     }
@@ -44,43 +58,43 @@ export async function parseFiles(
     projectRoot: string,
     readFile: (fp: string) => Promise<string>
 ): Promise<ParsedFile[]> {
+    const parsersMap = new Map<BaseParser, ParsedFile[]>()
+    // Re-use parser instances so they can share cache/bindings
     const tsParser = new TypeScriptParser()
     const jsParser = new JavaScriptParser()
     const goParser = new GoParser()
-    const tsFiles: ParsedFile[] = []
-    const jsFiles: ParsedFile[] = []
-    const goFiles: ParsedFile[] = []
+    const treeSitterParser = new TreeSitterParser()
 
-    for (const fp of filePaths) {
-        const ext = path.extname(fp)
-        if (ext === '.ts' || ext === '.tsx') {
-            try {
-                const content = await readFile(path.join(projectRoot, fp))
-                tsFiles.push(tsParser.parse(fp, content))
-            } catch {
-                // Skip unreadable files (permissions, binary, etc.) — don't abort the whole parse
-            }
-        } else if (ext === '.js' || ext === '.mjs' || ext === '.cjs' || ext === '.jsx') {
-            try {
-                const content = await readFile(path.join(projectRoot, fp))
-                jsFiles.push(jsParser.parse(fp, content))
-            } catch {
-                // Skip unreadable files
-            }
-        } else if (ext === '.go') {
-            try {
-                const content = await readFile(path.join(projectRoot, fp))
-                goFiles.push(goParser.parse(fp, content))
-            } catch {
-                // Skip unreadable files
-            }
+    const getCachedParser = (ext: string): BaseParser | null => {
+        switch (ext) {
+            case '.ts': case '.tsx': return tsParser
+            case '.js': case '.mjs': case '.cjs': case '.jsx': return jsParser
+            case '.go': return goParser
+            case '.py': case '.java': case '.c': case '.h': case '.cpp': case '.cc': case '.hpp': case '.cs': case '.rs': case '.php': case '.rb': return treeSitterParser
+            default: return null
         }
     }
 
-    // Resolve imports per language after all files of that language are parsed
-    const resolvedTs = tsParser.resolveImports(tsFiles, projectRoot)
-    const resolvedJs = jsParser.resolveImports(jsFiles, projectRoot)
-    const resolvedGo = goParser.resolveImports(goFiles, projectRoot)
+    for (const fp of filePaths) {
+        const ext = path.extname(fp).toLowerCase()
+        const parser = getCachedParser(ext)
+        if (!parser) continue
 
-    return [...resolvedTs, ...resolvedJs, ...resolvedGo]
+        try {
+            const content = await readFile(path.join(projectRoot, fp))
+            const parsed = await parser.parse(fp, content)
+            
+            if (!parsersMap.has(parser)) parsersMap.set(parser, [])
+            parsersMap.get(parser)!.push(parsed)
+        } catch {
+            // Skip unreadable files (permissions, binary, etc.) — don't abort the whole parse
+        }
+    }
+
+    const allResolvedFiles: ParsedFile[] = []
+    for (const [parser, files] of parsersMap.entries()) {
+        allResolvedFiles.push(...parser.resolveImports(files, projectRoot))
+    }
+
+    return allResolvedFiles
 }

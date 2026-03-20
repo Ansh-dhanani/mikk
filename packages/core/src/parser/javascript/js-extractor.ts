@@ -4,7 +4,7 @@ import { hashContent } from '../../hash/file-hasher.js'
 import type { ParsedFunction, ParsedImport, ParsedExport } from '../types.js'
 
 /**
- * JavaScriptExtractor — extends TypeScriptExtractor to add CommonJS support on top of
+ * JavaScriptExtractor -- extends TypeScriptExtractor to add CommonJS support on top of
  * the TypeScript Compiler API's native JS/JSX parsing.
  *
  * Extra patterns handled:
@@ -17,7 +17,7 @@ import type { ParsedFunction, ParsedImport, ParsedExport } from '../types.js'
  */
 export class JavaScriptExtractor extends TypeScriptExtractor {
 
-    // ── Public overrides ───────────────────────────────────────────────────────
+    // --- Public overrides ------------------------------------------------------
 
     /** ESM functions + module.exports-assigned functions */
     override extractFunctions(): ParsedFunction[] {
@@ -49,7 +49,7 @@ export class JavaScriptExtractor extends TypeScriptExtractor {
         return esm
     }
 
-    // ── CommonJS: require() ────────────────────────────────────────────────────
+    // --- CommonJS: require() ---------------------------------------------------
 
     private extractRequireImports(): ParsedImport[] {
         const imports: ParsedImport[] = []
@@ -102,7 +102,7 @@ export class JavaScriptExtractor extends TypeScriptExtractor {
         return []
     }
 
-    // ── CommonJS: module.exports / exports.x exports ─────────────────────────
+    // --- CommonJS: module.exports / exports.x exports -------------------------
 
     private extractCommonJsExports(): ParsedExport[] {
         const result: ParsedExport[] = []
@@ -117,7 +117,7 @@ export class JavaScriptExtractor extends TypeScriptExtractor {
                 const lhs = node.expression.left
                 const rhs = node.expression.right
 
-                // ── module.exports = ... ────────────────────────────────────
+                // --- module.exports = ... ------------------------------------
                 if (isModuleExports(lhs)) {
                     if (ts.isObjectLiteralExpression(rhs)) {
                         // module.exports = { foo, bar }
@@ -142,14 +142,14 @@ export class JavaScriptExtractor extends TypeScriptExtractor {
                     }
                 }
 
-                // ── exports.foo = ... ───────────────────────────────────────
+                // --- exports.foo = ... ---------------------------------------
                 if (isExportsDotProp(lhs)) {
                     const prop = lhs as ts.PropertyAccessExpression
                     const isFunc = ts.isFunctionExpression(rhs) || ts.isArrowFunction(rhs)
                     result.push({ name: prop.name.text, type: isFunc ? 'function' : 'const', file: fp })
                 }
 
-                // ── module.exports.foo = ... ────────────────────────────────
+                // --- module.exports.foo = ... --------------------------------
                 if (isModuleExportsDotProp(lhs)) {
                     const prop = lhs as ts.PropertyAccessExpression
                     const isFunc = ts.isFunctionExpression(rhs) || ts.isArrowFunction(rhs)
@@ -163,7 +163,7 @@ export class JavaScriptExtractor extends TypeScriptExtractor {
         return result
     }
 
-    // ── CommonJS: module.exports / exports.x function bodies ──────────────────
+    // --- CommonJS: module.exports / exports.x function bodies -----------------
 
     /**
      * Detect functions directly assigned via module.exports or exports.x:
@@ -232,7 +232,7 @@ export class JavaScriptExtractor extends TypeScriptExtractor {
     }
 }
 
-// ─── Helpers ─────────────────────────────────────────────────────────────────
+// --- Helpers -----------------------------------------------------------------
 
 /** node is `module.exports` */
 function isModuleExports(node: ts.Node): boolean {

@@ -7,14 +7,14 @@ import { hashContent } from '../../hash/file-hasher.js'
 import type { ParsedFile } from '../types.js'
 
 /**
- * JavaScriptParser — implements BaseParser for .js / .mjs / .cjs / .jsx files.
+ * JavaScriptParser -- implements BaseParser for .js / .mjs / .cjs / .jsx files.
  *
  * Uses the TypeScript Compiler API (ScriptKind.JS / ScriptKind.JSX) which correctly
  * parses JavaScript without type annotations.  JavaScriptExtractor extends
  * TypeScriptExtractor and adds CommonJS require() / module.exports support.
  */
 export class JavaScriptParser extends BaseParser {
-    parse(filePath: string, content: string): ParsedFile {
+    async parse(filePath: string, content: string): Promise<ParsedFile> {
         const extractor = new JavaScriptExtractor(filePath, content)
 
         const functions = extractor.extractFunctions()

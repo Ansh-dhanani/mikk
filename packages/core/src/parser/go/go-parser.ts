@@ -5,12 +5,12 @@ import { hashContent } from '../../hash/file-hasher.js'
 import type { ParsedFile } from '../types.js'
 
 /**
- * GoParser — implements BaseParser for .go files.
+ * GoParser -- implements BaseParser for .go files.
  * Uses GoExtractor (regex-based) to pull structured data from Go source
  * without requiring the Go toolchain.
  */
 export class GoParser extends BaseParser {
-    parse(filePath: string, content: string): ParsedFile {
+    async parse(filePath: string, content: string): Promise<ParsedFile> {
         const extractor = new GoExtractor(filePath, content)
 
         return {

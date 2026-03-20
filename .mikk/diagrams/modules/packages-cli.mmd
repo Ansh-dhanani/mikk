@@ -1,6 +1,9 @@
 %%{init: {"theme": "base", "themeVariables": {"primaryColor": "#1e293b", "primaryTextColor": "#e2e8f0", "lineColor": "#64748b", "secondaryColor": "#334155", "tertiaryColor": "#475569", "background": "#0f172a", "mainBkg": "#1e293b", "nodeBorder": "#475569"}}}%%
 graph TD
     subgraph mod_packages_cli["📦 Module: CLI"]
+        subgraph file_packages_cli_src_commands_adr_ts["📄 adr.ts"]
+            fn_packages_cli_src_commands_adr_ts_registerAdrCommand["⚡ registerAdrCommand"]
+        end
         subgraph file_packages_cli_src_commands_analyze_ts["📄 analyze.ts"]
             fn_packages_cli_src_commands_analyze_ts_registerAnalyzeCommand["⚡ registerAnalyzeCommand"]
         end

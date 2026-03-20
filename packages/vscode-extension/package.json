@@ -37,6 +37,22 @@
             {
                 "command": "mikk.getContext",
                 "title": "Mikk: Get AI Context"
+            },
+            {
+                "command": "mikk.refreshAll",
+                "title": "Mikk: Refresh All Views"
+            },
+            {
+                "command": "mikk.deadCode",
+                "title": "Mikk: Find Dead Code"
+            },
+            {
+                "command": "mikk.stats",
+                "title": "Mikk: Show Stats"
+            },
+            {
+                "command": "mikk.watch",
+                "title": "Mikk: Start Watch Mode"
             }
         ],
         "viewsContainers": {

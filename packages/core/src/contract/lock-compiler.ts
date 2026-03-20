@@ -1,4 +1,4 @@
-﻿import * as path from 'node:path'
+import * as path from 'node:path'
 import { createHash } from 'node:crypto'
 import type { MikkContract, MikkLock } from './schema.js'
 import type { DependencyGraph } from '../graph/types.js'
@@ -10,22 +10,22 @@ import { minimatch } from '../utils/minimatch.js'
 
 const VERSION = '@getmikk/cli@1.2.1'
 
-// ─── Heuristic purpose inference ────────────────────────────────────
+//  Heuristic purpose inference 
 // When JSDoc is missing we derive a short purpose string from:
-//   1. camelCase / PascalCase function name → natural language
+//   1. camelCase / PascalCase function name -> natural language
 //   2. parameter names (context clue)
 //   3. return type (if present)
 //
 // Examples:
-//   "getUserProjectRole" + params:["userId","projectId"] → "Get user project role (userId, projectId)"
-//   "DashboardPage"      + returnType:"JSX.Element"       → "Dashboard page component"
-// ────────────────────────────────────────────────────────────────────
+//   "getUserProjectRole" + params:["userId","projectId"] -> "Get user project role (userId, projectId)"
+//   "DashboardPage"      + returnType:"JSX.Element"       -> "Dashboard page component"
+// 
 
 /** Split camelCase/PascalCase identifier into lowercase words */
 function splitIdentifier(name: string): string[] {
     return name
         .replace(/([a-z0-9])([A-Z])/g, '$1 $2')  // camelCase boundary
-        .replace(/([A-Z]+)([A-Z][a-z])/g, '$1 $2') // ABCDef → ABC Def
+        .replace(/([A-Z]+)([A-Z][a-z])/g, '$1 $2') // ABCDef -> ABC Def
         .split(/[\s_-]+/)
         .map(w => w.toLowerCase())
         .filter(Boolean)
@@ -85,11 +85,11 @@ function inferPurpose(
         const subject = words.slice(1).join(' ')
         base = `Check ${firstWord === 'is' || firstWord === 'has' || firstWord === 'can' ? 'if' : ''} ${subject}`.replace(/  +/g, ' ')
     } else {
-        // Generic — just humanise the name
+        // Generic  just humanise the name
         base = capitalise(words.join(' '))
     }
 
-    // Append param hint if ≤3 params and they have meaningful names
+    // Append param hint if <=3 params and they have meaningful names
     if (params && params.length > 0 && params.length <= 3) {
         const meaningful = params
             .map(p => p.name)
@@ -107,16 +107,17 @@ function capitalise(s: string): string {
 }
 
 /**
- * LockCompiler — takes a DependencyGraph and a MikkContract
+ * LockCompiler -- takes a DependencyGraph and a MikkContract
  * and compiles the complete mikk.lock.json.
  */
 export class LockCompiler {
-    /** Main entry — compile full lock from graph + contract + parsed files */
+    /** Main entry -- compile full lock from graph + contract + parsed files */
     compile(
         graph: DependencyGraph,
         contract: MikkContract,
         parsedFiles: ParsedFile[],
-        contextFiles?: ContextFile[]
+        contextFiles?: ContextFile[],
+        projectRoot?: string
     ): MikkLock {
         const functions = this.compileFunctions(graph, contract)
         const classes = this.compileClasses(graph, contract)
@@ -134,7 +135,7 @@ export class LockCompiler {
             version: '1.7.0',
             generatedAt: new Date().toISOString(),
             generatorVersion: VERSION,
-            projectRoot: contract.project.name,
+            projectRoot: projectRoot ?? contract.project.name,
             syncState: {
                 status: 'clean',
                 lastSyncAt: new Date().toISOString(),
@@ -244,7 +245,7 @@ export class LockCompiler {
         const raw: Record<string, any> = {}
         for (const [id, node] of graph.nodes) {
             if (node.type !== 'generic') continue
-            // Only include exported generics — non-exported types/interfaces are
+            // Only include exported generics  non-exported types/interfaces are
             // internal implementation details that add noise without value.
             if (!node.metadata.isExported) continue
             const moduleId = this.findModule(node.file, contract.declared.modules)

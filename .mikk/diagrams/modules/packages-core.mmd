@@ -1,10 +1,6 @@
 %%{init: {"theme": "base", "themeVariables": {"primaryColor": "#1e293b", "primaryTextColor": "#e2e8f0", "lineColor": "#64748b", "secondaryColor": "#334155", "tertiaryColor": "#475569", "background": "#0f172a", "mainBkg": "#1e293b", "nodeBorder": "#475569"}}}%%
 graph TD
-    subgraph mod_packages_core["📦 Module: Utils & Storage (172 internal functions collapsed)"]
-        subgraph file_packages_core_src_contract_adr_manager_ts["📄 adr-manager.ts"]
-            fn_packages_core_src_contract_adr_manager_ts_AdrManager_constructor["⚡ AdrManager.constructor"]
-            fn_packages_core_src_contract_adr_manager_ts_AdrManager_list["⚡ AdrManager.list"]
-        end
+    subgraph mod_packages_core["📦 Module: Search & Utils (188 internal functions collapsed)"]
         subgraph file_packages_core_src_contract_contract_generator_ts["📄 contract-generator.ts"]
             fn_packages_core_src_contract_contract_generator_ts_ContractGenerator_generateFromClusters["⚡ ContractGenerator.generateFromClusters"]
         end
@@ -21,6 +17,14 @@ graph TD
             fn_packages_core_src_hash_file_hasher_ts_hashContent["λ hashContent"]
             fn_packages_core_src_hash_file_hasher_ts_hashFile["⚡ hashFile"]
             fn_packages_core_src_hash_file_hasher_ts_hashFunctionBody["⚡ hashFunctionBody"]
+        end
+        subgraph file_packages_core_src_parser_boundary_checker_ts["📄 boundary-checker.ts"]
+            fn_packages_core_src_parser_boundary_checker_ts_parseConstraint["⚡ parseConstraint"]
+        end
+        subgraph file_packages_core_src_search_bm25_ts["📄 bm25.ts"]
+            fn_packages_core_src_search_bm25_ts_tokenize["λ tokenize"]
+            fn_packages_core_src_search_bm25_ts_buildFunctionTokens["⚡ buildFunctionTokens"]
+            fn_packages_core_src_search_bm25_ts_BM25Index_search["⚡ BM25Index.search"]
         end
         subgraph file_packages_core_src_utils_fs_ts["📄 fs.ts"]
             fn_packages_core_src_utils_fs_ts_readMikkIgnore["λ readMikkIgnore"]
@@ -64,15 +68,13 @@ graph TD
             fn_packages_core_src_parser_typescript_ts_extractor_ts_TypeScriptExtractor_parseVariableFunction["⚡ TypeScriptExtractor.parseVariableFunction"]
             fn_packages_core_src_parser_typescript_ts_extractor_ts_TypeScriptExtractor_parseClass["⚡ TypeScriptExtractor.parseClass"]
             fn_packages_core_src_parser_typescript_ts_extractor_ts_TypeScriptExtractor_extractPurpose["⚡ TypeScriptExtractor.extractPurpose"]
-            fn_packages_core_src_parser_typescript_ts_extractor_ts_TypeScriptExtractor_extractParams["⚡ TypeScriptExtractor.extractParams"]
-        end
-        subgraph file_packages_core_src_parser_typescript_ts_parser_ts["📄 ts-parser.ts"]
-            fn_packages_core_src_parser_typescript_ts_parser_ts_TypeScriptParser_resolveImports["⚡ TypeScriptParser.resolveImports"]
         end
     end
 
     fn_packages_core_src_hash_file_hasher_ts_hashFile --> fn_packages_core_src_hash_file_hasher_ts_hashContent
     fn_packages_core_src_hash_file_hasher_ts_hashFunctionBody --> fn_packages_core_src_hash_file_hasher_ts_hashContent
+    fn_packages_core_src_search_bm25_ts_buildFunctionTokens --> fn_packages_core_src_search_bm25_ts_tokenize
+    fn_packages_core_src_search_bm25_ts_BM25Index_search --> fn_packages_core_src_search_bm25_ts_tokenize
     fn_packages_core_src_utils_fs_ts_readMikkIgnore --> fn_packages_core_src_utils_fs_ts_parseMikkIgnore
     fn_packages_core_src_utils_fs_ts_discoverContextFiles --> fn_packages_core_src_utils_fs_ts_readMikkIgnore
     fn_packages_core_src_utils_fs_ts_discoverFiles --> fn_packages_core_src_utils_fs_ts_readMikkIgnore

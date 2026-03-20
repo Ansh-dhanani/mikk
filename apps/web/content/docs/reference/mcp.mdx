@@ -1,6 +1,6 @@
 ---
 title: MCP Server
-description: Connect Mikk to Claude Desktop, Cursor, and VS Code Copilot. 18 tools, 3 resources, millisecond responses - all grounded in your real codebase graph.
+description: Connect Mikk to Claude Desktop, Cursor, and VS Code Copilot. 21 tools, 3 resources, millisecond responses - all grounded in your real codebase graph.
 ---
 
 <Callout title="Every tool reads from mikk.lock.json" type="info">
@@ -99,7 +99,7 @@ Refresh with `mikk analyze`, or keep it updated continuously with `mikk watch`.
       type: "tool",
     },
     mikk_search_functions: {
-      description: "Fast substring search across function names (case-insensitive).",
+      description: "Hybrid BM25 + Substring search across function names via Reciprocal Rank Fusion.",
       type: "tool",
     },
     mikk_semantic_search: {
@@ -123,6 +123,14 @@ Refresh with `mikk analyze`, or keep it updated continuously with `mikk watch`.
     },
     mikk_find_usages: {
       description: "Find everything that calls a function (rename safely).",
+      type: "tool",
+    },
+    mikk_rename: {
+      description: "Coordinated multi-file rename. Finds definition, all call sites, and import sites, outputting a step-by-step edit plan.",
+      type: "tool",
+    },
+    mikk_git_diff_impact: {
+      description: "Maps git diff hunks to affected symbols and processes. Shows exactly which functions were modified/added/deleted.",
       type: "tool",
     },
   }}

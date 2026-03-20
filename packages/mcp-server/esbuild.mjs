@@ -15,6 +15,7 @@ await esbuild.build({
     define: {
         __MCP_VERSION__: JSON.stringify(pkg.version),
     },
+    logOverride: { 'empty-import-meta': 'silent' },
     banner: {
         js: '"use strict";',
     },

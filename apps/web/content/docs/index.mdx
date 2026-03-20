@@ -34,99 +34,37 @@ Mikk fixes that by giving AI assistants **real architectural intelligence** — 
 
 Everything happens in ~3 seconds when you run `mikk init`:
 
-<SectionSpacer />
-
-<SectionSpacer />
-<Steps>
-  <Step>
-    ### Parse
-    Every `.ts`, `.tsx`, `.js`, `.jsx`, `.go` file parsed via the **TypeScript Compiler API** — real AST, not regex. Functions, classes, imports, exact line ranges.
-  </Step>
-  <Step>
-    ### Graph
-    Full dependency DAG built in two passes. Both `dependsOn` and `dependedOnBy` maps — O(1) traversal in either direction.
-  </Step>
-  <Step>
-    ### Cluster
-    Files grouped into logical modules via greedy agglomeration — import patterns, naming conventions, directory structure.
-  </Step>
-  <Step>
-    ### Hash
-    SHA-256 Merkle tree at every level: `function → file → module → root`. One hash = full drift detection.
-  </Step>
-  <Step>
-    ### Contract
-    `mikk.json` written — module boundaries, constraint rules, and ADR decisions.
-  </Step>
-  <Step>
-    ### Context
-    `claude.md` + `AGENTS.md` generated — tiered architecture summaries, ready for any AI assistant.
-  </Step>
-  <Step>
-    ### Serve
-    MCP server starts. 18 tools, 3 resources, millisecond response times — all reading from `mikk.lock.json`.
-  </Step>
-</Steps>
-
-<SectionSpacer />
-## Key Capabilities
-
-<SectionSpacer />
-<Cards>
-  <Card title="AI Context Builder" description="BFS graph-traced, token-budgeted context payloads with exact file paths and line ranges." />
-  <Card title="Impact Analysis" description="Full blast radius of any file change — every upstream caller, every downstream dependency." />
-  <Card title="Intent Pre-flight" description="Validate a plain-English plan against 6 constraint types before writing a single line." />
-  <Card title="Strict Contracts" description="Define module boundaries in mikk.json. CI fails on violations." />
-  <Card title="MCP Server" description="18 tools, 3 resources. Works with Claude Desktop, Cursor, and VS Code Copilot." />
-  <Card title="Merkle Drift Detection" description="One root hash comparison = full codebase drift check. SQLite WAL mode for concurrent access." />
-  <Card title="Live Watcher" description="Incremental, debounced file watching. Atomic lock writes. PID singleton enforcement." />
-  <Card title="Full AST Parsing" description="TypeScript · TSX · JavaScript · JSX · Go. Compiler-grade parsing — no regex guessing." />
-</Cards>
-
-<SectionSpacer />
-## Package Ecosystem
-
-Mikk is a Turborepo monorepo with 8 npm packages under `@getmikk`:
-
 <Table>
   <thead>
     <tr>
-      <th>Package</th>
-      <th>Role</th>
+      <th className="font-semibold text-left p-2 border-b border-border/40">Package</th>
+      <th className="font-semibold text-left p-2 border-b border-border/40">Role</th>
     </tr>
   </thead>
   <tbody>
     <tr>
-      <td>@getmikk/core</td>
-      <td>AST parsing, dependency graph, Merkle hashing, contract management</td>
+      <td className="p-2 border-b border-border/40">`@getmikk/core`</td>
+      <td className="p-2 border-b border-border/40">AST parsing, dependency graph, Merkle hashing</td>
     </tr>
     <tr>
-      <td>@getmikk/cli</td>
-      <td>15+ commands — init, analyze, diff, watch, contracts, context, intent</td>
+      <td className="p-2 border-b border-border/40">`@getmikk/cli`</td>
+      <td className="p-2 border-b border-border/40">CLI commands, project initialization</td>
     </tr>
     <tr>
-      <td>@getmikk/ai-context</td>
-      <td>BFS graph tracing, token budgeting, claude.md generation</td>
+      <td className="p-2 border-b border-border/40">`@getmikk/mcp-server`</td>
+      <td className="p-2 border-b border-border/40">Live Model Context Protocol server (21 tools)</td>
     </tr>
     <tr>
-      <td>@getmikk/mcp-server</td>
-      <td>MCP server — 18 tools, 3 resources for AI assistants</td>
+      <td className="p-2 border-b border-border/40">`@getmikk/watcher`</td>
+      <td className="p-2 border-b border-border/40">Debounced incremental watcher, atomic updates</td>
     </tr>
     <tr>
-      <td>@getmikk/intent-engine</td>
-      <td>NL prompt parsing, conflict detection (6 rule types)</td>
+      <td className="p-2 border-b border-border/40">`@getmikk/diagram-generator`</td>
+      <td className="p-2 border-b border-border/40">Mermaid.js diagrams, 8 diagram types</td>
     </tr>
     <tr>
-      <td>@getmikk/watcher</td>
-      <td>Debounced incremental watcher, atomic updates</td>
-    </tr>
-    <tr>
-      <td>@getmikk/diagram-generator</td>
-      <td>Mermaid.js diagrams, 8 diagram types</td>
-    </tr>
-    <tr>
-      <td>@getmikk/vscode-extension</td>
-      <td>VS Code tree, impact analysis, AI context, status bar</td>
+      <td className="p-2 border-b border-border/40">`@getmikk/vscode-extension`</td>
+      <td className="p-2 border-b border-border/40">VS Code tree, impact analysis, AI context, status bar</td>
     </tr>
   </tbody>
 </Table>

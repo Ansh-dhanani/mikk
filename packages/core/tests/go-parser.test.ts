@@ -320,9 +320,9 @@ describe('GoParser', () => {
         expect(parser.getSupportedExtensions()).toContain('.go')
     })
 
-    test('parse returns a well-formed ParsedFile', () => {
+    test('parse returns a well-formed ParsedFile', async () => {
         const parser = new GoParser()
-        const result = parser.parse('auth/service.go', SIMPLE_GO)
+        const result = await parser.parse('auth/service.go', SIMPLE_GO)
         expect(result.path).toBe('auth/service.go')
         expect(result.language).toBe('go')
         expect(Array.isArray(result.functions)).toBe(true)
@@ -334,31 +334,31 @@ describe('GoParser', () => {
         expect(result.hash.length).toBeGreaterThan(0)
     })
 
-    test('parse populates functions from a real Go service', () => {
+    test('parse populates functions from a real Go service', async () => {
         const parser = new GoParser()
-        const result = parser.parse('auth/service.go', SIMPLE_GO)
+        const result = await parser.parse('auth/service.go', SIMPLE_GO)
         // Top-level funcs: hashPassword, keyFunc
         expect(result.functions.some(f => f.name === 'hashPassword')).toBe(true)
         expect(result.functions.some(f => f.name === 'keyFunc')).toBe(true)
     })
 
-    test('parse populates classes for structs with methods', () => {
+    test('parse populates classes for structs with methods', async () => {
         const parser = new GoParser()
-        const result = parser.parse('auth/service.go', SIMPLE_GO)
+        const result = await parser.parse('auth/service.go', SIMPLE_GO)
         const authService = result.classes.find(c => c.name === 'AuthService')
         expect(authService).toBeDefined()
         expect(authService!.methods.length).toBeGreaterThan(0)
     })
 
-    test('parse detects routes in a Gin router file', () => {
+    test('parse detects routes in a Gin router file', async () => {
         const parser = new GoParser()
-        const result = parser.parse('api/routes.go', ROUTES_GO)
+        const result = await parser.parse('api/routes.go', ROUTES_GO)
         expect(result.routes.length).toBeGreaterThanOrEqual(4)
     })
 
-    test('resolveImports passes through without crashing on no go.mod', () => {
+    test('resolveImports passes through without crashing on no go.mod', async () => {
         const parser = new GoParser()
-        const files = [parser.parse('utils/format.go', TOPLEVEL_GO)]
+        const files = [await parser.parse('utils/format.go', TOPLEVEL_GO)]
         // Should not throw even without go.mod
         const resolved = parser.resolveImports(files, '/tmp/no-gomod-' + Date.now())
         expect(resolved.length).toBe(1)

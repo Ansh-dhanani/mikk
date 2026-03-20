@@ -1,162 +1,197 @@
-# mikk — Architecture Overview
+<repository_context>
+  <name>mikk</name>
+  <stats>
+    <files>166</files>
+    <functions>656</functions>
+    <modules>10</modules>
+    <language>typescript</language>
+  </stats>
+</repository_context>
 
-## Modules
-- **Utils & Storage** (`packages-core`): 212 functions — Infer the project language from the file extensions present; ─── Heuristic purpose inference ─────────────────────────...; Infer a short purpose string from function metadata when ...
-- **Search (Registry)** (`apps-registry`): 1 functions — primarily placeholder operations across 1 files
-- **Search (Web)** (`apps-web`): 1 functions — @getmikkweb — Web Dashboard & Contract Generator
-- **Providers (Ai Context)** (`packages-ai-context`): 44 functions — Rough token estimation: ~4 chars per token; Rough token estimator: 1 token ≈ 4 chars for codeidentifiers; Graph traversal helpers
-- **Search (Diagram Generator)** (`packages-diagram-generator`): 33 functions — 9 files, 0 functions
-- **Search (Mcp Server)** (`packages-mcp-server`): 13 functions — Register all MCP resources — structured data an AI assist...; Create a Mikk MCP server instance with all tools and reso...; Start the MCP server with stdio transport
-- **Search (Intent Engine)** (`packages-intent-engine`): 35 functions — ─── Helpers ─────────────────────────────────────────────...
-- **Providers (Vscode Extension)** (`packages-vscode-extension`): 4 functions — VS Code Extension entry point for Mikk
-- **Storage** (`packages-watcher`): 24 functions — 5 files, 0 functions
-- **CLI** (`packages-cli`): 27 functions — Parse a numeric CLI option with validation; ── Helpers ──────────────────────────────────────────────...; Build DependencyGraph from lock — same logic as mcp-serve...
-
-## Stats
-- 87 files, 394 functions, 10 modules
-- Language: typescript
-
-## Tech Stack
-Turborepo
-
-## Commands
-- `npm run dev` — `turbo run dev`
-- `npm run build` — `turbo run build`
-- `npm run test` — `turbo run test`
-- `npm run lint` — `turbo run lint`
-
-## Utils & Storage module
-**Location:** packages/core/src/**
-**Purpose:** Infer the project language from the file extensions present; ─── Heuristic purpose inference ─────────────────────────...; Infer a short purpose string from function metadata when ...
-
-**Entry points:**
-  - `GoExtractor.buildParsedFunction(raw) [packages/core/src/parser/go/go-extractor.ts:244]` — Build ParsedFunction from scanned raw data
-  - `GoExtractor.scanFunctions() [packages/core/src/parser/go/go-extractor.ts:166]` — ── Internal scanning ───────────────────────────────────────────────────
-  - `JavaScriptExtractor.extractCommonJsExports() [packages/core/src/parser/javascript/js-extractor.ts:107]` — ── CommonJS: module.exports / exports.x exports ─────────────────────────
-  - `JavaScriptExtractor.extractCommonJsFunctions() [packages/core/src/parser/javascript/js-extractor.ts:175]` — ── CommonJS: module.exports / exports.x function bodies ──────────────────
-  - `async discoverContextFiles(projectRoot) [packages/core/src/utils/fs.ts:186]` — Discover structural schema config files that help an AI agent understand
-
-**Key internal functions:**
-  - `normalizeTypeAnnotation` (called by 4) — ─── Helpers ─────────────────────────────────────────────────────────────────
-  - `inferPurpose` (called by 3) — Infer a short purpose string from function metadata when JSDoc is missing
-  - `isExported` (called by 3) — ─── Utility helpers ──────────────────────────────────────────────────────────
-  - `isModuleExports` (called by 3) — ─── Helpers ─────────────────────────────────────────────────────────────────
-  - `hashContent` (called by 2) — Compute SHA-256 hash of a string.
-
-## Search (Registry) module
-**Location:** apps/registry/src/**
-**Purpose:** primarily placeholder operations across 1 files
-
-**Entry points:**
-  - `placeholder() [apps/registry/src/index.ts:34]` — Placeholder
-
-## Search (Web) module
-**Location:** apps/web/src/**
-**Purpose:** @getmikkweb — Web Dashboard & Contract Generator
-
-**Entry points:**
-  - `placeholder() [apps/web/src/index.ts:22]` — @getmikkweb — Web Dashboard & Contract Generator
-
-## Providers (Ai Context) module
-**Location:** packages/ai-context/src/**
-**Purpose:** Rough token estimation: ~4 chars per token; Rough token estimator: 1 token ≈ 4 chars for codeidentifiers; Graph traversal helpers
-
-**Entry points:**
-  - `ContextBuilder.build(query) [packages/ai-context/src/context-builder.ts:221]` — Build AI context for a given query.
-  - `ClaudeMdGenerator.generate() [packages/ai-context/src/claude-md-generator.ts:45]` — Generate the full claude.md content
-  - `ContextBuilder.readFunctionBody(fn, projectRoot) [packages/ai-context/src/context-builder.ts:371]` — Read the actual source code of a function from disk.
-  - `ContextBuilder.generatePrompt(query, modules) [packages/ai-context/src/context-builder.ts:415]` — Generate the natural-language prompt section
-  - `ClaudeProvider.formatContext(context) [packages/ai-context/src/providers.ts:13]` — Format context
-
-**Key internal functions:**
-  - `readContextFile` (called by 2) — Read context file
-  - `extractKeywords` (called by 2) — Extract keywords
-  - `keywordScore` (called by 2) — Keyword score for a function: exact match > partial match
-  - `estimateTokens` (called by 1) — Rough token estimation: ~4 chars per token
-  - `estimateTokens` (called by 1) — Rough token estimator: 1 token ≈ 4 chars for codeidentifiers
-
-## Search (Diagram Generator) module
-**Location:** packages/diagram-generator/src/**, packages/diagram-generator/src/generators/**
-**Purpose:** 9 files, 0 functions
-
-**Entry points:**
-  - `DiagramOrchestrator.constructor(contract, lock, projectRoot) [packages/diagram-generator/src/orchestrator.ts:17]` — Diagram orchestrator.constructor (contract, lock, projectRoot)
-  - `async DiagramOrchestrator.generateAll() [packages/diagram-generator/src/orchestrator.ts:24]` — Generate all diagrams
-  - `async DiagramOrchestrator.generateImpact(changedIds, impactedIds) [packages/diagram-generator/src/orchestrator.ts:62]` — Generate impact diagram for specific changes
-  - `async DiagramOrchestrator.writeDiagram(relativePath, content) [packages/diagram-generator/src/orchestrator.ts:71]` — Write diagram
-  - `CapsuleDiagramGenerator.constructor(contract, lock) [packages/diagram-generator/src/generators/capsule-diagram.ts:9]` — Capsule diagram generator.constructor (contract, lock)
-
-## Search (Mcp Server) module
-**Location:** packages/mcp-server/src/**
-**Purpose:** Register all MCP resources — structured data an AI assist...; Create a Mikk MCP server instance with all tools and reso...; Start the MCP server with stdio transport
-
-**Entry points:**
-  - `registerTools(server, projectRoot) [packages/mcp-server/src/tools.ts:63]` — Register all MCP tools — actions an AI assistant can invoke.
-  - `registerResources(server, projectRoot) [packages/mcp-server/src/resources.ts:8]` — Register all MCP resources — structured data an AI assistant can read.
-  - `createMikkMcpServer(projectRoot) [packages/mcp-server/src/server.ts:12]` — Create a Mikk MCP server instance with all tools and resources registered.
-  - `async startStdioServer() [packages/mcp-server/src/stdio.ts:8]` — Start the MCP server with stdio transport.
-  - `invalidateCache(projectRoot) [packages/mcp-server/src/tools.ts:32]` — Invalidate cache
-
-**Key internal functions:**
-  - `buildGraphFromLock` (called by 2) — Build a DependencyGraph from the lock file in O(n) time.
-  - `safeRead` (called by 1) — Safe read
-  - `getSemanticSearcher` (called by 1) — Get semantic searcher
-  - `loadContractAndLock` (called by 1) — ─── Helpers ─────────────────────────────────────────────────────────────────
-  - `detectCircularDeps` (called by 1) — Detect circular dependencies for a set of functions via DFS
-
-## Search (Intent Engine) module
-**Location:** packages/intent-engine/src/**
-**Purpose:** ─── Helpers ─────────────────────────────────────────────...
-
-**Entry points:**
-  - `async SemanticSearcher.index(lock) [packages/intent-engine/src/semantic-searcher.ts:62]` — Build (or load from cache) embeddings for every function in the lock.
-  - `async SemanticSearcher.search(query, lock, topK?) [packages/intent-engine/src/semantic-searcher.ts:120]` — Find the `topK` functions most semantically similar to `query`.
-  - `ConflictDetector.constructor(contract, lock?) [packages/intent-engine/src/conflict-detector.ts:22]` — Conflict detector.constructor (contract, lock)
-  - `ConflictDetector.detect(intents) [packages/intent-engine/src/conflict-detector.ts:28]` — Check all intents for conflicts
-  - `ConflictDetector.classifyConstraint(text) [packages/intent-engine/src/conflict-detector.ts:111]` — ── Constraint Classification & Checking ─────────────────────
-
-**Key internal functions:**
-  - `lockFingerprint` (called by 1) — ─── Helpers ─────────────────────────────────────────────────────────────────
-  - `cosineSimilarity` (called by 1) — Cosine similarity
-
-## Providers (Vscode Extension) module
-**Location:** packages/vscode-extension/src/**
-**Purpose:** VS Code Extension entry point for Mikk
-
-**Entry points:**
-  - `activate(context) [packages/vscode-extension/src/extension.ts:9]` — VS Code Extension entry point for Mikk.
-  - `deactivate() [packages/vscode-extension/src/extension.ts:81]` — Deactivate
-  - `ModulesTreeProvider.getTreeItem(element) [packages/vscode-extension/src/extension.ts:87]` — Get tree item
-  - `async ModulesTreeProvider.getChildren() [packages/vscode-extension/src/extension.ts:91]` — Get children
-
-## Storage module
-**Location:** packages/watcher/src/**
-**Purpose:** 5 files, 0 functions
-
-**Entry points:**
-  - `WatcherDaemon.constructor(config) [packages/watcher/src/daemon.ts:42]` — Watcher daemon.constructor (config)
-  - `async WatcherDaemon.start() [packages/watcher/src/daemon.ts:46]` — Start
-  - `async WatcherDaemon.stop() [packages/watcher/src/daemon.ts:89]` — Stop
-  - `WatcherDaemon.on(handler) [packages/watcher/src/daemon.ts:96]` — On
-  - `WatcherDaemon.enqueueChange(event) [packages/watcher/src/daemon.ts:102]` — ─── Debounce & Batch Processing ──────────────────────────────
-
-## CLI module
-**Location:** packages/cli/src/**
-**Purpose:** Parse a numeric CLI option with validation; ── Helpers ──────────────────────────────────────────────...; Build DependencyGraph from lock — same logic as mcp-serve...
-
-**Entry points:**
-  - `registerContextCommands(program) [packages/cli/src/commands/context.ts:24]` — Register context commands
-  - `registerCiCommand(program) [packages/cli/src/commands/ci.ts:14]` — mikk ci — CI pipeline integration command.
-  - `registerDeadCodeCommand(program) [packages/cli/src/commands/dead-code.ts:9]` — Register dead code command
-  - `registerMcpCommand(program) [packages/cli/src/commands/mcp.ts:12]` — Register the `mikk mcp` command — starts the MCP server.
-  - `registerStatsCommand(program) [packages/cli/src/commands/stats.ts:14]` — mikk stats — codebase health dashboard.
-
-**Key internal functions:**
-  - `buildMcpEntry` (called by 3) — Build mcp entry
-  - `parseJsonSafe` (called by 3) — Parse json safe
-  - `buildGraphFromLock` (called by 1) — Build graph from lock (same logic as MCP server)
-  - `parseIntOption` (called by 1) — Parse a numeric CLI option with validation
-  - `loadContractAndLock` (called by 1) — ── Helpers ──────────────────────────────────────────────────────────────────
+<modules>
+<tech_stack>
+  <technology>Tailwind CSS</technology>
+  <technology>Vercel Analytics</technology>
+  <technology>Turborepo</technology>
+</tech_stack>
+<commands>
+  <command>
+    <run>npm run dev</run>
+    <executes>turbo run dev</executes>
+  </command>
+  <command>
+    <run>npm run build</run>
+    <executes>turbo run build</executes>
+  </command>
+  <command>
+    <run>npm run test</run>
+    <executes>turbo run test</executes>
+  </command>
+  <command>
+    <run>npm run lint</run>
+    <executes>turbo run lint</executes>
+  </command>
+</commands>
+  <module id="apps-web-components">
+    <name>Components & Navigation</name>
+    <location>apps/web/**</location>
+    <purpose>Middleware; Root layout; Robots</purpose>
+    <entry_points>
+      <function signature="async POST(req) [apps/web/app/api/feedback/route.ts:133]" purpose="--- Main handler -----------------------------------------------------------" />
+      <function signature="ContributionGraphCalendar({ title = &quot;Contribution Graph&quot;, hideMonthLabels = false, className, children, ...props }) [apps/web/components/kibo-ui/contribution-graph/index.tsx:369]" purpose="Contribution graph calendar ({ title = &quot;Contribution Graph&quot;, hideMonthLabels = false, className, children, ...props })" />
+      <function signature="sitemap() [apps/web/app/sitemap.ts:45]" purpose="Sitemap" />
+      <function signature="CopyButton({ value, getValue, event, className, variant, size, label, children, ...props }) [apps/web/components/copy-button.tsx:33]" purpose="Copy button" />
+      <function signature="Header() [apps/web/components/header.tsx:44]" purpose="Header" />
+    </entry_points>
+    <key_internal_functions>
+      <function name="useFormField" callers="4" purpose="Hook for form field" />
+      <function name="useContributionGraph" callers="4" purpose="Hook for contribution graph" />
+      <function name="useActiveAnchors" callers="2" purpose="Use active anchors" />
+      <function name="mdxFileToRoute" callers="1" purpose="Mdx file to route" />
+      <function name="collectDocsRoutes" callers="1" purpose="Collect docs routes" />
+    </key_internal_functions>
+  </module>
+  <module id="packages-core">
+    <name>Search & Utils</name>
+    <location>packages/core/src/**</location>
+    <purpose>Infer the project language from the file extensions present; Heuristic purpose inference; Infer a short purpose string from function metadata when ...</purpose>
+    <entry_points>
+      <function signature="GoExtractor.buildParsedFunction(raw) [packages/core/src/parser/go/go-extractor.ts:244]" purpose="Build ParsedFunction from scanned raw data" />
+      <function signature="GoExtractor.scanFunctions() [packages/core/src/parser/go/go-extractor.ts:166]" purpose="--- Internal scanning ---------------------------------------------------" />
+      <function signature="JavaScriptExtractor.extractCommonJsExports() [packages/core/src/parser/javascript/js-extractor.ts:107]" purpose="--- CommonJS: module.exports / exports.x exports -------------------------" />
+      <function signature="JavaScriptExtractor.extractCommonJsFunctions() [packages/core/src/parser/javascript/js-extractor.ts:175]" purpose="--- CommonJS: module.exports / exports.x function bodies -----------------" />
+      <function signature="parseConstraint(constraint) [packages/core/src/parser/boundary-checker.ts:34]" purpose="Parse constraint" />
+    </entry_points>
+    <key_internal_functions>
+      <function name="normalizeTypeAnnotation" callers="4" purpose="Derive a human-readable purpose sentence from a camelCasePascalCase identifier." />
+      <function name="inferPurpose" callers="3" purpose="Infer a short purpose string from function metadata when JSDoc is missing" />
+      <function name="isExported" callers="3" purpose="--- Utility helpers ----------------------------------------------------------" />
+      <function name="isModuleExports" callers="3" purpose="--- Helpers -----------------------------------------------------------------" />
+      <function name="hashContent" callers="2" purpose="Compute SHA-256 hash of a string." />
+    </key_internal_functions>
+  </module>
+  <module id="apps-registry">
+    <name>Search (Registry)</name>
+    <location>apps/registry/src/**</location>
+    <purpose>Placeholder</purpose>
+    <entry_points>
+      <function signature="placeholder() [apps/registry/src/index.ts:34]" purpose="Placeholder" />
+    </entry_points>
+  </module>
+  <module id="packages-ai-context">
+    <name>Providers (Ai Context)</name>
+    <location>packages/ai-context/src/**</location>
+    <purpose>Rough token estimation: ~4 chars per token; Read context file; Rough token estimator: 1 token ≈ 4 chars for codeidentifiers</purpose>
+    <entry_points>
+      <function signature="ContextBuilder.build(query) [packages/ai-context/src/context-builder.ts:221]" purpose="Build AI context for a given query." />
+      <function signature="ClaudeMdGenerator.generate() [packages/ai-context/src/claude-md-generator.ts:45]" purpose="Generate the full claude.md content" />
+      <function signature="ContextBuilder.readFunctionBody(fn, projectRoot) [packages/ai-context/src/context-builder.ts:371]" purpose="Read the actual source code of a function from disk." />
+      <function signature="ContextBuilder.generatePrompt(query, modules) [packages/ai-context/src/context-builder.ts:415]" purpose="Generate the natural-language prompt section" />
+      <function signature="ClaudeProvider.formatContext(context) [packages/ai-context/src/providers.ts:13]" purpose="Format context" />
+    </entry_points>
+    <key_internal_functions>
+      <function name="readContextFile" callers="2" purpose="Read context file" />
+      <function name="extractKeywords" callers="2" purpose="Extract keywords" />
+      <function name="keywordScore" callers="2" purpose="Keyword score for a function: exact match > partial match" />
+      <function name="estimateTokens" callers="1" purpose="Rough token estimation: ~4 chars per token" />
+      <function name="estimateTokens" callers="1" purpose="Rough token estimator: 1 token ≈ 4 chars for codeidentifiers" />
+    </key_internal_functions>
+  </module>
+  <module id="packages-intent-engine">
+    <name>Search (Intent Engine)</name>
+    <location>packages/intent-engine/src/**</location>
+    <purpose>--- Helpers ---------------------------------------------...; Cosine similarity</purpose>
+    <entry_points>
+      <function signature="async SemanticSearcher.index(lock) [packages/intent-engine/src/semantic-searcher.ts:62]" purpose="Build (or load from cache) embeddings for every function in the lock." />
+      <function signature="async SemanticSearcher.search(query, lock, topK?) [packages/intent-engine/src/semantic-searcher.ts:120]" purpose="Find the `topK` functions most semantically similar to `query`." />
+      <function signature="ConflictDetector.constructor(contract, lock?) [packages/intent-engine/src/conflict-detector.ts:22]" purpose="Conflict detector.constructor (contract, lock)" />
+      <function signature="ConflictDetector.detect(intents) [packages/intent-engine/src/conflict-detector.ts:28]" purpose="Check all intents for conflicts" />
+      <function signature="ConflictDetector.classifyConstraint(text) [packages/intent-engine/src/conflict-detector.ts:111]" purpose="--- Constraint Classification & Checking ---------------------" />
+    </entry_points>
+    <key_internal_functions>
+      <function name="lockFingerprint" callers="1" purpose="--- Helpers -----------------------------------------------------------------" />
+      <function name="cosineSimilarity" callers="1" purpose="Cosine similarity" />
+    </key_internal_functions>
+  </module>
+  <module id="packages-diagram-generator">
+    <name>Search (Diagram Generator)</name>
+    <location>packages/diagram-generator/src/**, packages/diagram-generator/src/generators/**</location>
+    <purpose>9 files, 0 functions</purpose>
+    <entry_points>
+      <function signature="DiagramOrchestrator.constructor(contract, lock, projectRoot) [packages/diagram-generator/src/orchestrator.ts:17]" purpose="Diagram orchestrator.constructor (contract, lock, projectRoot)" />
+      <function signature="async DiagramOrchestrator.generateAll() [packages/diagram-generator/src/orchestrator.ts:24]" purpose="Generate all diagrams" />
+      <function signature="async DiagramOrchestrator.generateImpact(changedIds, impactedIds) [packages/diagram-generator/src/orchestrator.ts:62]" purpose="Generate impact diagram for specific changes" />
+      <function signature="async DiagramOrchestrator.writeDiagram(relativePath, content) [packages/diagram-generator/src/orchestrator.ts:71]" purpose="Write diagram" />
+      <function signature="CapsuleDiagramGenerator.constructor(contract, lock) [packages/diagram-generator/src/generators/capsule-diagram.ts:9]" purpose="Capsule diagram generator.constructor (contract, lock)" />
+    </entry_points>
+  </module>
+  <module id="packages-mcp-server">
+    <name>Search & Caching</name>
+    <location>packages/mcp-server/src/**, packages/mcp-server/bin/**</location>
+    <purpose>Register all MCP resources — structured data an AI assist...; Safe read; Create a Mikk MCP server instance with all tools and reso...</purpose>
+    <entry_points>
+      <function signature="registerTools(server, projectRoot) [packages/mcp-server/src/tools.ts:65]" purpose="Register all MCP tools ” actions an AI assistant can invoke." />
+      <function signature="registerResources(server, projectRoot) [packages/mcp-server/src/resources.ts:8]" purpose="Register all MCP resources — structured data an AI assistant can read." />
+      <function signature="createMikkMcpServer(projectRoot) [packages/mcp-server/src/server.ts:12]" purpose="Create a Mikk MCP server instance with all tools and resources registered." />
+      <function signature="async startStdioServer() [packages/mcp-server/src/stdio.ts:8]" purpose="Start the MCP server with stdio transport." />
+      <function signature="invalidateCache(projectRoot) [packages/mcp-server/src/tools.ts:34]" purpose="Invalidate cache" />
+    </entry_points>
+    <key_internal_functions>
+      <function name="buildGraphFromLock" callers="2" purpose="Build a DependencyGraph from the lock file in O(n) time." />
+      <function name="safeRead" callers="1" purpose="Safe read" />
+      <function name="getSemanticSearcher" callers="1" purpose="Get semantic searcher" />
+      <function name="loadContractAndLock" callers="1" purpose="Load contract + lock from disk with 30s caching and active staleness detection." />
+      <function name="detectCircularDeps" callers="1" purpose="Detect circular dependencies for a set of functions via DFS" />
+    </key_internal_functions>
+  </module>
+  <module id="packages-vscode-extension">
+    <name>Providers (Vscode Extension)</name>
+    <location>packages/vscode-extension/src/**</location>
+    <purpose>─── Extension Entry ─────────────────────────────────────...; Deactivate; ─── Helpers ─────────────────────────────────────────────...</purpose>
+    <entry_points>
+      <function signature="activate(context) [packages/vscode-extension/src/extension.ts:58]" purpose="─── Extension Entry ──────────────────────────────────────────────────────────" />
+      <function signature="deactivate() [packages/vscode-extension/src/extension.ts:191]" purpose="Deactivate" />
+      <function signature="MikkDataProvider.constructor(projectRoot) [packages/vscode-extension/src/extension.ts:238]" purpose="Mikk data provider.constructor (projectRoot)" />
+      <function signature="MikkDataProvider.reload() [packages/vscode-extension/src/extension.ts:242]" purpose="Reload" />
+      <function signature="MikkDataProvider.getContract() [packages/vscode-extension/src/extension.ts:247]" purpose="Get contract" />
+    </entry_points>
+    <key_internal_functions>
+      <function name="runInTerminal" callers="1" purpose="─── Helpers ──────────────────────────────────────────────────────────────────" />
+      <function name="updateStatusBar" callers="1" purpose="Update status bar" />
+    </key_internal_functions>
+  </module>
+  <module id="packages-watcher">
+    <name>Storage</name>
+    <location>packages/watcher/src/**</location>
+    <purpose>5 files, 0 functions</purpose>
+    <entry_points>
+      <function signature="WatcherDaemon.constructor(config) [packages/watcher/src/daemon.ts:42]" purpose="Watcher daemon.constructor (config)" />
+      <function signature="async WatcherDaemon.start() [packages/watcher/src/daemon.ts:46]" purpose="Start" />
+      <function signature="async WatcherDaemon.stop() [packages/watcher/src/daemon.ts:99]" purpose="Stop" />
+      <function signature="WatcherDaemon.on(handler) [packages/watcher/src/daemon.ts:106]" purpose="On" />
+      <function signature="WatcherDaemon.enqueueChange(event) [packages/watcher/src/daemon.ts:112]" purpose="─── Debounce & Batch Processing ──────────────────────────────" />
+    </entry_points>
+  </module>
+  <module id="packages-cli">
+    <name>CLI</name>
+    <location>packages/cli/src/**, packages/cli/bin/**</location>
+    <purpose>Register analyze command; mikk ci — CI pipeline integration command; Build graph from lock (same logic as MCP server)</purpose>
+    <entry_points>
+      <function signature="registerContextCommands(program) [packages/cli/src/commands/context.ts:24]" purpose="Register context commands" />
+      <function signature="registerCiCommand(program) [packages/cli/src/commands/ci.ts:14]" purpose="mikk ci — CI pipeline integration command." />
+      <function signature="registerDeadCodeCommand(program) [packages/cli/src/commands/dead-code.ts:9]" purpose="Register dead code command" />
+      <function signature="registerMcpCommand(program) [packages/cli/src/commands/mcp.ts:12]" purpose="Register the `mikk mcp` command — starts the MCP server." />
+      <function signature="registerStatsCommand(program) [packages/cli/src/commands/stats.ts:14]" purpose="mikk stats — codebase health dashboard." />
+    </entry_points>
+    <key_internal_functions>
+      <function name="buildMcpEntry" callers="3" purpose="Build mcp entry" />
+      <function name="parseJsonSafe" callers="3" purpose="Parse json safe" />
+      <function name="buildGraphFromLock" callers="1" purpose="Build graph from lock (same logic as MCP server)" />
+      <function name="parseIntOption" callers="1" purpose="Parse a numeric CLI option with validation" />
+      <function name="loadContractAndLock" callers="1" purpose="── Helpers ──────────────────────────────────────────────────────────────────" />
+    </key_internal_functions>
+  </module>
+</modules>
 
 ## Data Models & Schemas
 
@@ -522,7 +557,7 @@ export interface ParsedGeneric {
 /** Everything extracted from a single file */
 export interface ParsedFile {
     path: string            // "src/auth/verify.ts"
-    language: 'typescript' | 'javascript' | 'python' | 'go'
+    language: 'python' | 'go' | 'typescript' | 'javascript' | 'java' | 'c' | 'cpp' | 'csharp' | 'rust' | 'php' | 'ruby' | 'unknown'
     functions: ParsedFunction[]
     classes: ParsedClass[]
     generics: ParsedGeneric[]
@@ -534,4 +569,21 @@ export interface ParsedFile {
 }
 ```
 
+## File Import Graph
 
+Which files import which — useful for understanding data flow.
+
+### Components & Navigation
+- `apps/web/components/code-block-command.tsx` → `apps/web/components/copy-button.tsx`
+- `apps/web/components/code-tabs.tsx` → `apps/web/components/base/ui/tabs.tsx`
+- `apps/web/components/command-menu.tsx` → `apps/web/components/ui/button.tsx`, `apps/web/components/ui/kbd.tsx`, `apps/web/components/ui/separator.tsx`
+- `apps/web/components/consent-manager.tsx` → `apps/web/components/consent-manager-client.tsx`
+- `apps/web/components/copy-button.tsx` → `apps/web/components/ui/button.tsx`
+- `apps/web/providers/providers.tsx` → `apps/web/providers/fuma-provider.tsx`
+- `apps/web/components/ui/collapsible.tsx` → `apps/web/components/animated-icons/chevrons-down-up-icon.tsx`
+
+
+## Architectural Decisions
+- **Use WebAssembly for Tree-sitter:** Mikk needs to parse 13+ languages cross-platform. Native Node.js bindings for Tree-sitter require local C++ compilers (like node-gyp), which frequently fail on Windows and in CI environments. We use `web-tree-sitter` to execute precompiled `.wasm` binaries. This guarantees parsing works reliably on any machine Node.js can run on, without friction.
+- **BM25 + Substring Reciprocal Rank Fusion:** Users often search for functions using partial names or slight variations (e.g. searching 'auth user' for 'authenticateUser'). We implemented an Okapi BM25 engine for full-text relevance, merged with exact substring matching using Reciprocal Rank Fusion. This provides the leniency of semantic-like search without requiring heavy external ML embeddings for everyday lookups.
+- **mikk.lock.json as Single Source of Truth:** Parsing entire repositories into ASTs and computing call graphs takes several seconds for large codebases. To make the CLI, VS Code Extension, and MCP Server fast and responsive, we persist the full dependency graph and symbol map into `mikk.lock.json`. Tools read this cached state instantly, and only re-parse files when drift is detected.

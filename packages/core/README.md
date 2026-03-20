@@ -1,469 +1,139 @@
-# @getmikk/core
+﻿# @getmikk/core
 
-> The foundation of the Mikk ecosystem — TypeScript AST parsing, dependency graph construction, Merkle-tree hashing, contract management, and lock file compilation.
+> AST parsing, dependency graph, Merkle hashing, contract management, boundary enforcement.
 
 [![npm](https://img.shields.io/npm/v/@getmikk/core)](https://www.npmjs.com/package/@getmikk/core)
 [![License: Apache-2.0](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](../../LICENSE)
 
-`@getmikk/core` is the foundation every other Mikk package builds on. It owns the complete pipeline for turning raw **TypeScript and Go** source into structured, queryable intelligence: parsing source files into real ASTs (TS Compiler API for TypeScript; regex + stateful scanning for Go; no external toolchain required), building a two-pass dependency graph with O(1) adjacency lookups, computing Merkle-tree SHA-256 hashes at function → file → module → root level, and compiling everything into a `mikk.lock.json` snapshot that every other package reads from.
+Foundation package for the Mikk ecosystem. All other packages depend on core — nothing in core depends on them.
 
-Every AI context query, impact analysis, contract validation, and diagram generation ultimately runs on the graph and lock file produced here.
-
-> Part of [Mikk](../../README.md) — the codebase nervous system for AI-assisted development.
+> Part of [Mikk](../../README.md) — live architectural context for your AI agent.
 
 ---
 
-## Installation
+## What is in core
+
+### Parsers
+
+Three language parsers, each following the same interface: `parse(filePath, content)` → `ParsedFile`.
+
+**TypeScript / TSX**
+Uses the TypeScript Compiler API. Extracts: functions (name, params with types, return type, start/end line, async flag, decorators, generics), classes (methods, properties, inheritance), imports (named, default, namespace, type-only) with full resolution (tsconfig `paths` alias resolution, recursive `extends` chain, index file inference, extension inference). Every extracted function has its exact byte-accurate body location.
+
+**JavaScript / JSX**
+Uses the TypeScript Compiler API with `ScriptKind` inference (detects JS/JSX/CJS/MJS). Handles: JSX expression containers, default exports, CommonJS `module.exports`, re-exports via barrel files.
+
+**Go**
+Regex + stateful scanning. No Go toolchain dependency. Extracts: functions, methods (with receiver types), structs, interfaces, package imports. `go.mod` used for project boundary detection.
+
+### GraphBuilder
+
+Two-pass O(n) dependency graph construction:
+1. **Pass 1** — create all nodes (functions, files)
+2. **Pass 2** — wire all edges (import edges, call edges, containment edges)
+
+Result: `DependencyGraph` with forward `outEdges` and reverse `inEdges` maps for O(1) lookups in both directions.
+
+### ImpactAnalyzer
+
+BFS backward walk from a set of changed nodes. Returns:
+- `changed` — directly modified nodes
+- `impacted` — all transitively affected upstream callers
+- `classified` — impacted nodes sorted into `critical | high | medium | low` by proximity
+- `depth` — max blast radius depth
+- `confidence` — `high | medium | low` based on analysis mode
+
+### ClusterDetector
+
+Groups files into logical modules via greedy agglomeration. Produces clusters with a `confidence` score (0–1). Used by `mikk init` to auto-generate `mikk.json` from an unknown codebase.
+
+### BoundaryChecker
+
+Runs all declared constraint rules against the lock file. For each violation, returns: the source function, target function, which rule was violated, and severity. Used live by `mikk_before_edit` and `mikk ci`.
+
+**Constraint types:**
+- `no-import` — module A must not import from module B
+- `must-use` — module A must use dependency B
+- `no-call` — specific functions must not call specific targets
+- `layer` — layered architecture enforcement (can only import from lower-numbered layers)
+- `naming` — function or file naming pattern via regex
+- `max-files` — maximum file count per module
+
+### Merkle Hashing
+
+SHA-256 at every level:
+```
+function hash → file hash → module hash → root hash
+```
+
+One root hash comparison = instant full drift detection. Persisted in SQLite with WAL mode for zero-contention concurrent reads.
+
+### LockCompiler
+
+Compiles a `DependencyGraph` + `MikkContract` + parsed files into a `MikkLock`. The lock file is the single source of truth for all MCP tools and CLI commands.
+
+Lock format v1.7.0:
+- Integer-based function index (`fnIndex`) — call graph edges stored as integer references, not repeated strings
+- Compact JSON output — no pretty-printing
+- Backward-compatible hydration for older formats
+
+### ContractReader / ContractWriter / LockReader
+
+Read and write `mikk.json` and `mikk.lock.json`. `LockReader.write()` uses atomic temp-file + rename to prevent corruption.
+
+### AdrManager
+
+CRUD for Architectural Decision Records in `mikk.json`. Add, update, remove, list, and get individual decisions. ADRs surface in all AI context queries via the MCP server.
+
+### DeadCodeDetector
+
+Identifies functions with zero callers after exempting: exported functions, entry points, detected route handlers, test functions, and constructors. Returns per-module breakdown.
+
+### Route Detection
+
+Detects HTTP route definitions in Express, Koa, and Hono patterns. Extracts: HTTP method, path string, handler function reference, middleware chain, file, and line number.
+
+---
+
+## Key Types
+
+```typescript
+interface ParsedFile {
+  path: string
+  hash: string
+  language: string
+  functions: ParsedFunction[]
+  imports: ParsedImport[]
+  exports: ParsedExport[]
+  classes: ParsedClass[]
+  routes: ParsedRoute[]
+}
+
+interface DependencyGraph {
+  nodes: Map<string, GraphNode>
+  edges: GraphEdge[]
+  outEdges: Map<string, GraphEdge[]>
+  inEdges: Map<string, GraphEdge[]>
+}
+
+interface MikkLock {
+  version: string
+  lockDate: string
+  project: { name: string; language: string }
+  fnIndex: string[]          // all function IDs — edges reference by integer index
+  functions: Record<string, LockFunction>
+  files: Record<string, LockFile>
+  routes: LockRoute[]
+  syncState: { status: string; lastUpdated: number }
+}
+```
+
+---
+
+## Test Coverage
+
+196 tests across: TypeScript parser, JavaScript parser, Go parser, dependency graph, impact analysis, hash store, contract validation, dead code detection, fuzzy matching, filesystem utilities.
 
 ```bash
-npm install @getmikk/core
-# or
-bun add @getmikk/core
+bun test
 ```
-
----
-
-## Architecture Overview
-
-```
-Source Files (.ts/.tsx/.go)
-        │
-        ▼
-   ┌─────────┐
-   │  Parser  │  ← TypeScriptParser / GoParser
-   └────┬────┘
-        │  ParsedFile[]
-        ▼
-  ┌──────────────┐
-  │ GraphBuilder  │  ← Two-pass: nodes → edges
-  └──────┬───────┘
-         │  DependencyGraph
-         ▼
-  ┌────────────────┐
-  │ LockCompiler   │  ← Merkle-tree hashes
-  └───────┬────────┘
-          │  MikkLock
-          ▼
-  ┌─────────────────┐
-  │ ContractWriter   │  ← Permission model (never/ask/explicit)
-  └─────────────────┘
-```
-
----
-
-## Modules
-
-### 1. Parser — Source Code Analysis
-
-The parser module turns raw TypeScript/TSX files into structured `ParsedFile` objects using the TypeScript Compiler API.
-
-```typescript
-import { TypeScriptParser, getParser, parseFiles } from '@getmikk/core'
-
-// Parse a single file
-const parser = new TypeScriptParser()
-const parsed = parser.parse('/src/utils/math.ts', fileContent)
-
-console.log(parsed.functions)  // ParsedFunction[] — name, params, returnType, startLine, endLine, calls[]
-console.log(parsed.classes)    // ParsedClass[] — name, methods[], properties[], decorators[]
-console.log(parsed.imports)    // ParsedImport[] — source, specifiers, isTypeOnly
-console.log(parsed.exports)    // ParsedExport[] — name, isDefault, isTypeOnly
-console.log(parsed.generics)   // ParsedGeneric[] — interfaces, types, const declarations
-
-// Factory — auto-selects parser by file extension
-const parser = getParser('component.tsx') // returns TypeScriptParser
-
-// Batch parse with import resolution
-const files = await parseFiles(filePaths, projectRoot, readFileFn)
-// Returns ParsedFile[] with all import paths resolved to absolute paths
-```
-
-#### TypeScriptExtractor
-
-The extractor walks the TypeScript AST and pulls out detailed metadata:
-
-- **Functions**: name, parameters (with types & defaults), return type, line range, internal calls, `async`/generator flags, decorators, type parameters
-- **Classes**: name, methods (with full function metadata), properties, decorators, `extends`/`implements`, type parameters
-- **Generics**: interfaces, type aliases, const declarations, enums
-- **Imports**: named, default, namespace, type-only imports
-- **Exports**: named, default, re-exports
-
-#### TypeScriptResolver
-
-Resolves import paths against the actual project filesystem:
-
-```typescript
-import { TypeScriptResolver } from '@getmikk/core'
-
-const resolver = new TypeScriptResolver()
-// Resolves: relative paths, path aliases (tsconfig paths), index files, extension inference (.ts/.tsx/.js)
-const resolved = resolver.resolve(importDecl, fromFilePath, allProjectFiles)
-```
-
-#### Go Parser
-
-Parses `.go` files without requiring the Go toolchain:
-
-```typescript
-import { GoParser } from '@getmikk/core'
-
-const parser = new GoParser()
-const parsed = parser.parse('service.go', fileContent)
-
-console.log(parsed.functions)  // ParsedFunction[] — name, params with types, return type, calls[]
-console.log(parsed.classes)    // ParsedClass[] — receiver-based methods grouped by type name
-console.log(parsed.imports)    // ParsedImport[] — resolved against go.mod module path
-console.log(parsed.exports)    // ParsedExport[] — uppercase identifiers (Go convention)
-console.log(parsed.routes)     // ParsedRoute[] — Gin, Echo, Chi, Mux, net/http routes
-```
-
-**Features**:
-- Stateful line/character scanning (handles strings, comments, nested braces correctly)
-- Receiver methods grouped with struct types as classes
-- HTTP route detection (Gin/Echo/Chi/Mux/net.http/Fiber patterns)
-- Error handling detection (`if err != nil` patterns)
-- Function call extraction from bodies
-- Grouped parameter expansion (`first, last string` → both typed as `string`)
-- Import resolution via `go.mod` module path
-
-#### Auto-detection by file extension
-
-```typescript
-const parser = getParser('file.ts')    // → TypeScriptParser
-const parser = getParser('service.go') // → GoParser
-```
-
----
-
-### 2. Graph — Dependency Graph Construction
-
-The graph module builds a complete dependency graph from parsed files.
-
-```typescript
-import { GraphBuilder, ImpactAnalyzer, ClusterDetector } from '@getmikk/core'
-
-// Build the graph
-const builder = new GraphBuilder()
-const graph = builder.build(parsedFiles)
-
-console.log(graph.nodes)     // Map<string, GraphNode> — file, function, class, generic nodes
-console.log(graph.edges)     // GraphEdge[] — import, call, containment, implements edges
-console.log(graph.adjacency) // Map<string, string[]> — forward adjacency
-console.log(graph.reverse)   // Map<string, string[]> — reverse adjacency
-```
-
-#### GraphBuilder
-
-Two-pass construction:
-1. **Pass 1 — Nodes**: Creates nodes for every file, function, class, and generic declaration
-2. **Pass 2 — Edges**: Creates edges for imports, function calls, class containment, and cross-file references
-
-Node types: `file`, `function`, `class`, `generic`  
-Edge types: `import`, `call`, `containment`, `implements`
-
-#### ImpactAnalyzer
-
-BFS backward walk to find everything affected by a change:
-
-```typescript
-const analyzer = new ImpactAnalyzer(graph)
-const impact = analyzer.analyze(['src/utils/math.ts::calculateTotal'])
-
-console.log(impact.changed)    // string[] — directly changed node IDs
-console.log(impact.impacted)   // string[] — transitively affected nodes
-console.log(impact.depth)      // number — max propagation depth
-console.log(impact.confidence) // 'high' | 'medium' | 'low'
-console.log(impact.classified) // { critical: [], high: [], medium: [], low: [] }
-```
-
-#### ClusterDetector
-
-Greedy agglomeration algorithm for automatic module discovery:
-
-```typescript
-const detector = new ClusterDetector(graph, /* minClusterSize */ 3, /* minCouplingScore */ 0.1)
-const clusters = detector.detect()
-
-// Returns ModuleCluster[] with:
-// - id, label (auto-generated from common paths)
-// - nodeIds[] — functions/classes in this cluster
-// - cohesion — internal coupling score (0-1)
-// - coupling — Map<clusterId, score> — external coupling
-```
-
-The algorithm starts with one cluster per file, then iteratively merges the pair with the highest coupling score until no pair exceeds the threshold.
-
----
-
-### 3. Contract — mikk.json & mikk.lock.json
-
-The contract module manages the two core Mikk files using Zod validation.
-
-#### Schemas
-
-All schemas are exported as Zod objects for runtime validation:
-
-```typescript
-import {
-  MikkContractSchema,   // mikk.json validation
-  MikkLockSchema,       // mikk.lock.json validation
-  MikkModuleSchema,     // Module definition
-  MikkDecisionSchema,   // Architecture decision record
-} from '@getmikk/core'
-
-// Validate a contract
-const result = MikkContractSchema.safeParse(rawJson)
-if (!result.success) console.error(result.error.issues)
-```
-
-#### mikk.json (Contract)
-
-Defines the project's architectural rules:
-
-```typescript
-type MikkContract = {
-  name: string
-  version: string
-  modules: Record<string, MikkModule>  // Module definitions with intent, public API, constraints
-  decisions: MikkDecision[]            // Architecture Decision Records (ADRs)
-  overwrite: {
-    permission: 'never' | 'ask' | 'explicit'
-    lastOverwrittenBy?: string
-    lastOverwrittenAt?: string
-  }
-}
-```
-
-#### mikk.lock.json (Lock File)
-
-Auto-generated snapshot of the entire codebase:
-
-```typescript
-type MikkLock = {
-  generatorVersion: string
-  generatedAt: string
-  rootHash: string                    // Merkle root of entire project
-  modules: Record<string, MikkLockModule>
-}
-
-type MikkLockModule = {
-  hash: string                        // Merkle hash of all files in module
-  files: Record<string, MikkLockFile>
-}
-
-type MikkLockFile = {
-  hash: string
-  functions: Record<string, MikkLockFunction>
-  classes: Record<string, MikkLockClass>
-  generics: Record<string, MikkLockGeneric>
-}
-```
-
-#### ContractReader / LockReader
-
-```typescript
-import { ContractReader, LockReader } from '@getmikk/core'
-
-const contractReader = new ContractReader()
-const contract = await contractReader.read('./mikk.json')
-
-const lockReader = new LockReader()
-const lock = await lockReader.read('./mikk.lock.json')
-await lockReader.write(updatedLock, './mikk.lock.json')
-```
-
-#### ContractWriter — Permission Model
-
-```typescript
-import { ContractWriter } from '@getmikk/core'
-
-const writer = new ContractWriter()
-
-// First-time write
-await writer.writeNew(contract, './mikk.json')
-
-// Update with permission model
-const result = await writer.update(existingContract, updates, './mikk.json')
-// result.updated — boolean
-// result.requiresConfirmation — true if permission is 'ask'
-// result.proposedChanges — diff object when confirmation needed
-```
-
-Permission levels:
-- **`never`** — Contract is read-only, updates are rejected
-- **`ask`** — Returns `requiresConfirmation: true` with proposed changes
-- **`explicit`** — Auto-applies updates with audit trail
-
-#### LockCompiler
-
-Compiles the full lock file from graph + contract + parsed files:
-
-```typescript
-import { LockCompiler } from '@getmikk/core'
-
-const compiler = new LockCompiler()
-const lock = compiler.compile(graph, contract, parsedFiles)
-// Computes Merkle-tree hashes at every level:
-// function → file → module → root
-```
-
-#### ContractGenerator
-
-Auto-generates a `mikk.json` skeleton from detected clusters:
-
-```typescript
-import { ContractGenerator } from '@getmikk/core'
-
-const generator = new ContractGenerator()
-const contract = generator.generateFromClusters(clusters, parsedFiles, 'my-project')
-```
-
-#### BoundaryChecker
-
-CI-ready enforcement layer:
-
-```typescript
-import { BoundaryChecker } from '@getmikk/core'
-
-const checker = new BoundaryChecker(contract, lock)
-const result = checker.check()
-
-if (!result.pass) {
-  for (const v of result.violations) {
-    console.error(`${v.severity}: ${v.message}`)
-    // severity: 'error' | 'warning'
-    // type: 'boundary-crossing' | 'constraint-violation'
-  }
-  process.exit(1)
-}
-```
-
----
-
-### 4. Hash — Merkle-Tree Integrity
-
-```typescript
-import { hashContent, hashFile, hashFunctionBody, computeModuleHash, computeRootHash } from '@getmikk/core'
-
-// Hash raw content (SHA-256)
-const h1 = hashContent('function foo() {}')
-
-// Hash a file from disk
-const h2 = await hashFile('/src/index.ts')
-
-// Hash a specific line range (function body)
-const h3 = hashFunctionBody(fileContent, 10, 25)
-
-// Merkle tree
-const moduleHash = computeModuleHash(['fileHash1', 'fileHash2'])
-const rootHash = computeRootHash(['moduleHash1', 'moduleHash2'])
-```
-
-#### HashStore — SQLite Persistence
-
-```typescript
-import { HashStore } from '@getmikk/core'
-
-const store = new HashStore('/project/.mikk/hashes.db')
-
-store.set('src/index.ts', 'abc123...', 4096)
-const entry = store.get('src/index.ts')
-// { path, hash, size, updatedAt }
-
-const changed = store.getChangedSince(Date.now() - 60_000)
-store.delete('src/old-file.ts')
-
-// Batch operations use SQLite transactions for performance
-const allPaths = store.getAllPaths()
-```
-
-Uses SQLite in WAL mode for concurrent read access and fast writes.
-
----
-
-### 5. Utilities
-
-#### Error Hierarchy
-
-```typescript
-import {
-  MikkError,                  // Base error class
-  ParseError,                 // File parsing failures
-  ContractNotFoundError,      // mikk.json not found
-  LockNotFoundError,          // mikk.lock.json not found
-  UnsupportedLanguageError,   // Unsupported file extension
-  OverwritePermissionError,   // Contract overwrite denied
-  SyncStateError,             // Lock file out of sync
-} from '@getmikk/core'
-```
-
-#### Logging
-
-```typescript
-import { logger, setLogLevel } from '@getmikk/core'
-
-setLogLevel('debug') // 'debug' | 'info' | 'warn' | 'error' | 'silent'
-
-logger.info('Analysis complete', { files: 42, duration: '1.2s' })
-// Outputs structured JSON to stderr
-```
-
-#### File Utilities
-
-```typescript
-import { discoverFiles, readFileContent, writeFileContent, fileExists, setupMikkDirectory } from '@getmikk/core'
-
-// Discover TypeScript files
-const files = await discoverFiles('/project', ['src/**/*.ts'], ['node_modules'])
-
-// Read/write
-const content = await readFileContent('/src/index.ts')
-await writeFileContent('/output/result.json', jsonString) // auto-creates directories
-
-// Initialize .mikk/ directory structure
-await setupMikkDirectory('/project')
-```
-
-#### Fuzzy Matching
-
-```typescript
-import { scoreFunctions, findFuzzyMatches, levenshtein } from '@getmikk/core'
-
-// Score lock file functions against a natural-language prompt
-const matches = scoreFunctions('calculate the total price', lock, 10)
-// Returns FuzzyMatch[] sorted by relevance score
-
-// "Did you mean?" suggestions
-const suggestions = findFuzzyMatches('calcualteTotal', lock, 5)
-// Returns closest function names by Levenshtein distance
-
-// Raw edit distance
-const dist = levenshtein('kitten', 'sitting') // 3
-```
-
----
-
-## Types
-
-All types are exported and can be imported directly:
-
-```typescript
-import type {
-  // Parser
-  ParsedFile, ParsedFunction, ParsedClass, ParsedImport, ParsedExport, ParsedParam, ParsedGeneric,
-  // Graph
-  DependencyGraph, GraphNode, GraphEdge, ImpactResult, NodeType, EdgeType, ModuleCluster, ClassifiedImpact, RiskLevel,
-  // Contract
-  MikkContract, MikkLock, MikkModule, MikkDecision, MikkLockFunction, MikkLockModule, MikkLockFile,
-  // Boundary
-  BoundaryViolation, BoundaryCheckResult, ViolationSeverity,
-  // Writer
-  UpdateResult,
-} from '@getmikk/core'
-```
-
----
-
-## License
-
-[Apache-2.0](../../LICENSE)

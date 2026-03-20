@@ -33,7 +33,7 @@ export class TypeScriptResolver {
     private resolvePath(source: string, fromFile: string, allProjectFiles: string[]): string {
         let resolvedSource = source
 
-        // 1. Handle path aliases: @/utils/jwt → src/utils/jwt
+        // 1. Handle path aliases: @/utils/jwt -> src/utils/jwt
         for (const [alias, targets] of Object.entries(this.aliases)) {
             const aliasPrefix = alias.replace('/*', '')
             if (source.startsWith(aliasPrefix)) {
@@ -57,7 +57,7 @@ export class TypeScriptResolver {
         resolved = resolved.replace(/\\/g, '/')
 
         // 3. Try to find exact match with extensions
-        const extensions = ['.ts', '.tsx', '/index.ts', '/index.tsx']
+        const extensions = ['.ts', '.tsx', '.js', '.jsx', '.mjs', '/index.ts', '/index.tsx', '/index.js', '/index.jsx']
 
         // If the path already has an extension, return it
         if (resolved.endsWith('.ts') || resolved.endsWith('.tsx')) {

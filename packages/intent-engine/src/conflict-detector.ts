@@ -106,7 +106,7 @@ export class ConflictDetector {
         }
     }
 
-    // ── Constraint Classification & Checking ─────────────────────
+    // --- Constraint Classification & Checking ---------------------
 
     private classifyConstraint(text: string): ConstraintType {
         const lower = text.toLowerCase()

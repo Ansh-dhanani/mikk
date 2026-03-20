@@ -4,7 +4,7 @@ import { hashFile } from '@getmikk/core'
 import type { WatcherConfig, WatcherEvent, FileChangeEvent } from './types.js'
 
 /**
- * FileWatcher — wraps Chokidar to watch filesystem for changes.
+ * FileWatcher -- wraps Chokidar to watch filesystem for changes.
  * Computes hash of changed files and emits typed events.
  */
 export class FileWatcher {
@@ -14,12 +14,12 @@ export class FileWatcher {
 
     constructor(private config: WatcherConfig) { }
 
-    /** Start watching — non-blocking */
+    /** Start watching -- non-blocking */
     start(): void {
         const excludesRegexes = this.config.exclude.map(
             pattern => new RegExp(pattern.replace(/\*/g, '.*').replace(/\//g, '[\\\\/]'))
         )
-        const includeExts = ['.ts', '.tsx']
+        const includeExts = ['.ts', '.tsx', '.js', '.jsx', '.mjs', '.cjs', '.go']
 
         this.watcher = watch(this.config.projectRoot, {
             ignored: (testPath: string, stats?: import('fs').Stats) => {

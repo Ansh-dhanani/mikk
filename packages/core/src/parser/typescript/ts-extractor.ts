@@ -3,7 +3,7 @@ import type { ParsedFunction, ParsedClass, ParsedImport, ParsedExport, ParsedPar
 import { hashContent } from '../../hash/file-hasher.js'
 
 /**
- * TypeScript AST extractor — walks the TypeScript AST using the TS Compiler API
+ * TypeScript AST extractor walks the TypeScript AST using the TS Compiler API
  * and extracts functions, classes, imports, exports and call relationships.
  */
 export class TypeScriptExtractor {
@@ -286,7 +286,7 @@ export class TypeScriptExtractor {
                                 middlewares.push(arg.text)
                             }
                         } else if (ts.isCallExpression(arg)) {
-                            // e.g. upload.single("file") — middleware call
+                            // e.g. upload.single("file") middleware call
                             middlewares.push(arg.expression.getText(this.sourceFile))
                         } else if (ts.isArrowFunction(arg) || ts.isFunctionExpression(arg)) {
                             handler = 'anonymous'
@@ -309,7 +309,7 @@ export class TypeScriptExtractor {
         return routes
     }
 
-    // ─── Protected Helpers ─────────────────────────────────────
+    // Protected Helpers ------------------------------------------------------
 
     protected parseFunctionDeclaration(node: ts.FunctionDeclaration): ParsedFunction {
         const name = node.name!.text
@@ -511,11 +511,11 @@ export class TypeScriptExtractor {
                 if (ts.isIdentifier(callee)) {
                     calls.push(callee.text)
                 } else if (ts.isPropertyAccessExpression(callee)) {
-                    // e.g., obj.method() — we capture the full dotted name
+                    // e.g., obj.method() we capture the full dotted name
                     calls.push(callee.getText(this.sourceFile))
                 }
             }
-            // Track constructor calls: new Foo(...) → "Foo"
+            // Track constructor calls: new Foo(...) -> "Foo"
             if (ts.isNewExpression(n)) {
                 const callee = n.expression
                 if (ts.isIdentifier(callee)) {
@@ -547,12 +547,12 @@ export class TypeScriptExtractor {
                 }
 
                 // Skip divider lines (lines with 3+ repeated special characters)
-                if (/^[─\-_=\*]{3,}$/.test(clean)) continue
+                if (/^[\-_=\*]{3,}$/.test(clean)) continue
 
                 if (clean) meaningfulLines.push(clean)
             }
 
-            // Return the first meaningful line — in JSDoc, the first line is the summary.
+            // Return the first meaningful line in JSDoc, the first line is the summary.
             const fromComment = meaningfulLines.length > 0 ? meaningfulLines[0].split('\n')[0].trim() : ''
             if (fromComment) return fromComment
         }
@@ -662,10 +662,10 @@ export class TypeScriptExtractor {
         if (modifiers) {
             for (const decorator of modifiers) {
                 if (ts.isCallExpression(decorator.expression)) {
-                    // @Injectable() — decorator with arguments
+                    // @Injectable() decorator with arguments
                     decorators.push(decorator.expression.expression.getText(this.sourceFile))
                 } else if (ts.isIdentifier(decorator.expression)) {
-                    // @Sealed — decorator without arguments
+                    // @Sealed decorator without arguments
                     decorators.push(decorator.expression.text)
                 }
             }
@@ -694,7 +694,7 @@ export class TypeScriptExtractor {
         return this.sourceFile.getLineAndCharacterOfPosition(pos).line + 1
     }
 
-    /** Walk the top-level children of a node (non-recursive — callbacks decide depth) */
+    /** Walk the top-level children of a node (non-recursive callbacks decide depth) */
     protected walkNode(node: ts.Node, callback: (node: ts.Node) => void): void {
         ts.forEachChild(node, (child) => {
             callback(child)
@@ -702,15 +702,15 @@ export class TypeScriptExtractor {
     }
 }
 
-// ─── Helpers ─────────────────────────────────────────────────────────────────
+// 
 
 /**
  * Derive a human-readable purpose sentence from a camelCase/PascalCase identifier.
  * Examples:
- *   validateJwtToken   → "Validate jwt token"
- *   buildGraphFromLock → "Build graph from lock"
- *   UserRepository     → "User repository"
- *   parseFiles         → "Parse files"
+ *   validateJwtToken   -> "Validate jwt token"
+ *   buildGraphFromLock -> "Build graph from lock"
+ *   UserRepository     -> "User repository"
+ *   parseFiles         -> "Parse files"
  */
 function normalizeTypeAnnotation(type: string): string {
     return type.replace(/\s*\n\s*/g, ' ').replace(/\s{2,}/g, ' ').trim()

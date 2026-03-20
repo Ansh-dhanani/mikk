@@ -68,7 +68,7 @@ export function registerInitCommand(program: Command) {
                 const builder = new GraphBuilder()
                 const graph = builder.build(parsedFiles)
 
-                // 4. Detect natural module clusters
+                // --- CLI help texts ---natural module clusters
                 const detector = new ClusterDetector(graph)
                 const clusters = detector.detect()
                 spinner.succeed(`Analysis complete: ${files.length} files, ${graph.nodes.size} nodes`)

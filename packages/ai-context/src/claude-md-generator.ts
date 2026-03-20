@@ -46,26 +46,26 @@ export class ClaudeMdGenerator {
         const sections: string[] = []
         let usedTokens = 0
 
-        // ── Tier 1: Summary (always included) ──────────────────────
+        // --- Tier 1: Summary (always included) ----------------------
         const summary = this.generateSummary()
         sections.push(summary)
         usedTokens += estimateTokens(summary)
 
-        // ── Tech stack & conventions (always included if detectable) ──
+        // --- Tech stack & conventions (always included if detectable) ---
         const techSection = this.generateTechStackSection()
         if (techSection) {
             sections.push(techSection)
             usedTokens += estimateTokens(techSection)
         }
 
-        // ── Build / test / run commands ─────────────────────────────
+        // --- Build / test / run commands -----------------------------
         const commandsSection = this.generateCommandsSection()
         if (commandsSection) {
             sections.push(commandsSection)
             usedTokens += estimateTokens(commandsSection)
         }
 
-        // ── Tier 2: Module details (if budget allows) ──────────────
+        // --- Tier 2: Module details (if budget allows) --------------
         // Skip modules with zero functions — they waste AI tokens
         const modules = this.getModulesSortedByDependencyOrder()
             .filter(m => {
@@ -78,14 +78,16 @@ export class ClaudeMdGenerator {
             const moduleSection = this.generateModuleSection(module.id)
             const tokens = estimateTokens(moduleSection)
             if (usedTokens + tokens > this.tokenBudget) {
-                sections.push('\n> Full details available in `mikk.lock.json`\n')
+                sections.push('\n  <!-- Full details truncated due to context budget -->\n')
                 break
             }
             sections.push(moduleSection)
             usedTokens += tokens
         }
 
-        // ── Context files: schemas, data models, config ─────────
+        sections.push('</modules>\n')
+
+        // --- Context files: schemas, data models, config ---------
         const contextSection = this.generateContextFilesSection()
         if (contextSection) {
             const ctxTokens = estimateTokens(contextSection)
@@ -95,7 +97,7 @@ export class ClaudeMdGenerator {
             }
         }
 
-        // ── File import graph per module ────────────────────────────
+        // --- File import graph per module ----------------------------
         const importSection = this.generateImportGraphSection()
         if (importSection) {
             const impTokens = estimateTokens(importSection)
@@ -105,7 +107,7 @@ export class ClaudeMdGenerator {
             }
         }
 
-        // ── HTTP Routes (Express + Next.js) ─────────────────────────
+        // --- HTTP Routes (Express + Next.js) -------------------------
         const routesSection = this.generateRoutesSection()
         if (routesSection) {
             const routeTokens = estimateTokens(routesSection)
@@ -115,7 +117,7 @@ export class ClaudeMdGenerator {
             }
         }
 
-        // ── Tier 3: Constraints & decisions ────────────────────────
+        // --- Tier 3: Constraints & decisions ------------------------
         const constraintsSection = this.generateConstraintsSection()
         const constraintTokens = estimateTokens(constraintsSection)
         if (usedTokens + constraintTokens <= this.tokenBudget) {
@@ -141,15 +143,13 @@ export class ClaudeMdGenerator {
         const functionCount = Object.keys(this.lock.functions).length
         const fileCount = Object.keys(this.lock.files).length
 
-        lines.push(`# ${this.contract.project.name} — Architecture Overview`)
-        lines.push('')
+        lines.push('<repository_context>')
+        lines.push(`  <name>${this.contract.project.name}</name>`)
 
         // Project description: prefer contract, fall back to package.json
         const description = this.contract.project.description || this.meta.description
         if (description) {
-            lines.push('## What this project does')
-            lines.push(description)
-            lines.push('')
+            lines.push(`  <description>${description}</description>`)
         }
 
         // Only list modules that have functions (skip empty ones)
@@ -159,31 +159,25 @@ export class ClaudeMdGenerator {
             return fnCount > 0
         })
 
-        lines.push('## Modules')
-        for (const module of nonEmptyModules) {
-            const fnCount = Object.values(this.lock.functions)
-                .filter(f => f.moduleId === module.id).length
-            const desc = module.intent || module.description || ''
-            // Strip leading "N functions — " from auto-generated descriptions to avoid double-counting
-            const cleanDesc = desc.replace(/^\d+ functions\s*—\s*/, '')
-            const descStr = cleanDesc ? ` — ${cleanDesc}` : ''
-            lines.push(`- **${module.name}** (\`${module.id}\`): ${fnCount} functions${descStr}`)
-        }
-        lines.push('')
-
-        lines.push(`## Stats`)
-        lines.push(`- ${fileCount} files, ${functionCount} functions, ${nonEmptyModules.length} modules`)
-        lines.push(`- Language: ${this.contract.project.language}`)
-        lines.push('')
+        lines.push(`  <stats>`)
+        lines.push(`    <files>${fileCount}</files>`)
+        lines.push(`    <functions>${functionCount}</functions>`)
+        lines.push(`    <modules>${nonEmptyModules.length}</modules>`)
+        lines.push(`    <language>${this.contract.project.language}</language>`)
+        lines.push(`  </stats>`)
 
         // Critical constraints summary
         if (this.contract.declared.constraints.length > 0) {
-            lines.push('## Critical Constraints')
+            lines.push('  <critical_constraints>')
             for (const c of this.contract.declared.constraints) {
-                lines.push(`- ${c}`)
+                lines.push(`    <constraint>${c}</constraint>`)
             }
-            lines.push('')
+            lines.push('  </critical_constraints>')
         }
+
+        lines.push('</repository_context>')
+        lines.push('')
+        lines.push('<modules>')
 
         return lines.join('\n')
     }
@@ -198,22 +192,21 @@ export class ClaudeMdGenerator {
         const moduleFunctions = Object.values(this.lock.functions)
             .filter(f => f.moduleId === moduleId)
 
-        lines.push(`## ${module.name} module`)
+        lines.push(`  <module id="${moduleId}">`)
+        lines.push(`    <name>${module.name}</name>`)
 
         // Location — collapse to common prefix when many paths share a root
         if (module.paths.length > 0) {
             const collapsed = this.collapsePaths(module.paths)
-            lines.push(`**Location:** ${collapsed}`)
+            lines.push(`    <location>${collapsed}</location>`)
         }
 
         // Intent
         if (module.intent) {
-            lines.push(`**Purpose:** ${module.intent}`)
+            lines.push(`    <purpose>${module.intent}</purpose>`)
         } else if (module.description) {
-            lines.push(`**Purpose:** ${module.description}`)
+            lines.push(`    <purpose>${module.description}</purpose>`)
         }
-
-        lines.push('')
 
         // Entry points: functions with no calledBy (likely public API surface)
         const entryPoints = moduleFunctions
@@ -222,13 +215,13 @@ export class ClaudeMdGenerator {
             .slice(0, 5)
 
         if (entryPoints.length > 0) {
-            lines.push('**Entry points:**')
+            lines.push('    <entry_points>')
             for (const fn of entryPoints) {
                 const sig = this.formatSignature(fn)
-                const purpose = fn.purpose ? ` — ${this.oneLine(fn.purpose)}` : ''
-                lines.push(`  - \`${sig}\`${purpose}`)
+                const purpose = fn.purpose ? `${this.oneLine(fn.purpose)}` : ''
+                lines.push(`      <function signature="${sig.replace(/"/g, '&quot;')}" purpose="${purpose.replace(/"/g, '&quot;')}" />`)
             }
-            lines.push('')
+            lines.push('    </entry_points>')
         }
 
         // Key functions: top 5 by calledBy count (most depended upon)
@@ -238,13 +231,13 @@ export class ClaudeMdGenerator {
             .slice(0, 5)
 
         if (keyFunctions.length > 0) {
-            lines.push('**Key internal functions:**')
+            lines.push('    <key_internal_functions>')
             for (const fn of keyFunctions) {
                 const callerCount = fn.calledBy.length
-                const purpose = fn.purpose ? ` — ${this.oneLine(fn.purpose)}` : ''
-                lines.push(`  - \`${fn.name}\` (called by ${callerCount})${purpose}`)
+                const purpose = fn.purpose ? `${this.oneLine(fn.purpose)}` : ''
+                lines.push(`      <function name="${fn.name.replace(/"/g, '&quot;')}" callers="${callerCount}" purpose="${purpose.replace(/"/g, '&quot;')}" />`)
             }
-            lines.push('')
+            lines.push('    </key_internal_functions>')
         }
 
         // Dependencies: other modules this module imports from
@@ -263,8 +256,7 @@ export class ClaudeMdGenerator {
                 const mod = this.contract.declared.modules.find(m => m.id === id)
                 return mod?.name || id
             })
-            lines.push(`**Depends on:** ${depNames.join(', ')}`)
-            lines.push('')
+            lines.push(`    <depends_on>${depNames.join(', ')}</depends_on>`)
         }
 
         // Module-specific constraints
@@ -273,13 +265,14 @@ export class ClaudeMdGenerator {
             c.toLowerCase().includes(module.name.toLowerCase())
         )
         if (moduleConstraints.length > 0) {
-            lines.push('**Constraints:**')
+            lines.push('    <module_constraints>')
             for (const c of moduleConstraints) {
-                lines.push(`  - ${c}`)
+                lines.push(`      <constraint>${c}</constraint>`)
             }
-            lines.push('')
+            lines.push('    </module_constraints>')
         }
 
+        lines.push(`  </module>`)
         return lines.join('\n')
     }
 
@@ -520,9 +513,11 @@ export class ClaudeMdGenerator {
         if (detected.length === 0) return null
 
         const lines: string[] = []
-        lines.push('## Tech Stack')
-        lines.push(detected.join(' · '))
-        lines.push('')
+        lines.push('<tech_stack>')
+        for (const d of detected) {
+            lines.push(`  <technology>${d}</technology>`)
+        }
+        lines.push('</tech_stack>')
         return lines.join('\n')
     }
 
@@ -554,12 +549,14 @@ export class ClaudeMdGenerator {
         if (useful.length === 0) return null
 
         const lines: string[] = []
-        lines.push('## Commands')
+        lines.push('<commands>')
         for (const [key, cmd] of useful) {
-            lines.push(`- \`${pm} ${key}\` \u2014 \`${cmd}\``)
+            lines.push(`  <command>`)
+            lines.push(`    <run>${pm} ${key}</run>`)
+            lines.push(`    <executes>${cmd.replace(/"/g, '&quot;')}</executes>`)
+            lines.push(`  </command>`)
         }
-
-        lines.push('')
+        lines.push('</commands>')
         return lines.join('\n')
     }
 

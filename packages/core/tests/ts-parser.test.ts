@@ -74,7 +74,7 @@ describe('ts-parser config "extends" resolution', () => {
         `)
 
         // Parse and resolve imports
-        const parsed = parser.parse(filePath, await fs.readFile(filePath, 'utf-8'))
+        const parsed = await parser.parse(filePath, await fs.readFile(filePath, 'utf-8'))
         const resolved = parser.resolveImports([parsed], FIXTURE_DIR)[0]
 
         // Check if the aliases mapped correctly using all 3 layers of paths
@@ -89,5 +89,53 @@ describe('ts-parser config "extends" resolution', () => {
         // Top config mapping: @app/* -> src/app/*
         const impApp = resolved.imports.find(i => i.source === '@app/local')
         expect(impApp?.resolvedPath).toBe('src/app/local.ts')
+    })
+})
+
+describe('TypeScriptParser Edge Cases & Fault Tolerance', () => {
+    const parser = new TypeScriptParser()
+
+    it('handles completely empty files', async () => {
+        const result = await parser.parse('src/empty.ts', '')
+        expect(result.functions).toHaveLength(0)
+        expect(result.classes).toHaveLength(0)
+        expect(result.language).toBe('typescript')
+        expect(result.hash).toBeDefined()
+    })
+
+    it('gracefully degrades on severe syntax errors', async () => {
+        const malformedCode = `
+            export interface Broke {
+                val: string
+            // missing closing brace
+            
+            function doThing() {
+                const x = 
+            }
+            
+            @Injectable()
+            export class HalfClass implements {
+        `
+        const result = await parser.parse('src/broken.ts', malformedCode)
+        
+        // Should not crash, and should extract whatever it can
+        expect(result.functions.length).toBeGreaterThanOrEqual(0)
+        expect(result.classes.length).toBeGreaterThanOrEqual(0)
+        // Must maintain object structure
+        expect(Array.isArray(result.imports)).toBe(true)
+        expect(typeof result.hash).toBe('string')
+        expect(result.language).toBe('typescript')
+    })
+    
+    it('handles files with only comments', async () => {
+        const commentsCode = `
+            /**
+             * This file is just documentation
+             */
+            // End of file
+        `
+        const result = await parser.parse('src/docs.ts', commentsCode)
+        expect(result.functions).toHaveLength(0)
+        expect(result.hash).toBeDefined()
     })
 })

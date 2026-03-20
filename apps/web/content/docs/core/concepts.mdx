@@ -23,14 +23,13 @@ auth/login.ts
 
 ### What Gets Parsed
 
-Mikk uses the **TypeScript Compiler API** — real AST, not regex:
+Mikk uses **web-tree-sitter** and the **TypeScript Compiler API** to extract real ASTs (not regex sweeps) across 13 programming languages:
 
 | Node type | Captured fields |
 |-----------|----------------|
-| Functions | Name, params + types, return type, start/end line, internal calls, async/generator flags |
-| Classes | Methods, properties, inheritance chain, decorators, per-method line ranges |
-| Imports | Named, default, namespace, type-only — with full tsconfig alias resolution |
-| Go | Package, function names, imports — regex + stateful scanning |
+| Typescript / JS | Names, params + types, return type, start/end line, internal calls, generics |
+| Python, Java, C++, C#, Rust, PHP, Ruby | AST extraction via Tree-Sitter for methods, classes, and cross-file imports |
+| Go | High-fidelity extraction via Tree-Sitter + Go specific AST matching |
 
 Every function gets its **exact file path and line range** stored in `mikk.lock.json`. When your AI calls `mikk_get_function_detail`, it receives the real body — not a guess.
 

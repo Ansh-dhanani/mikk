@@ -134,4 +134,84 @@ describe('ClaudeMdGenerator', () => {
         const md = gen.generate()
         expect(md).toContain('called by 1')
     })
+
+    describe('Edge Cases and Fault Tolerance', () => {
+        test('handles completely empty lock and contract without throwing', () => {
+            const emptyContract: MikkContract = {
+                version: '1',
+                project: { name: 'Empty', language: 'TS', description: '', entryPoints: [] },
+                declared: { modules: [], constraints: [], decisions: [] },
+                overwrite: { mode: 'never', requireConfirmation: false }
+            }
+            const emptyLock: MikkLock = {
+                version: '1', generatedAt: new Date().toISOString(), generatorVersion: '1', projectRoot: '', syncState: { status: 'clean', lastSyncAt: '', lockHash: '', contractHash: '' },
+                files: {}, functions: {}, classes: {}, modules: {}, graph: { nodes: 0, edges: 0, rootHash: '' }
+            }
+            const gen = new ClaudeMdGenerator(emptyContract, emptyLock)
+            const md = gen.generate()
+            expect(md).toContain('# Empty')
+            expect(md).toContain('0 modules')
+            expect(md).toContain('0 functions')
+        })
+
+        test('handles missing optional fields gracefully', () => {
+            const partialContract: MikkContract = {
+                version: '1',
+                project: { name: 'Partial', language: 'TS', description: '', entryPoints: [] },
+                declared: { modules: [{ id: 'core', name: 'Core', description: '', paths: [] }], constraints: [], decisions: [] },
+                overwrite: { mode: 'never', requireConfirmation: false }
+            }
+            const partialLock: MikkLock = {
+                version: '1', generatedAt: new Date().toISOString(), generatorVersion: '1', projectRoot: '', syncState: { status: 'clean', lastSyncAt: '', lockHash: '', contractHash: '' },
+                files: {},
+                functions: {
+                    'f1': { id: 'f1', name: 'func', file: 'a.ts', startLine: 1, endLine: 2, hash: 'h', calls: [], calledBy: [], moduleId: 'core' } 
+                },
+                classes: {},
+                modules: {
+                    'core': { id: 'core', files: [], hash: 'h', fragmentPath: 'p' }
+                },
+                graph: { nodes: 0, edges: 0, rootHash: '' }
+            }
+            const gen = new ClaudeMdGenerator(partialContract, partialLock)
+            const md = gen.generate()
+            expect(md).toContain('Core module')
+            expect(md).toContain('func')
+        })
+
+        test('handles circular dependencies between functions gracefully', () => {
+            const circLock: MikkLock = {
+                ...mockLock,
+                functions: {
+                    'fn:a': { id: 'fn:a', name: 'A', file: 'a.ts', startLine: 1, endLine: 2, hash: 'h', calls: ['fn:b'], calledBy: ['fn:b'], moduleId: 'auth' },
+                    'fn:b': { id: 'fn:b', name: 'B', file: 'b.ts', startLine: 1, endLine: 2, hash: 'h', calls: ['fn:a'], calledBy: ['fn:a'], moduleId: 'auth' },
+                }
+            }
+            const gen = new ClaudeMdGenerator(mockContract, circLock)
+            const md = gen.generate()
+            expect(md).toContain('A')
+            expect(md).toContain('B')
+            expect(md.length).toBeLessThan(10000)
+        })
+
+        test('truncates extremely strict token budgets without losing core layout', () => {
+            const gen = new ClaudeMdGenerator(mockContract, mockLock, 50) 
+            const md = gen.generate()
+            expect(md).toContain('Architecture')
+            expect(md).not.toContain('Use JWT') 
+        })
+        
+        test('handles foreign or orphaned modules robustly', () => {
+            const orphanedLock: MikkLock = {
+                ...mockLock,
+                functions: {
+                    'fn:orphan': { id: 'fn:orphan', name: 'OrphanFn', file: 'o.ts', startLine: 1, endLine: 2, hash: 'h', calls: [], calledBy: [], moduleId: 'unknown-module' }
+                }
+            }
+            const gen = new ClaudeMdGenerator(mockContract, orphanedLock)
+            const md = gen.generate()
+            // Unknown module functions are typically skipped entirely. The generator should not crash.
+            expect(md).not.toContain('OrphanFn')
+        })
+    })
 })

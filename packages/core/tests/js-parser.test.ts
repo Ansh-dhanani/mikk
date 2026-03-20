@@ -468,6 +468,21 @@ describe('JavaScriptExtractor', () => {
             const greetExports = exports.filter(e => e.name === 'greet')
             expect(greetExports.length).toBe(1)
         })
+
+        test('malformed code gracefully degrades without crashing', () => {
+            const malformed = `
+                function breakMe() {
+                    const x = 
+                    if (true) {
+                // missing braces, missing assignments
+            `
+            const ext = new JavaScriptExtractor('src/malformed.js', malformed)
+            // TS compiler API is very fault tolerant, so it might extract breakMe anyway, 
+            // but the key assertion is that it doesn't throw.
+            expect(() => ext.extractFunctions()).not.toThrow()
+            const fn = ext.extractFunctions().find(f => f.name === 'breakMe')
+            expect(fn).toBeDefined()
+        })
     })
 })
 
@@ -482,47 +497,47 @@ describe('JavaScriptParser', () => {
         expect(exts).toContain('.jsx')
     })
 
-    test('parse returns language: javascript', () => {
-        const result = parser.parse('src/index.js', CJS_MODULE)
+    test('parse returns language: javascript', async () => {
+        const result = await parser.parse('src/index.js', CJS_MODULE)
         expect(result.language).toBe('javascript')
     })
 
-    test('parse includes hash and parsedAt', () => {
-        const result = parser.parse('src/index.js', CJS_MODULE)
+    test('parse includes hash and parsedAt', async () => {
+        const result = await parser.parse('src/index.js', CJS_MODULE)
         expect(typeof result.hash).toBe('string')
         expect(result.hash.length).toBe(64) // SHA-256 hex
         expect(typeof result.parsedAt).toBe('number')
     })
 
-    test('CJS-exported functions are marked isExported via cross-reference', () => {
-        const result = parser.parse('src/auth.js', CJS_MODULE)
-        const hashPw = result.functions.find(f => f.name === 'hashPassword')
+    test('CJS-exported functions are marked isExported via cross-reference', async () => {
+        const result = await parser.parse('src/auth.js', CJS_MODULE)
+        const hashPw = result.functions.find((f: any) => f.name === 'hashPassword')
         expect(hashPw).toBeDefined()
         expect(hashPw!.isExported).toBe(true)
     })
 
-    test('resolveImports resolves relative paths with .js extension probing', () => {
-        const files = [
+    test('resolveImports resolves relative paths with .js extension probing', async () => {
+        const files = await Promise.all([
             parser.parse('src/auth.js', CJS_MODULE),
             parser.parse('src/loader.js', ESM_MODULE),
-        ]
+        ])
         const resolved = parser.resolveImports(files, '/project')
-        const authFile = resolved.find(f => f.path === 'src/auth.js')!
-        const dbImport = authFile.imports.find(i => i.source === './db')
+        const authFile = resolved.find((f: any) => f.path === 'src/auth.js')!
+        const dbImport = authFile.imports.find((i: any) => i.source === './db')
         expect(dbImport!.resolvedPath).toMatch(/src\/db/)
         expect(dbImport!.resolvedPath).toMatch(/\.js$/)
     })
 
-    test('resolveImports leaves external packages unresolved (empty resolvedPath)', () => {
-        const files = [parser.parse('src/auth.js', CJS_MODULE)]
+    test('resolveImports leaves external packages unresolved (empty resolvedPath)', async () => {
+        const files = [await parser.parse('src/auth.js', CJS_MODULE)]
         const resolved = parser.resolveImports(files, '/project')
         const file = resolved[0]
-        const cryptoImp = file.imports.find(i => i.source === 'crypto')
+        const cryptoImp = file.imports.find((i: any) => i.source === 'crypto')
         expect(cryptoImp!.resolvedPath).toBe('')
     })
 
-    test('parse .jsx file language is javascript', () => {
-        const result = parser.parse('src/UserCard.jsx', JSX_COMPONENT)
+    test('parse .jsx file language is javascript', async () => {
+        const result = await parser.parse('src/UserCard.jsx', JSX_COMPONENT)
         expect(result.language).toBe('javascript')
     })
 })
@@ -610,7 +625,7 @@ describe('getParser — JS extensions', () => {
         expect(p.getSupportedExtensions()).toContain('.ts')
     })
 
-    test('still throws UnsupportedLanguageError for .py', () => {
-        expect(() => getParser('src/app.py')).toThrow()
+    test('still throws UnsupportedLanguageError for .xyz', () => {
+        expect(() => getParser('src/app.xyz')).toThrow()
     })
 })

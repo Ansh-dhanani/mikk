@@ -92,9 +92,9 @@ describe('@getmikk/mcp-server — tool list', () => {
         await server.close()
     })
 
-    it('exposes exactly 18 tools', async () => {
+    it('exposes exactly 21 tools', async () => {
         const result = await client.listTools()
-        expect(result.tools).toHaveLength(18)
+        expect(result.tools).toHaveLength(21)
     })
 
     it('has the correct tool names', async () => {
@@ -112,13 +112,16 @@ describe('@getmikk/mcp-server — tool list', () => {
             'mikk_get_project_overview',
             'mikk_get_routes',
             'mikk_get_session_context',
+            'mikk_git_diff_impact',
             'mikk_impact_analysis',
             'mikk_list_modules',
             'mikk_manage_adr',
             'mikk_query_context',
             'mikk_read_file',
+            'mikk_rename',
             'mikk_search_functions',
             'mikk_semantic_search',
+            'mikk_test_tool',
         ])
     })
 

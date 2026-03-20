@@ -4,7 +4,7 @@ import type {
     ParsedParam, ParsedGeneric, ParsedRoute,
 } from '../types.js'
 
-// ─── Go builtins / keywords to skip when extracting calls ───────────────────
+// --- Go builtins / keywords to skip when extracting calls -------------------
 const GO_BUILTINS = new Set([
     'if', 'else', 'for', 'switch', 'select', 'case', 'default', 'break',
     'continue', 'goto', 'fallthrough', 'return', 'go', 'defer', 'range',
@@ -16,7 +16,7 @@ const GO_BUILTINS = new Set([
     'complex64', 'complex128', 'bool', 'byte', 'rune', 'error', 'any',
 ])
 
-// ─── Route detection patterns (Gin, Echo, Chi, Mux, net/http, Fiber) ────────
+// --- Route detection patterns (Gin, Echo, Chi, Mux, net/http, Fiber) --------
 type RoutePattern = { re: RegExp; methodGroup: number; pathGroup: number; handlerGroup: number; fixedMethod?: string }
 
 const ROUTE_PATTERNS: RoutePattern[] = [
@@ -48,7 +48,7 @@ const ROUTE_PATTERNS: RoutePattern[] = [
 ]
 
 /**
- * GoExtractor — pure regex + stateful line scanner for .go files.
+ * GoExtractor -- pure regex + stateful line scanner for .go files.
  * Extracts functions, structs (as classes), imports, exports, and HTTP routes
  * without any external Go AST dependency.
  */
@@ -62,7 +62,7 @@ export class GoExtractor {
         this.lines = content.split('\n')
     }
 
-    // ── Public API ──────────────────────────────────────────────────────────
+    // --- Public API ---------------------------------------------------------
 
     /** Extract all top-level functions (no receiver) */
     extractFunctions(): ParsedFunction[] {
@@ -160,7 +160,7 @@ export class GoExtractor {
         return routes
     }
 
-    // ── Internal scanning ───────────────────────────────────────────────────
+    // --- Internal scanning ---------------------------------------------------
 
     /** Scanned raw function data (before building ParsedFunction) */
     private scanFunctions(): Array<{
@@ -343,7 +343,7 @@ export class GoExtractor {
     }
 }
 
-// ─── Signature parsing ────────────────────────────────────────────────────────
+// --- Signature parsing --------------------------------------------------------
 
 interface GoFuncSignature {
     name: string
@@ -481,7 +481,7 @@ function cleanReturnType(ret: string): string {
     return ret
 }
 
-// ─── Import line parsing ──────────────────────────────────────────────────────
+// --- Import line parsing ------------------------------------------------------
 
 function parseImportLine(line: string): ParsedImport | null {
     const trimmed = line.trim()
@@ -509,7 +509,7 @@ function parseImportLine(line: string): ParsedImport | null {
     return null
 }
 
-// ─── Body analysis ────────────────────────────────────────────────────────────
+// --- Body analysis ------------------------------------------------------------
 
 /**
  * Statefully track brace depth through content, handling:
@@ -661,7 +661,7 @@ function extractErrorHandling(bodyLines: string[], baseLineNumber: number): { li
     return errors
 }
 
-// ─── Comment extraction ───────────────────────────────────────────────────────
+// --- Comment extraction -------------------------------------------------------
 
 function extractLeadingComment(lines: string[], funcLine: number): string {
     // Scan backwards from funcLine for consecutive comment lines
@@ -686,7 +686,7 @@ function extractLeadingComment(lines: string[], funcLine: number): string {
     return ''
 }
 
-// ─── Utility helpers ──────────────────────────────────────────────────────────
+// --- Utility helpers ----------------------------------------------------------
 
 function isExported(name: string): boolean {
     return name.length > 0 && name[0] === name[0].toUpperCase() && name[0] !== name[0].toLowerCase()

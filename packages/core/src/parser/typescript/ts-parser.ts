@@ -12,7 +12,7 @@ import type { ParsedFile } from '../types.js'
  */
 export class TypeScriptParser extends BaseParser {
     /** Parse a single TypeScript file */
-    parse(filePath: string, content: string): ParsedFile {
+    async parse(filePath: string, content: string): Promise<ParsedFile> {
         const extractor = new TypeScriptExtractor(filePath, content)
         const functions = extractor.extractFunctions()
         const classes = extractor.extractClasses()

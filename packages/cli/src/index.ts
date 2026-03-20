@@ -1,4 +1,17 @@
 import { Command } from 'commander'
+
+// Force UTF-8 output on Windows so Unicode symbols (✓ ✗ → 🟢) render correctly
+if (process.platform === 'win32') {
+    try {
+        // stdout/stderr may not support setEncoding in all environments
+        if (typeof (process.stdout as any).setEncoding === 'function') {
+            (process.stdout as any).setEncoding('utf8')
+        }
+        if (typeof (process.stderr as any).setEncoding === 'function') {
+            (process.stderr as any).setEncoding('utf8')
+        }
+    } catch { /* non-fatal */ }
+}
 import { registerInitCommand } from './commands/init.js'
 import { registerAnalyzeCommand } from './commands/analyze.js'
 import { registerDiffCommand } from './commands/diff.js'
@@ -12,10 +25,11 @@ import { registerDeadCodeCommand } from './commands/dead-code.js'
 import { registerCiCommand } from './commands/ci.js'
 import { registerDoctorCommand } from './commands/doctor.js'
 import { registerStatsCommand } from './commands/stats.js'
+import { registerAdrCommand } from './commands/adr.js'
 
 declare const __MIKK_VERSION__: string
 
-// ── Global error handlers ───────────────────────────────────────────
+// -- Global error handlers ---------------------------------------------------
 process.on('unhandledRejection', (reason: any) => {
     console.error(`\nUnhandled error: ${reason?.message ?? reason}`)
     if (process.env.MIKK_DEBUG) console.error(reason?.stack ?? reason)
@@ -48,5 +62,6 @@ registerDeadCodeCommand(program)
 registerCiCommand(program)
 registerDoctorCommand(program)
 registerStatsCommand(program)
+registerAdrCommand(program)
 
 program.parse()

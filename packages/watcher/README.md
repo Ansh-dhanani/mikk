@@ -1,217 +1,92 @@
-# @getmikk/watcher
+﻿# @getmikk/watcher
 
-> Your architecture map, always in sync — zero manual re-analysis.
+> Live file watcher daemon — incremental, debounced, atomic.
 
 [![npm](https://img.shields.io/npm/v/@getmikk/watcher)](https://www.npmjs.com/package/@getmikk/watcher)
 [![License: Apache-2.0](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](../../LICENSE)
 
-`@getmikk/watcher` keeps `mikk.lock.json` in sync with your source code in real time. It uses Chokidar to watch for file events, batches and debounces changes (so saving 20 files triggers one re-analysis, not twenty), incrementally re-parses only affected files, patches the dependency graph, recomputes Merkle hashes, and writes the lock file atomically — all with a PID-based singleton that prevents duplicate daemon processes.
+Background daemon that keeps `mikk.lock.json` in sync as you edit code. Detects file changes via chokidar, re-parses only what changed, updates the lock atomically, and emits typed events for downstream consumers.
 
-The result: your AI context, impact analysis, and contract validation are always based on the current state of your codebase, not a stale snapshot.
-
-> Part of [Mikk](../../README.md) — the codebase nervous system for AI-assisted development.
+> Part of [Mikk](../../README.md) — live architectural context for your AI agent.
 
 ---
 
-## Installation
+## Usage
+
+Started via the CLI:
 
 ```bash
-npm install @getmikk/watcher
-# or
-bun add @getmikk/watcher
+mikk watch
 ```
 
-**Peer dependency:** `@getmikk/core`
-
----
-
-## Quick Start
+Or programmatically:
 
 ```typescript
 import { WatcherDaemon } from '@getmikk/watcher'
 
 const daemon = new WatcherDaemon({
-  projectRoot: process.cwd(),
-  include: ['src/**/*.ts', 'src/**/*.tsx'],
-  exclude: ['node_modules', 'dist', '.mikk'],
+  projectRoot: '/path/to/project',
+  include: ['**/*.ts', '**/*.tsx'],
+  exclude: ['**/node_modules/**', '**/dist/**'],
   debounceMs: 100,
 })
 
 daemon.on((event) => {
-  switch (event.type) {
-    case 'file:changed':
-      console.log(`Changed: ${event.path}`)
-      break
-    case 'graph:updated':
-      console.log('Dependency graph rebuilt')
-      break
-    case 'sync:clean':
-      console.log('Lock file is in sync')
-      break
-    case 'sync:drifted':
-      console.log('Lock file has drifted')
-      break
+  if (event.type === 'graph:updated') {
+    console.log(`Graph updated: ${event.data.changedNodes.length} changed`)
   }
 })
 
 await daemon.start()
-// Lock file is now kept in sync automatically
-
-// Later...
-await daemon.stop()
 ```
 
 ---
 
-## Architecture
-
-```
-Filesystem Events (Chokidar)
-        │
-        ▼
-  ┌─────────────┐
-  │ FileWatcher  │  ← Hash computation, deduplication
-  └──────┬──────┘
-         │  FileChangeEvent[]
-         ▼
-  ┌──────────────────┐
-  │ WatcherDaemon    │  ← Debouncing (100ms), batching
-  └──────┬───────────┘
-         │  Batch of events
-         ▼
-  ┌─────────────────────┐
-  │ IncrementalAnalyzer  │  ← Re-parse, graph patch, hash update
-  └──────────┬──────────┘
-             │
-             ▼
-    Atomic lock file write
-```
-
----
-
-## API Reference
-
-### WatcherDaemon
-
-The main entry point — a long-running process that keeps the lock file in sync.
-
-```typescript
-import { WatcherDaemon } from '@getmikk/watcher'
-
-const daemon = new WatcherDaemon(config)
-```
-
-**`WatcherConfig`:**
-
-| Field | Type | Default | Description |
-|-------|------|---------|-------------|
-| `projectRoot` | `string` | — | Absolute path to the project |
-| `include` | `string[]` | `['**/*.ts']` | Glob patterns for watched files |
-| `exclude` | `string[]` | `['node_modules']` | Glob patterns to ignore |
-| `debounceMs` | `number` | `100` | Debounce window in milliseconds |
-
-**Methods:**
-
-| Method | Description |
-|--------|-------------|
-| `start()` | Start watching. Creates PID file at `.mikk/watcher.pid` for single-instance enforcement |
-| `stop()` | Stop watching. Cleans up PID file |
-| `on(handler)` | Register event handler |
-
-**Features:**
-
-- **Debouncing** — Batches rapid file changes (e.g., save-all) into a single analysis pass
-- **PID file** — Prevents multiple watcher instances via `.mikk/watcher.pid`
-- **Atomic writes** — Lock file is written atomically to prevent corruption
-- **Sync state** — Emits `sync:clean` or `sync:drifted` after each cycle
-
----
+## How It Works
 
 ### FileWatcher
 
-Lower-level wrapper around Chokidar with hash-based change detection:
+Wraps chokidar. Watches `.ts` and `.tsx` files (configurable). On change:
+1. Computes a SHA-256 hash of the new file content
+2. Compares against the stored hash — skips true no-ops (content unchanged)
+3. Emits a typed `FileChangeEvent` with old hash, new hash, and change type
 
-```typescript
-import { FileWatcher } from '@getmikk/watcher'
+Hash store is seeded at startup from the lock file so first-change dedup works correctly from the beginning.
 
-const watcher = new FileWatcher(config)
+### WatcherDaemon
 
-watcher.on((event) => {
-  console.log(event.type)       // 'added' | 'changed' | 'deleted'
-  console.log(event.path)       // Absolute file path
-  console.log(event.oldHash)    // Previous content hash (undefined for 'added')
-  console.log(event.newHash)    // New content hash (undefined for 'deleted')
-  console.log(event.timestamp)  // Event timestamp
-  console.log(event.affectedModuleIds) // Modules containing this file
-})
+Orchestrates everything:
 
-await watcher.start()
-
-// Seed with known hashes to detect only actual content changes
-watcher.setHash('/src/index.ts', 'abc123...')
-
-await watcher.stop()
-```
-
-**Hash-based deduplication:** Even if the OS reports a file change, the watcher computes a SHA-256 hash and only emits an event if the content actually changed. This prevents redundant re-analysis from editor auto-saves or format-on-save.
-
----
+- **Debounce** — collects file change events for 100ms, then flushes as a batch
+- **Deduplication** — if the same file changes twice in a batch, only the latest event is kept
+- **Batch threshold** — batches under 15 files → incremental analysis; 15+ files → full re-analysis
+- **Atomic writes** — lock file written as temp file then renamed; zero corruption risk on crash
+- **PID file** — `.mikk/watcher.pid` prevents duplicate daemon instances
+- **Sync state** — `.mikk/sync-state.json` tracks `clean | syncing | drifted | conflict`
 
 ### IncrementalAnalyzer
 
-Incrementally updates the dependency graph and lock file for a batch of changed files:
+Re-parses only changed files, updates graph nodes, and recompiles the lock. O(changed files), not O(whole repo).
 
-```typescript
-import { IncrementalAnalyzer } from '@getmikk/watcher'
+**Race condition handling:** after parsing a file, re-hashes it. If the hash changed during the parse (file was modified while being read), re-parses up to 3 times. Accepts final state after retries are exhausted.
 
-const analyzer = new IncrementalAnalyzer(graph, lock, contract, projectRoot)
-
-const result = await analyzer.analyzeBatch(events)
-
-console.log(result.graph)        // Updated DependencyGraph
-console.log(result.lock)         // Updated MikkLock
-console.log(result.impactResult) // ImpactResult from @getmikk/core
-console.log(result.mode)         // 'incremental' | 'full'
-```
-
-**How it works:**
-
-1. **Small batches (≤15 files)** → Incremental mode:
-   - Re-parse only changed files
-   - Patch the existing graph (remove old nodes/edges, add new ones)
-   - Recompute affected hashes only
-   - Run impact analysis on changed nodes
-
-2. **Large batches (>15 files)** → Full re-analysis:
-   - Re-parse all files from scratch
-   - Rebuild entire graph
-   - Recompute all hashes
-
-**Race-condition protection:** After parsing a file, the analyzer re-hashes it. If the hash changed during parsing (the file was modified again), it retries up to 3 times before falling back to the latest parsed version.
+**Full re-analysis path:** triggered when batch size exceeds 15 files (e.g. `git checkout`, bulk rename). Re-parses all changed files in parallel, rebuilds the full graph, recompiles the lock.
 
 ---
 
-### Events
-
-All events emitted through the `on()` handler:
+## Events
 
 ```typescript
 type WatcherEvent =
-  | { type: 'file:changed'; event: FileChangeEvent }
-  | { type: 'module:updated'; moduleId: string }
-  | { type: 'graph:updated'; stats: { nodes: number; edges: number } }
-  | { type: 'sync:clean' }
-  | { type: 'sync:drifted'; driftedModules: string[] }
-```
+  | { type: 'file:changed'; data: FileChangeEvent }
+  | { type: 'graph:updated'; data: { changedNodes: string[]; impactedNodes: string[] } }
+  | { type: 'sync:drifted'; data: { reason: string; affectedModules: string[] } }
 
-**`FileChangeEvent`:**
-
-```typescript
 type FileChangeEvent = {
-  type: 'added' | 'changed' | 'deleted'
-  path: string
-  oldHash?: string
-  newHash?: string
+  type: 'changed' | 'added' | 'deleted'
+  path: string         // relative to project root
+  oldHash: string | null
+  newHash: string | null
   timestamp: number
   affectedModuleIds: string[]
 }
@@ -219,51 +94,15 @@ type FileChangeEvent = {
 
 ---
 
-## Usage with the CLI
+## Sync State
 
-The `mikk watch` command starts the watcher daemon:
+Written atomically to `.mikk/sync-state.json` on every transition:
 
-```bash
-mikk watch
-# Watching src/**/*.ts, src/**/*.tsx...
-# [sync:clean] Lock file is up to date
-# [file:changed] src/auth/login.ts
-# [graph:updated] 142 nodes, 87 edges
-# [sync:clean] Lock file updated
-```
+| Status | Meaning |
+|--------|---------|
+| `clean` | Lock file matches filesystem |
+| `syncing` | Batch in progress |
+| `drifted` | Analysis failed — lock is stale |
+| `conflict` | Manual intervention needed |
 
-Press `Ctrl+C` to stop.
-
----
-
-## Single-Instance Enforcement
-
-The daemon writes a PID file to `.mikk/watcher.pid` on start and removes it on stop. If another watcher is already running, `start()` will throw an error. This prevents multiple watchers from fighting over the lock file.
-
-```typescript
-try {
-  await daemon.start()
-} catch (err) {
-  if (err.message.includes('already running')) {
-    console.log('Another watcher is already running')
-  }
-}
-```
-
----
-
-## Types
-
-```typescript
-import type {
-  FileChangeEvent,
-  WatcherConfig,
-  WatcherEvent,
-} from '@getmikk/watcher'
-```
-
----
-
-## License
-
-[Apache-2.0](../../LICENSE)
+The MCP server reads sync state to surface staleness warnings on every tool call.

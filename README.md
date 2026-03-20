@@ -5,7 +5,7 @@
 <h1 align="center">Mikk</h1>
 
 <p align="center">
-  <strong>Your AI doesn't understand your codebase. Mikk fixes that.</strong>
+  <strong>Keeps your AI in sync with your architecture — before it breaks something.</strong>
 </p>
 
 <p align="center">
@@ -17,606 +17,368 @@
 
 <br />
 
-<p align="center">
-  <em>The codebase nervous system — parses your architecture, maps every dependency,<br/>and delivers the exact context your AI needs. Zero cloud. Zero config.</em>
-</p>
- 
-<br />
- 
-<!-- 🖼️ SCREENSHOT: Place a terminal recording or hero screenshot here showing `mikk init` running on a project -->
-<!-- Recommended: Use https://asciinema.org or https://github.com/faressoft/terminalizer for a GIF -->
-<!-- <p align="center"><img src="./assets/hero-demo.gif" alt="Mikk Demo" width="720" /></p> -->
+Mikk is an MCP server and CLI that gives AI agents a live, structural understanding of your codebase. Not file contents — the architecture: dependency graph, module boundaries, call chains, constraint rules, and drift detection. Always current. No cloud.
 
 ---
 
 ## The Problem
 
-You copy 4,000 lines of source code into Claude. It generates a component that imports from `utils/auth` — a path that doesn't exist. Your `BoundaryChecker` lives in `src/core/contract/`, not where the LLM guessed. You spend 20 minutes fixing import paths, broken calls, and layer violations in AI-generated code.
+AI coding agents are fast but architecturally blind. They don't know your module boundaries. They can't trace your dependency graph. They have no idea that touching `auth/login.ts` breaks 14 downstream functions across 3 packages. They get a flat paste of files and hallucinate the rest.
 
-**LLMs write great code — for codebases they've never seen.** They don't know your module boundaries. They can't trace your dependency graph. They have no idea that touching `login.ts` breaks 14 downstream functions across 3 packages. They get a flat paste of files and hallucinate the rest.
-
-**Mikk gives your AI the architecture it's missing.**
-
-One command. Your entire codebase — parsed, graphed, hashed, and served as structured, token-budgeted context. Locally. In milliseconds.
-
----
-
-<table>
-<tr>
-<td align="center"><h2>90 files</h2><sub>of scattered source code<br/>your AI has to index</sub></td>
-<td align="center"><h2>→</h2></td>
-<td align="center"><h2>1 file</h2><sub><code>mikk.lock.json</code><br/>compact JSON · ~60% smaller on disk</sub></td>
-<td align="center"><h2>+</h2></td>
-<td align="center"><h2>493 lines</h2><sub><code>claude.md</code> / <code>AGENTS.md</code><br/>architectural context</sub></td>
-</tr>
-</table>
-
-> Mikk's algorithm parses your entire codebase and generates **`mikk.lock.json`** — a single compact-JSON snapshot containing every function signature, every dependency edge, every call graph, every module assignment, and every Merkle hash. Instead of your AI crawling through **90+ scattered source files**, it reads **one file** with the full architecture. On top of that, Mikk generates **`claude.md`** and **`AGENTS.md`** — distilled to **493 lines** of tiered context that fits in any AI's context window.
-
----
-
-## Why Mikk is Fast
-
-> Most dev tools scan your project and call it a day. Mikk was engineered from the ground up for **speed at scale**.
-
-| Technique | What it does | Why it matters |
-|-----------|-------------|----------------|
-| **Merkle-tree hashing** | SHA-256 at function → file → module → root | One hash comparison = full drift detection. No diffing. |
-| **Incremental analysis** | Only re-parses changed files on `watch` | 100-file change in a 10k-file project? Only those 100 get touched. |
-| **BFS graph tracing** | Walks the dependency graph from seed nodes | Context is traced, not brute-forced. O(reachable) not O(codebase). |
-| **Token budgeting** | Greedy knapsack packing by relevance score | AI gets max signal per token. No wasted context window. |
-| **SQLite WAL mode** | Hash store uses Write-Ahead Logging | Concurrent reads during writes. No lock contention on watch. |
-| **Atomic lock file writes** | Temp file → rename on every update | Zero chance of corrupted `mikk.lock.json`, even on crash. |
-| **PID-based singleton** | Watcher daemon enforces single instance | No duplicate watchers eating CPU. |
-| **Debounced batching** | File changes are batched within a window | Save 20 files at once? One re-analysis, not twenty. |
-| **Turborepo caching** | Build artifacts cached across packages | Rebuild only what changed in the monorepo. |
-| **Two-pass graph construction** | Nodes first, then edges in a single sweep | O(n) graph build, forward + reverse adjacency maps for O(1) lookups. |
+Mikk fixes this by giving agents a live map of how your code is actually structured — and surfacing violations before edits land.
 
 ---
 
 ## What Mikk Actually Does
 
-```
-npm install -g @getmikk/cli && cd my-project && mikk init
+```bash
+npm install -g @getmikk/cli
+cd my-project
+mikk init
 ```
 
-In ~3 seconds, Mikk:
+In one command, Mikk:
 
-1. **Parses** every TypeScript and JavaScript file via the TS Compiler API — real AST, not regex
-2. **Builds** a full dependency graph (two-pass: nodes then edges, O(1) adjacency lookups)
+1. **Parses** 13 languages natively (TypeScript, JavaScript, Python, Java, C, C++, C#, Go, Rust, PHP, Ruby, etc.) via Tree-sitter and TS Compiler API
+2. **Builds** a full dependency graph — two-pass O(n) construction, O(1) adjacency lookups
 3. **Clusters** files into logical modules via greedy agglomeration
 4. **Hashes** everything with Merkle-tree SHA-256 (function → file → module → root)
-5. **Detects** HTTP routes (Express, Koa, Hono) with method, path, handler, and middleware chain
-6. **Generates** `mikk.json` (your architecture contract) + `mikk.lock.json` (full codebase snapshot)
-7. **Generates** Mermaid architecture diagrams in `.mikk/diagrams/`
-8. **Outputs** `claude.md` and `AGENTS.md` — ready-to-use AI context files
+5. **Detects** HTTP routes (Express, Koa, Hono) — method, path, handler, middleware chain
+6. **Generates** `mikk.json` (your architecture contract) and `mikk.lock.json` (full snapshot)
+7. **Generates** 7 Mermaid diagrams in `.mikk/diagrams/` — architecture, health, dependency matrix, flow, impact, module, capsule
+8. **Generates** `claude.md` and `AGENTS.md` — tiered, token-budgeted AI context files
 
 No cloud. No API keys. No telemetry. Everything stays on your machine.
 
 ---
 
-## Features
+## Architecture in Numbers
 
 <table>
 <tr>
-<td width="50%">
-
-### AI Context Builder
-Graph-traced, **token-budgeted** context payloads. BFS walks your call graph from seed functions, scores by relevance, and packs the optimal context within your token limit. No more dumping your whole repo into a prompt.
-
-</td>
-<td width="50%">
-
-### Impact Analysis
-See what breaks **before** you change it. BFS backward walk traces the full blast radius of any file — every upstream caller, every downstream dependency — in milliseconds.
-
-</td>
-</tr>
-<tr>
-<td width="50%">
-
-### Intent Pre-flight
-Describe what you want to build in plain English. Mikk parses it into structured intents, checks against **6 constraint types**, detects conflicts, and suggests an implementation plan — before a single line is written.
-
-</td>
-<td width="50%">
-
-### Strict Contracts
-Define module boundaries in `mikk.json`. CI fails if an import violates your architecture. Supports `no-import`, `must-use`, `no-call`, `layer`, `naming`, and `max-files` constraints.
-
-</td>
-</tr>
-<tr>
-<td width="50%">
-
-### MCP Server
-Expose your architecture to **Claude, Cursor, VS Code Copilot** — any MCP-compatible AI assistant. 12 tools, 3 resources, one command: `mikk mcp`.
-
-</td>
-<td width="50%">
-
-### Merkle-Tree Drift Detection
-SHA-256 hashes at every level: function → file → module → root. One hash comparison = full codebase drift check. Persisted in SQLite with WAL mode for zero-contention reads.
-
-</td>
-</tr>
-<tr>
-<td width="50%">
-
-### Live Watcher
-Incremental, debounced file watching with atomic lock file writes and PID-based singleton enforcement. Your architecture map stays in sync as you code — zero manual re-analysis.
-
-</td>
-<td width="50%">
-
-### Full AST Parsing
-TypeScript Compiler API extracts functions, classes, generics, imports (with tsconfig alias resolution), decorators, and type parameters. Not regex — real compiler-grade parsing. JavaScript/JSX files are parsed with full edge-case handling (JSX expression containers, default exports, re-exports). Go files are parsed with regex + stateful scanning (no Go toolchain needed). Every function gets its **exact file path, start line, and end line** stored in the lock file.
-
-**Supported languages:** TypeScript · TSX · JavaScript · JSX · **Go**
-
-</td>
-</tr>
-<tr>
-<td width="50%">
-
-### Precise Code Location
-Every context result, impact report, and function detail includes the **exact file + line range + actual source body**. Your AI isn't told *"the auth module handles login"* — it's told *"`validateToken()` is at `src/auth/login.ts:42–78` and here is the full code block.*"
-
-</td>
-<td width="50%">
-
-### Architecture Decision Records
-Document architectural decisions (ADRs) directly in `mikk.json`. Every AI context query surfaces relevant decisions alongside the code — so your AI knows *why* a constraint exists, not just *that* it does.
-
-</td>
+<td align="center"><strong>90 files</strong><br/><sub>scattered source code</sub></td>
+<td align="center">→</td>
+<td align="center"><strong>1 file</strong><br/><sub><code>mikk.lock.json</code> · 60% smaller</sub></td>
+<td align="center">+</td>
+<td align="center"><strong>~500 lines</strong><br/><sub><code>claude.md</code> / <code>AGENTS.md</code></sub></td>
 </tr>
 </table>
 
+| Metric | Value |
+|--------|-------|
+| Lock file size reduction | ~60% vs raw source |
+| MCP tool cache TTL | 30 seconds (200ms → ~5ms per call after first) |
+| Watch debounce window | 100ms |
+| Incremental analysis threshold | Files < 15 → incremental; ≥ 15 → full re-analysis |
+| Semantic search model | 22MB local download, runs on-device |
+| Context token budget | 12,000 tokens (configurable) |
+| Languages supported | 13 languages (TS, JS, Python, Java, C, C++, C#, Go, Rust, PHP, Ruby, etc.) |
+
 ---
 
-## Real-World Use Cases
+## MCP Server — 21 Tools
 
-### "I need to add rate limiting to all API routes"
-```bash
-mikk context for "Add rate limiting to API endpoints"
-```
-Mikk finds every route handler, traces their middleware chains, identifies the right insertion points, and packages it all into a context payload your LLM can act on immediately.
+Connect to Claude Desktop, Cursor, VS Code Copilot, or any MCP-compatible client:
 
-### "What breaks if I refactor the auth module?"
-```bash
-mikk context impact src/auth/login.ts
-```
-Get the full blast radius — every function that calls into auth, every module that depends on it, and a Mermaid diagram showing the impact zone.
-
-### "Is this change architecturally safe?"
-```bash
-mikk intent "Move user validation into a shared utils module"
-```
-Mikk checks your intent against all contract constraints, warns about layer violations, and tells you exactly which files will be affected — before you write any code.
-
-### "My AI keeps hallucinating import paths"
 ```bash
 mikk mcp
 ```
-Connect Mikk as an MCP server. Now Claude/Cursor/Copilot can call `mikk_before_edit` before every change — getting the real exported API, real constraints, and real blast radius. When it calls `mikk_get_function_detail`, it gets the **exact file path, start line, end line, and full source body** — no guessing.
 
-### "I need to point my AI to the exact code block to change"
-```bash
-mikk context for "fix the token refresh logic"
-```
-Mikk doesn't just return a module name. It returns the **exact function**, its **file path**, its **start and end line numbers**, and the **actual source code block** — ready to be passed directly to your AI as precise, actionable context.
+Every tool reads from `mikk.lock.json` — no re-parsing, millisecond responses. The lock is cached in memory with a 30-second TTL. Each tool surfaces a staleness warning if files have drifted since last analysis.
 
-### "New developer just joined — how do they understand the codebase?"
-```bash
-mikk init
-```
-Auto-generates `claude.md` and `AGENTS.md` with a tiered architecture summary — modules, entry points, key functions, constraints. New devs (and their AI assistants) get full context instantly.
+### Session Tools
 
----
+| Tool | What it does |
+|------|-------------|
+| `mikk_get_session_context` | **Call once per session.** Returns project overview, constraint status, hot modules, and recently modified files in one shot. |
+| `mikk_get_changes` | Files added, modified, and deleted since last `mikk analyze`. Call this at session start to know what's different. |
+| `mikk_get_project_overview` | Modules, function counts, file counts, tech stack, constraints. |
 
-## Quick Start
+### Navigation Tools
 
-### Install
+| Tool | What it does |
+|------|-------------|
+| `mikk_query_context` | Ask an architecture question — returns graph-traced context with call chains, function bodies, and module details. Supports `claude`, `generic`, and `compact` output formats. |
+| `mikk_list_modules` | All declared modules with paths, function counts, and entry points. |
+| `mikk_get_module_detail` | Functions, files, exported API, and internal call graph for a specific module. |
+| `mikk_get_function_detail` | Params, return type, call graph, source body, error handling, and line range for a function. |
+| `mikk_search_functions` | Hybrid BM25 + Substring search across all function names via Reciprocal Rank Fusion. |
+| `mikk_semantic_search` | **Natural-language search** using local vector embeddings (Xenova/all-MiniLM-L6-v2, 22MB). Query *"validate a JWT token"* returns `verifyToken`, `validateJwt` ranked by cosine similarity. Embeddings cached in `.mikk/embeddings.json`. Requires `@xenova/transformers`. |
+| `mikk_find_usages` | Every function that calls a specific function — essential before renaming or changing a signature. |
+| `mikk_get_file` | Raw source of any project file. |
+| `mikk_read_file` | Source scoped to specific functions — returns body + metadata header (params, callers, calls). Saves tokens vs reading whole files. |
+| `mikk_get_routes` | All detected HTTP routes with method, path, handler function, and middleware chain. |
 
-```bash
-npm install -g @getmikk/cli
-```
+### Refactoring & Core Tools
 
-### Initialize
+| Tool | What it does |
+|------|-------------|
+| `mikk_rename` | Coordinated multi-file rename. Finds definition, all call sites, and import sites, outputting a step-by-step edit plan. |
+| `mikk_git_diff_impact` | Maps git diff hunks to affected symbols and processes. Shows exactly which functions were modified/added/deleted. |
 
-```bash
-cd my-project
-mikk init
-```
+### Safety Tools
 
-### Explore
+| Tool | What it does |
+|------|-------------|
+| `mikk_before_edit` | **Call before editing any file.** Returns blast radius, exported functions at risk, live boundary constraint violations (not just metadata — actual pass/fail per rule), and circular dependency warnings. |
+| `mikk_impact_analysis` | Full blast radius of changing a file — impacted functions classified as critical / high / medium / low. |
+| `mikk_dead_code` | Functions with zero callers after exempting exports, entry points, route handlers, tests, and constructors. Filter by module. |
 
-```bash
-# Re-analyze after structural changes
-mikk analyze
+### Project Management Tools
 
-# See what changed since last analysis
-mikk diff
+| Tool | What it does |
+|------|-------------|
+| `mikk_get_constraints` | All architectural constraints and ADRs declared in `mikk.json`. |
+| `mikk_manage_adr` | CRUD for Architectural Decision Records — list, get, add, update, remove. ADRs surface in every `mikk_query_context` response. |
 
-# Ask your architecture a question
-mikk context query "How does authentication work?"
-
-# See the blast radius of a change
-mikk context impact src/auth/login.ts
-
-# Get AI context for a coding task
-mikk context for "Add caching to the database layer"
-
-# Pre-flight check a refactoring idea
-mikk intent "Extract shared validation into a utils module"
-
-# Generate architecture diagrams
-mikk visualize all
-
-# Visualize a specific module
-mikk visualize module auth
-
-# Visualize impact of current changes
-mikk visualize impact
-
-# Validate contracts in CI
-mikk contract validate --boundaries-only --strict
-
-# Start MCP server for AI assistants
-mikk mcp
-
-# Live watch mode
-mikk watch
-```
+**Resources:** `mikk://contract` · `mikk://lock` · `mikk://context`
 
 ---
 
-## Connect to Your AI Tools
+## CLI Commands
+
+```bash
+mikk init                     # Initialize — full scan, graph, lock, diagrams, claude.md
+mikk analyze                  # Re-analyze after code changes
+mikk watch                    # Live watcher daemon (incremental, debounced)
+mikk diff                     # Files changed since last analysis
+mikk ci                       # CI gate — exits non-zero on constraint violations
+mikk ci --strict              # Also enforce dead code threshold
+mikk ci --format json         # Machine-readable output
+mikk intent "<prompt>"        # Pre-flight a refactor — detect conflicts before writing code
+mikk rename                   # Coordinated multi-file rename
+mikk git-diff-impact          # Map git diff hunks to affected functions
+mikk dead-code                # Show unused functions across the codebase
+mikk context query "<q>"      # Ask an architecture question
+mikk context impact <file>    # Blast radius of changing a file
+mikk context for "<task>"     # Get token-budgeted context for a coding task
+mikk stats                    # Per-module metrics
+mikk doctor                   # 7-point diagnostic check
+mikk visualize all            # Regenerate all Mermaid diagrams
+mikk visualize module <id>    # Regenerate diagram for one module
+mikk contract validate        # Check for constraint violations and drift
+mikk contract show-boundaries # All cross-module dependencies
+mikk adr list                 # List all architectural decisions
+mikk adr add                  # Add a new architectural decision
+mikk adr get <id>             # Get details for a specific decision
+mikk mcp                      # Start MCP server
+```
+
+---
+
+## Connecting to AI Tools
 
 ### Claude Desktop
+
 `claude_desktop_config.json`:
 ```json
 {
   "mcpServers": {
     "mikk": {
       "command": "npx",
-      "args": ["-y", "@getmikk/mcp-server", "/path/to/your/project"]
+      "args": ["-y", "@getmikk/mcp-server", "/absolute/path/to/your/project"]
     }
   }
 }
 ```
 
 ### Cursor
+
 `.cursor/mcp.json`:
 ```json
 {
   "mcpServers": {
     "mikk": {
       "command": "npx",
-      "args": ["-y", "@getmikk/mcp-server", "/path/to/your/project"]
+      "args": ["-y", "@getmikk/mcp-server", "/absolute/path/to/your/project"]
     }
   }
 }
 ```
 
 ### VS Code Copilot
+
 `.vscode/settings.json`:
 ```json
 {
   "mcp.servers": {
     "mikk": {
       "command": "npx",
-      "args": ["-y", "@getmikk/mcp-server", "/path/to/your/project"]
+      "args": ["-y", "@getmikk/mcp-server", "/absolute/path/to/your/project"]
     }
   }
 }
 ```
 
-<details>
-<summary><strong>All 12 MCP Tools</strong></summary>
+---
 
-| Tool | What it does |
-|------|-------------|
-| `mikk_get_project_overview` | Modules, function counts, tech stack, constraints |
-| `mikk_query_context` | Ask an architecture question — returns graph-traced context |
-| `mikk_impact_analysis` | Blast radius of changing a specific file |
-| `mikk_before_edit` | Pre-edit check — exported functions at risk, constraints, blast radius |
-| `mikk_find_usages` | Every function that calls a specific function |
-| `mikk_list_modules` | All declared modules with file/function counts |
-| `mikk_get_module_detail` | Functions, files, exported API, internal call graph for a module |
-| `mikk_get_function_detail` | Params, return type, call graph, **exact file + start/end line + full source body** for a function |
-| `mikk_search_functions` | Substring search across all function names |
-| `mikk_semantic_search` | **Natural-language search** — find functions by meaning via local vector embeddings (Xenova/all-MiniLM-L6-v2). E.g. *"validate JWT token"* ranks `verifyToken` highest. Requires `@xenova/transformers` (optional). |
-| `mikk_get_constraints` | All architectural constraints and design decisions |
-| `mikk_get_file` | Read raw source of any project file |
-| `mikk_get_routes` | Detected HTTP routes (Express / Koa / Hono) |
+## Architecture Contracts
 
-**Resources:** `mikk://contract` · `mikk://lock` · `mikk://context`
+Define your module boundaries in `mikk.json`:
 
-</details>
+```json
+{
+  "declared": {
+    "modules": [
+      {
+        "id": "auth",
+        "name": "Authentication",
+        "paths": ["src/auth/**"],
+        "description": "JWT auth and session management"
+      }
+    ],
+    "constraints": [
+      "auth must not import from payments",
+      "payments must not call into ui layer"
+    ],
+    "decisions": [
+      {
+        "id": "ADR-001",
+        "title": "Stateless JWT authentication",
+        "reason": "Avoids session storage in distributed deployments",
+        "date": "2024-01-15"
+      }
+    ]
+  }
+}
+```
+
+Six constraint types: `no-import` · `must-use` · `no-call` · `layer` · `naming` · `max-files`
+
+ADRs are surfaced automatically in every `mikk_query_context` response — agents understand *why* a constraint exists, not just *that* it does.
+
+### CI Integration
+
+```yaml
+# GitHub Actions
+- name: Architecture gate
+  run: mikk ci --format json
+```
+
+`mikk ci` exits non-zero on violations. `--strict` adds dead code threshold enforcement. `--format json` outputs structured results for log ingestion.
 
 ---
 
-## Contract Management
+## Live Watch Mode
 
 ```bash
-# Generate initial contract from auto-detected clusters
-mikk contract generate
-
-# Validate against the contract (CI mode)
-mikk contract validate --boundaries-only --strict
-
-# Show all cross-module dependencies
-mikk contract show-boundaries
-
-# Update the lock file after changes
-mikk contract update
+mikk watch
 ```
 
-### Constraint Types
+`mikk watch` runs a background daemon that:
 
-| Constraint | Description |
-|-----------|-------------|
-| `no-import` | Module must not import from specified modules |
-| `must-use` | Module must use specified dependencies |
-| `no-call` | Functions must not call specified targets |
-| `layer` | Enforces layered architecture (can only import from lower layers) |
-| `naming` | Enforces naming patterns via regex |
-| `max-files` | Limits files per module |
+- Detects file changes via chokidar with a 100ms debounce
+- For changes under 15 files: incremental re-analysis (only changed files + their dependents)
+- For changes 15+ files (e.g. git checkout): full re-analysis
+- Handles race conditions — re-hashes after parsing to detect content changes mid-parse (3 retries)
+- Enforces single-instance via PID file
+- Writes lock updates atomically (temp file → rename) — no corrupted lock on crash
+- Maintains sync state in `.mikk/sync-state.json`
+
+---
+
+## Semantic Search
+
+```bash
+# Install once
+npm install @xenova/transformers
+
+# The MCP tool becomes available automatically
+# Query via Claude: "find functions that handle JWT validation"
+```
+
+`mikk_semantic_search` uses `Xenova/all-MiniLM-L6-v2` — a 22MB model that downloads once to `~/.cache/huggingface` and runs entirely on-device. Embeddings are pre-computed from function name + purpose + params and cached at `.mikk/embeddings.json`. Cache is invalidated by lock fingerprint — only recomputes when the function index changes.
+
+---
+
+## Intent Pre-flight
+
+```bash
+mikk intent "Move user validation into a shared utils module"
+```
+
+Before writing any code, Mikk:
+
+1. Parses the prompt into structured intents (action + target + confidence)
+2. Checks each intent against all declared constraints (6 rule types)
+3. Detects conflicts with boundary rules
+4. Returns affected files, new files required, and estimated impact
+5. Outputs `approved: true/false` — tells you whether it's safe to proceed
+
+```bash
+mikk intent "Extract auth logic into middleware" --json
+```
+
+---
+
+## Generated Diagrams
+
+`mikk init` and `mikk analyze` both generate 7 Mermaid diagrams in `.mikk/diagrams/`:
+
+| Diagram | What it shows |
+|---------|--------------|
+| `main.mmd` | Full architecture — all modules and inter-module dependencies |
+| `health.mmd` | Module health dashboard — cohesion %, coupling score, function count, health indicator (🟢/🟡/🔴) |
+| `matrix.mmd` | Dependency matrix — which modules depend on which |
+| `flow-entrypoints.mmd` | Entry point call flow |
+| `impact-*.mmd` | Blast radius for a specific change |
+| `modules/[id].mmd` | Per-module detail — internal call graph |
+| `capsules/[id].mmd` | Per-module public API surface |
+
+The health diagram computes real metrics from the call graph — cohesion is the ratio of internal to total calls; coupling is the count of external function calls + cross-module file imports.
+
+---
+
+## AI Context Files
+
+`mikk init` and `mikk analyze` both auto-generate `claude.md` and `AGENTS.md` — identical content, different filenames for different agents. These are not templates — every function name, file path, module relationship, and constraint is derived from the AST-parsed lock file.
+
+Generated content is tiered to stay within a 12,000 token budget:
+
+1. **Tier 1** — Project summary, module list, function + file counts, critical constraints (~500 tokens, always included)
+2. **Tier 2** — Per-module detail: exported API, key functions, internal call summary (~300 tokens per module, included while budget allows)
+3. **Context files** — Discovered schemas, configs, data models
+4. **Import graph** — Cross-file import relationships per module
+5. **HTTP routes** — Detected routes with handlers
+6. **Tier 3** — Constraints and ADR decisions
 
 ---
 
 ## How It Works
 
 ```
- Parse ──→ Graph ──→ Cluster ──→ Hash ──→ Contract ──→ Context ──→ Serve
-  │          │          │          │          │            │          │
-  TS AST    Dep Graph  Module    Merkle    mikk.json    Token-     MCP
-  Parser    Builder    Detection SHA-256   Validator    Budgeted   Server
+Parse → Graph → Cluster → Hash → Contract → Context → Serve
 ```
 
-<details>
-<summary><strong>Deep Dive: The Full Pipeline</strong></summary>
-
-### 1. Parse — Understand Your Code
-
-Mikk uses the **TypeScript Compiler API** to parse every `.ts`/`.tsx` file into structured data:
-
-- Functions — name, params with types, return type, **exact start + end line**, internal calls, async/generator flags, decorators, type parameters
-- Classes — methods, properties, inheritance chains, decorators, **with per-method line ranges**
-- Interfaces, type aliases, enums, const declarations
-- Imports — named, default, namespace, type-only, with full resolution (tsconfig aliases, index files, extension inference)
-
-### 2. Graph — Map Every Dependency
-
-Two-pass `GraphBuilder` construction:
-
-- **Nodes** — One per file, function, class, and generic declaration
-- **Edges** — Import edges, function call edges, class containment, implements relationships
-
-Result: a complete `DependencyGraph` with forward + reverse adjacency maps for O(1) traversal.
-
-### 3. Hash — Detect Drift Instantly
-
-Merkle-tree SHA-256 at every level:
-
-```
-function hash → file hash → module hash → root hash
-```
-
-One root hash comparison tells you if *anything* changed. Persisted in SQLite (WAL mode) for fast incremental checks.
-
-### 4. Contract — Define Your Architecture
-
-```json
-{
-  "modules": {
-    "auth": {
-      "intent": "Handle user authentication and session management",
-      "include": ["src/auth/**"],
-      "publicApi": ["login", "logout", "validateToken"],
-      "constraints": {
-        "no-import": ["payments"],
-        "layer": 1
-      }
-    }
-  }
-}
-```
-
-6 constraint types: `no-import` · `must-use` · `no-call` · `layer` · `naming` · `max-files`
-
-Supports **Architecture Decision Records** (ADRs) in your contract:
-
-```json
-{
-  "decisions": [
-    {
-      "id": "ADR-001",
-      "title": "Use JWT for stateless authentication",
-      "date": "2024-01-15",
-      "status": "accepted"
-    }
-  ]
-}
-```
-
-### 5. AI Context — Surgical Precision
-
-1. **Seed** — Match task keywords against the lock file
-2. **Walk** — BFS trace the call graph outward from seeds
-3. **Score** — Proximity + keyword + entry-point bonuses
-4. **Budget** — Greedily fill token budget with highest-scoring functions
-5. **Format** — XML tags (Claude) or plain text (generic)
-
-### 6. Intent Pre-flight — Think Before You Code
-
-1. **Interpret** — Parse prompt into structured intents (action + target + confidence)
-2. **Detect** — Check against all 6 constraint types + boundary rules
-3. **Suggest** — Affected files, new files, and impact estimate
-
-### 7. MCP Server — Let AI See Your Architecture
-
-12 tools + 3 resources exposed via the Model Context Protocol. Zero config. Works with Claude Desktop, Cursor, VS Code, and any MCP-compatible client.
-
-Includes **automatic HTTP route detection** for Express, Koa, and Hono — method, path, handler function, middleware chain, file, and line number are all extracted and exposed via `mikk_get_routes`.
-
-</details>
+| Step | What happens |
+|------|-------------|
+| **Parse** | TypeScript Compiler API extracts functions, classes, imports (with tsconfig alias resolution), decorators, generics. JS/JSX via ScriptKind inference. Go via regex + stateful scanning. |
+| **Graph** | Two-pass `GraphBuilder` — nodes first, edges second, O(n) construction. Forward + reverse adjacency maps for O(1) traversal. |
+| **Cluster** | `ClusterDetector` groups files into modules via greedy agglomeration. Confidence score per cluster. |
+| **Hash** | Merkle-tree SHA-256: function → file → module → root. One root hash comparison = full drift detection. Persisted in SQLite WAL mode. |
+| **Contract** | `mikk.json` validated against lock. 6 constraint types enforced by `BoundaryChecker`. |
+| **Context** | BFS from seed functions. Scored by proximity + keyword match + entry-point bonus. Greedily packed to token budget. |
+| **Serve** | MCP server with 30s in-memory cache. Lock loaded once per 30s window, ~5ms per tool call after first. |
 
 ---
 
 ## Packages
 
-Mikk is a Turborepo monorepo with **8 packages**:
+Mikk is a Turborepo monorepo with 8 packages:
 
 | Package | Description |
 |---------|-------------|
-| [`@getmikk/core`](packages/core/) | Foundation — AST parsing, dependency graph, Merkle hashing, contract management, boundary checker, cluster detection |
-| [`@getmikk/cli`](packages/cli/) | CLI — 15+ commands for init, analyze, diff, watch, contracts, context, intent, diagrams |
-| [`@getmikk/ai-context`](packages/ai-context/) | AI context builder — BFS graph tracing, token budgeting, `claude.md`/`AGENTS.md` generation |
-| [`@getmikk/intent-engine`](packages/intent-engine/) | Intent pre-flight — NL prompt parsing, conflict detection (6 rule types), implementation suggestions |
-| [`@getmikk/diagram-generator`](packages/diagram-generator/) | Diagram engine — Mermaid.js architecture diagrams |
-| [`@getmikk/mcp-server`](packages/mcp-server/) | MCP server — 12 tools, 3 resources for AI assistants |
-| [`@getmikk/watcher`](packages/watcher/) | File watcher daemon — debounced, incremental, atomic updates |
-| [`@getmikk/vscode-extension`](apps/vscode-extension/) | VS Code extension — module tree view, architecture diagrams panel, AI context generation, impact analysis, and status bar sync indicator |
-
-**Apps:**
-
-| App | Description |
-|-----|-------------|
-| [`apps/web`](apps/web/) | Web Dashboard & Contract Generator — browser-based UI for exploring your architecture |
-| [`apps/registry`](apps/registry/) | Package registry — central index for published Mikk contracts |
-
-### Package Dependency Graph
-
-```
-@getmikk/core              ← Foundation (no internal deps)
-    ↑
-@getmikk/intent-engine     ← depends on core
-    ↑
-@getmikk/ai-context        ← depends on core + intent-engine
-@getmikk/diagram-generator ← depends on core
-@getmikk/watcher           ← depends on core
-@getmikk/mcp-server        ← depends on core + ai-context + intent-engine
-    ↑
-@getmikk/cli               ← depends on core + ai-context + diagram-generator + intent-engine + mcp-server
-@getmikk/vscode-extension  ← depends on core + diagram-generator + ai-context
-```
+| [`@getmikk/core`](packages/core/) | AST parsing (TypeScript API + Tree-sitter for 13 langs), BM25 search index, dependency graph, Merkle hashing, contract management, boundary checker, cluster detection |
+| [`@getmikk/cli`](packages/cli/) | 17+ CLI commands — init, analyze, watch, diff, ci, intent, context, stats, doctor, visualize, rename, git-diff-impact |
+| [`@getmikk/mcp-server`](packages/mcp-server/) | 21 MCP tools + 3 resources. 30s TTL cache. Staleness detection on every call. |
+| [`@getmikk/ai-context`](packages/ai-context/) | BFS context builder, token budgeting, `claude.md`/`AGENTS.md` generation |
+| [`@getmikk/intent-engine`](packages/intent-engine/) | Intent parsing, conflict detection (6 rule types), semantic search (Xenova embeddings) |
+| [`@getmikk/diagram-generator`](packages/diagram-generator/) | 7 Mermaid diagram types with real cohesion/coupling metrics |
+| [`@getmikk/watcher`](packages/watcher/) | Chokidar daemon — incremental analysis, atomic writes, PID singleton, race condition handling |
+| [`@getmikk/vscode-extension`](packages/vscode-extension/) | VS Code extension — module tree view, status bar sync indicator, impact analysis, context generation |
 
 ---
 
-## Project Structure
+## License
 
-After running `mikk init`, your project gets:
-
-```
-my-project/
-├── mikk.json              ← Architecture contract (you own this)
-├── mikk.lock.json         ← Full codebase snapshot (auto-generated)
-├── claude.md              ← AI context for Claude
-├── AGENTS.md              ← AI context for Codex/agents
-└── .mikk/
-    ├── diagrams/          ← Auto-generated Mermaid diagrams
-    ├── hashes.db          ← SQLite Merkle hash store (WAL mode)
-    └── watcher.pid        ← Daemon PID (singleton enforced)
-```
-
----
-
-## Development
-
-```bash
-git clone https://github.com/Ansh-dhanani/mikk.git
-cd mikk
-bun install
-bun run build
-bun run test    # 325 tests across 7 packages
-```
-
-### Tech Stack
-
-| Tool | Purpose |
-|------|---------|
-| **Bun** | Runtime & package manager |
-| **Turborepo** | Monorepo build orchestration |
-| **TypeScript** | Language (strict mode) |
-| **TypeScript Compiler API** | AST parsing |
-| **Zod** | Schema validation |
-| **better-sqlite3** | Hash persistence (WAL mode) |
-| **Chokidar** | File watching |
-| **Commander** | CLI framework |
-| **@modelcontextprotocol/sdk** | MCP server protocol |
-| **esbuild** | Bundling |
-
----
-
-## Changelog
-
-### v1.7.0 — Lock File Optimization + JS/JSX Support
-
-**Lock file size reduced by ~60% with 7 targeted optimizations:**
-
-| Optimization | Savings |
-|---|---|
-| Minified JSON (removed pretty-printing) | 741k lines → 1 line |
-| Removed `detailedLines` block breakdowns | −1,017 KB |
-| Context files stored as paths only; content read from disk on-demand | −526 KB |
-| Removed per-function SHA-256 hashes (file-level hashes retained) | −1,065 KB |
-| Normalized multiline type annotations to single-line | −400 KB |
-| Removed redundant `moduleId` from function entries (derived from file map) | −455 KB |
-| Integer edge IDs for `calls`/`calledBy` with a root `fnIndex` table | −1,100 KB |
-
-**JavaScript and JSX support:**
-- Full AST parsing for `.js`, `.jsx`, `.mjs`, `.cjs` files via TS Compiler API `ScriptKind` inference
-- JSX edge cases: expression containers, fragment children, `export default` function components, re-exports
-- Type annotation normalization across all return types and parameters (no more multi-line type strings)
-- 56 new JS/JSX-specific tests; 325 tests total across 7 packages
-
-**Other improvements:**
-- `ClaudeMdGenerator` now accepts a `projectRoot` parameter; context file content is read from disk on-demand instead of being embedded in the lock file
-- `ContextBuilder` reads context file content from disk at query time
-- Lock file schema version bumped to `1.7.0`; backward-compatible hydration for all older formats
-
----
-
-## Contributing
-
-Contributions are welcome! See [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
-
-```bash
-# Branch from main → make changes → test → PR
-bun run test && bun run lint
-```
-
----
-
-## Documentation
-
-| Resource | Description |
-|----------|-------------|
-| [User Guide](USER_GUIDE.md) | Complete walkthrough of all features |
-| [@getmikk/core](packages/core/README.md) | AST parsing, graph building, hashing, contracts |
-| [@getmikk/cli](packages/cli/README.md) | All CLI commands reference |
-| [@getmikk/ai-context](packages/ai-context/README.md) | AI context builder internals |
-| [@getmikk/intent-engine](packages/intent-engine/README.md) | Intent pre-flight system |
-| [@getmikk/diagram-generator](packages/diagram-generator/README.md) | Mermaid diagram generation |
-| [@getmikk/mcp-server](packages/mcp-server/README.md) | MCP server setup & tools |
-| [@getmikk/watcher](packages/watcher/README.md) | File watcher daemon |
-| [VS Code Extension](apps/vscode-extension/README.md) | Extension features & usage |
-
----
-
-<p align="center">
-  <strong>Apache-2.0</strong> — see <a href="LICENSE">LICENSE</a>
-</p>
-
-<p align="center">
-  <br />
-  <strong>Stop feeding your AI blind. Give it Mikk.</strong>
-  <br />
-  <br />
-  <code>npm install -g @getmikk/cli && mikk init</code>
-</p>
-
-
-
+Apache 2.0

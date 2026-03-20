@@ -129,7 +129,7 @@ async function findDiscussion(
   );
 }
 
-// ── Main handler ─────────────────────────────────────────────
+// --- Main handler -----------------------------------------------------------
 export async function POST(req: NextRequest) {
   try {
     const feedbackSchema = z.object({

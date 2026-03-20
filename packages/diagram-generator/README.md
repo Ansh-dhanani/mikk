@@ -1,249 +1,74 @@
-# @getmikk/diagram-generator
+﻿# @getmikk/diagram-generator
 
-> Auto-generated Mermaid.js architecture diagrams from your actual codebase — no manual drawing, always accurate.
+> 7 Mermaid architecture diagrams generated from your lock file.
 
 [![npm](https://img.shields.io/npm/v/@getmikk/diagram-generator)](https://www.npmjs.com/package/@getmikk/diagram-generator)
 [![License: Apache-2.0](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](../../LICENSE)
 
-`@getmikk/diagram-generator` turns `mikk.json` and `mikk.lock.json` into rich [Mermaid.js](https://mermaid.js.org/) diagrams. Every diagram is derived entirely from compiler-grade AST data — function call edges, module assignments, Merkle health scores, import relationships. 7 diagram types: from high-level architecture overviews to per-function call flow sequences to N×N dependency matrices.
+Generates Mermaid `.mmd` files from `mikk.lock.json` and `mikk.json`. All metrics are derived from the actual call graph — no manual input.
 
-Because diagrams come from the lock file, they're always accurate. Run `mikk analyze` and your diagrams reflect the current codebase.
-
-> Part of [Mikk](../../README.md) — the codebase nervous system for AI-assisted development.
+> Part of [Mikk](../../README.md) — live architectural context for your AI agent.
 
 ---
 
-## Installation
+## Usage
+
+Generated automatically by `mikk init` and `mikk analyze`. Or regenerate manually:
 
 ```bash
-npm install @getmikk/diagram-generator
-# or
-bun add @getmikk/diagram-generator
+mikk visualize all          # all 7 diagrams
+mikk visualize module <id>  # one module diagram
 ```
 
-**Peer dependency:** `@getmikk/core`
-
----
-
-## Quick Start
-
-```typescript
-import { DiagramOrchestrator } from '@getmikk/diagram-generator'
-import { ContractReader, LockReader } from '@getmikk/core'
-
-const contract = await new ContractReader().read('./mikk.json')
-const lock = await new LockReader().read('./mikk.lock.json')
-
-const orchestrator = new DiagramOrchestrator(contract, lock, process.cwd())
-const result = await orchestrator.generateAll()
-
-console.log(result.generated) // List of generated .mmd file paths
-// Files written to .mikk/diagrams/
-```
-
----
-
-## Diagram Types
-
-### 1. Main Architecture Diagram
-
-High-level `graph TD` showing all modules with file/function counts and inter-module edges.
-
-```typescript
-import { MainDiagramGenerator } from '@getmikk/diagram-generator'
-
-const gen = new MainDiagramGenerator(contract, lock)
-const mermaid = gen.generate()
-```
-
-**Output example:**
-
-```mermaid
-graph TD
-  auth["auth<br/>📁 5 files · 📦 12 functions"]
-  payments["payments<br/>📁 3 files · 📦 8 functions"]
-  auth --> payments
-```
-
----
-
-### 2. Module Detail Diagram
-
-Zoomed-in per-module diagram showing file subgraphs, internal call edges, and external dependencies.
-
-```typescript
-import { ModuleDiagramGenerator } from '@getmikk/diagram-generator'
-
-const gen = new ModuleDiagramGenerator(contract, lock)
-const mermaid = gen.generate('auth') // module ID
-```
-
-Shows:
-- Subgraphs for each file in the module
-- Function nodes within each file
-- Internal call edges between functions
-- External call links to other modules
-
----
-
-### 3. Impact Diagram
-
-Visualizes the blast radius of changes — what's directly changed (red) vs. transitively impacted (orange).
-
-```typescript
-import { ImpactDiagramGenerator } from '@getmikk/diagram-generator'
-
-const gen = new ImpactDiagramGenerator(lock)
-const mermaid = gen.generate(
-  ['auth/login.ts::validateToken'],   // changed node IDs
-  ['payments/checkout.ts::processPayment'] // impacted node IDs
-)
-```
-
-**Output:** `graph LR` with color-coded nodes:
-- 🔴 **Red** — directly changed
-- 🟠 **Orange** — transitively impacted
-- Edges show the propagation chain
-
----
-
-### 4. Health Dashboard
-
-Module health overview with cohesion percentage, coupling count, function count, and color-coded status.
-
-```typescript
-import { HealthDiagramGenerator } from '@getmikk/diagram-generator'
-
-const gen = new HealthDiagramGenerator(contract, lock)
-const mermaid = gen.generate()
-```
-
-**Metrics per module:**
-
-| Metric | Description |
-|--------|-------------|
-| Cohesion % | Ratio of internal calls to total calls (higher = better) |
-| Coupling | Count of cross-module dependencies (lower = better) |
-| Functions | Total function count |
-| Health | 🟢 Green (>70% cohesion) · 🟡 Yellow (40-70%) · 🔴 Red (<40%) |
-
----
-
-### 5. Flow Diagram (Sequence)
-
-Traces a function's call chain as a Mermaid sequence diagram.
-
-```typescript
-import { FlowDiagramGenerator } from '@getmikk/diagram-generator'
-
-const gen = new FlowDiagramGenerator(lock)
-
-// Trace from a specific function
-const sequence = gen.generate('auth/login.ts::handleLogin', /* maxDepth */ 5)
-
-// Show all entry-point functions grouped by module
-const entryPoints = gen.generateEntryPoints()
-```
-
-The sequence diagram follows the call graph depth-first, showing which function calls which, across module boundaries.
-
----
-
-### 6. Capsule Diagram
-
-Shows a module's public API surface — the "capsule" boundary:
-
-```typescript
-import { CapsuleDiagramGenerator } from '@getmikk/diagram-generator'
-
-const gen = new CapsuleDiagramGenerator(contract, lock)
-const mermaid = gen.generate('auth') // module ID
-```
-
-**Visualizes:**
-- **Public functions** — exported and listed in the module's `publicApi`
-- **Internal functions** — everything else
-- **External consumers** — other modules that call into this module's public API
-
----
-
-### 7. Dependency Matrix
-
-N×N cross-module dependency analysis:
-
-```typescript
-import { DependencyMatrixGenerator } from '@getmikk/diagram-generator'
-
-const gen = new DependencyMatrixGenerator(contract, lock)
-
-// Mermaid graph with weighted edges
-const graph = gen.generate()
-
-// Markdown table (N×N matrix)
-const table = gen.generateTable()
-```
-
-**Markdown table example:**
-
-| | auth | payments | users |
-|---|---|---|---|
-| **auth** | — | 5 | 2 |
-| **payments** | 1 | — | 3 |
-| **users** | 0 | 0 | — |
-
-Numbers represent cross-module function call counts.
-
----
-
-## DiagramOrchestrator
-
-The orchestrator generates all diagrams at once and writes them to `.mikk/diagrams/`:
+Programmatically:
 
 ```typescript
 import { DiagramOrchestrator } from '@getmikk/diagram-generator'
 
 const orchestrator = new DiagramOrchestrator(contract, lock, projectRoot)
-
-// Generate everything
-const result = await orchestrator.generateAll()
-// Writes:
-//   .mikk/diagrams/main.mmd
-//   .mikk/diagrams/health.mmd
-//   .mikk/diagrams/matrix.mmd
-//   .mikk/diagrams/flow-entrypoints.mmd
-//   .mikk/diagrams/module-{id}.mmd  (one per module)
-//   .mikk/diagrams/capsule-{id}.mmd (one per module)
-
-// Generate impact diagram for specific changes
-const impactMmd = await orchestrator.generateImpact(changedIds, impactedIds)
-// Writes: .mikk/diagrams/impact.mmd
-```
-
-**Output files:** All diagrams are `.mmd` files that can be rendered with:
-- [Mermaid Live Editor](https://mermaid.live/)
-- GitHub Markdown (native Mermaid support)
-- VS Code Mermaid extensions
-- `mmdc` CLI (mermaid-cli)
-
----
-
-## Types
-
-```typescript
-import {
-  DiagramOrchestrator,
-  MainDiagramGenerator,
-  ModuleDiagramGenerator,
-  ImpactDiagramGenerator,
-  HealthDiagramGenerator,
-  FlowDiagramGenerator,
-  CapsuleDiagramGenerator,
-  DependencyMatrixGenerator,
-} from '@getmikk/diagram-generator'
+const { generated } = await orchestrator.generateAll()
+// generated: string[] — paths of written .mmd files
 ```
 
 ---
 
-## License
+## Diagrams
 
-[Apache-2.0](../../LICENSE)
+All files are written to `.mikk/diagrams/`.
+
+### `main.mmd`
+Full architecture overview. All modules as nodes, inter-module dependencies as directed edges. Entry points marked distinctly.
+
+### `health.mmd`
+Module health dashboard. For each module, shows:
+- **Cohesion** — ratio of internal calls to total calls (higher = more self-contained)
+- **Coupling** — count of external function calls + cross-module file imports (lower = more independent)
+- **Function count**
+- **Health indicator** — 🟢 healthy (> 70%), 🟡 warning (40–70%), 🔴 critical (< 40%)
+
+Metrics are computed directly from the call graph in the lock file — not estimated.
+
+### `matrix.mmd`
+Dependency matrix. Grid of which modules depend on which. Identifies tight coupling and potential circular dependencies at a glance.
+
+### `flow-entrypoints.mmd`
+Entry point call flow. Traces how calls propagate from declared entry functions into the rest of the codebase.
+
+### `impact-<file>.mmd`
+Blast radius visualization for a specific file change. Generated by `mikk context impact <file>`. Shows the change origin and all impacted nodes.
+
+### `modules/<id>.mmd`
+Per-module internal call graph. All functions in the module as nodes, internal function calls as edges. Exported functions marked distinctly.
+
+### `capsules/<id>.mmd`
+Per-module public API capsule. Shows only the exported surface — function names, params, return types — without internal implementation detail.
+
+---
+
+## Viewing Diagrams
+
+Any Mermaid-compatible renderer works. Recommended:
+
+- **VS Code**: install the "Mermaid Preview" extension, then open any `.mmd` file
+- **GitHub**: Mermaid renders natively in `.md` files — embed with ` ```mermaid ` fences
+- **Mermaid Live**: paste at https://mermaid.live

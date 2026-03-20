@@ -5,7 +5,7 @@ import type { MikkLock } from '@getmikk/core'
 interface EmbeddingCache {
     lockFingerprint: string
     model: string
-    embeddings: Record<string, number[]> // fnId → unit-normed vector
+    embeddings: Record<string, number[]> // fnId -> unit-normed vector
 }
 
 export interface SemanticMatch {
@@ -19,7 +19,7 @@ export interface SemanticMatch {
 }
 
 /**
- * SemanticSearcher — finds functions semantically similar to a natural-language
+ * SemanticSearcher -- finds functions semantically similar to a natural-language
  * query using local embeddings via @xenova/transformers.
  *
  * Model: Xenova/all-MiniLM-L6-v2 (~22 MB, downloads once to ~/.cache/huggingface).
@@ -57,12 +57,12 @@ export class SemanticSearcher {
 
     /**
      * Build (or load from cache) embeddings for every function in the lock.
-     * Safe to call on every MCP request — cache hit is O(1) disk read.
+     * Safe to call on every MCP request -- cache hit is O(1) disk read.
      */
     async index(lock: MikkLock): Promise<void> {
         const fingerprint = lockFingerprint(lock)
 
-        // ── Cache hit ──────────────────────────────────────────────────────
+        // -- Cache hit --------------------------------------------------------
         try {
             const raw = await fs.readFile(this.cachePath, 'utf-8')
             const cached: EmbeddingCache = JSON.parse(raw)
@@ -77,9 +77,9 @@ export class SemanticSearcher {
                 this.cache = cached
                 return
             }
-        } catch { /* miss or corrupt — rebuild */ }
+        } catch { /* miss or corrupt -- rebuild */ }
 
-        // ── Empty lock fast-path — nothing to embed ────────────────────────
+        // -- Empty lock fast-path -- nothing to embed ------------------------
         const fns = Object.values(lock.functions)
         if (fns.length === 0) {
             this.cache = { lockFingerprint: fingerprint, model: SemanticSearcher.MODEL, embeddings: {} }
@@ -154,7 +154,7 @@ export class SemanticSearcher {
     }
 }
 
-// ─── Helpers ─────────────────────────────────────────────────────────────────
+// --- Helpers -----------------------------------------------------------------
 
 /** Lightweight fingerprint: function count + first 20 sorted IDs */
 function lockFingerprint(lock: MikkLock): string {

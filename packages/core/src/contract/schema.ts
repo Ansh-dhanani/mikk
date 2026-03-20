@@ -1,6 +1,6 @@
 import { z } from 'zod'
 
-// ─── mikk.json schema ──────────────────────────────────────
+// ─── mikk.json schema ───────────────────────────────────
 
 export const MikkModuleSchema = z.object({
     id: z.string(),
@@ -33,7 +33,7 @@ export const MikkContractSchema = z.object({
         description: z.string(),
         language: z.string(),
         framework: z.string().optional(),
-        entryPoints: z.array(z.string()),
+        entryPoints: z.array(z.string()).default([]),
     }),
     declared: z.object({
         modules: z.array(MikkModuleSchema),
@@ -47,7 +47,7 @@ export type MikkContract = z.infer<typeof MikkContractSchema>
 export type MikkModule = z.infer<typeof MikkModuleSchema>
 export type MikkDecision = z.infer<typeof MikkDecisionSchema>
 
-// ─── mikk.lock.json schema ─────────────────────────────────
+// ─── mikk.lock.json schema ──────────────────────────────
 
 export const MikkLockFunctionSchema = z.object({
     id: z.string(),
