@@ -1,6 +1,9 @@
 import { describe, test, expect, beforeAll } from 'bun:test'
 import { SemanticSearcher } from '../src/semantic-searcher'
 import type { MikkLock } from '@getmikk/core'
+import * as path from 'node:path'
+import * as os from 'node:os'
+import * as fs from 'node:fs/promises'
 
 // ── Minimal mock lock ─────────────────────────────────────────────────────────
 const mockLock: MikkLock = {
@@ -72,9 +75,10 @@ describe('SemanticSearcher', () => {
 
     describe('with indexed lock', () => {
         beforeAll(async () => {
-            searcher = new SemanticSearcher('/tmp/mikk-test-' + Date.now())
+            const uniquePath = path.join(os.tmpdir(), 'mikk-test-' + Math.random().toString(36).slice(2))
+            searcher = new SemanticSearcher(uniquePath)
             await searcher.index(mockLock)
-        }, 60_000) // model download can take time on first run
+        }, 120_000) // Increase timeout for CI model download
 
         test('returns results for any query', async () => {
             const results = await searcher.search('authenticate user', mockLock, 4)
@@ -154,25 +158,30 @@ describe('SemanticSearcher', () => {
                 ...mockLock,
                 functions: { ...mockLock.functions, 'fn:new:brandNewFn': newFn },
             }
-            const freshSearcher = new SemanticSearcher('/tmp/mikk-reindex-' + Date.now())
+            const uniquePath = path.join(os.tmpdir(), 'mikk-reindex-' + Math.random().toString(36).slice(2))
+            const freshSearcher = new SemanticSearcher(uniquePath)
             await freshSearcher.index(changedLock) // fingerprint differs → full recompute
             const results = await freshSearcher.search('unique purpose', changedLock, 5)
             expect(results.some(r => r.name === 'brandNewFn')).toBe(true)
-        }, 30_000)
+            await fs.rm(uniquePath, { recursive: true, force: true })
+        }, 120_000)
     })
 
     describe('edge cases', () => {
         test('search() before index() throws', async () => {
-            const fresh = new SemanticSearcher('/tmp/mikk-never-indexed-' + Date.now())
+            const uniquePath = path.join(os.tmpdir(), 'mikk-never-' + Math.random().toString(36).slice(2))
+            const fresh = new SemanticSearcher(uniquePath)
             await expect(fresh.search('query', mockLock)).rejects.toThrow('Call index() before search()')
         })
 
         test('empty lock: index() and search() succeed, return empty array', async () => {
             const emptyLock: MikkLock = { ...mockLock, functions: {} }
-            const s = new SemanticSearcher('/tmp/mikk-empty-' + Date.now())
+            const uniquePath = path.join(os.tmpdir(), 'mikk-empty-' + Math.random().toString(36).slice(2))
+            const s = new SemanticSearcher(uniquePath)
             await s.index(emptyLock)
             const results = await s.search('anything', emptyLock, 5)
             expect(results).toEqual([])
-        })
+            await fs.rm(uniquePath, { recursive: true, force: true })
+        }, 120_000)
     })
 })
