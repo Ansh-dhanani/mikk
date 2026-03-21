@@ -1,29 +1,31 @@
 ---
 name: Feature request
-about: Suggest an idea or enhancement for Mikk
-title: '[FEATURE] '
+about: Propose a new capability or improvement
+title: "[feat] "
 labels: enhancement
-assignees: ''
-
+assignees: ""
 ---
 
-## Prerequisites
-Before requesting a feature, please ensure you have completed the following steps:
-- [ ] I have verified that this feature request has not already been submitted.
-- [ ] I have checked the documentation to ensure this feature does not already exist.
+## Problem
 
-## The Feature Request
-<!-- A clear and concise description of what the feature is and the problem it aims to solve. Ex: "I'm always frustrated when [...]" -->
+<!-- What gap does this fill? What is hard or impossible today? -->
 
+## Proposed solution
 
-## Describe the Solution You'd Like
-<!-- A clear and concise description of exactly what you want to happen. How should the Mikk CLI or MCP Server handle this? What commands or configurations would be added? -->
+<!-- Describe the feature. Be specific about the interface — CLI command, MCP tool name, output format. -->
 
+## Alternatives considered
 
-## Describe Alternatives You've Considered
-<!-- A clear and concise description of any alternative solutions, workflows, or architectural tradeoffs you've considered. -->
+<!-- What else did you consider? Why is this the right approach? -->
 
+## Impact
 
-## Additional Context
-<!-- Add any other context, mockup screenshots, or use-cases about the feature request here. -->
+<!-- Who benefits? How many projects / codebases does this affect? -->
 
+## Acceptance criteria
+
+<!-- How do we know this is done? What does the behavior look like? -->
+
+- [ ] 
+- [ ] 
+- [ ] 

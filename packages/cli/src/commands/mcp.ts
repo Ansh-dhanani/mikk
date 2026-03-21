@@ -13,26 +13,56 @@ export function registerMcpCommand(program: Command) {
     const mcp = program
         .command('mcp')
         .description('Start the MCP server, or install it into your AI tool config')
+        .option('-p, --project <path>', 'Project root directory', process.cwd())
 
     // ── mikk mcp (default: start server) ─────────────────────────────────
     mcp
         .command('start', { isDefault: true })
         .description('Start the MCP (Model Context Protocol) server for AI assistants')
-        .option('-p, --project <path>', 'Project root directory', process.cwd())
-        .action(async (opts: { project: string }) => {
-            process.env.MIKK_PROJECT_ROOT = opts.project
-            const mod = await import('@getmikk/mcp-server' as string) as { startStdioServer: () => Promise<void> }
-            await mod.startStdioServer()
+        .action(async (_args: any, cmd: Command) => {
+            console.error('\n  --- MIKK MCP DEBUG VERSION 2.0 ---')
+            console.error('  [DEBUG] MCP start action entered')
+            
+            // Collect options from current command and parent
+            const opts = { ...cmd.parent?.opts(), ...cmd.opts() } as { project: string }
+            const projectRoot = path.resolve(opts.project || process.cwd())
+            process.env.MIKK_PROJECT_ROOT = projectRoot
+            
+            console.error(`[DEBUG] projectRoot resolved to: ${projectRoot}`)
+            
+            try {
+                // Use a relative path to the server package
+                const serverPath = path.resolve(__dirname, '../../mcp-server/dist/index.cjs')
+                console.error(`[DEBUG] Attempting to require server from: ${serverPath}`)
+                
+                if (!fs.existsSync(serverPath)) {
+                    throw new Error(`MCP server bundle not found at ${serverPath}. Please run 'bun run build' in the monorepo root.`)
+                }
+                
+                const mod = require(serverPath)
+                console.error('[DEBUG] MCP server bundle required successfully')
+                
+                if (!mod.startStdioServer) {
+                    throw new Error(`MCP server bundle at ${serverPath} is missing startStdioServer export. Found keys: ${Object.keys(mod).join(', ')}`)
+                }
+                
+                console.error('[DEBUG] Calling startStdioServer()...')
+                await mod.startStdioServer()
+            } catch (err) {
+                console.error('\n  ✖ Failed to start Mikk MCP server:', (err as Error).message)
+                if ((err as Error).stack) console.error((err as Error).stack)
+                process.exit(1)
+            }
         })
 
     // ── mikk mcp install ──────────────────────────────────────────────────
     mcp
         .command('install')
         .description('Auto-install the Mikk MCP server into Claude Desktop, Cursor, or VS Code')
-        .option('-p, --project <path>', 'Project root directory (defaults to cwd)', process.cwd())
         .option('--tool <name>', 'Target tool: claude | cursor | vscode (defaults to all detected)')
         .option('--dry-run', 'Print what would be written without making changes')
-        .action((opts: { project: string; tool?: string; dryRun?: boolean }) => {
+        .action((_args: any, cmd: Command) => {
+            const opts = { ...cmd.parent?.opts(), ...cmd.opts() } as { project: string; tool?: string; dryRun?: boolean }
             installMcpConfig(opts.project, opts.tool, opts.dryRun ?? false)
         })
 }

@@ -2,6 +2,7 @@ import * as path from 'node:path'
 import * as fs from 'node:fs/promises'
 import type { Command } from 'commander'
 import chalk from 'chalk'
+import { panel, sq, gap, kv } from '../ui.js'
 
 interface CheckResult {
     name: string
@@ -10,10 +11,6 @@ interface CheckResult {
     fix?: string
 }
 
-/**
- * mikk doctor — diagnostic command that checks project health.
- * Verifies all prerequisites and configuration files exist and are valid.
- */
 export function registerDoctorCommand(program: Command) {
     program
         .command('doctor')
@@ -22,145 +19,91 @@ export function registerDoctorCommand(program: Command) {
             const projectRoot = process.cwd()
             const checks: CheckResult[] = []
 
-            console.log()
-            console.log(chalk.bold('  mikk doctor — Project Health Check'))
-            console.log()
-
-            // Check 1: mikk.json exists
+            // 1. mikk.json
             const contractPath = path.join(projectRoot, 'mikk.json')
             try {
                 await fs.access(contractPath)
-                const content = JSON.parse(await fs.readFile(contractPath, 'utf-8'))
+                const content = JSON.parse((await fs.readFile(contractPath, 'utf-8')).replace(/^\uFEFF/, ''))
                 const moduleCount = content?.declared?.modules?.length ?? 0
                 checks.push({ name: 'mikk.json', pass: true, message: `Found (${moduleCount} modules)` })
             } catch {
-                checks.push({
-                    name: 'mikk.json',
-                    pass: false,
-                    message: 'Not found',
-                    fix: 'Run `mikk init` to create mikk.json',
-                })
+                checks.push({ name: 'mikk.json', pass: false, message: 'Not found', fix: 'Run `mikk init`' })
             }
 
-            // Check 2: mikk.lock.json exists
+            // 2. mikk.lock.json
             const lockPath = path.join(projectRoot, 'mikk.lock.json')
             try {
                 await fs.access(lockPath)
-                const lockContent = JSON.parse(await fs.readFile(lockPath, 'utf-8'))
+                const lockContent = JSON.parse((await fs.readFile(lockPath, 'utf-8')).replace(/^\uFEFF/, ''))
                 const fnCount = Object.keys(lockContent?.functions ?? {}).length
                 const fileCount = Object.keys(lockContent?.files ?? {}).length
-                checks.push({ name: 'mikk.lock.json', pass: true, message: `Found (${fnCount} functions, ${fileCount} files)` })
-
-                // Check 3: Lock freshness (syncState)
+                checks.push({ name: 'mikk.lock.json', pass: true, message: `Found (${fnCount} fns, ${fileCount} files)` })
+                // 3. lock freshness
                 const status = lockContent?.syncState?.status
-                if (status === 'clean') {
-                    checks.push({ name: 'Lock status', pass: true, message: 'Clean' })
-                } else {
-                    checks.push({
-                        name: 'Lock status',
-                        pass: false,
-                        message: `Status: ${status ?? 'unknown'}`,
-                        fix: 'Run `mikk analyze` to refresh',
-                    })
-                }
+                checks.push(status === 'clean'
+                    ? { name: 'Lock status', pass: true, message: 'Clean' }
+                    : { name: 'Lock status', pass: false, message: `Status: ${status ?? 'unknown'}`, fix: 'Run `mikk analyze`' })
             } catch {
-                checks.push({
-                    name: 'mikk.lock.json',
-                    pass: false,
-                    message: 'Not found',
-                    fix: 'Run `mikk analyze` to generate lock file',
-                })
+                checks.push({ name: 'mikk.lock.json', pass: false, message: 'Not found', fix: 'Run `mikk analyze`' })
             }
 
-            // Check 4: tsconfig.json exists (for TypeScript projects)
-            const tsconfigCandidates = ['tsconfig.json', 'tsconfig.base.json', 'jsconfig.json']
-            let foundTsConfig = false
-            for (const name of tsconfigCandidates) {
+            // 4. tsconfig
+            for (const name of ['tsconfig.json', 'tsconfig.base.json', 'jsconfig.json']) {
                 try {
                     await fs.access(path.join(projectRoot, name))
-                    foundTsConfig = true
                     checks.push({ name: 'TypeScript config', pass: true, message: `Found ${name}` })
                     break
                 } catch { /* try next */ }
             }
-            if (!foundTsConfig) {
-                // Check if there are any .ts files
-                try {
-                    const srcPath = path.join(projectRoot, 'src')
-                    const entries = await fs.readdir(srcPath, { recursive: true })
-                    const hasTs = (entries as string[]).some(e => e.endsWith('.ts') || e.endsWith('.tsx'))
-                    if (hasTs) {
-                        checks.push({
-                            name: 'TypeScript config',
-                            pass: false,
-                            message: 'No tsconfig.json found but .ts files exist',
-                            fix: 'Create tsconfig.json for proper path alias resolution',
-                        })
-                    }
-                } catch { /* no src dir */ }
-            }
 
-            // Check 5: node_modules exists
+            // 5. node_modules
             try {
                 await fs.access(path.join(projectRoot, 'node_modules'))
                 checks.push({ name: 'node_modules', pass: true, message: 'Present' })
             } catch {
-                checks.push({
-                    name: 'node_modules',
-                    pass: false,
-                    message: 'Not found',
-                    fix: 'Run `npm install` / `bun install` / `pnpm install`',
-                })
+                checks.push({ name: 'node_modules', pass: false, message: 'Not found', fix: 'Run `npm install` / `bun install`' })
             }
 
-            // Check 6: .mikkignore exists
+            // 6. .mikkignore
             try {
                 await fs.access(path.join(projectRoot, '.mikkignore'))
                 checks.push({ name: '.mikkignore', pass: true, message: 'Found' })
             } catch {
-                checks.push({
-                    name: '.mikkignore',
-                    pass: false,
-                    message: 'Not found (using defaults)',
-                    fix: 'Run `mikk init` to generate .mikkignore',
-                })
+                checks.push({ name: '.mikkignore', pass: false, message: 'Not found (using defaults)', fix: 'Run `mikk init`' })
             }
 
-            // Check 7: .mikk directory exists
+            // 7. .mikk directory
             try {
                 await fs.access(path.join(projectRoot, '.mikk'))
                 checks.push({ name: '.mikk directory', pass: true, message: 'Present' })
             } catch {
-                checks.push({
-                    name: '.mikk directory',
-                    pass: false,
-                    message: 'Not found',
-                    fix: 'Run `mikk analyze` to create it',
-                })
+                checks.push({ name: '.mikk directory', pass: false, message: 'Not found', fix: 'Run `mikk analyze`' })
             }
 
-            // Print results
+            // ── Retro output ──────────────────────────────────────────────────
             const passed = checks.filter(c => c.pass).length
             const failed = checks.filter(c => !c.pass).length
+            const W = 58
 
+            const rows: string[] = []
             for (const check of checks) {
-                if (check.pass) {
-                    console.log(chalk.green(`  ✓ ${check.name}`) + chalk.dim(` — ${check.message}`))
-                } else {
-                    console.log(chalk.red(`  ✗ ${check.name}`) + chalk.dim(` — ${check.message}`))
-                    if (check.fix) {
-                        console.log(chalk.yellow(`    Fix: ${check.fix}`))
-                    }
+                const icon = check.pass ? sq.pass : sq.fail
+                const label = check.pass ? chalk.white(check.name) : chalk.red(check.name)
+                rows.push(kv(icon + '  ' + label, chalk.dim(check.message), 32))
+                if (!check.pass && check.fix) {
+                    rows.push('     ' + chalk.yellow('fix  ') + chalk.dim(check.fix))
                 }
             }
 
-            console.log()
+            rows.push('')
             if (failed === 0) {
-                console.log(chalk.green.bold(`  All ${passed} checks passed ✓`))
+                rows.push(sq.pass + '  ' + chalk.green.bold(`All ${passed} checks passed`))
             } else {
-                console.log(chalk.red.bold(`  ${failed} issue(s) found`) + chalk.dim(` (${passed} passed)`))
+                rows.push(sq.fail + '  ' + chalk.red.bold(`${failed} issue(s) found`) + chalk.dim(`  ${passed} passed`))
             }
-            console.log()
+
+            panel('mikk doctor — Project Health Check', rows, W)
+            gap()
 
             process.exit(failed > 0 ? 1 : 0)
         })

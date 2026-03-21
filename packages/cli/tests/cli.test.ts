@@ -25,13 +25,13 @@ async function runCli(args: string[]): Promise<{ stdout: string; stderr: string;
 }
 
 describe('@getmikk/cli integration', () => {
-    it('shows help when no arguments provided', async () => {
+    it('shows banner and command list when no arguments provided', async () => {
         const result = await runCli([])
-        // Some CLIs print help to stderr when erroring out, or stdout. 
-        // We just ensure it lists commands and doesn't crash terribly.
-        expect(result.code).not.toBe(0)
-        expect(result.stderr).toContain('Usage:')
-        expect(result.stderr).toContain('Commands:')
+        // mikk with no args shows the retro banner and exits 0
+        expect(result.code).toBe(0)
+        // Banner goes to stdout; check for the command list
+        const output = result.stdout + result.stderr
+        expect(output).toContain('mikk')
     })
 
     it('returns version correctly', async () => {

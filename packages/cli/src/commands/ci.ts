@@ -5,12 +5,8 @@ import {
     ContractReader, LockReader, BoundaryChecker, DeadCodeDetector,
     type MikkLock, type DependencyGraph, type GraphNode, type GraphEdge,
 } from '@getmikk/core'
+import { panel, sq, gap } from '../ui.js'
 
-/**
- * mikk ci — CI pipeline integration command.
- * Exits non-zero on constraint violations.
- * Use: `mikk ci` in CI scripts or `"lint:architecture": "mikk ci"` in package.json
- */
 export function registerCiCommand(program: Command) {
     program
         .command('ci')
@@ -28,11 +24,9 @@ export function registerCiCommand(program: Command) {
                 const contract = await contractReader.read(path.join(projectRoot, 'mikk.json'))
                 const lock = await lockReader.read(path.join(projectRoot, 'mikk.lock.json'))
 
-                // Run boundary checker
                 const checker = new BoundaryChecker(contract, lock)
                 const result = checker.check()
 
-                // Optionally check dead code
                 let deadCodeResult: any = null
                 if (opts.strict) {
                     const graph = buildGraphFromLock(lock)
@@ -42,89 +36,74 @@ export function registerCiCommand(program: Command) {
 
                 const threshold = parseInt(opts.deadCodeThreshold, 10)
                 const deadCodePct = deadCodeResult
-                    ? (deadCodeResult.deadCount / Math.max(deadCodeResult.totalCount, 1)) * 100
-                    : 0
+                    ? (deadCodeResult.deadCount / Math.max(deadCodeResult.totalCount, 1)) * 100 : 0
                 const deadCodeFail = opts.strict && deadCodePct > threshold
+                const overallPass = result.pass && !deadCodeFail
 
                 if (isJson) {
                     console.log(JSON.stringify({
-                        pass: result.pass && !deadCodeFail,
+                        pass: overallPass,
                         violations: result.violations.length,
                         summary: result.summary,
-                        ...(deadCodeResult ? {
-                            deadCode: {
-                                count: deadCodeResult.deadCount,
-                                total: deadCodeResult.totalCount,
-                                percentage: Math.round(deadCodePct * 10) / 10,
-                                pass: !deadCodeFail,
-                            }
-                        } : {}),
-                        details: result.violations.map(v => ({
-                            from: `${v.from.moduleName}::${v.from.functionName}`,
-                            to: `${v.to.moduleName}::${v.to.functionName}`,
-                            rule: v.rule,
-                            severity: v.severity,
-                        })),
+                        ...(deadCodeResult ? { deadCode: { count: deadCodeResult.deadCount, total: deadCodeResult.totalCount, percentage: Math.round(deadCodePct * 10) / 10, pass: !deadCodeFail } } : {}),
+                        details: result.violations.map(v => ({ from: `${v.from.moduleName}::${v.from.functionName}`, to: `${v.to.moduleName}::${v.to.functionName}`, rule: v.rule, severity: v.severity })),
                     }, null, 2))
                 } else {
-                    console.log()
-                    console.log(chalk.bold('  mikk ci — Architectural Constraint Check'))
-                    console.log()
+                    const W = 58
+                    const statusIcon = overallPass ? sq.pass : sq.fail
+                    const statusLabel = overallPass
+                        ? chalk.green.bold('PASS') + chalk.dim('  all boundaries respected')
+                        : chalk.red.bold('FAIL') + chalk.dim(`  ${result.violations.length} violation(s)`)
 
-                    if (result.violations.length === 0) {
-                        console.log(chalk.green(`  ✓ ${result.summary}`))
-                    } else {
-                        console.log(chalk.red(`  ✗ ${result.summary}`))
-                        console.log()
-                        for (const v of result.violations.slice(0, 20)) {
-                            console.log(chalk.red(`    ❌ ${v.from.moduleName}::${v.from.functionName} → ${v.to.moduleName}::${v.to.functionName}`))
-                            console.log(chalk.dim(`       Rule: ${v.rule}`))
+                    const rows: string[] = [statusIcon + '  ' + statusLabel]
+
+                    if (result.violations.length > 0) {
+                        rows.push('')
+                        const shown = result.violations.slice(0, 20)
+                        for (const v of shown) {
+                            rows.push(sq.fail + '  ' + chalk.red(`${v.from.moduleName}`) + chalk.dim('::') + chalk.white(v.from.functionName))
+                            rows.push('     ' + chalk.dim('→ ') + chalk.yellow(`${v.to.moduleName}`) + chalk.dim('::') + v.to.functionName)
+                            rows.push('     ' + chalk.dim(v.rule))
+                            if (shown.indexOf(v) < shown.length - 1) rows.push('')
                         }
                         if (result.violations.length > 20) {
-                            console.log(chalk.dim(`    ... and ${result.violations.length - 20} more`))
+                            rows.push('')
+                            rows.push(chalk.dim(`   ... and ${result.violations.length - 20} more`))
                         }
                     }
 
                     if (opts.strict && deadCodeResult) {
-                        console.log()
-                        if (deadCodeFail) {
-                            console.log(chalk.red(`  ✗ Dead code: ${Math.round(deadCodePct)}% (threshold: ${threshold}%)`))
-                        } else {
-                            console.log(chalk.green(`  ✓ Dead code: ${Math.round(deadCodePct)}% (threshold: ${threshold}%)`))
-                        }
+                        rows.push('')
+                        const dcIcon = deadCodeFail ? sq.fail : sq.pass
+                        const dcLabel = deadCodeFail
+                            ? chalk.red(`Dead code ${Math.round(deadCodePct)}%`) + chalk.dim(` (threshold ${threshold}%)`)
+                            : chalk.green(`Dead code ${Math.round(deadCodePct)}%`) + chalk.dim(` (threshold ${threshold}%)`)
+                        rows.push(dcIcon + '  ' + dcLabel)
                     }
 
-                    console.log()
+                    panel('mikk ci — Architectural Constraint Check', rows, W)
+                    gap()
                 }
 
-                if (!result.pass || deadCodeFail) {
-                    process.exit(1)
-                }
+                if (!overallPass) process.exit(1)
             } catch (err: any) {
                 if (isJson) {
                     console.log(JSON.stringify({ pass: false, error: err.message }, null, 2))
                 } else {
-                    console.error(chalk.red(`  ✗ ${err.message}`))
-                    if (process.env.MIKK_DEBUG) console.error(err.stack)
+                    process.stderr.write(chalk.red(`\n  error  ${err.message}\n\n`))
                 }
                 process.exit(1)
             }
         })
 }
 
-/** Build graph from lock (same logic as MCP server) */
 function buildGraphFromLock(lock: MikkLock): DependencyGraph {
     const nodes = new Map<string, GraphNode>()
     const edges: GraphEdge[] = []
     const outEdges = new Map<string, GraphEdge[]>()
     const inEdges = new Map<string, GraphEdge[]>()
-
     for (const fn of Object.values(lock.functions)) {
-        nodes.set(fn.id, {
-            id: fn.id, type: 'function', label: fn.name,
-            file: fn.file, moduleId: fn.moduleId,
-            metadata: { startLine: fn.startLine, endLine: fn.endLine, isExported: fn.isExported },
-        })
+        nodes.set(fn.id, { id: fn.id, type: 'function', label: fn.name, file: fn.file, moduleId: fn.moduleId, metadata: { startLine: fn.startLine, endLine: fn.endLine, isExported: fn.isExported } })
     }
     for (const fn of Object.values(lock.functions)) {
         for (const calleeId of fn.calls) {

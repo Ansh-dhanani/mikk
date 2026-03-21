@@ -1,8 +1,8 @@
 <repository_context>
   <name>mikk</name>
   <stats>
-    <files>166</files>
-    <functions>656</functions>
+    <files>168</files>
+    <functions>668</functions>
     <modules>10</modules>
     <language>typescript</language>
   </stats>
@@ -97,6 +97,18 @@
       <function name="estimateTokens" callers="1" purpose="Rough token estimator: 1 token ≈ 4 chars for codeidentifiers" />
     </key_internal_functions>
   </module>
+  <module id="packages-diagram-generator">
+    <name>Search (Diagram Generator)</name>
+    <location>packages/diagram-generator/src/**, packages/diagram-generator/src/generators/**</location>
+    <purpose>9 files, 0 functions</purpose>
+    <entry_points>
+      <function signature="DiagramOrchestrator.constructor(contract, lock, projectRoot) [packages/diagram-generator/src/orchestrator.ts:17]" purpose="Diagram orchestrator.constructor (contract, lock, projectRoot)" />
+      <function signature="async DiagramOrchestrator.generateAll() [packages/diagram-generator/src/orchestrator.ts:24]" purpose="Generate all diagrams" />
+      <function signature="async DiagramOrchestrator.generateImpact(changedIds, impactedIds) [packages/diagram-generator/src/orchestrator.ts:62]" purpose="Generate impact diagram for specific changes" />
+      <function signature="async DiagramOrchestrator.writeDiagram(relativePath, content) [packages/diagram-generator/src/orchestrator.ts:71]" purpose="Write diagram" />
+      <function signature="CapsuleDiagramGenerator.constructor(contract, lock) [packages/diagram-generator/src/generators/capsule-diagram.ts:9]" purpose="Capsule diagram generator.constructor (contract, lock)" />
+    </entry_points>
+  </module>
   <module id="packages-intent-engine">
     <name>Search (Intent Engine)</name>
     <location>packages/intent-engine/src/**</location>
@@ -112,18 +124,6 @@
       <function name="lockFingerprint" callers="1" purpose="--- Helpers -----------------------------------------------------------------" />
       <function name="cosineSimilarity" callers="1" purpose="Cosine similarity" />
     </key_internal_functions>
-  </module>
-  <module id="packages-diagram-generator">
-    <name>Search (Diagram Generator)</name>
-    <location>packages/diagram-generator/src/**, packages/diagram-generator/src/generators/**</location>
-    <purpose>9 files, 0 functions</purpose>
-    <entry_points>
-      <function signature="DiagramOrchestrator.constructor(contract, lock, projectRoot) [packages/diagram-generator/src/orchestrator.ts:17]" purpose="Diagram orchestrator.constructor (contract, lock, projectRoot)" />
-      <function signature="async DiagramOrchestrator.generateAll() [packages/diagram-generator/src/orchestrator.ts:24]" purpose="Generate all diagrams" />
-      <function signature="async DiagramOrchestrator.generateImpact(changedIds, impactedIds) [packages/diagram-generator/src/orchestrator.ts:62]" purpose="Generate impact diagram for specific changes" />
-      <function signature="async DiagramOrchestrator.writeDiagram(relativePath, content) [packages/diagram-generator/src/orchestrator.ts:71]" purpose="Write diagram" />
-      <function signature="CapsuleDiagramGenerator.constructor(contract, lock) [packages/diagram-generator/src/generators/capsule-diagram.ts:9]" purpose="Capsule diagram generator.constructor (contract, lock)" />
-    </entry_points>
   </module>
   <module id="packages-mcp-server">
     <name>Search & Caching</name>
@@ -175,20 +175,20 @@
   <module id="packages-cli">
     <name>CLI</name>
     <location>packages/cli/src/**, packages/cli/bin/**</location>
-    <purpose>Register analyze command; mikk ci — CI pipeline integration command; Build graph from lock (same logic as MCP server)</purpose>
+    <purpose>Print the retro MIKK banner; Strip ANSI codes for visible length calculation; Pad string (with ANSI codes) to visible target width</purpose>
     <entry_points>
       <function signature="registerContextCommands(program) [packages/cli/src/commands/context.ts:24]" purpose="Register context commands" />
-      <function signature="registerCiCommand(program) [packages/cli/src/commands/ci.ts:14]" purpose="mikk ci — CI pipeline integration command." />
+      <function signature="panel(title, rows, width?) [packages/cli/src/ui.ts:50]" purpose="Print a retro panel with a title and rows." />
+      <function signature="registerCiCommand(program) [packages/cli/src/commands/ci.ts:10]" purpose="Register ci command" />
       <function signature="registerDeadCodeCommand(program) [packages/cli/src/commands/dead-code.ts:9]" purpose="Register dead code command" />
       <function signature="registerMcpCommand(program) [packages/cli/src/commands/mcp.ts:12]" purpose="Register the `mikk mcp` command — starts the MCP server." />
-      <function signature="registerStatsCommand(program) [packages/cli/src/commands/stats.ts:14]" purpose="mikk stats — codebase health dashboard." />
     </entry_points>
     <key_internal_functions>
       <function name="buildMcpEntry" callers="3" purpose="Build mcp entry" />
       <function name="parseJsonSafe" callers="3" purpose="Parse json safe" />
-      <function name="buildGraphFromLock" callers="1" purpose="Build graph from lock (same logic as MCP server)" />
-      <function name="parseIntOption" callers="1" purpose="Parse a numeric CLI option with validation" />
-      <function name="loadContractAndLock" callers="1" purpose="── Helpers ──────────────────────────────────────────────────────────────────" />
+      <function name="visLen" callers="1" purpose="Strip ANSI codes for visible length calculation." />
+      <function name="pad" callers="1" purpose="Pad string (with ANSI codes) to visible target width." />
+      <function name="buildGraphFromLock" callers="1" purpose="Build graph from lock" />
     </key_internal_functions>
   </module>
 </modules>
@@ -583,7 +583,3 @@ Which files import which — useful for understanding data flow.
 - `apps/web/components/ui/collapsible.tsx` → `apps/web/components/animated-icons/chevrons-down-up-icon.tsx`
 
 
-## Architectural Decisions
-- **Use WebAssembly for Tree-sitter:** Mikk needs to parse 13+ languages cross-platform. Native Node.js bindings for Tree-sitter require local C++ compilers (like node-gyp), which frequently fail on Windows and in CI environments. We use `web-tree-sitter` to execute precompiled `.wasm` binaries. This guarantees parsing works reliably on any machine Node.js can run on, without friction.
-- **BM25 + Substring Reciprocal Rank Fusion:** Users often search for functions using partial names or slight variations (e.g. searching 'auth user' for 'authenticateUser'). We implemented an Okapi BM25 engine for full-text relevance, merged with exact substring matching using Reciprocal Rank Fusion. This provides the leniency of semantic-like search without requiring heavy external ML embeddings for everyday lookups.
-- **mikk.lock.json as Single Source of Truth:** Parsing entire repositories into ASTs and computing call graphs takes several seconds for large codebases. To make the CLI, VS Code Extension, and MCP Server fast and responsive, we persist the full dependency graph and symbol map into `mikk.lock.json`. Tools read this cached state instantly, and only re-parse files when drift is detected.

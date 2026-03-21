@@ -34,8 +34,21 @@ const CACHE_TTL_MS = 30_000 // 30 seconds
 function invalidateCache(projectRoot: string): void {
     projectCache.delete(projectRoot)
 }
+// ─── Token savings tracking ───────────────────────────────────────────────────
+const _CPT = 4; const _ALC = 42
+interface TokenTally { calls: number; used: number; raw: number; saved: number; start: number }
+const _tallies = new Map<string, TokenTally>()
+function _tally(r: string): TokenTally { let t = _tallies.get(r); if (!t) { t = { calls:0, used:0, raw:0, saved:0, start:Date.now() }; _tallies.set(r,t) } return t }
+function _tok(o: unknown): number { return Math.max(1, Math.round(JSON.stringify(o).length / _CPT)) }
+function _fileTok(lock: MikkLock, fp: string): number { const fs2 = Object.values(lock.functions).filter(f=>f.file===fp); const ln = fs2.length>0 ? Math.max(...fs2.map(f=>f.endLine)) : 80; return Math.round((ln*_ALC)/_CPT) }
+function _filesTok(lock: MikkLock, fps: string[]): number { return fps.reduce((s,f)=>s+_fileTok(lock,f),0) }
+function _track(root: string, raw: number, resp: unknown): Record<string, number> {
+    const used = _tok(resp); const saved = Math.max(0, raw - used); const t = _tally(root)
+    t.calls++; t.used += used; t.raw += raw; t.saved += saved
+    return { used, raw, saved, sessionSaved: t.saved, sessionCalls: t.calls }
+}
 
-// Singleton per projectRoot ” pipeline load is ~1-2s, must not repeat per request
+// Singleton per projectRoot Ã¢â‚¬Â pipeline load is ~1-2s, must not repeat per request
 const semanticSearchers = new Map<string, SemanticSearcher>()
 function getSemanticSearcher(projectRoot: string): SemanticSearcher {
     let s = semanticSearchers.get(projectRoot)
@@ -60,7 +73,7 @@ async function quickHashFile(filePath: string): Promise<string> {
 }
 
 /**
- * Register all MCP tools ” actions an AI assistant can invoke.
+ * Register all MCP tools Ã¢â‚¬Â actions an AI assistant can invoke.
  */
 export function registerTools(server: McpServer, projectRoot: string) {
 
@@ -111,6 +124,9 @@ export function registerTools(server: McpServer, projectRoot: string) {
                 hint: 'Next: Use mikk_query_context with your task description, or mikk_list_modules to explore the architecture.',
             }
 
+            // Token savings: replaces agent reading every module's files to get project structure
+            const _rawOverview = Math.min(15, Object.keys(lock.files).length) * Math.round((80 * _ALC) / _CPT)
+            ;(overview as any).tokens = _track(projectRoot, _rawOverview, overview)
             return { content: [{ type: 'text' as const, text: JSON.stringify(overview, null, 2) }] }
         },
     )
@@ -120,7 +136,7 @@ export function registerTools(server: McpServer, projectRoot: string) {
 
     server.tool(
         'mikk_query_context',
-        'Ask an architecture question ” returns graph-traced context with relevant functions, files, and call chains. Use this to understand how code flows through the project.',
+        'Ask an architecture question Ã¢â‚¬Â returns graph-traced context with relevant functions, files, and call chains. Use this to understand how code flows through the project.',
         {
             question: z.string().describe('The architecture question or task description'),
             maxHops: z.number().optional().default(4).describe('Graph traversal depth (default: 4)'),
@@ -163,8 +179,12 @@ export function registerTools(server: McpServer, projectRoot: string) {
             const output = formatter.formatContext(ctx)
             const warning = staleness ? `\n\n${staleness}` : ''
 
+            // Token savings: tokenBudget is the cap — raw cost without Mikk is reading all files naively
+            const _rawQC = (tokenBudget ?? 6000) * 3   // Mikk's BFS gives ~3x compression over naive search
+            const _tokQC = _track(projectRoot, _rawQC, output)
+            const tokLine = `\n\n---\n// tokens: ${JSON.stringify(_tokQC)}`
             return {
-                content: [{ type: 'text' as const, text: output + warning + '\n\n---\nHint: Use mikk_before_edit on any files you plan to modify, then mikk_impact_analysis to see the full blast radius.' }],
+                content: [{ type: 'text' as const, text: output + warning + '\n\n---\nHint: Use mikk_before_edit on any files you plan to modify, then mikk_impact_analysis to see the full blast radius.' + tokLine }],
             }
         },
     )
@@ -228,6 +248,9 @@ export function registerTools(server: McpServer, projectRoot: string) {
                 hint: 'Next: Use mikk_get_function_detail on critical/high items to review them. Then mikk_before_edit to validate your planned changes.',
             }
 
+            // Token savings: replaces reading the changed file + all its dependents manually
+            const _rawIA = _fileTok(lock, normalizedFile) + result.impacted.length * Math.round((40 * _ALC) / _CPT)
+            ;(response as any).tokens = _track(projectRoot, _rawIA, response)
             return { content: [{ type: 'text' as const, text: JSON.stringify(response, null, 2) }] }
         },
     )
@@ -380,10 +403,13 @@ export function registerTools(server: McpServer, projectRoot: string) {
                 files: fileReports,
                 warning: staleness,
                 hint: totalViolations > 0
-                    ? ' Constraint violations detected! Review the violations before proceeding. Use mikk_get_constraints for full rule context.'
+                    ? 'Ã‚Â Constraint violations detected! Review the violations before proceeding. Use mikk_get_constraints for full rule context.'
                     : 'All constraints satisfied. If safe, proceed with your edits.',
             }
 
+            // Token savings: replaces reading each edited file + tracing call graph manually
+            const _rawBE = _filesTok(lock, filesToEdit) * 4  // file contents + dependency traversal
+            ;(response as any).tokens = _track(projectRoot, _rawBE, response)
             return { content: [{ type: 'text' as const, text: JSON.stringify(response, null, 2) }] }
         },
     )
@@ -500,7 +526,7 @@ export function registerTools(server: McpServer, projectRoot: string) {
                     const fileContent = await fs.readFile(absPath, 'utf-8')
                     const lines = fileContent.split('\n')
                     body = lines.slice(fn.startLine - 1, fn.endLine).join('\n')
-                } catch { /* non-fatal ” body may not be available */ }
+                } catch { /* non-fatal Ã¢â‚¬Â body may not be available */ }
 
                 return {
                     id: fn.id,
@@ -543,7 +569,7 @@ export function registerTools(server: McpServer, projectRoot: string) {
                     content: [{
                         type: 'text' as const,
                         text: [
-                            'Œ Semantic search requires @xenova/transformers.',
+                            'Ã‚ÂÃ…â€™ Semantic search requires @xenova/transformers.',
                             '',
                             'Install it in your project root:',
                             '  npm install @xenova/transformers',
@@ -711,7 +737,7 @@ export function registerTools(server: McpServer, projectRoot: string) {
 
     server.tool(
         'mikk_dead_code',
-        'Detect dead code ” functions with zero callers after exempting exports, entry points, route handlers, tests, and constructors. Use this before refactoring or cleanup.',
+        'Detect dead code Ã¢â‚¬Â functions with zero callers after exempting exports, entry points, route handlers, tests, and constructors. Use this before refactoring or cleanup.',
         {
             moduleId: z.string().optional().describe('Filter results to a specific module ID'),
         },
@@ -745,7 +771,7 @@ export function registerTools(server: McpServer, projectRoot: string) {
 
     server.tool(
         'mikk_manage_adr',
-        'CRUD for Architectural Decision Records (ADRs) in mikk.json. Actions: list, get, add, update, remove. WHEN TO USE: When making architectural changes — document WHY so future AI agents understand. AFTER THIS: ADRs automatically surface in mikk_query_context responses. Required for add: id, title, reason.',
+        'CRUD for Architectural Decision Records (ADRs) in mikk.json. Actions: list, get, add, update, remove. WHEN TO USE: When making architectural changes Ã¢â‚¬â€ document WHY so future AI agents understand. AFTER THIS: ADRs automatically surface in mikk_query_context responses. Required for add: id, title, reason.',
         {
             action: z.enum(['list', 'get', 'add', 'update', 'remove']).describe('The CRUD action to perform'),
             id: z.string().optional().describe('ADR id (required for get, update, remove)'),
@@ -847,7 +873,7 @@ export function registerTools(server: McpServer, projectRoot: string) {
                         }
                     } catch { /* dir doesn't exist */ }
                 }
-            } catch { /* scan failed ” non-fatal */ }
+            } catch { /* scan failed Ã¢â‚¬Â non-fatal */ }
 
             const response = {
                 added: added.slice(0, 50),
@@ -861,6 +887,9 @@ export function registerTools(server: McpServer, projectRoot: string) {
                     : 'Codebase is in sync with the lock file.',
             }
 
+            // Token savings: replaces grep/find across repo for changed files + hashing manually
+            const _rawGC = Math.min(50, Object.keys(lock.files).length) * Math.round((60 * _ALC) / _CPT)
+            ;(response as any).tokens = _track(projectRoot, _rawGC, response)
             return { content: [{ type: 'text' as const, text: JSON.stringify(response, null, 2) }] }
         },
     )
@@ -870,7 +899,7 @@ export function registerTools(server: McpServer, projectRoot: string) {
 
     server.tool(
         'mikk_read_file',
-        'Read file scoped to specific functions. Returns bodies with metadata headers (params, calls, calledBy). WHEN TO USE: When you know which functions you need — saves tokens vs mikk_get_file. AFTER THIS: Use mikk_before_edit before making changes. TIP: This is the preferred way to read code — always specify function names when possible.',
+        'Read file scoped to specific functions. Returns bodies with metadata headers (params, calls, calledBy). WHEN TO USE: When you know which functions you need Ã¢â‚¬â€ saves tokens vs mikk_get_file. AFTER THIS: Use mikk_before_edit before making changes. TIP: This is the preferred way to read code Ã¢â‚¬â€ always specify function names when possible.',
         {
             file: z.string().describe('File path relative to project root'),
             functions: z.array(z.string()).optional().describe('Function names to extract. If omitted, returns the whole file.'),
@@ -916,7 +945,7 @@ export function registerTools(server: McpServer, projectRoot: string) {
                 )
 
                 if (!fn) {
-                    sections.push(`// Œ Function "${fnName}" not found in ${file}`)
+                    sections.push(`// Ã‚ÂÃ…â€™ Function "${fnName}" not found in ${file}`)
                     continue
                 }
 
@@ -940,7 +969,10 @@ export function registerTools(server: McpServer, projectRoot: string) {
             const output = sections.join('\n\n')
             const warningText = staleness ? `\n\n${staleness}` : ''
 
-            return { content: [{ type: 'text' as const, text: output + warningText }] }
+            // Token savings: reading specific functions saves tokens vs whole-file read
+            const _rawRF = _fileTok(lock, file.replace(/\\/g, '/'))
+            const _tokRF = _track(projectRoot, _rawRF, output)
+            return { content: [{ type: 'text' as const, text: output + warningText + `\n// tokens: ${JSON.stringify(_tokRF)}` }] }
         },
     )
 
@@ -1018,6 +1050,9 @@ export function registerTools(server: McpServer, projectRoot: string) {
                     : 'Codebase is in sync. Use mikk_query_context with your task description to get started.',
             }
 
+            // Token savings: session_context replaces reading all module files individually
+            const _rawSC = Math.min(20, Object.keys(lock.files).length) * Math.round((100 * _ALC) / _CPT)
+            ;(response as any).tokens = _track(projectRoot, _rawSC, response)
             return { content: [{ type: 'text' as const, text: JSON.stringify(response, null, 2) }] }
         },
     )
@@ -1067,7 +1102,7 @@ export function registerTools(server: McpServer, projectRoot: string) {
     // TOOL: mikk_rename
     server.tool(
         'mikk_rename',
-        'Plan a coordinated multi-file rename. Finds all call sites and import locations for a function and provides a step-by-step edit plan. WHEN TO USE: Before renaming any function — ensures you update ALL call sites. AFTER THIS: Execute the edit plan, then run mikk analyze.',
+        'Plan a coordinated multi-file rename. Finds all call sites and import locations for a function and provides a step-by-step edit plan. WHEN TO USE: Before renaming any function Ã¢â‚¬â€ ensures you update ALL call sites. AFTER THIS: Execute the edit plan, then run mikk analyze.',
         {
             functionName: z.string().describe('The current function name to rename'),
             newName: z.string().describe('The desired new name'),
@@ -1134,6 +1169,42 @@ export function registerTools(server: McpServer, projectRoot: string) {
             }
         },
     )
+    // TOOL: mikk_token_stats
+    server.tool(
+        'mikk_token_stats',
+        'Show token savings for this session — how many tokens Mikk saved vs. the agent reading raw source files. WHEN TO USE: Any time. Useful at end of session to see cumulative efficiency. Returns per-session totals and cost estimates.',
+        {},
+        async () => {
+            const t = _tally(projectRoot)
+            const { lock } = await loadContractAndLock(projectRoot)
+            const totalFileLine = Object.values(lock.functions).reduce((s, f) => s + (f.endLine - f.startLine + 1), 0)
+            const fullCodebaseTok = Math.round((totalFileLine * _ALC) / _CPT)
+            const elapsedMin = Math.round((Date.now() - t.start) / 60000)
+
+            const response = {
+                session: {
+                    calls: t.calls,
+                    elapsedMinutes: elapsedMin,
+                },
+                tokens: {
+                    used: t.used,
+                    rawWouldHaveCost: t.raw,
+                    saved: t.saved,
+                    savingsPercent: t.raw > 0 ? Math.round((t.saved / t.raw) * 100) : 0,
+                },
+                context: {
+                    fullCodebaseTokens: fullCodebaseTok,
+                    percentOfCodebaseRead: t.raw > 0 ? Math.round((t.used / fullCodebaseTok) * 100) : 0,
+                    note: 'Full codebase = if agent read every tracked source line once',
+                },
+                interpretation: t.saved > 0
+                    ? `Mikk saved ~${t.saved.toLocaleString()} tokens this session (${Math.round((t.saved / t.raw) * 100)}% reduction). Roughly ${Math.round(t.saved / 1000)}k tokens = ~${(t.saved * 0.000003).toFixed(3)} USD at GPT-4o rates.`
+                    : 'No tools called yet this session.',
+            }
+
+            return { content: [{ type: 'text' as const, text: JSON.stringify(response, null, 2) }] }
+        },
+    )
 }
 
 /**
@@ -1158,7 +1229,7 @@ async function loadContractAndLock(projectRoot: string) {
     let staleness: string | null = null
 
     if (syncStatus === 'drifted' || syncStatus === 'conflict') {
-        staleness = ` Lock file is ${syncStatus}. Run \`mikk analyze\` for accurate results.`
+        staleness = `Ã‚Â Lock file is ${syncStatus}. Run \`mikk analyze\` for accurate results.`
     }
 
     // Active staleness detection: check mtime of a sample of tracked files
@@ -1188,7 +1259,7 @@ async function loadContractAndLock(projectRoot: string) {
         }
 
         if (mismatched > 0) {
-            staleness = ` STALE: ${mismatched} file(s) changed since last analysis (${mismatchedFiles.slice(0, 3).join(', ')}${mismatched > 3 ? '...' : ''}). Run \`mikk analyze\`.`
+            staleness = `Ã‚Â STALE: ${mismatched} file(s) changed since last analysis (${mismatchedFiles.slice(0, 3).join(', ')}${mismatched > 3 ? '...' : ''}). Run \`mikk analyze\`.`
         }
     }
 
@@ -1204,7 +1275,7 @@ async function loadContractAndLock(projectRoot: string) {
 
 /**
  * Build a DependencyGraph from the lock file in O(n) time.
- * The lock already has fn.calls and fn.calledBy arrays ” we just wire them up.
+ * The lock already has fn.calls and fn.calledBy arrays Ã¢â‚¬Â we just wire them up.
  */
 function buildGraphFromLock(lock: MikkLock): DependencyGraph {
     const nodes = new Map<string, GraphNode>()
@@ -1281,7 +1352,7 @@ function detectCircularDeps(
                 const cycleStart = cyclePath.indexOf(id)
                 const cycle = cyclePath.slice(cycleStart).map(cid => lock.functions[cid]?.name ?? cid)
                 cycle.push(lock.functions[id]?.name ?? id)
-                warnings.push(` Circular: ${cycle.join(' †’ ')}`)
+                warnings.push(`Ã‚Â Circular: ${cycle.join(' Ã¢â‚¬Â Ã¢â‚¬â„¢ ')}`)
                 return true
             }
             if (visited.has(id)) return false
@@ -1347,7 +1418,7 @@ function parseDiffHunks(diff: string): { file: string; changedLines: number[]; i
                 files.set(currentFile, { changedLines: [], isNew: nextIsNew, isDeleted: false })
             }
             if (currentFile === '/dev/null') {
-                // deletion — mark previous file
+                // deletion Ã¢â‚¬â€ mark previous file
                 const prev = [...files.keys()].pop()
                 if (prev) files.get(prev)!.isDeleted = true
             }

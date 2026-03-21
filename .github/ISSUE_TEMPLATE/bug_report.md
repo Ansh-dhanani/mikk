@@ -1,41 +1,49 @@
 ---
 name: Bug report
-about: Create a report to help us improve Mikk
-title: '[BUG] '
+about: Something is broken or producing wrong output
+title: "[bug] "
 labels: bug
-assignees: ''
-
+assignees: ""
 ---
 
-## Prerequisites
-Before reporting a bug, please ensure you have completed the following steps:
-- [ ] I have verified that this issue has not already been reported.
-- [ ] I have updated to the latest version of the Mikk CLI and plugins.
-- [ ] I have read the documentation and `mikk help` output.
+## What happened
 
-## Describe the Bug
-<!-- A clear and concise description of what the bug is. -->
+<!-- Clear description of the wrong behavior -->
 
+## What you expected
 
-## To Reproduce
-Steps to reproduce the behavior:
-1. Run command: `mikk ...`
-2. With configuration: `...`
-3. See error: `...`
+<!-- What should have happened instead -->
 
-## Expected Behavior
-<!-- A clear and concise description of what you expected to happen. -->
+## Reproduction
 
+```bash
+# Exact commands to reproduce
+mikk init
+mikk analyze
+mikk ci
+```
 
 ## Environment
-Please complete the following information to help us diagnose the issue:
 
-- **OS:** <!-- e.g., macOS Sonoma, Windows 11, Ubuntu 22.04 -->
-- **Node.js Version:** <!-- e.g., v20.10.0 -->
-- **Bun Version (if applicable):** <!-- e.g., v1.1.0 -->
-- **Mikk Version:** <!-- e.g., 1.7.2 -->
-- **Language being parsed:** <!-- e.g., TypeScript, Python, Go -->
+- Mikk version: <!-- run `mikk --version` -->
+- OS: <!-- Windows / macOS / Linux + version -->
+- Node / Bun version: <!-- run `node --version` or `bun --version` -->
+- Project language: <!-- TypeScript / JavaScript / Go -->
 
-## Additional Context
-<!-- Add any other context about the problem here. (e.g., terminal output, `mikk.json` configuration, size of the codebase, or recent architectural drift). -->
+## Doctor output
 
+```
+# paste: mikk doctor
+```
+
+## Full command output
+
+```
+# paste the failing command output here
+```
+
+## mikk.json constraints (if relevant)
+
+```json
+// paste your declared.constraints array
+```

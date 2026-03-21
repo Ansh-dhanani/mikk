@@ -5,12 +5,12 @@ graph TD
     packages_core["🟡 Search & Utils<br/>Cohesion: 100%<br/>Coupling: 0<br/>Functions: 228"]
     apps_registry["🟡 Search (Registry)<br/>Cohesion: 50%<br/>Coupling: 0<br/>Functions: 1"]
     packages_ai_context["🟡 Providers (Ai Context)<br/>Cohesion: 100%<br/>Coupling: 0<br/>Functions: 44"]
-    packages_intent_engine["🟢 Search (Intent Engine)<br/>Cohesion: 100%<br/>Coupling: 0<br/>Functions: 35"]
     packages_diagram_generator["🟡 Search (Diagram Generator)<br/>Cohesion: 50%<br/>Coupling: 0<br/>Functions: 33"]
+    packages_intent_engine["🟢 Search (Intent Engine)<br/>Cohesion: 100%<br/>Coupling: 0<br/>Functions: 35"]
     packages_mcp_server["🟢 Search & Caching<br/>Cohesion: 100%<br/>Coupling: 0<br/>Functions: 14"]
     packages_vscode_extension["🟢 Providers (Vscode Extension)<br/>Cohesion: 100%<br/>Coupling: 0<br/>Functions: 25"]
     packages_watcher["🟡 Storage<br/>Cohesion: 50%<br/>Coupling: 0<br/>Functions: 25"]
-    packages_cli["🟢 CLI<br/>Cohesion: 100%<br/>Coupling: 0<br/>Functions: 28"]
+    packages_cli["🟡 CLI<br/>Cohesion: 100%<br/>Coupling: 0<br/>Functions: 40"]
 
     classDef healthy fill:#22c55e,stroke:#4ade80,color:#f0fdf4
     classDef warning fill:#f59e0b,stroke:#fbbf24,color:#1e293b
@@ -20,9 +20,9 @@ graph TD
     class packages_core warning
     class apps_registry warning
     class packages_ai_context warning
-    class packages_intent_engine healthy
     class packages_diagram_generator warning
+    class packages_intent_engine healthy
     class packages_mcp_server healthy
     class packages_vscode_extension healthy
     class packages_watcher warning
-    class packages_cli healthy
+    class packages_cli warning

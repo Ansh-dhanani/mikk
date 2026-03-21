@@ -18,4 +18,13 @@ if (idx !== -1 && process.argv[idx + 1]) {
 process.env.MIKK_PROJECT_ROOT = projectRoot
 
 // Load the CJS bundle (auto-starts stdio server via src/index.ts)
-require('../dist/index.cjs')
+const mod = require('../dist/index.cjs')
+if (mod.startStdioServer) {
+    mod.startStdioServer().catch(err => {
+        console.error('Failed to start MCP server:', err)
+        process.exit(1)
+    })
+} else {
+    console.error('MCP server bundle is missing startStdioServer export.')
+    process.exit(1)
+}

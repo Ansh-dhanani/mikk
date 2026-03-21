@@ -13,13 +13,13 @@ graph TD
             fn_packages_core_src_contract_lock_reader_ts_LockReader_read["⚡ LockReader.read"]
             fn_packages_core_src_contract_lock_reader_ts_LockReader_write["⚡ LockReader.write"]
         end
+        subgraph file_packages_core_src_parser_boundary_checker_ts["📄 boundary-checker.ts"]
+            fn_packages_core_src_parser_boundary_checker_ts_parseConstraint["⚡ parseConstraint"]
+        end
         subgraph file_packages_core_src_hash_file_hasher_ts["📄 file-hasher.ts"]
             fn_packages_core_src_hash_file_hasher_ts_hashContent["λ hashContent"]
             fn_packages_core_src_hash_file_hasher_ts_hashFile["⚡ hashFile"]
             fn_packages_core_src_hash_file_hasher_ts_hashFunctionBody["⚡ hashFunctionBody"]
-        end
-        subgraph file_packages_core_src_parser_boundary_checker_ts["📄 boundary-checker.ts"]
-            fn_packages_core_src_parser_boundary_checker_ts_parseConstraint["⚡ parseConstraint"]
         end
         subgraph file_packages_core_src_search_bm25_ts["📄 bm25.ts"]
             fn_packages_core_src_search_bm25_ts_tokenize["λ tokenize"]

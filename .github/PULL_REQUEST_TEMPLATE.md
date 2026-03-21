@@ -1,25 +1,42 @@
-## Description
-<!-- Please include a summary of the change and which issue is fixed. Please also include relevant motivation and context. -->
+## What this changes
 
-Fixes # (issue)
+<!-- One paragraph. What problem does this PR solve? -->
 
-## Type of change
-<!-- Please delete options that are not relevant. -->
-- [ ] Bug fix (non-breaking change which fixes an issue)
-- [ ] New feature (non-breaking change which adds functionality)
-- [ ] Breaking change (fix or feature that would cause existing functionality to not work as expected)
-- [ ] This change requires a documentation update
+## Type
 
-## How Has This Been Tested?
-<!-- Please describe the tests that you ran to verify your changes. Provide instructions so we can reproduce. Please also list any relevant details for your test configuration -->
-- [ ] Updated `@getmikk/core` TS tests
-- [ ] Expanded `commands.test.ts` for strictly typed arguments
-- [ ] Validated `bun run build` across turborepo succeeds locally
+- [ ] Bug fix
+- [ ] Feature
+- [ ] Parser improvement
+- [ ] Performance
+- [ ] Docs / README
+- [ ] Refactor
 
-## Checklist:
-- [ ] My code follows the style guidelines of this project
-- [ ] I have performed a self-review of my own code
-- [ ] I have commented my code, particularly in hard-to-understand areas
-- [ ] I have made corresponding changes to the documentation (e.g., `CLAUDE.md`, `.mdx` files)
-- [ ] My changes generate no new warnings inside `bun test`
-- [ ] I have added tests that prove my fix is effective or that my feature works
+## How to test
+
+```bash
+# Commands to verify the fix
+cd packages/core
+bun test
+
+mikk analyze
+mikk ci
+```
+
+## Test project
+
+<!-- If this affects parsing or analysis, describe the test case -->
+
+## Checklist
+
+- [ ] `bun run build` passes with no TypeScript errors
+- [ ] `bun run test` passes (363+ tests, 0 failures)
+- [ ] If parser change: tested against real TypeScript / JS / Go code
+- [ ] If MCP tool change: tested with an actual MCP client session
+- [ ] If constraint change: `mikk ci` correctly exits non-zero on violations
+- [ ] Lock file format unchanged (or migration path documented)
+- [ ] README updated if behavior changed
+
+## Breaking changes
+
+<!-- Does this change the lock file format, CLI flags, MCP tool output schema, or mikk.json schema? -->
+None / describe here

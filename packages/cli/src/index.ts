@@ -1,17 +1,13 @@
 import { Command } from 'commander'
 
-// Force UTF-8 output on Windows so Unicode symbols (✓ ✗ → 🟢) render correctly
+// Force UTF-8 on Windows so Unicode block chars render correctly
 if (process.platform === 'win32') {
     try {
-        // stdout/stderr may not support setEncoding in all environments
-        if (typeof (process.stdout as any).setEncoding === 'function') {
-            (process.stdout as any).setEncoding('utf8')
-        }
-        if (typeof (process.stderr as any).setEncoding === 'function') {
-            (process.stderr as any).setEncoding('utf8')
-        }
+        if (typeof (process.stdout as any).setEncoding === 'function') (process.stdout as any).setEncoding('utf8')
+        if (typeof (process.stderr as any).setEncoding === 'function') (process.stderr as any).setEncoding('utf8')
     } catch { /* non-fatal */ }
 }
+
 import { registerInitCommand } from './commands/init.js'
 import { registerAnalyzeCommand } from './commands/analyze.js'
 import { registerDiffCommand } from './commands/diff.js'
@@ -27,29 +23,59 @@ import { registerDoctorCommand } from './commands/doctor.js'
 import { registerStatsCommand } from './commands/stats.js'
 import { registerAdrCommand } from './commands/adr.js'
 import { registerRemoveCommand } from './commands/remove.js'
+import { banner, sq, gap } from './ui.js'
 
 declare const __MIKK_VERSION__: string
 
-// -- Global error handlers ---------------------------------------------------
 process.on('unhandledRejection', (reason: any) => {
-    console.error(`\nUnhandled error: ${reason?.message ?? reason}`)
-    if (process.env.MIKK_DEBUG) console.error(reason?.stack ?? reason)
+    process.stderr.write(`\nerror  ${reason?.message ?? reason}\n`)
+    if (process.env.MIKK_DEBUG) process.stderr.write(reason?.stack ?? reason)
     process.exit(1)
 })
 process.on('uncaughtException', (err) => {
-    console.error(`\nFatal error: ${err.message}`)
-    if (process.env.MIKK_DEBUG) console.error(err.stack)
+    process.stderr.write(`\nfatal  ${err.message}\n`)
+    if (process.env.MIKK_DEBUG) process.stderr.write(err.stack ?? '')
     process.exit(1)
 })
+
+// ── Show retro banner + command list when invoked with no arguments ───────────
+if (process.argv.length <= 2) {
+    banner()
+
+    const cmds = [
+        ['init',      'Scan project, build dependency graph, generate all artifacts'],
+        ['analyze',   'Re-analyze after code changes'],
+        ['watch',     'Live watcher daemon — incremental, debounced'],
+        ['diff',      'Files changed since last analysis'],
+        ['ci',        'Architecture gate — exits non-zero on violations'],
+        ['stats',     'Codebase health dashboard'],
+        ['doctor',    'Project diagnostic check'],
+        ['intent',    'Pre-flight a refactor before writing code'],
+        ['context',   'Graph-traced context queries'],
+        ['dead-code', 'Detect unused functions'],
+        ['mcp',       'Start MCP server (19 tools)'],
+        ['visualize', 'Regenerate Mermaid diagrams'],
+    ]
+
+    process.stdout.write('  ' + sq.info + '  Commands\n')
+    process.stdout.write('  ' + '─'.repeat(50) + '\n')
+    for (const [cmd, desc] of cmds) {
+        const padded = ('  mikk ' + cmd).padEnd(22)
+        process.stdout.write(padded + '  \x1B[2m' + desc + '\x1B[0m\n')
+    }
+    gap()
+    process.stdout.write('  \x1B[2mRun \x1B[0mmikk <command> --help\x1B[2m for options.\x1B[0m\n')
+    gap()
+    process.exit(0)
+}
 
 const program = new Command()
 
 program
     .name('mikk')
-    .description('The structural nervous system of your codebase')
+    .description('Live architectural context for your AI agent')
     .version(typeof __MIKK_VERSION__ !== 'undefined' ? __MIKK_VERSION__ : '0.0.0-dev')
 
-// Register all commands
 registerInitCommand(program)
 registerAnalyzeCommand(program)
 registerDiffCommand(program)
