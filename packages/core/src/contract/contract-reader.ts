@@ -1,6 +1,6 @@
-import * as fs from 'node:fs/promises'
 import { MikkContractSchema, type MikkContract } from './schema.js'
 import { ContractNotFoundError } from '../utils/errors.js'
+import { readJsonSafe } from '../utils/json.js'
 
 /**
  * ContractReader -- reads and validates mikk.json from disk.
@@ -8,21 +8,21 @@ import { ContractNotFoundError } from '../utils/errors.js'
 export class ContractReader {
     /** Read and validate mikk.json */
     async read(contractPath: string): Promise<MikkContract> {
-        let content: string
+        let json: any
         try {
-            content = await fs.readFile(contractPath, 'utf-8')
-        } catch {
-            throw new ContractNotFoundError(contractPath)
+            json = await readJsonSafe(contractPath, 'mikk.json')
+        } catch (e: any) {
+            if (e.code === 'ENOENT') {
+                throw new ContractNotFoundError(contractPath)
+            }
+            throw e
         }
 
-        const json = JSON.parse(content.replace(/^\uFEFF/, ''))
         const result = MikkContractSchema.safeParse(json)
-
         if (!result.success) {
             const errors = result.error.issues.map(i => `  ${i.path.join('.')}: ${i.message}`).join('\n')
-            throw new Error(`Invalid mikk.json:\n${errors}`)
+            throw new Error(`Invalid mikk.json structure:\n${errors}`)
         }
-
         return result.data
     }
 }
