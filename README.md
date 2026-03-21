@@ -26,12 +26,17 @@ align="center">
   <img src="./assets/showcase.gif" alt="Mikk in action" width="760" />
 </p>
 
+
+## Performance Benchmark
+
+Mikk delivers dramatic token and time savings on every agentic coding task.
+
 <p align="center">
-  <img src="./benchmarks/results/chart-tokens.png" alt="Token Usage: Mikk vs Agentic" width="760" />
+  <img src="./assets/chart-tokens.png" alt="Token Usage: Mikk vs Agentic" width="760" />
 </p>
 
 <p align="center">
-  <img src="./benchmarks/results/chart-time.png" alt="Response Time: Mikk vs Agentic" width="760" />
+  <img src="./assets/chart-time.png" alt="Response Time: Mikk vs Agentic" width="760" />
 </p>
 
 ***
@@ -398,17 +403,6 @@ Mikk is a Turborepo monorepo with 8 packages:
 
 ***
 
-## Performance Benchmark
-
-Mikk delivers dramatic token and time savings on every agentic coding task.
-
-<p align="center">
-  <img src="./assets/chart-tokens.png" alt="Token Usage: Mikk vs Agentic" width="760" />
-</p>
-
-<p align="center">
-  <img src="./assets/chart-time.png" alt="Response Time: Mikk vs Agentic" width="760" />
-</p>
 
 ### Benchmark Results
 
