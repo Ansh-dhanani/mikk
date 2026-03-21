@@ -1,6 +1,7 @@
 import * as fs from 'node:fs/promises'
 import { MikkLockSchema, type MikkLock } from './schema.js'
 import { LockNotFoundError } from '../utils/errors.js'
+import { readJsonSafe } from '../utils/json.js'
 
 /**
  * LockReader -- reads and validates mikk.lock.json from disk.
@@ -10,20 +11,22 @@ import { LockNotFoundError } from '../utils/errors.js'
 export class LockReader {
     /** Read and validate mikk.lock.json */
     async read(lockPath: string): Promise<MikkLock> {
-        let content: string
+        let json: any
         try {
-            content = await fs.readFile(lockPath, 'utf-8')
-        } catch {
-            throw new LockNotFoundError()
+            json = await readJsonSafe(lockPath, 'mikk.lock.json')
+        } catch (e: any) {
+            if (e.code === 'ENOENT') {
+                throw new LockNotFoundError()
+            }
+            throw e
         }
 
-        const json = JSON.parse(content.replace(/^\uFEFF/, ''))
         const hydrated = hydrateLock(json)
         const result = MikkLockSchema.safeParse(hydrated)
 
         if (!result.success) {
             const errors = result.error.issues.map(i => `  ${i.path.join('.')}: ${i.message}`).join('\n')
-            throw new Error(`Invalid mikk.lock.json:\n${errors}`)
+            throw new Error(`Invalid mikk.lock.json structure:\n${errors}`)
         }
 
         return result.data
