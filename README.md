@@ -29,15 +29,13 @@ align="center">
 
 ## Performance Benchmark
 
-Mikk delivers dramatic token and time savings on every agentic coding task.
+Mikk delivers dramatic token on every agentic coding task.
 
 <p align="center">
   <img src="./assets/chart-tokens.png" alt="Token Usage: Mikk vs Agentic" width="760" />
 </p>
 
-<p align="center">
-  <img src="./assets/chart-time.png" alt="Response Time: Mikk vs Agentic" width="760" />
-</p>
+
 
 ***
 
@@ -415,23 +413,9 @@ Mikk is a Turborepo monorepo with 8 packages:
 
 **Average Results:**
 
-* ⏱️ **99.9% time saved** (219ms → 0ms average)
-* 🎯 **15% accuracy improvement** (80% → 95%)
-* 📊 **4x fewer commands** needed to complete tasks
-
-### Recordings
-
-Watch the benchmark in action:
-
-```Shell
-# Play the benchmark demo
-asciinema play benchmarks/recordings/mikk-benchmark-demo.cast
-
-# Or view the interactive HTML report
-open benchmarks/results/benchmark-visualization.html
-```
-
-See [`benchmarks/`](./benchmarks/) for the full benchmark suite and methodology.
+* **99.9% time saved** (219ms → 0ms average)
+* **15% accuracy improvement** (80% → 95%)
+* **4x fewer commands** needed to complete tasks
 
 ***
 
