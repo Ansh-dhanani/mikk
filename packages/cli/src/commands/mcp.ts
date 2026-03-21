@@ -20,33 +20,25 @@ export function registerMcpCommand(program: Command) {
         .command('start', { isDefault: true })
         .description('Start the MCP (Model Context Protocol) server for AI assistants')
         .action(async (_args: any, cmd: Command) => {
-            console.error('\n  --- MIKK MCP DEBUG VERSION 2.0 ---')
-            console.error('  [DEBUG] MCP start action entered')
-            
             // Collect options from current command and parent
             const opts = { ...cmd.parent?.opts(), ...cmd.opts() } as { project: string }
             const projectRoot = path.resolve(opts.project || process.cwd())
             process.env.MIKK_PROJECT_ROOT = projectRoot
             
-            console.error(`[DEBUG] projectRoot resolved to: ${projectRoot}`)
-            
             try {
                 // Use a relative path to the server package
                 const serverPath = path.resolve(__dirname, '../../mcp-server/dist/index.cjs')
-                console.error(`[DEBUG] Attempting to require server from: ${serverPath}`)
                 
                 if (!fs.existsSync(serverPath)) {
                     throw new Error(`MCP server bundle not found at ${serverPath}. Please run 'bun run build' in the monorepo root.`)
                 }
                 
                 const mod = require(serverPath)
-                console.error('[DEBUG] MCP server bundle required successfully')
                 
                 if (!mod.startStdioServer) {
-                    throw new Error(`MCP server bundle at ${serverPath} is missing startStdioServer export. Found keys: ${Object.keys(mod).join(', ')}`)
+                    throw new Error(`MCP server bundle at ${serverPath} is missing startStdioServer export.`)
                 }
                 
-                console.error('[DEBUG] Calling startStdioServer()...')
                 await mod.startStdioServer()
             } catch (err) {
                 console.error('\n  ✖ Failed to start Mikk MCP server:', (err as Error).message)
