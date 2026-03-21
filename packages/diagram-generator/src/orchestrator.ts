@@ -8,6 +8,7 @@ import { HealthDiagramGenerator } from './generators/health-diagram.js'
 import { FlowDiagramGenerator } from './generators/flow-diagram.js'
 import { CapsuleDiagramGenerator } from './generators/capsule-diagram.js'
 import { DependencyMatrixGenerator } from './generators/dependency-matrix.js'
+import { CommandsDiagramGenerator } from './generators/commands-diagram.js'
 
 /**
  * DiagramOrchestrator — generates all diagram types and writes them to

@@ -1,0 +1,95 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 1360" width="900" height="1360">
+  <defs>
+    <style>
+      .bg   { fill: #0d1117; }
+      .logo { font-family: 'Courier New', Courier, monospace; font-size: 13.5px; font-weight: 700; fill: #ffffff; }
+      .tag  { font-family: 'Courier New', Courier, monospace; font-size: 15px; fill: #8b949e; }
+      .cat  { font-family: 'Courier New', Courier, monospace; font-size: 13px; font-weight: 700; fill: #ffffff; }
+      .cmd  { font-family: 'Courier New', Courier, monospace; font-size: 13px; fill: #58a6ff; }
+      .dsc  { font-family: 'Courier New', Courier, monospace; font-size: 13px; fill: #8b949e; }
+      .ft   { font-family: 'Courier New', Courier, monospace; font-size: 12px; fill: #3d444d; }
+    </style>
+  </defs>
+  <rect class="bg" width="900" height="1360" rx="12"/>
+
+  <!-- logo -->
+  <text class="logo" x="54" y="74">&#x2588;&#x2588;&#x2588;&#x2557;   &#x2588;&#x2588;&#x2588;&#x2557;&#x2588;&#x2588;&#x2557;&#x2588;&#x2588;&#x2557;  &#x2588;&#x2588;&#x2557;&#x2588;&#x2588;&#x2557;  &#x2588;&#x2588;&#x2557;</text>
+  <text class="logo" x="54" y="92">&#x2588;&#x2588;&#x2588;&#x2588;&#x2557; &#x2588;&#x2588;&#x2588;&#x2588;&#x2551;&#x2588;&#x2588;&#x2551;&#x2588;&#x2588;&#x2551; &#x2588;&#x2588;&#x2554;&#x255D;&#x2588;&#x2588;&#x2551; &#x2588;&#x2588;&#x2554;&#x255D;</text>
+  <text class="logo" x="54" y="110">&#x2588;&#x2588;&#x2554;&#x2588;&#x2588;&#x2588;&#x2588;&#x2554;&#x2588;&#x2588;&#x2551;&#x2588;&#x2588;&#x2551;&#x2588;&#x2588;&#x2588;&#x2588;&#x2588;&#x2554;&#x255D; &#x2588;&#x2588;&#x2588;&#x2588;&#x2588;&#x2554;&#x255D; </text>
+  <text class="logo" x="54" y="128">&#x2588;&#x2588;&#x2551;&#x255A;&#x2588;&#x2588;&#x2554;&#x255D;&#x2588;&#x2588;&#x2551;&#x2588;&#x2588;&#x2551;&#x2588;&#x2588;&#x2554;&#x2550;&#x2588;&#x2588;&#x2557; &#x2588;&#x2588;&#x2554;&#x2550;&#x2588;&#x2588;&#x2557; </text>
+  <text class="logo" x="54" y="146">&#x2588;&#x2588;&#x2551; &#x255A;&#x2550;&#x255D; &#x2588;&#x2588;&#x2551;&#x2588;&#x2588;&#x2551;&#x2588;&#x2588;&#x2551;  &#x2588;&#x2588;&#x2557;&#x2588;&#x2588;&#x2551;  &#x2588;&#x2588;&#x2557;</text>
+  <text class="logo" x="54" y="164">&#x255A;&#x2550;&#x255D;     &#x255A;&#x2550;&#x255D;&#x255A;&#x2550;&#x255D;&#x255A;&#x2550;&#x255D;  &#x255A;&#x2550;&#x255D;&#x255A;&#x2550;&#x255D;  &#x255A;&#x2550;&#x255D;</text>
+
+  <text class="tag" x="54" y="196">Live architectural context for your AI agent.</text>
+  <line x1="54" y1="216" x2="846" y2="216" stroke="#21262d" stroke-width="1"/>
+
+  <!-- SETUP -->
+  <rect x="54" y="234" width="4" height="16" fill="#00b8d9" rx="1"/>
+  <text class="cat" x="66" y="247">Setup &amp; Analysis</text>
+  <line x1="54" y1="258" x2="846" y2="258" stroke="#21262d" stroke-width="1"/>
+  <text class="cmd" x="54" y="280">mikk init</text><text class="dsc" x="264" y="280">Scan project, build dependency graph, generate all artifacts</text>
+  <text class="cmd" x="54" y="306">mikk analyze</text><text class="dsc" x="264" y="306">Re-analyze after code changes, update lock file</text>
+  <text class="cmd" x="54" y="332">mikk watch</text><text class="dsc" x="264" y="332">Live watcher daemon &#x2014; incremental updates, 100ms debounce</text>
+  <text class="cmd" x="54" y="358">mikk diff</text><text class="dsc" x="264" y="358">Files changed since last analysis</text>
+  <text class="cmd" x="54" y="384">mikk remove</text><text class="dsc" x="264" y="384">Uninstall Mikk and delete all generated artifacts</text>
+
+  <!-- HEALTH -->
+  <rect x="54" y="412" width="4" height="16" fill="#00b8d9" rx="1"/>
+  <text class="cat" x="66" y="425">Health</text>
+  <line x1="54" y1="436" x2="846" y2="436" stroke="#21262d" stroke-width="1"/>
+  <text class="cmd" x="54" y="458">mikk stats</text><text class="dsc" x="264" y="458">Per-module metrics, function counts, dead code %</text>
+  <text class="cmd" x="54" y="484">mikk doctor</text><text class="dsc" x="264" y="484">7-point diagnostic &#x2014; config, lock freshness, dependencies</text>
+  <text class="cmd" x="54" y="510">mikk dead-code</text><text class="dsc" x="264" y="510">Detect unused functions across the codebase</text>
+
+  <!-- ARCHITECTURE -->
+  <rect x="54" y="538" width="4" height="16" fill="#00b8d9" rx="1"/>
+  <text class="cat" x="66" y="551">Architecture &amp; CI</text>
+  <line x1="54" y1="562" x2="846" y2="562" stroke="#21262d" stroke-width="1"/>
+  <text class="cmd" x="54" y="584">mikk ci</text><text class="dsc" x="264" y="584">CI gate &#x2014; exits non-zero on constraint violations</text>
+  <text class="cmd" x="54" y="610">mikk ci --strict</text><text class="dsc" x="264" y="610">Also enforce dead code threshold</text>
+  <text class="cmd" x="54" y="636">mikk ci --format json</text><text class="dsc" x="264" y="636">Machine-readable output for log ingestion</text>
+  <text class="cmd" x="54" y="662">mikk contract validate</text><text class="dsc" x="264" y="662">Check constraint violations and drift</text>
+  <text class="cmd" x="54" y="688">mikk contract show-boundaries</text><text class="dsc" x="264" y="688">Show all cross-module dependencies</text>
+
+  <!-- CONTEXT -->
+  <rect x="54" y="716" width="4" height="16" fill="#00b8d9" rx="1"/>
+  <text class="cat" x="66" y="729">Context</text>
+  <line x1="54" y1="740" x2="846" y2="740" stroke="#21262d" stroke-width="1"/>
+  <text class="cmd" x="54" y="762">mikk context query</text><text class="dsc" x="264" y="762">Ask an architecture question, get graph-traced response</text>
+  <text class="cmd" x="54" y="788">mikk context impact &lt;file&gt;</text><text class="dsc" x="264" y="788">Blast radius of changing a file, classified by severity</text>
+  <text class="cmd" x="54" y="814">mikk context for &lt;task&gt;</text><text class="dsc" x="264" y="814">Token-budgeted context scoped to a coding task</text>
+
+  <!-- REFACTORING -->
+  <rect x="54" y="842" width="4" height="16" fill="#00b8d9" rx="1"/>
+  <text class="cat" x="66" y="855">Refactoring</text>
+  <line x1="54" y1="866" x2="846" y2="866" stroke="#21262d" stroke-width="1"/>
+  <text class="cmd" x="54" y="888">mikk intent &lt;prompt&gt;</text><text class="dsc" x="264" y="888">Pre-flight a refactor &#x2014; detect conflicts before coding</text>
+  <text class="cmd" x="54" y="914">mikk rename</text><text class="dsc" x="264" y="914">Coordinated multi-file rename, finds all call sites</text>
+
+  <!-- MCP -->
+  <rect x="54" y="942" width="4" height="16" fill="#00b8d9" rx="1"/>
+  <text class="cat" x="66" y="955">MCP Server</text>
+  <line x1="54" y1="966" x2="846" y2="966" stroke="#21262d" stroke-width="1"/>
+  <text class="cmd" x="54" y="988">mikk mcp</text><text class="dsc" x="264" y="988">Start MCP server &#x2014; 22 tools, 30s in-memory cache</text>
+  <text class="cmd" x="54" y="1014">mikk mcp install</text><text class="dsc" x="264" y="1014">Install into Claude Desktop, Cursor, VS Code Copilot</text>
+
+  <!-- VISUALIZATION -->
+  <rect x="54" y="1042" width="4" height="16" fill="#00b8d9" rx="1"/>
+  <text class="cat" x="66" y="1055">Visualization</text>
+  <line x1="54" y1="1066" x2="846" y2="1066" stroke="#21262d" stroke-width="1"/>
+  <text class="cmd" x="54" y="1088">mikk visualize all</text><text class="dsc" x="264" y="1088">Regenerate all 7 Mermaid diagrams in .mikk/diagrams/</text>
+  <text class="cmd" x="54" y="1114">mikk visualize module &lt;id&gt;</text><text class="dsc" x="264" y="1114">Per-module call graph and public API capsule</text>
+
+  <!-- ADR -->
+  <rect x="54" y="1142" width="4" height="16" fill="#00b8d9" rx="1"/>
+  <text class="cat" x="66" y="1155">Architectural Decisions</text>
+  <line x1="54" y1="1166" x2="846" y2="1166" stroke="#21262d" stroke-width="1"/>
+  <text class="cmd" x="54" y="1188">mikk adr list</text><text class="dsc" x="264" y="1188">List all architectural decision records</text>
+  <text class="cmd" x="54" y="1214">mikk adr add</text><text class="dsc" x="264" y="1214">Add a new ADR &#x2014; surfaces in every context query response</text>
+  <text class="cmd" x="54" y="1240">mikk adr get &lt;id&gt;</text><text class="dsc" x="264" y="1240">Get details for a specific decision</text>
+
+  <!-- footer -->
+  <line x1="54" y1="1276" x2="846" y2="1276" stroke="#21262d" stroke-width="1"/>
+  <text class="ft" x="54"  y="1302">npm install -g @getmikk/cli</text>
+  <text class="ft" x="554" y="1302">github.com/ansh-dhanani/mikk</text>
+</svg>

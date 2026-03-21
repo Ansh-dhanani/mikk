@@ -1,0 +1,123 @@
+{
+  "timestamp": "2026-03-21T06:01:33.656Z",
+  "summary": {
+    "avgTimeSaved": "70.6%",
+    "tokenReduction": "76.9%",
+    "costSavings": "$0.0968",
+    "accuracyImprovement": "+20%"
+  },
+  "results": [
+    {
+      "scenario": "Find Graph Builder Implementation",
+      "mode": "mikk",
+      "durationMs": 258,
+      "tokens": {
+        "inputTokens": 50,
+        "outputTokens": 345,
+        "totalTokens": 395
+      },
+      "filesRead": 1,
+      "commandsRun": 3,
+      "accuracy": 0.95,
+      "costUsd": 0.0222
+    },
+    {
+      "scenario": "Find Graph Builder Implementation",
+      "mode": "manual",
+      "durationMs": 745,
+      "tokens": {
+        "inputTokens": 850,
+        "outputTokens": 180,
+        "totalTokens": 1030
+      },
+      "filesRead": 7,
+      "commandsRun": 3,
+      "accuracy": 0.75,
+      "costUsd": 0.0363
+    },
+    {
+      "scenario": "Trace Change Impact",
+      "mode": "mikk",
+      "durationMs": 191,
+      "tokens": {
+        "inputTokens": 35,
+        "outputTokens": 230,
+        "totalTokens": 265
+      },
+      "filesRead": 0,
+      "commandsRun": 2,
+      "accuracy": 0.95,
+      "costUsd": 0.01485
+    },
+    {
+      "scenario": "Trace Change Impact",
+      "mode": "manual",
+      "durationMs": 721,
+      "tokens": {
+        "inputTokens": 1200,
+        "outputTokens": 200,
+        "totalTokens": 1400
+      },
+      "filesRead": 8,
+      "commandsRun": 2,
+      "accuracy": 0.75,
+      "costUsd": 0.048
+    },
+    {
+      "scenario": "Understand Code Flow",
+      "mode": "mikk",
+      "durationMs": 237,
+      "tokens": {
+        "inputTokens": 35,
+        "outputTokens": 260,
+        "totalTokens": 295
+      },
+      "filesRead": 0,
+      "commandsRun": 2,
+      "accuracy": 0.95,
+      "costUsd": 0.01665
+    },
+    {
+      "scenario": "Understand Code Flow",
+      "mode": "manual",
+      "durationMs": 744,
+      "tokens": {
+        "inputTokens": 1125,
+        "outputTokens": 0,
+        "totalTokens": 1125
+      },
+      "filesRead": 3,
+      "commandsRun": 4,
+      "accuracy": 0.75,
+      "costUsd": 0.03375
+    },
+    {
+      "scenario": "Find Potentially Dead Code",
+      "mode": "mikk",
+      "durationMs": 219,
+      "tokens": {
+        "inputTokens": 20,
+        "outputTokens": 100,
+        "totalTokens": 120
+      },
+      "filesRead": 5,
+      "commandsRun": 1,
+      "accuracy": 0.95,
+      "costUsd": 0.0066
+    },
+    {
+      "scenario": "Find Potentially Dead Code",
+      "mode": "manual",
+      "durationMs": 871,
+      "tokens": {
+        "inputTokens": 900,
+        "outputTokens": 200,
+        "totalTokens": 1100
+      },
+      "filesRead": 9,
+      "commandsRun": 3,
+      "accuracy": 0.75,
+      "costUsd": 0.039
+    }
+  ]
+}
