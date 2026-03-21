@@ -4,11 +4,13 @@ import ora from 'ora'
 import { rm } from 'node:fs/promises'
 import { join } from 'node:path'
 import * as readline from 'node:readline'
+import { cleanupGitIgnore } from '@getmikk/core'
 
 const artifacts = [
     'mikk.json',
     'mikk.lock.json',
     '.mikk',
+    '.mikkignore',
     'CLAUDE.md',
     'AGENTS.md'
 ]
@@ -67,6 +69,9 @@ export function registerRemoveCommand(program: Command) {
                     }
                 }
             }
+
+            // Cleanup .gitignore
+            await cleanupGitIgnore(cwd)
 
             if (errors.length > 0) {
                 spinner.fail(chalk.red('Failed to cleanly remove all artifacts.'))

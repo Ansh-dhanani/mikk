@@ -655,3 +655,67 @@ export async function generateMikkIgnore(projectRoot: string, language: ProjectL
     await fs.writeFile(ignorePath, lines.join('\n'), 'utf-8')
     return true
 }
+
+/**
+ * Automatically add .mikk/ to the project's .gitignore file if it exists.
+ * Returns true if the file was modified, false otherwise.
+ */
+export async function updateGitIgnore(projectRoot: string): Promise<boolean> {
+    const gitIgnorePath = path.join(projectRoot, '.gitignore')
+    
+    // If no .gitignore, we don't create one (don't assume the project uses Git)
+    if (!await fileExists(gitIgnorePath)) return false
+
+    try {
+        const content = await fs.readFile(gitIgnorePath, 'utf-8')
+        const lines = content.split('\n')
+
+        // Check if already ignored
+        const alreadyIgnored = lines.some(line => {
+            const trimmed = line.trim()
+            return trimmed === '.mikk' || trimmed === '.mikk/' || trimmed === '**/.mikk/**'
+        })
+
+        if (alreadyIgnored) return false
+
+        // Append to .gitignore
+        const newContent = content.endsWith('\n') 
+            ? `${content}\n# Mikk internal\n.mikk/\n`
+            : `${content}\n\n# Mikk internal\n.mikk/\n`
+        
+        await fs.writeFile(gitIgnorePath, newContent, 'utf-8')
+        return true
+    } catch {
+        return false
+    }
+}
+
+/**
+ * Remove Mikk entries from .gitignore.
+ */
+export async function cleanupGitIgnore(projectRoot: string): Promise<boolean> {
+    const gitIgnorePath = path.join(projectRoot, '.gitignore')
+    if (!await fileExists(gitIgnorePath)) return false
+
+    try {
+        const content = await fs.readFile(gitIgnorePath, 'utf-8')
+        const lines = content.split('\n')
+        
+        let modified = false
+        const filtered = lines.filter(line => {
+            const trimmed = line.trim()
+            const isMikkEntry = trimmed === '.mikk' || trimmed === '.mikk/' || trimmed === '**/.mikk/**' || trimmed === '# Mikk internal'
+            if (isMikkEntry) modified = true
+            return !isMikkEntry
+        })
+
+        if (!modified) return false
+
+        // Joins lines and trim trailing newlines to avoid growing whitespace
+        const newContent = filtered.join('\n').trim() + '\n'
+        await fs.writeFile(gitIgnorePath, newContent, 'utf-8')
+        return true
+    } catch {
+        return false
+    }
+}

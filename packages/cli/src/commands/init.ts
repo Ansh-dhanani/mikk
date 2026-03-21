@@ -6,7 +6,7 @@ import {
     discoverFiles, discoverContextFiles, parseFiles, readFileContent,
     GraphBuilder, ClusterDetector, ContractGenerator,
     LockCompiler, ContractWriter, LockReader,
-    setupMikkDirectory, fileExists, generateMikkIgnore,
+    setupMikkDirectory, fileExists, generateMikkIgnore, updateGitIgnore,
     detectProjectLanguage, getDiscoveryPatterns,
     type MikkContract
 } from '@getmikk/core'
@@ -39,6 +39,13 @@ export function registerInitCommand(program: Command) {
                 const createdIgnore = await generateMikkIgnore(projectRoot, language)
                 if (createdIgnore) {
                     spinner.info(chalk.dim('Generated .mikkignore with smart defaults'))
+                    spinner.start('Scanning project...')
+                }
+                
+                // 1b. Update .gitignore if it exists
+                const gitIgnoreUpdated = await updateGitIgnore(projectRoot)
+                if (gitIgnoreUpdated) {
+                    spinner.info(chalk.dim('Added .mikk/ to .gitignore'))
                     spinner.start('Scanning project...')
                 }
 
