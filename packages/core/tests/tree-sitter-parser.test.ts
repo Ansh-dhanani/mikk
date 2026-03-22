@@ -37,12 +37,10 @@ def main():
         // User(), print(), and get_name() are called inside main() — not inside __init__.
         // The old test checked functions[0] which was only correct under the broken
         // "dump all calls into first function" behaviour. Now we look up main() directly.
-        const mainFnCalls = result.functions.find((f: any) => f.name === 'main')
-        expect(mainFnCalls).toBeDefined()
         // main() must have at least the User() and print() calls.
         // (get_name may appear as 'get_name' or as part of 'u.get_name' depending on
         // what tree-sitter's call.name capture emits — either way main has calls.)
-        expect(mainFnCalls!.calls.length).toBeGreaterThan(0)
+        expect(mainFn!.calls.length).toBeGreaterThan(0)
         // __init__ and get_name should have NO calls (they don't call anything)
         const initFn = result.functions.find((f: any) => f.name === '__init__')
         if (initFn) expect(initFn.calls.length).toBe(0)

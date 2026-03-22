@@ -404,11 +404,13 @@ function extractReturnType(ext: string, defNode: any): string {
     if (arrowMatch) return arrowMatch[1].trim()
     // Java/C# style: "public int foo(" — type precedes the name
     // This is too fragile to do reliably here; return 'unknown'
-    if (ext === '.go') {
-        // Go: "func foo() error" or "func foo() (int, error)"
-        const goReturn = text.match(/\)\s+([^\s{(]+)/)
-        if (goReturn) return goReturn[1].trim()
-    }
+      if (ext === '.go') {
+          // Go: "func foo() (int, error)" or "func foo() error"
+          const goReturnTuple = text.match(/\)\s+(\([^)]+\))/)
+          if (goReturnTuple) return goReturnTuple[1].trim()
+          const goReturn = text.match(/\)\s+([^\s{(]+)/)
+          if (goReturn) return goReturn[1].trim()
+      }
     return 'unknown'
 }
 

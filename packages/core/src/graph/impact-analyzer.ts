@@ -126,10 +126,10 @@ export class ImpactAnalyzer {
         }
         const avgConf = total / impacted.length
 
-        // Penalise for deep chains: confidence erodes with depth
-        const depthPenalty = impacted.length > 20 ? 0.15 : impacted.length > 10 ? 0.08 : 0
+        // Penalise for large impact sets: confidence erodes with result size
+        const sizePenalty = impacted.length > 20 ? 0.15 : impacted.length > 10 ? 0.08 : 0
 
-        const score = avgConf - depthPenalty
+        const score = avgConf - sizePenalty
 
         if (score >= 0.75) return 'high'
         if (score >= 0.50) return 'medium'

@@ -101,8 +101,8 @@ export class GraphBuilder {
             },
         }
         // Propagate moduleId if available on the parsed function
-        if ((fn as any).moduleId) {
-            node.moduleId = (fn as any).moduleId
+        if (fn.moduleId) {
+            node.moduleId = fn.moduleId
         }
         graph.nodes.set(fn.id, node)
     }
@@ -122,8 +122,8 @@ export class GraphBuilder {
                 errorHandling: cls.errorHandling,
             },
         }
-        if ((cls as any).moduleId) {
-            node.moduleId = (cls as any).moduleId
+        if (cls.moduleId) {
+            node.moduleId = cls.moduleId
         }
         graph.nodes.set(cls.id, node)
         // Add nodes for each method

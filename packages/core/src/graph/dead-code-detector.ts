@@ -62,8 +62,13 @@ const TEST_PATTERNS = [
  * even if no graph callers exist, because static analysis may have missed it.
  */
 const DYNAMIC_USAGE_PATTERNS = [
-    /^(get|set|has|is|to|from|parse|format|validate|handle|process|execute|run|load|save|create|build|make)[A-Z]/,
-    /^(render|update|delete|find|fetch|send|emit|dispatch|resolve|reject)/i,
+    /^addEventListener$/i,
+    /^removeEventListener$/i,
+    /^on[A-Z]/,
+    /(invoke|dispatch|emit|call|apply)/i,
+    /^ngOnInit$/i,
+    /^componentDidMount$/i,
+    /^componentWillUnmount$/i,
 ]
 
 // ─── Detector ──────────────────────────────────────────────────────

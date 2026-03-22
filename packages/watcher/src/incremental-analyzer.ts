@@ -2,7 +2,7 @@ import * as fs from 'node:fs/promises'
 import * as path from 'node:path'
 import {
     getParser, GraphBuilder, ImpactAnalyzer, LockCompiler, hashFile,
-    type ParsedFile, type DependencyGraph, type MikkLock, type MikkContract, type ImpactResult
+    type ParsedFile, type DependencyGraph, type MikkLock, type MikkContract, type ImpactResult, type GraphEdge
 } from '@getmikk/core'
 import type { FileChangeEvent } from './types.js'
 
@@ -107,15 +107,22 @@ export class IncrementalAnalyzer {
             for (const [id, node] of miniGraph.nodes) {
                 this.graph.nodes.set(id, node)
             }
-            // Merge edges — deduplicate by key
-            const existingEdgeKeys = new Set(
-                this.graph.edges.map(e => `${e.source}->${e.target}:${e.type}`)
-            )
+            // Merge edges — deduplicate by key but prefer fresher confidence
+            const existingEdgeMap = new Map<string, GraphEdge>()
+            for (const existingEdge of this.graph.edges) {
+                existingEdgeMap.set(`${existingEdge.source}->${existingEdge.target}:${existingEdge.type}`, existingEdge)
+            }
             for (const edge of miniGraph.edges) {
                 const key = `${edge.source}->${edge.target}:${edge.type}`
-                if (!existingEdgeKeys.has(key)) {
+                const existing = existingEdgeMap.get(key)
+                if (!existing) {
                     this.graph.edges.push(edge)
-                    existingEdgeKeys.add(key)
+                    existingEdgeMap.set(key, edge)
+                } else if (
+                    edge.confidence !== undefined &&
+                    (existing.confidence === undefined || edge.confidence > existing.confidence)
+                ) {
+                    existing.confidence = edge.confidence
                 }
             }
         }

@@ -5,6 +5,7 @@ import { JavaScriptExtractor } from './js-extractor.js'
 import { JavaScriptResolver } from './js-resolver.js'
 import { hashContent } from '../../hash/file-hasher.js'
 import type { ParsedFile } from '../types.js'
+import { MIN_FILES_FOR_COMPLETE_SCAN, parseJsonWithComments } from '../parser-constants.js'
 
 /**
  * JavaScriptParser -- implements BaseParser for .js / .mjs / .cjs / .jsx files.
@@ -55,9 +56,9 @@ export class JavaScriptParser extends BaseParser {
     resolveImports(files: ParsedFile[], projectRoot: string): ParsedFile[] {
         const aliases = loadAliases(projectRoot)
         // Only pass the file list when it represents a reasonably complete scan.
-        // A sparse list (< 10 files) causes valid alias-resolved imports to return ''
-        // because the target file is not in the partial list.
-        const allFilePaths = files.length >= 10 ? files.map(f => f.path) : []
+        // A sparse list (< MIN_FILES_FOR_COMPLETE_SCAN files) causes valid alias-resolved
+        // imports to return '' because the target file is not in the partial list.
+        const allFilePaths = files.length >= MIN_FILES_FOR_COMPLETE_SCAN ? files.map(f => f.path) : []
         const resolver = new JavaScriptResolver(projectRoot, aliases)
         return files.map(file => ({
             ...file,
@@ -72,8 +73,7 @@ export class JavaScriptParser extends BaseParser {
 
 /**
  * Load path aliases from jsconfig.json → tsconfig.json → tsconfig.base.json.
- * Strips JS/block comments before parsing (both formats allow them).
- * Falls back to raw content if comment-stripping breaks a URL.
+ * Strips JSON5 comments via the shared helper and falls back to raw content if parsing fails.
  * Returns {} when no config is found.
  */
 function loadAliases(projectRoot: string): Record<string, string[]> {
@@ -81,19 +81,7 @@ function loadAliases(projectRoot: string): Record<string, string[]> {
         const configPath = path.join(projectRoot, name)
         try {
             const raw = fs.readFileSync(configPath, 'utf-8')
-            // Strip line comments that are NOT inside strings.
-            // The naive /\/\/.*$/gm regex breaks URLs like "https://example.com" by
-            // removing everything after the //. We use a safer approach: only strip
-            // a // comment when it is not preceded by an even number of quote characters
-            // on the same line (i.e. it is not inside a string literal).
-            // For block comments (/* ... */) the existing replacement is fine since
-            // tsconfig/jsconfig files never put block comments inside string values.
-            const stripped = raw
-                .replace(/\/\*[\s\S]*?\*\//g, '')           // block comments
-                .replace(/(?<![":])\/\/[^\n]*/g, '')         // line comments not preceded by : or "
-            let config: any
-            try   { config = JSON.parse(stripped) }
-            catch { config = JSON.parse(raw) }          // stripping may have broken JSON; retry raw
+            const config: any = parseJsonWithComments(raw)
 
             const options  = config.compilerOptions ?? {}
             const rawPaths: Record<string, string[]> = options.paths ?? {}

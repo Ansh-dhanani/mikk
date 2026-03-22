@@ -5,6 +5,7 @@ import { TypeScriptExtractor } from './ts-extractor.js'
 import { TypeScriptResolver } from './ts-resolver.js'
 import { hashContent } from '../../hash/file-hasher.js'
 import type { ParsedFile } from '../types.js'
+import { MIN_FILES_FOR_COMPLETE_SCAN, parseJsonWithComments } from '../parser-constants.js'
 
 /**
  * TypeScript parser — uses TS Compiler API to parse .ts/.tsx files
@@ -58,12 +59,11 @@ export class TypeScriptParser extends BaseParser {
         const resolver = new TypeScriptResolver(projectRoot, tsConfigPaths)
 
         // Only pass the project file list when it is large enough to be a meaningful
-        // scan. When only 1–2 files are provided (e.g. in tests or incremental runs),
-        // the list is too sparse to reliably validate alias-resolved paths against,
-        // and the resolver would return '' for paths that are legitimately valid.
-        // With an empty list the resolver falls back to extension probing, which
-        // is safe and correct for alias paths defined in tsconfig.
-        const allFilePaths = files.length >= 10 ? files.map(f => f.path) : []
+        // scan. Sparse lists (< MIN_FILES_FOR_COMPLETE_SCAN files) cause alias
+        // resolution lookups to fail with '', so we only trust the list once it is
+        // sufficiently large. With an empty list the resolver falls back to extension
+        // probing, which is safe for alias-defined paths.
+        const allFilePaths = files.length >= MIN_FILES_FOR_COMPLETE_SCAN ? files.map(f => f.path) : []
 
         return files.map(file => ({
             ...file,
@@ -85,7 +85,7 @@ export class TypeScriptParser extends BaseParser {
  *  - extends with relative paths (./tsconfig.base.json)
  *  - extends with node_modules packages (@tsconfig/node-lts)
  *  - baseUrl prefix so aliases like "@/*" → ["src/*"] resolve correctly
- *  - JSON5-style comments (line and block comments)
+ *  - JSON5-style comments (line and block comments) via the shared helper
  */
 function loadTsConfigPaths(projectRoot: string): Record<string, string[]> {
     const candidates = ['tsconfig.json', 'tsconfig.base.json']
@@ -127,16 +127,11 @@ function loadTsConfigWithExtends(configPath: string, visited: Set<string>): any 
         return {}
     }
 
-    // Strip JSON5 comments without breaking URLs inside string values.
-    // /\/\/.*$/gm incorrectly strips "https://example.com" → use lookbehind.
-    const stripped = raw
-        .replace(/\/\*[\s\S]*?\*\//g, '')           // block comments
-        .replace(/(?<![":])\/\/[^\n]*/g, '')         // line comments not inside strings
     let config: any
     try {
-        config = JSON.parse(stripped)
+        config = parseJsonWithComments(raw)
     } catch {
-        try { config = JSON.parse(raw) } catch { return {} }
+        return {}
     }
 
     if (!config.extends) return config

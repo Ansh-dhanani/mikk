@@ -539,7 +539,6 @@ describe('JavaScriptParser', () => {
         ]
         // resolveImports in JavaScriptParser uses files.map(f => f.path) internally,
         // so to inject a richer file list we call the resolver directly here.
-        const { JavaScriptResolver } = await import('../src/parser/javascript/js-resolver.js')
         const resolver = new JavaScriptResolver('/project')
         const authFile = files.find((f: any) => f.path === 'src/auth.js')!
         const resolvedImports = resolver.resolveAll(authFile.imports, authFile.path, allProjectFiles)
