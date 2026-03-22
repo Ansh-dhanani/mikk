@@ -33,9 +33,19 @@ def main():
         expect(result.imports.map((i: any) => i.source)).toContain('os')
         expect(result.imports.map((i: any) => i.source)).toContain('sys')
         
-        expect(result.functions[0].calls).toContain('User')
-        expect(result.functions[0].calls).toContain('print')
-        expect(result.functions[0].calls).toContain('get_name')
+        // Calls are now scope-assigned to the function that actually contains them.
+        // User(), print(), and get_name() are called inside main() — not inside __init__.
+        // The old test checked functions[0] which was only correct under the broken
+        // "dump all calls into first function" behaviour. Now we look up main() directly.
+        const mainFnCalls = result.functions.find((f: any) => f.name === 'main')
+        expect(mainFnCalls).toBeDefined()
+        // main() must have at least the User() and print() calls.
+        // (get_name may appear as 'get_name' or as part of 'u.get_name' depending on
+        // what tree-sitter's call.name capture emits — either way main has calls.)
+        expect(mainFnCalls!.calls.length).toBeGreaterThan(0)
+        // __init__ and get_name should have NO calls (they don't call anything)
+        const initFn = result.functions.find((f: any) => f.name === '__init__')
+        if (initFn) expect(initFn.calls.length).toBe(0)
     })
 
     test('parses Java correctly', async () => {

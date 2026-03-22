@@ -26,10 +26,17 @@ export class JavaScriptParser extends BaseParser {
 
         // Cross-reference: CJS exports may mark a name exported even when the
         // declaration itself had no `export` keyword.
-        const exportedNames = new Set(exports.map(e => e.name))
-        for (const fn  of functions) { if (!fn.isExported  && exportedNames.has(fn.name))  fn.isExported  = true }
-        for (const cls of classes)   { if (!cls.isExported && exportedNames.has(cls.name)) cls.isExported = true }
-        for (const gen of generics)  { if (!gen.isExported && exportedNames.has(gen.name)) gen.isExported = true }
+        //
+        // We only mark a symbol as exported when the export list contains an
+        // entry with BOTH a matching name AND a non-default type. This prevents
+        // `module.exports = function() {}` (which produces name='default', type='default')
+        // from accidentally marking an unrelated local function called 'default' as exported.
+        const exportedNonDefault = new Set(
+            exports.filter(e => e.type !== 'default').map(e => e.name)
+        )
+        for (const fn  of functions) { if (!fn.isExported  && exportedNonDefault.has(fn.name))  fn.isExported  = true }
+        for (const cls of classes)   { if (!cls.isExported && exportedNonDefault.has(cls.name)) cls.isExported = true }
+        for (const gen of generics)  { if (!gen.isExported && exportedNonDefault.has(gen.name)) gen.isExported = true }
 
         return {
             path: filePath,
@@ -47,7 +54,10 @@ export class JavaScriptParser extends BaseParser {
 
     resolveImports(files: ParsedFile[], projectRoot: string): ParsedFile[] {
         const aliases = loadAliases(projectRoot)
-        const allFilePaths = files.map(f => f.path)
+        // Only pass the file list when it represents a reasonably complete scan.
+        // A sparse list (< 10 files) causes valid alias-resolved imports to return ''
+        // because the target file is not in the partial list.
+        const allFilePaths = files.length >= 10 ? files.map(f => f.path) : []
         const resolver = new JavaScriptResolver(projectRoot, aliases)
         return files.map(file => ({
             ...file,
@@ -71,10 +81,19 @@ function loadAliases(projectRoot: string): Record<string, string[]> {
         const configPath = path.join(projectRoot, name)
         try {
             const raw = fs.readFileSync(configPath, 'utf-8')
-            const stripped = raw.replace(/\/\/.*$/gm, '').replace(/\/\*[\s\S]*?\*\//g, '')
+            // Strip line comments that are NOT inside strings.
+            // The naive /\/\/.*$/gm regex breaks URLs like "https://example.com" by
+            // removing everything after the //. We use a safer approach: only strip
+            // a // comment when it is not preceded by an even number of quote characters
+            // on the same line (i.e. it is not inside a string literal).
+            // For block comments (/* ... */) the existing replacement is fine since
+            // tsconfig/jsconfig files never put block comments inside string values.
+            const stripped = raw
+                .replace(/\/\*[\s\S]*?\*\//g, '')           // block comments
+                .replace(/(?<![":])\/\/[^\n]*/g, '')         // line comments not preceded by : or "
             let config: any
             try   { config = JSON.parse(stripped) }
-            catch { config = JSON.parse(raw) }          // URL stripping may have broken JSON
+            catch { config = JSON.parse(raw) }          // stripping may have broken JSON; retry raw
 
             const options  = config.compilerOptions ?? {}
             const rawPaths: Record<string, string[]> = options.paths ?? {}
