@@ -19,11 +19,11 @@ export class JavaScriptParser extends BaseParser {
         const extractor = new JavaScriptExtractor(filePath, content)
 
         const functions = extractor.extractFunctions()
-        const classes   = extractor.extractClasses()
-        const generics  = extractor.extractGenerics()
-        const imports   = extractor.extractImports()
-        const exports   = extractor.extractExports()
-        const routes    = extractor.extractRoutes()
+        const classes = extractor.extractClasses()
+        const generics = extractor.extractGenerics()
+        const imports = extractor.extractImports()
+        const exports = extractor.extractExports()
+        const routes = extractor.extractRoutes()
 
         // Cross-reference: CJS exports may mark a name exported even when the
         // declaration itself had no `export` keyword.
@@ -35,9 +35,9 @@ export class JavaScriptParser extends BaseParser {
         const exportedNonDefault = new Set(
             exports.filter(e => e.type !== 'default').map(e => e.name)
         )
-        for (const fn  of functions) { if (!fn.isExported  && exportedNonDefault.has(fn.name))  fn.isExported  = true }
-        for (const cls of classes)   { if (!cls.isExported && exportedNonDefault.has(cls.name)) cls.isExported = true }
-        for (const gen of generics)  { if (!gen.isExported && exportedNonDefault.has(gen.name)) gen.isExported = true }
+        for (const fn of functions) { if (!fn.isExported && exportedNonDefault.has(fn.name)) fn.isExported = true }
+        for (const cls of classes) { if (!cls.isExported && exportedNonDefault.has(cls.name)) cls.isExported = true }
+        for (const gen of generics) { if (!gen.isExported && exportedNonDefault.has(gen.name)) gen.isExported = true }
 
         return {
             path: filePath,
@@ -83,7 +83,7 @@ function loadAliases(projectRoot: string): Record<string, string[]> {
             const raw = fs.readFileSync(configPath, 'utf-8')
             const config: any = parseJsonWithComments(raw)
 
-            const options  = config.compilerOptions ?? {}
+            const options = config.compilerOptions ?? {}
             const rawPaths: Record<string, string[]> = options.paths ?? {}
             if (Object.keys(rawPaths).length === 0) continue
 

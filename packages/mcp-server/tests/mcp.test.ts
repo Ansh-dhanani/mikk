@@ -84,7 +84,7 @@ describe('@getmikk/mcp-server - tool list', () => {
     let server: McpServer
 
     beforeAll(async () => {
-        ;({ client, server } = await createTestClient())
+        ; ({ client, server } = await createTestClient())
     })
 
     afterAll(async () => {
@@ -148,7 +148,7 @@ describe('mikk_get_project_overview', () => {
     let server: McpServer
 
     beforeAll(async () => {
-        ;({ client, server } = await createTestClient())
+        ; ({ client, server } = await createTestClient())
     })
 
     afterAll(async () => {
@@ -198,7 +198,7 @@ describe('mikk_list_modules', () => {
     let server: McpServer
 
     beforeAll(async () => {
-        ;({ client, server } = await createTestClient())
+        ; ({ client, server } = await createTestClient())
     })
 
     afterAll(async () => {
@@ -236,7 +236,7 @@ describe('mikk_get_module_detail', () => {
     let server: McpServer
 
     beforeAll(async () => {
-        ;({ client, server } = await createTestClient())
+        ; ({ client, server } = await createTestClient())
     })
 
     afterAll(async () => {
@@ -292,7 +292,7 @@ describe('mikk_get_function_detail', () => {
     let server: McpServer
 
     beforeAll(async () => {
-        ;({ client, server } = await createTestClient())
+        ; ({ client, server } = await createTestClient())
     })
 
     afterAll(async () => {
@@ -378,7 +378,7 @@ describe('mikk_search_functions', () => {
     let server: McpServer
 
     beforeAll(async () => {
-        ;({ client, server } = await createTestClient())
+        ; ({ client, server } = await createTestClient())
     })
 
     afterAll(async () => {
@@ -442,7 +442,7 @@ describe('mikk_impact_analysis', () => {
     let server: McpServer
 
     beforeAll(async () => {
-        ;({ client, server } = await createTestClient())
+        ; ({ client, server } = await createTestClient())
     })
 
     afterAll(async () => {
@@ -503,7 +503,7 @@ describe('mikk_before_edit', () => {
     let server: McpServer
 
     beforeAll(async () => {
-        ;({ client, server } = await createTestClient())
+        ; ({ client, server } = await createTestClient())
     })
 
     afterAll(async () => {
@@ -584,7 +584,7 @@ describe('mikk_get_file', () => {
     let server: McpServer
 
     beforeAll(async () => {
-        ;({ client, server } = await createTestClient())
+        ; ({ client, server } = await createTestClient())
     })
 
     afterAll(async () => {
@@ -643,7 +643,7 @@ describe('mikk_get_constraints', () => {
     let server: McpServer
 
     beforeAll(async () => {
-        ;({ client, server } = await createTestClient())
+        ; ({ client, server } = await createTestClient())
     })
 
     afterAll(async () => {
@@ -687,7 +687,7 @@ describe('mikk_get_routes', () => {
     let server: McpServer
 
     beforeAll(async () => {
-        ;({ client, server } = await createTestClient())
+        ; ({ client, server } = await createTestClient())
     })
 
     afterAll(async () => {
@@ -723,7 +723,7 @@ describe('mikk_query_context', () => {
     let server: McpServer
 
     beforeAll(async () => {
-        ;({ client, server } = await createTestClient())
+        ; ({ client, server } = await createTestClient())
     })
 
     afterAll(async () => {
@@ -782,7 +782,7 @@ describe('resources', () => {
     let server: McpServer
 
     beforeAll(async () => {
-        ;({ client, server } = await createTestClient())
+        ; ({ client, server } = await createTestClient())
     })
 
     afterAll(async () => {
@@ -829,7 +829,7 @@ describe('mikk_get_changes', () => {
     let server: McpServer
 
     beforeAll(async () => {
-        ;({ client, server } = await createTestClient())
+        ; ({ client, server } = await createTestClient())
     })
 
     afterAll(async () => {
@@ -856,7 +856,7 @@ describe('mikk_read_file', () => {
     let server: McpServer
 
     beforeAll(async () => {
-        ;({ client, server } = await createTestClient())
+        ; ({ client, server } = await createTestClient())
     })
 
     afterAll(async () => {
@@ -914,7 +914,7 @@ describe('mikk_get_session_context', () => {
     let server: McpServer
 
     beforeAll(async () => {
-        ;({ client, server } = await createTestClient())
+        ; ({ client, server } = await createTestClient())
     })
 
     afterAll(async () => {
@@ -925,7 +925,7 @@ describe('mikk_get_session_context', () => {
         const result = await client.callTool({ name: 'mikk_get_session_context', arguments: {} })
         expect(isError(result)).toBe(false)
         const data = parseJSON(result)
-        
+
         expect(data.project.name).toBe('test-project')
         expect(data.summary.totalFunctions).toBe(3)
         expect(data.constraints).toHaveLength(2)
@@ -943,7 +943,7 @@ describe('buildGraphFromLock - graph integrity', () => {
     let server: McpServer
 
     beforeAll(async () => {
-        ;({ client, server } = await createTestClient())
+        ; ({ client, server } = await createTestClient())
     })
 
     afterAll(async () => {
@@ -994,7 +994,7 @@ describe('@getmikk/mcp-server - mikk_find_usages', () => {
     let server: McpServer
 
     beforeAll(async () => {
-        ;({ client, server } = await createTestClient())
+        ; ({ client, server } = await createTestClient())
     })
 
     afterAll(async () => {
@@ -1067,7 +1067,7 @@ describe('@getmikk/mcp-server - staleness warning', () => {
     let server: McpServer
 
     beforeAll(async () => {
-        ;({ client, server } = await createTestClient())
+        ; ({ client, server } = await createTestClient())
     })
 
     afterAll(async () => {
@@ -1163,7 +1163,7 @@ describe('@getmikk/mcp-server - mikk_query_context empty guard', () => {
     let server: McpServer
 
     beforeAll(async () => {
-        ;({ client, server } = await createTestClient())
+        ; ({ client, server } = await createTestClient())
     })
 
     afterAll(async () => {

@@ -102,9 +102,6 @@ function findFirstChild(node: any, predicate: (n: any) => boolean): any {
  * Given the ordered list of functions (with startLine/endLine already set)
  * and a map of callName → line, assign each call to the innermost function
  * whose line range contains that call's line.
- *
- * A call that falls outside every function range (module-level call) is
- * discarded rather than dumped into the first function.
  */
 function assignCallsToFunctions(
     functions: ParsedFunction[],
@@ -280,8 +277,28 @@ export class TreeSitterParser extends BaseParser {
             }
         }
 
+        // Add a synthetic module-level function to capture calls made outside any function.
+        // This function spans the entire file and is marked as exported so it's always "live".
+        const lineCount = content.split('\n').length
+        functions.push({
+            id: `fn:${filePath}:<module>:1`,
+            name: '<module>',
+            file: filePath,
+            startLine: 1,
+            endLine: lineCount || 1,
+            params: [],
+            returnType: 'void',
+            isExported: true,
+            isAsync: false,
+            calls: [],
+            hash: '',
+            purpose: 'Module-level initialization code',
+            edgeCasesHandled: [],
+            errorHandling: [],
+            detailedLines: [],
+        })
+
         // Assign calls to their enclosing function scopes.
-        // This replaces the broken `functions[0].calls = Array.from(calls)` pattern.
         assignCallsToFunctions(functions, callEntries)
 
         const finalLang = extensionToLanguage(ext)
@@ -404,13 +421,13 @@ function extractReturnType(ext: string, defNode: any): string {
     if (arrowMatch) return arrowMatch[1].trim()
     // Java/C# style: "public int foo(" — type precedes the name
     // This is too fragile to do reliably here; return 'unknown'
-      if (ext === '.go') {
-          // Go: "func foo() (int, error)" or "func foo() error"
-          const goReturnTuple = text.match(/\)\s+(\([^)]+\))/)
-          if (goReturnTuple) return goReturnTuple[1].trim()
-          const goReturn = text.match(/\)\s+([^\s{(]+)/)
-          if (goReturn) return goReturn[1].trim()
-      }
+    if (ext === '.go') {
+        // Go: "func foo() (int, error)" or "func foo() error"
+        const goReturnTuple = text.match(/\)\s+(\([^)]+\))/)
+        if (goReturnTuple) return goReturnTuple[1].trim()
+        const goReturn = text.match(/\)\s+([^\s{(]+)/)
+        if (goReturn) return goReturn[1].trim()
+    }
     return 'unknown'
 }
 
@@ -458,14 +475,20 @@ function linkMethodsToClasses(
         // Already categorised if name contains "." (e.g. "MyClass.method")
         if (fn.name.includes('.')) continue
 
-        // Check if this function falls entirely within a class's line range
+        // Find the innermost (smallest range) class that contains this function
+        let bestCls: ParsedClass | null = null
+        let bestRange = Infinity
         for (const cls of classes) {
             if (fn.startLine > cls.startLine && fn.endLine <= cls.endLine) {
-                if (!cls.methods.some(m => m.id === fn.id)) {
-                    cls.methods.push(fn)
+                const range = cls.endLine - cls.startLine
+                if (range < bestRange) {
+                    bestCls = cls
+                    bestRange = range
                 }
-                break
             }
+        }
+        if (bestCls && !bestCls.methods.some(m => m.id === fn.id)) {
+            bestCls.methods.push(fn)
         }
     }
 }
