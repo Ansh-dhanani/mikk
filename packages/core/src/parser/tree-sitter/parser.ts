@@ -486,6 +486,13 @@ function linkMethodsToClasses(
         // and never link the synthetic <module> function to a class.
         if (fn.name === '<module>' || fn.name.includes('.')) continue
 
+        // Skip functions nested inside other functions (local helpers)
+        const isNestedInFunction = functions.some(f => 
+            f.id !== fn.id && 
+            fn.startLine >= f.startLine && fn.endLine <= f.endLine
+        )
+        if (isNestedInFunction) continue
+
         // Find the innermost (smallest range) class that contains this function
         let bestCls: ParsedClass | null = null
         let bestRange = Infinity
