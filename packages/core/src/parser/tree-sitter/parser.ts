@@ -102,11 +102,15 @@ function findFirstChild(node: any, predicate: (n: any) => boolean): any {
  * Given the ordered list of functions (with startLine/endLine already set)
  * and a map of callName → line, assign each call to the innermost function
  * whose line range contains that call's line.
+ * 
+ * Returns an array of call names that were NOT assigned to any function scope 
+ * (these are module-scope calls).
  */
 function assignCallsToFunctions(
     functions: ParsedFunction[],
     callEntries: Array<{ name: string; line: number }>
-): void {
+): string[] {
+    const unassigned: string[] = []
     for (const { name, line } of callEntries) {
         // Find the innermost (smallest range) function that contains this line
         let best: ParsedFunction | null = null
@@ -120,10 +124,15 @@ function assignCallsToFunctions(
                 }
             }
         }
-        if (best && !best.calls.includes(name)) {
-            best.calls.push(name)
+        if (best) {
+            if (!best.calls.includes(name)) {
+                best.calls.push(name)
+            }
+        } else {
+            unassigned.push(name)
         }
     }
+    return unassigned
 }
 
 // ---------------------------------------------------------------------------
@@ -277,29 +286,30 @@ export class TreeSitterParser extends BaseParser {
             }
         }
 
-        // Add a synthetic module-level function to capture calls made outside any function.
-        // This function spans the entire file and is marked as exported so it's always "live".
-        const lineCount = content.split('\n').length
-        functions.push({
-            id: `fn:${filePath}:<module>:1`,
-            name: '<module>',
-            file: filePath,
-            startLine: 1,
-            endLine: lineCount || 1,
-            params: [],
-            returnType: 'void',
-            isExported: true,
-            isAsync: false,
-            calls: [],
-            hash: '',
-            purpose: 'Module-level initialization code',
-            edgeCasesHandled: [],
-            errorHandling: [],
-            detailedLines: [],
-        })
-
         // Assign calls to their enclosing function scopes.
-        assignCallsToFunctions(functions, callEntries)
+        const unassignedCalls = assignCallsToFunctions(functions, callEntries)
+
+        // Only add a synthetic module-level function if there are actually calls made outside any function.
+        if (unassignedCalls.length > 0) {
+            const lineCount = content.split('\n').length
+            functions.push({
+                id: `fn:${filePath}:<module>:1`,
+                name: '<module>',
+                file: filePath,
+                startLine: 1,
+                endLine: lineCount || 1,
+                params: [],
+                returnType: 'void',
+                isExported: true,
+                isAsync: false,
+                calls: Array.from(new Set(unassignedCalls)),
+                hash: '',
+                purpose: 'Module-level initialization code',
+                edgeCasesHandled: [],
+                errorHandling: [],
+                detailedLines: [],
+            })
+        }
 
         const finalLang = extensionToLanguage(ext)
 
@@ -473,7 +483,8 @@ function linkMethodsToClasses(
 
     for (const fn of functions) {
         // Already categorised if name contains "." (e.g. "MyClass.method")
-        if (fn.name.includes('.')) continue
+        // and never link the synthetic <module> function to a class.
+        if (fn.name === '<module>' || fn.name.includes('.')) continue
 
         // Find the innermost (smallest range) class that contains this function
         let bestCls: ParsedClass | null = null
