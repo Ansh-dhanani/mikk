@@ -7,20 +7,19 @@ import * as path from 'node:path'
 import { createMikkMcpServer } from '../src/server'
 import { InMemoryTransport } from '@modelcontextprotocol/sdk/inMemory.js'
 import { Client } from '@modelcontextprotocol/sdk/client/index.js'
-import { Client } from '@modelcontextprotocol/sdk/client/index.js'
 import type { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js'
 import * as fs from 'node:fs/promises'
 
-// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// 
 // Test constants
-// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// 
 
 const FIXTURE_ROOT = path.join(import.meta.dir, 'fixtures', 'project')
 const MISSING_ROOT = path.join(import.meta.dir, 'fixtures', 'nonexistent-project')
 
-// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// 
 // Test helpers
-// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// 
 
 async function createTestClient(projectRoot = FIXTURE_ROOT): Promise<{ client: Client; server: McpServer }> {
     // Touch lock file so active staleness detection doesn't trigger on fresh clones
@@ -46,7 +45,7 @@ async function createTestClient(projectRoot = FIXTURE_ROOT): Promise<{ client: C
 type ToolResult = Awaited<ReturnType<Client['callTool']>>
 
 function getText(result: ToolResult): string {
-    return (result.content[0] as { type: 'text'; text: string }).text
+    return ((result.content as any[])[0] as { type: 'text'; text: string }).text
 }
 
 function parseJSON(result: ToolResult): any {
@@ -57,11 +56,11 @@ function isError(result: ToolResult): boolean {
     return result.isError === true
 }
 
-// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// 
 // SUITE: Server initialization
-// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// 
 
-describe('@getmikk/mcp-server â€” initialization', () => {
+describe('@getmikk/mcp-server - initialization', () => {
     it('creates a server instance', () => {
         const server = createMikkMcpServer(FIXTURE_ROOT)
         expect(server).toBeDefined()
@@ -76,16 +75,16 @@ describe('@getmikk/mcp-server â€” initialization', () => {
     })
 })
 
-// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// 
 // SUITE: Tool list
-// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// 
 
-describe('@getmikk/mcp-server â€” tool list', () => {
+describe('@getmikk/mcp-server - tool list', () => {
     let client: Client
     let server: McpServer
 
     beforeAll(async () => {
-        ;({ client, server } = await createTestClient())
+        ; ({ client, server } = await createTestClient())
     })
 
     afterAll(async () => {
@@ -140,16 +139,16 @@ describe('@getmikk/mcp-server â€” tool list', () => {
     })
 })
 
-// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// 
 // SUITE: mikk_get_project_overview
-// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// 
 
 describe('mikk_get_project_overview', () => {
     let client: Client
     let server: McpServer
 
     beforeAll(async () => {
-        ;({ client, server } = await createTestClient())
+        ; ({ client, server } = await createTestClient())
     })
 
     afterAll(async () => {
@@ -190,16 +189,16 @@ describe('mikk_get_project_overview', () => {
     })
 })
 
-// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// 
 // SUITE: mikk_list_modules
-// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// 
 
 describe('mikk_list_modules', () => {
     let client: Client
     let server: McpServer
 
     beforeAll(async () => {
-        ;({ client, server } = await createTestClient())
+        ; ({ client, server } = await createTestClient())
     })
 
     afterAll(async () => {
@@ -228,16 +227,16 @@ describe('mikk_list_modules', () => {
     })
 })
 
-// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// 
 // SUITE: mikk_get_module_detail
-// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// 
 
 describe('mikk_get_module_detail', () => {
     let client: Client
     let server: McpServer
 
     beforeAll(async () => {
-        ;({ client, server } = await createTestClient())
+        ; ({ client, server } = await createTestClient())
     })
 
     afterAll(async () => {
@@ -284,16 +283,16 @@ describe('mikk_get_module_detail', () => {
     })
 })
 
-// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// 
 // SUITE: mikk_get_function_detail
-// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// 
 
 describe('mikk_get_function_detail', () => {
     let client: Client
     let server: McpServer
 
     beforeAll(async () => {
-        ;({ client, server } = await createTestClient())
+        ; ({ client, server } = await createTestClient())
     })
 
     afterAll(async () => {
@@ -370,16 +369,16 @@ describe('mikk_get_function_detail', () => {
     })
 })
 
-// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// 
 // SUITE: mikk_search_functions
-// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// 
 
 describe('mikk_search_functions', () => {
     let client: Client
     let server: McpServer
 
     beforeAll(async () => {
-        ;({ client, server } = await createTestClient())
+        ; ({ client, server } = await createTestClient())
     })
 
     afterAll(async () => {
@@ -434,16 +433,16 @@ describe('mikk_search_functions', () => {
     })
 })
 
-// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// 
 // SUITE: mikk_impact_analysis
-// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// 
 
 describe('mikk_impact_analysis', () => {
     let client: Client
     let server: McpServer
 
     beforeAll(async () => {
-        ;({ client, server } = await createTestClient())
+        ; ({ client, server } = await createTestClient())
     })
 
     afterAll(async () => {
@@ -470,14 +469,14 @@ describe('mikk_impact_analysis', () => {
     it('correctly identifies changed nodes for entire file (3 functions + 1 file node)', async () => {
         const result = await client.callTool({ name: 'mikk_impact_analysis', arguments: { file: 'src/auth.ts' } })
         const data = parseJSON(result)
-        // 3 functions + 1 file node in the graph â€” all live in src/auth.ts
+        // 3 functions + 1 file node in the graph - all live in src/auth.ts
         expect(data.changedNodes).toBe(4)
     })
 
     it('has 0 impacted external nodes (login has no external callers)', async () => {
         const result = await client.callTool({ name: 'mikk_impact_analysis', arguments: { file: 'src/auth.ts' } })
         const data = parseJSON(result)
-        // login.calledBy = [] â†’ nothing outside the file depends on it
+        // login.calledBy = [] -> nothing outside the file depends on it
         expect(data.impactedNodes).toBe(0)
     })
 
@@ -495,16 +494,16 @@ describe('mikk_impact_analysis', () => {
     })
 })
 
-// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// 
 // SUITE: mikk_before_edit
-// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// 
 
 describe('mikk_before_edit', () => {
     let client: Client
     let server: McpServer
 
     beforeAll(async () => {
-        ;({ client, server } = await createTestClient())
+        ; ({ client, server } = await createTestClient())
     })
 
     afterAll(async () => {
@@ -541,7 +540,7 @@ describe('mikk_before_edit', () => {
 
     it('returns warning (not error) for untracked file', async () => {
         const result = await client.callTool({ name: 'mikk_before_edit', arguments: { files: ['src/unknown.ts'] } })
-        expect(isError(result)).toBe(false) // not a hard error â€” just a warning
+        expect(isError(result)).toBe(false) // not a hard error - just a warning
         const data = parseJSON(result)
         expect(data.files['src/unknown.ts'].warning).toBeTruthy()
         expect(data.files['src/unknown.ts'].warning).toContain('mikk analyze')
@@ -576,16 +575,16 @@ describe('mikk_before_edit', () => {
     })
 })
 
-// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// 
 // SUITE: mikk_get_file
-// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// 
 
 describe('mikk_get_file', () => {
     let client: Client
     let server: McpServer
 
     beforeAll(async () => {
-        ;({ client, server } = await createTestClient())
+        ; ({ client, server } = await createTestClient())
     })
 
     afterAll(async () => {
@@ -635,16 +634,16 @@ describe('mikk_get_file', () => {
     })
 })
 
-// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// 
 // SUITE: mikk_get_constraints
-// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// 
 
 describe('mikk_get_constraints', () => {
     let client: Client
     let server: McpServer
 
     beforeAll(async () => {
-        ;({ client, server } = await createTestClient())
+        ; ({ client, server } = await createTestClient())
     })
 
     afterAll(async () => {
@@ -679,16 +678,16 @@ describe('mikk_get_constraints', () => {
     })
 })
 
-// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// 
 // SUITE: mikk_get_routes
-// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// 
 
 describe('mikk_get_routes', () => {
     let client: Client
     let server: McpServer
 
     beforeAll(async () => {
-        ;({ client, server } = await createTestClient())
+        ; ({ client, server } = await createTestClient())
     })
 
     afterAll(async () => {
@@ -715,16 +714,16 @@ describe('mikk_get_routes', () => {
     })
 })
 
-// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// 
 // SUITE: mikk_query_context
-// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// 
 
 describe('mikk_query_context', () => {
     let client: Client
     let server: McpServer
 
     beforeAll(async () => {
-        ;({ client, server } = await createTestClient())
+        ; ({ client, server } = await createTestClient())
     })
 
     afterAll(async () => {
@@ -774,16 +773,16 @@ describe('mikk_query_context', () => {
     })
 })
 
-// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// 
 // SUITE: Resources
-// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// 
 
 describe('resources', () => {
     let client: Client
     let server: McpServer
 
     beforeAll(async () => {
-        ;({ client, server } = await createTestClient())
+        ; ({ client, server } = await createTestClient())
     })
 
     afterAll(async () => {
@@ -812,7 +811,7 @@ describe('resources', () => {
     })
 
     it('mikk://context gracefully errors if claude.md absent', async () => {
-        // Fixture doesn't have a claude.md â€” should throw a clean error
+        // Fixture doesn't have a claude.md - should throw a clean error
         try {
             await client.readResource({ uri: 'mikk://context' })
         } catch (err: any) {
@@ -821,16 +820,16 @@ describe('resources', () => {
     })
 })
 
-// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// 
 // SUITE: mikk_get_changes
-// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// 
 
 describe('mikk_get_changes', () => {
     let client: Client
     let server: McpServer
 
     beforeAll(async () => {
-        ;({ client, server } = await createTestClient())
+        ; ({ client, server } = await createTestClient())
     })
 
     afterAll(async () => {
@@ -848,16 +847,16 @@ describe('mikk_get_changes', () => {
     })
 })
 
-// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// 
 // SUITE: mikk_read_file
-// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// 
 
 describe('mikk_read_file', () => {
     let client: Client
     let server: McpServer
 
     beforeAll(async () => {
-        ;({ client, server } = await createTestClient())
+        ; ({ client, server } = await createTestClient())
     })
 
     afterAll(async () => {
@@ -906,16 +905,16 @@ describe('mikk_read_file', () => {
     })
 })
 
-// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// 
 // SUITE: mikk_get_session_context
-// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// 
 
 describe('mikk_get_session_context', () => {
     let client: Client
     let server: McpServer
 
     beforeAll(async () => {
-        ;({ client, server } = await createTestClient())
+        ; ({ client, server } = await createTestClient())
     })
 
     afterAll(async () => {
@@ -926,7 +925,7 @@ describe('mikk_get_session_context', () => {
         const result = await client.callTool({ name: 'mikk_get_session_context', arguments: {} })
         expect(isError(result)).toBe(false)
         const data = parseJSON(result)
-        
+
         expect(data.project.name).toBe('test-project')
         expect(data.summary.totalFunctions).toBe(3)
         expect(data.constraints).toHaveLength(2)
@@ -935,16 +934,16 @@ describe('mikk_get_session_context', () => {
     })
 })
 
-// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// 
 // SUITE: buildGraphFromLock correctness (graph integrity via impact analysis)
-// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// 
 
-describe('buildGraphFromLock â€” graph integrity', () => {
+describe('buildGraphFromLock - graph integrity', () => {
     let client: Client
     let server: McpServer
 
     beforeAll(async () => {
-        ;({ client, server } = await createTestClient())
+        ; ({ client, server } = await createTestClient())
     })
 
     afterAll(async () => {
@@ -967,7 +966,7 @@ describe('buildGraphFromLock â€” graph integrity', () => {
             arguments: { file: 'src/auth.ts' },
         })
         const data = parseJSON(result)
-        // login has calledBy=[] â†’ no external nodes depend on this file
+        // login has calledBy=[] -> no external nodes depend on this file
         expect(data.impactedNodes).toBe(0)
         expect(data.depth).toBe(0)
     })
@@ -986,16 +985,16 @@ describe('buildGraphFromLock â€” graph integrity', () => {
     })
 })
 
-// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// 
 // SUITE: mikk_find_usages
-// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// 
 
-describe('@getmikk/mcp-server â€” mikk_find_usages', () => {
+describe('@getmikk/mcp-server - mikk_find_usages', () => {
     let client: Client
     let server: McpServer
 
     beforeAll(async () => {
-        ;({ client, server } = await createTestClient())
+        ; ({ client, server } = await createTestClient())
     })
 
     afterAll(async () => {
@@ -1034,7 +1033,7 @@ describe('@getmikk/mcp-server â€” mikk_find_usages', () => {
     })
 
     it('includes calledBy-resolved callers when present', async () => {
-        // login calls hashPassword â€” so hashPassword.calledBy should contain login
+        // login calls hashPassword - so hashPassword.calledBy should contain login
         const result = await client.callTool({
             name: 'mikk_find_usages',
             arguments: { name: 'hashPassword' },
@@ -1059,16 +1058,16 @@ describe('@getmikk/mcp-server â€” mikk_find_usages', () => {
     })
 })
 
-// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// 
 // SUITE: staleness warning surfacing
-// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// 
 
-describe('@getmikk/mcp-server â€” staleness warning', () => {
+describe('@getmikk/mcp-server - staleness warning', () => {
     let client: Client
     let server: McpServer
 
     beforeAll(async () => {
-        ;({ client, server } = await createTestClient())
+        ; ({ client, server } = await createTestClient())
     })
 
     afterAll(async () => {
@@ -1155,16 +1154,16 @@ describe('@getmikk/mcp-server â€” staleness warning', () => {
     })
 })
 
-// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// 
 // SUITE: mikk_query_context empty context guard
-// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// 
 
-describe('@getmikk/mcp-server â€” mikk_query_context empty guard', () => {
+describe('@getmikk/mcp-server - mikk_query_context empty guard', () => {
     let client: Client
     let server: McpServer
 
     beforeAll(async () => {
-        ;({ client, server } = await createTestClient())
+        ; ({ client, server } = await createTestClient())
     })
 
     afterAll(async () => {
@@ -1179,8 +1178,8 @@ describe('@getmikk/mcp-server â€” mikk_query_context empty guard', () => {
                 focusFile: 'src/totally-nonexistent-file.ts',
             },
         })
-        // Either isError or an empty/unhelpful context â€” both are acceptable
+        // Either isError or an empty/unhelpful context - both are acceptable
         // The important thing is it does NOT throw/crash
-        expect(result.content.length).toBeGreaterThan(0)
+        expect((result.content as any[]).length).toBeGreaterThan(0)
     })
 })

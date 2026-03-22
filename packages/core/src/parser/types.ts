@@ -15,6 +15,7 @@ export interface ParsedFunction {
     id: string              // "fn:auth/verify.ts:verifyToken"
     name: string            // "verifyToken"
     file: string            // "src/auth/verify.ts"
+    moduleId?: string
     startLine: number       // 14
     endLine: number         // 28
     params: ParsedParam[]   // [{name: "token", type: "string"}]
@@ -52,6 +53,7 @@ export interface ParsedClass {
     id: string
     name: string
     file: string
+    moduleId?: string
     startLine: number
     endLine: number
     methods: ParsedFunction[]

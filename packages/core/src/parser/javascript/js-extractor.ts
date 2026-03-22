@@ -22,9 +22,10 @@ export class JavaScriptExtractor extends TypeScriptExtractor {
     /** ESM functions + module.exports-assigned functions */
     override extractFunctions(): ParsedFunction[] {
         const fns = super.extractFunctions()
-        const seen = new Set(fns.map(f => f.name))
+        // Use id (which includes start line) to avoid false deduplication
+        const seen = new Set(fns.map(f => f.id))
         for (const fn of this.extractCommonJsFunctions()) {
-            if (!seen.has(fn.name)) { fns.push(fn); seen.add(fn.name) }
+            if (!seen.has(fn.id)) { fns.push(fn); seen.add(fn.id) }
         }
         return fns
     }
@@ -42,9 +43,15 @@ export class JavaScriptExtractor extends TypeScriptExtractor {
     /** ESM exports + CommonJS module.exports / exports.x */
     override extractExports(): ParsedExport[] {
         const esm = super.extractExports()
-        const seen = new Set(esm.map(e => e.name))
+        // Index by name; for default exports use type as secondary key to avoid
+        // a local function named 'default' from being incorrectly matched.
+        const seen = new Map(esm.map(e => [`${e.name}:${e.type}`, true]))
         for (const exp of this.extractCommonJsExports()) {
-            if (!seen.has(exp.name)) { esm.push(exp); seen.add(exp.name) }
+            const key = `${exp.name}:${exp.type}`
+            if (!seen.has(key)) {
+                esm.push(exp)
+                seen.set(key, true)
+            }
         }
         return esm
     }
@@ -91,11 +98,20 @@ export class JavaScriptExtractor extends TypeScriptExtractor {
     private getRequireBindingNames(call: ts.CallExpression): string[] {
         const parent = call.parent
         if (!parent || !ts.isVariableDeclaration(parent)) return []
-        // const { a, b } = require('...') → ['a', 'b']
+        // const { a: myA, b } = require('...') → ['a', 'b'] (use the SOURCE name, not the alias)
+        // The source name (propertyName) is what the module exports.
+        // The local alias (element.name) is only visible in this file.
         if (ts.isObjectBindingPattern(parent.name)) {
             return parent.name.elements
                 .filter(e => ts.isIdentifier(e.name))
-                .map(e => (e.name as ts.Identifier).text)
+                .map(e => {
+                    // If there is a property name (the "a" in "a: myA"), use it.
+                    // Otherwise the binding uses the same name for both sides.
+                    if (e.propertyName && ts.isIdentifier(e.propertyName)) {
+                        return e.propertyName.text
+                    }
+                    return (e.name as ts.Identifier).text
+                })
         }
         // const x = require('...') → ['x']
         if (ts.isIdentifier(parent.name)) return [parent.name.text]

@@ -6,8 +6,15 @@ interface TSConfigPaths {
 }
 
 /**
- * Resolves TypeScript import paths to absolute project-relative paths.
- * Handles: relative imports, path aliases, index files, extension inference.
+ * TypeScriptResolver — resolves TS/TSX import paths to project-relative files.
+ *
+ * Handles:
+ *   - Relative ESM imports: import './utils' → ./utils.ts / ./utils/index.ts / ...
+ *   - Path aliases from tsconfig.json compilerOptions.paths
+ *   - Mixed TS/JS projects: probes .ts, .tsx, .js, .jsx in that order
+ *
+ * Performance: allProjectFiles is converted to a Set internally for O(1) checks.
+ * All alias targets are tried in order (not just targets[0]).
  */
 export class TypeScriptResolver {
     private aliases: TSConfigPaths
@@ -16,71 +23,97 @@ export class TypeScriptResolver {
         private projectRoot: string,
         tsConfigPaths?: TSConfigPaths
     ) {
-        this.aliases = tsConfigPaths || {}
+        this.aliases = tsConfigPaths ?? {}
     }
 
     /** Resolve a single import relative to the importing file */
     resolve(imp: ParsedImport, fromFile: string, allProjectFiles: string[] = []): ParsedImport {
-        // Skip external packages (no relative path prefix, no alias match)
-        if (!imp.source.startsWith('.') && !imp.source.startsWith('/') && !this.matchesAlias(imp.source)) {
+        if (
+            !imp.source.startsWith('.') &&
+            !imp.source.startsWith('/') &&
+            !this.matchesAlias(imp.source)
+        ) {
             return { ...imp, resolvedPath: '' }
         }
-
-        const resolved = this.resolvePath(imp.source, fromFile, allProjectFiles)
-        return { ...imp, resolvedPath: resolved }
+        const fileSet = allProjectFiles.length > 0 ? new Set(allProjectFiles) : null
+        return { ...imp, resolvedPath: this.resolvePath(imp.source, fromFile, fileSet) }
     }
 
-    private resolvePath(source: string, fromFile: string, allProjectFiles: string[]): string {
-        let resolvedSource = source
+    resolveAll(imports: ParsedImport[], fromFile: string, allProjectFiles: string[] = []): ParsedImport[] {
+        const fileSet = allProjectFiles.length > 0 ? new Set(allProjectFiles) : null
+        return imports.map(imp => {
+            if (
+                !imp.source.startsWith('.') &&
+                !imp.source.startsWith('/') &&
+                !this.matchesAlias(imp.source)
+            ) {
+                return { ...imp, resolvedPath: '' }
+            }
+            return { ...imp, resolvedPath: this.resolvePath(imp.source, fromFile, fileSet) }
+        })
+    }
 
-        // 1. Handle path aliases: @/utils/jwt -> src/utils/jwt
+    private resolvePath(source: string, fromFile: string, fileSet: Set<string> | null): string {
+        // 1. Alias substitution — try ALL targets in order, not just targets[0]
         for (const [alias, targets] of Object.entries(this.aliases)) {
-            const aliasPrefix = alias.replace('/*', '')
-            if (source.startsWith(aliasPrefix)) {
-                const suffix = source.slice(aliasPrefix.length)
-                const target = targets[0].replace('/*', '')
-                resolvedSource = target + suffix
-                break
+            const prefix = alias.replace('/*', '')
+            if (source.startsWith(prefix)) {
+                const suffix = source.slice(prefix.length)
+                for (const target of targets) {
+                    const substituted = target.replace('/*', '') + suffix
+                    const resolved = this.normalizePath(substituted, fromFile)
+                    const found = this.probeExtensions(resolved, fileSet)
+                    if (found) return found
+                }
+                // All alias targets exhausted — unresolved
+                return ''
             }
         }
 
-        // 2. Handle relative paths
-        let resolved: string
-        if (resolvedSource.startsWith('.')) {
-            const fromDir = path.dirname(fromFile)
-            resolved = path.posix.normalize(path.posix.join(fromDir, resolvedSource))
-        } else {
-            resolved = resolvedSource
-        }
+        // 2. Build normalized posix path from relative source
+        const resolved = this.normalizePath(source, fromFile)
 
-        // Normalize to posix
-        resolved = resolved.replace(/\\/g, '/')
-
-        // 3. Try to find exact match with extensions
-        const extensions = ['.ts', '.tsx', '.js', '.jsx', '.mjs', '/index.ts', '/index.tsx', '/index.js', '/index.jsx']
-
-        // If the path already has an extension, return it
-        if (resolved.endsWith('.ts') || resolved.endsWith('.tsx')) {
+        // 3. Already has a concrete TS/JS extension — validate and return
+        const concreteExts = ['.ts', '.tsx', '.js', '.jsx', '.mjs']
+        if (concreteExts.some(e => resolved.endsWith(e))) {
+            if (fileSet && !fileSet.has(resolved)) return ''
             return resolved
         }
 
-        // Try adding extensions to find matching file
-        for (const ext of extensions) {
-            const candidate = resolved + ext
-            if (allProjectFiles.length === 0 || allProjectFiles.includes(candidate)) {
-                return candidate
-            }
-        }
+        // 4. Probe extensions
+        return this.probeExtensions(resolved, fileSet) ?? resolved + '.ts'
+    }
 
-        // Fallback: just add .ts
-        return resolved + '.ts'
+    private normalizePath(source: string, fromFile: string): string {
+        let resolved: string
+        if (source.startsWith('.')) {
+            const fromDir = path.dirname(fromFile.replace(/\\/g, '/'))
+            resolved = path.posix.normalize(path.posix.join(fromDir, source))
+        } else {
+            resolved = source
+        }
+        return resolved.replace(/\\/g, '/')
+    }
+
+    /**
+     * Probe extensions in priority order.
+     * TS-first since this is a TypeScript resolver; JS fallback for mixed projects.
+     */
+    private probeExtensions(resolved: string, fileSet: Set<string> | null): string | null {
+        const probeOrder = [
+            '.ts', '.tsx',
+            '/index.ts', '/index.tsx',
+            '.js', '.jsx', '.mjs',
+            '/index.js', '/index.jsx',
+        ]
+        for (const ext of probeOrder) {
+            const candidate = resolved + ext
+            if (fileSet === null || fileSet.has(candidate)) return candidate
+        }
+        return null
     }
 
     private matchesAlias(source: string): boolean {
-        for (const alias of Object.keys(this.aliases)) {
-            const prefix = alias.replace('/*', '')
-            if (source.startsWith(prefix)) return true
-        }
-        return false
+        return Object.keys(this.aliases).some(a => source.startsWith(a.replace('/*', '')))
     }
 }

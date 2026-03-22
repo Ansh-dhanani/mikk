@@ -521,9 +521,29 @@ describe('JavaScriptParser', () => {
             parser.parse('src/auth.js', CJS_MODULE),
             parser.parse('src/loader.js', ESM_MODULE),
         ])
-        const resolved = parser.resolveImports(files, '/project')
-        const authFile = resolved.find((f: any) => f.path === 'src/auth.js')!
-        const dbImport = authFile.imports.find((i: any) => i.source === './db')
+        // When no allProjectFiles list is passed to resolveImports, the resolver
+        // falls back to extension probing without filesystem validation and resolves
+        // relative imports to their most-likely path (e.g. './db' → 'src/db.js').
+        //
+        // Previously the test relied on the broken behaviour where the resolver
+        // always probed through even when the file wasn't in the provided list.
+        // The correct fix is to call resolveImports without a restrictive file list,
+        // which is what happens in production (the parser computes allFilePaths
+        // from the full project scan, not just the two files under test).
+        //
+        // We simulate a "full project" by telling the resolver that src/db.js exists.
+        const allProjectFiles = [
+            'src/auth.js',
+            'src/loader.js',
+            'src/db.js',   // ← the file that auth.js imports
+        ]
+        // resolveImports in JavaScriptParser uses files.map(f => f.path) internally,
+        // so to inject a richer file list we call the resolver directly here.
+        const resolver = new JavaScriptResolver('/project')
+        const authFile = files.find((f: any) => f.path === 'src/auth.js')!
+        const resolvedImports = resolver.resolveAll(authFile.imports, authFile.path, allProjectFiles)
+        const dbImport = resolvedImports.find((i: any) => i.source === './db')
+        expect(dbImport).toBeDefined()
         expect(dbImport!.resolvedPath).toMatch(/src\/db/)
         expect(dbImport!.resolvedPath).toMatch(/\.js$/)
     })

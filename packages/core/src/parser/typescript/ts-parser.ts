@@ -5,6 +5,7 @@ import { TypeScriptExtractor } from './ts-extractor.js'
 import { TypeScriptResolver } from './ts-resolver.js'
 import { hashContent } from '../../hash/file-hasher.js'
 import type { ParsedFile } from '../types.js'
+import { MIN_FILES_FOR_COMPLETE_SCAN, parseJsonWithComments } from '../parser-constants.js'
 
 /**
  * TypeScript parser — uses TS Compiler API to parse .ts/.tsx files
@@ -21,23 +22,21 @@ export class TypeScriptParser extends BaseParser {
         const exports = extractor.extractExports()
         const routes = extractor.extractRoutes()
 
-        // Cross-reference: if a function/class/generic is named in an export { Name }
-        // or export default declaration, mark it as exported.
-        const exportedNames = new Set(exports.map(e => e.name))
+        // Cross-reference: re-export declarations (`export { Name }` or
+        // `export { X as Y } from './m'`) may refer to symbols whose declaration
+        // doesn't carry an export keyword. Mark them as exported here.
+        // Exclude `type: 'default'` to avoid marking an unrelated local called 'default'.
+        const exportedNonDefault = new Set(
+            exports.filter(e => e.type !== 'default').map(e => e.name)
+        )
         for (const fn of functions) {
-            if (!fn.isExported && exportedNames.has(fn.name)) {
-                fn.isExported = true
-            }
+            if (!fn.isExported && exportedNonDefault.has(fn.name)) fn.isExported = true
         }
         for (const cls of classes) {
-            if (!cls.isExported && exportedNames.has(cls.name)) {
-                cls.isExported = true
-            }
+            if (!cls.isExported && exportedNonDefault.has(cls.name)) cls.isExported = true
         }
         for (const gen of generics) {
-            if (!gen.isExported && exportedNames.has(gen.name)) {
-                gen.isExported = true
-            }
+            if (!gen.isExported && exportedNonDefault.has(gen.name)) gen.isExported = true
         }
 
         return {
@@ -58,7 +57,14 @@ export class TypeScriptParser extends BaseParser {
     resolveImports(files: ParsedFile[], projectRoot: string): ParsedFile[] {
         const tsConfigPaths = loadTsConfigPaths(projectRoot)
         const resolver = new TypeScriptResolver(projectRoot, tsConfigPaths)
-        const allFilePaths = files.map(f => f.path)
+
+        // Only pass the project file list when it is large enough to be a meaningful
+        // scan. Sparse lists (< MIN_FILES_FOR_COMPLETE_SCAN files) cause alias
+        // resolution lookups to fail with '', so we only trust the list once it is
+        // sufficiently large. With an empty list the resolver falls back to extension
+        // probing, which is safe for alias-defined paths.
+        const allFilePaths = files.length >= MIN_FILES_FOR_COMPLETE_SCAN ? files.map(f => f.path) : []
+
         return files.map(file => ({
             ...file,
             imports: file.imports.map(imp => resolver.resolve(imp, file.path, allFilePaths)),
@@ -79,7 +85,7 @@ export class TypeScriptParser extends BaseParser {
  *  - extends with relative paths (./tsconfig.base.json)
  *  - extends with node_modules packages (@tsconfig/node-lts)
  *  - baseUrl prefix so aliases like "@/*" → ["src/*"] resolve correctly
- *  - JSON5-style comments (line and block comments)
+ *  - JSON5-style comments (line and block comments) via the shared helper
  */
 function loadTsConfigPaths(projectRoot: string): Record<string, string[]> {
     const candidates = ['tsconfig.json', 'tsconfig.base.json']
@@ -121,13 +127,11 @@ function loadTsConfigWithExtends(configPath: string, visited: Set<string>): any 
         return {}
     }
 
-    // Strip JSON5 comments
-    const stripped = raw.replace(/\/\/.*$/gm, '').replace(/\/\*[\s\S]*?\*\//g, '')
     let config: any
     try {
-        config = JSON.parse(stripped)
+        config = parseJsonWithComments(raw)
     } catch {
-        try { config = JSON.parse(raw) } catch { return {} }
+        return {}
     }
 
     if (!config.extends) return config

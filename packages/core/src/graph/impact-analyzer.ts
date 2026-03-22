@@ -1,15 +1,19 @@
-import type { DependencyGraph, ImpactResult, ClassifiedImpact, RiskLevel } from './types.js'
+import type { DependencyGraph, GraphEdge, ImpactResult, ClassifiedImpact, RiskLevel } from './types.js'
 
 /**
  * ImpactAnalyzer — Given changed nodes, walks the graph backwards (BFS)
  * to find everything that depends on them.
  * Powers "what breaks if I change X?"
  *
- * Now includes risk classification:
+ * Risk classification:
  *   CRITICAL = direct caller (depth 1) that crosses a module boundary
  *   HIGH     = direct caller (depth 1) within the same module
  *   MEDIUM   = depth 2
  *   LOW      = depth 3+
+ *
+ * Confidence is derived from the quality of resolved edges in the traversal
+ * path, not from the size of the result set. A small impact set built from
+ * low-confidence (unresolved/fuzzy) edges is still LOW confidence.
  */
 export class ImpactAnalyzer {
     constructor(private graph: DependencyGraph) { }
@@ -18,7 +22,11 @@ export class ImpactAnalyzer {
     analyze(changedNodeIds: string[]): ImpactResult {
         const visited = new Set<string>()
         const depthMap = new Map<string, number>()
-        const queue: { id: string; depth: number }[] = changedNodeIds.map(id => ({ id, depth: 0 }))
+        // Track the minimum confidence seen along the path to each node
+        const pathConfidence = new Map<string, number>()
+
+        const queue: { id: string; depth: number; confidence: number }[] =
+            changedNodeIds.map(id => ({ id, depth: 0, confidence: 1.0 }))
         let maxDepth = 0
 
         const changedSet = new Set(changedNodeIds)
@@ -31,17 +39,22 @@ export class ImpactAnalyzer {
         }
 
         while (queue.length > 0) {
-            const { id: current, depth } = queue.shift()!
+            const { id: current, depth, confidence: pathConf } = queue.shift()!
             if (visited.has(current)) continue
             visited.add(current)
             depthMap.set(current, depth)
+            pathConfidence.set(current, pathConf)
             maxDepth = Math.max(maxDepth, depth)
 
             // Find everything that depends on current (incoming edges)
             const dependents = this.graph.inEdges.get(current) || []
             for (const edge of dependents) {
                 if (!visited.has(edge.source) && edge.type !== 'contains') {
-                    queue.push({ id: edge.source, depth: depth + 1 })
+                    // Propagate the minimum confidence seen so far on this path.
+                    // A chain is only as trustworthy as its weakest link.
+                    const edgeConf = edge.confidence ?? 1.0
+                    const newPathConf = Math.min(pathConf, edgeConf)
+                    queue.push({ id: edge.source, depth: depth + 1, confidence: newPathConf })
                 }
             }
         }
@@ -65,9 +78,9 @@ export class ImpactAnalyzer {
 
             const risk: RiskLevel =
                 depth === 1 && crossesBoundary ? 'critical' :
-                    depth === 1 ? 'high' :
-                        depth === 2 ? 'medium' :
-                            'low'
+                depth === 1                    ? 'high'     :
+                depth === 2                    ? 'medium'   :
+                                                 'low'
 
             const entry: ClassifiedImpact = {
                 nodeId: id,
@@ -85,22 +98,41 @@ export class ImpactAnalyzer {
             changed: changedNodeIds,
             impacted,
             depth: maxDepth,
-            confidence: this.computeConfidence(impacted.length, maxDepth),
+            confidence: this.computeConfidence(impacted, pathConfidence),
             classified,
         }
     }
 
     /**
-     * How confident are we in this impact analysis?
-     * High = few nodes affected, shallow depth
-     * Low = many nodes affected, deep chains
+     * Derive confidence from the actual quality of edges traversed, not from
+     * result size. A small result built from fuzzy/unresolved edges is LOW
+     * confidence; a large result built from high-confidence AST edges is HIGH.
+     *
+     * Algorithm:
+     *   - Compute the average minimum-path-confidence across all impacted nodes.
+     *   - Penalise for deep chains (they amplify uncertainty).
+     *   - Map the combined score to HIGH / MEDIUM / LOW.
      */
     private computeConfidence(
-        impactedCount: number,
-        depth: number
+        impacted: string[],
+        pathConfidence: Map<string, number>,
     ): 'high' | 'medium' | 'low' {
-        if (impactedCount < 5 && depth < 3) return 'high'
-        if (impactedCount < 20 && depth < 6) return 'medium'
+        if (impacted.length === 0) return 'high'
+
+        // Average path confidence across all impacted nodes
+        let total = 0
+        for (const id of impacted) {
+            total += pathConfidence.get(id) ?? 1.0
+        }
+        const avgConf = total / impacted.length
+
+        // Penalise for large impact sets: confidence erodes with result size
+        const sizePenalty = impacted.length > 20 ? 0.15 : impacted.length > 10 ? 0.08 : 0
+
+        const score = avgConf - sizePenalty
+
+        if (score >= 0.75) return 'high'
+        if (score >= 0.50) return 'medium'
         return 'low'
     }
 }

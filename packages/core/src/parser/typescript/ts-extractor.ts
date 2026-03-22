@@ -324,7 +324,9 @@ export class TypeScriptExtractor {
         const bodyText = node.getText(this.sourceFile)
 
         return {
-            id: `fn:${this.filePath}:${name}`,
+            // Include startLine in the ID to prevent collision between overload signatures
+            // and same-named functions in different scopes (e.g. two `init` declarations).
+            id: `fn:${this.filePath}:${name}:${startLine}`,
             name,
             file: this.filePath,
             startLine,
@@ -361,7 +363,9 @@ export class TypeScriptExtractor {
         const bodyText = stmt.getText(this.sourceFile)
 
         return {
-            id: `fn:${this.filePath}:${name}`,
+            // Include startLine to prevent collision between same-named const arrow functions
+            // at different scopes (e.g. two `handler` declarations in different blocks).
+            id: `fn:${this.filePath}:${name}:${startLine}`,
             name,
             file: this.filePath,
             startLine,
@@ -399,7 +403,7 @@ export class TypeScriptExtractor {
                 const bodyText = member.getText(this.sourceFile)
 
                 methods.push({
-                    id: `fn:${this.filePath}:${name}.constructor`,
+                    id: `fn:${this.filePath}:${name}.constructor:${mStartLine}`,
                     name: `${name}.constructor`,
                     file: this.filePath,
                     startLine: mStartLine,
@@ -428,7 +432,7 @@ export class TypeScriptExtractor {
                 const bodyText = member.getText(this.sourceFile)
 
                 methods.push({
-                    id: `fn:${this.filePath}:${name}.${methodName}`,
+                    id: `fn:${this.filePath}:${name}.${methodName}:${mStartLine}`,
                     name: `${name}.${methodName}`,
                     file: this.filePath,
                     startLine: mStartLine,
@@ -541,9 +545,16 @@ export class TypeScriptExtractor {
                 const comment = fullText.slice(range.pos, range.end)
                 let clean = ''
                 if (comment.startsWith('/**') || comment.startsWith('/*')) {
-                    clean = comment.replace(/[\/\*]/g, '').trim()
+                    // Strip only the comment delimiters (/* ** */) NOT arbitrary slashes.
+                    // Using /[\/\*]/g was wrong — it removes slashes inside URL paths and
+                    // regex literals embedded in doc comments (e.g. "/api/users" → "apiusers").
+                    clean = comment
+                        .replace(/^\/\*+/, '')   // remove leading /*  or /**
+                        .replace(/\*+\/$/, '')   // remove trailing */
+                        .replace(/^\s*\*+\s?/gm, '') // remove leading * on each line
+                        .trim()
                 } else if (comment.startsWith('//')) {
-                    clean = comment.replace(/\/\//g, '').trim()
+                    clean = comment.replace(/^\/\/+\s?/, '').trim()
                 }
 
                 // Skip divider lines (lines with 3+ repeated special characters)
