@@ -143,7 +143,11 @@ export class GraphBuilder {
                 endLine: gen.endLine,
                 isExported: gen.isExported,
                 purpose: gen.purpose,
-                hash: gen.type,
+                // Store the declaration kind (interface|type|const) separately from the
+                // content hash.  gen.hash is the actual content hash; gen.type is the
+                // declaration kind string — they are different things and must not be mixed.
+                hash: gen.hash ?? undefined,
+                genericKind: gen.type,
             },
         })
     }
@@ -232,7 +236,11 @@ export class GraphBuilder {
                 const receiver = hasDot ? call.split('.')[0] : null
 
                 // --- 1. Named import exact match ---
-                const namedId = importedNames.get(call) ?? importedNames.get(simpleName)
+                // Only fall back to simpleName when there is no dotted receiver.
+                // If call = "jwt.verify", falling back to importedNames.get("verify") could
+                // match a completely different import named "verify" — wrong target, high
+                // confidence false-positive.  Only strip the receiver when there is none.
+                const namedId = importedNames.get(call) ?? (receiver === null ? importedNames.get(simpleName) : undefined)
                 if (namedId && graph.nodes.has(namedId)) {
                     this.pushEdge(graph, edgeKeys, {
                         source: fn.id,
@@ -294,7 +302,7 @@ export class GraphBuilder {
         }
     }
 
-    /** Containment edges: file → function, file → class, class → method */
+    /** Containment edges: file → function, file → class, class → method, file → generic */
     private addContainmentEdges(
         graph: DependencyGraph,
         file: ParsedFile,
@@ -320,6 +328,15 @@ export class GraphBuilder {
                     type: 'contains',
                 })
             }
+        }
+        // Generic declarations (interfaces, type aliases, top-level constants) are also
+        // contained by their file — needed so dead-code and impact analysis can trace them.
+        for (const gen of file.generics ?? []) {
+            this.pushEdge(graph, edgeKeys, {
+                source: file.path,
+                target: gen.id,
+                type: 'contains',
+            })
         }
     }
 

@@ -27,19 +27,23 @@ export class ImpactAnalyzer {
 
         const queue: { id: string; depth: number; confidence: number }[] =
             changedNodeIds.map(id => ({ id, depth: 0, confidence: 1.0 }))
+        // Use an index pointer instead of queue.shift() to avoid O(n) cost per dequeue.
+        let queueHead = 0
         let maxDepth = 0
 
         const changedSet = new Set(changedNodeIds)
 
-        // Collect module IDs of the changed nodes
-        const changedModules = new Set<string | undefined>()
+        // Collect module IDs of the changed nodes — filter out undefined so that
+        // nodes without a moduleId don't accidentally match every other unmoduled node
+        // and cause everything to appear "same module".
+        const changedModules = new Set<string>()
         for (const id of changedNodeIds) {
             const node = this.graph.nodes.get(id)
-            if (node) changedModules.add(node.moduleId)
+            if (node?.moduleId) changedModules.add(node.moduleId)
         }
 
-        while (queue.length > 0) {
-            const { id: current, depth, confidence: pathConf } = queue.shift()!
+        while (queueHead < queue.length) {
+            const { id: current, depth, confidence: pathConf } = queue[queueHead++]
             if (visited.has(current)) continue
             visited.add(current)
             depthMap.set(current, depth)
@@ -74,7 +78,9 @@ export class ImpactAnalyzer {
             if (!node) continue
 
             const depth = depthMap.get(id) ?? 999
-            const crossesBoundary = !changedModules.has(node.moduleId)
+            // A node crosses a module boundary when its module differs from ALL changed modules.
+            // If the node has no moduleId, treat it as crossing a boundary (unknown module ≠ known).
+            const crossesBoundary = !node.moduleId || !changedModules.has(node.moduleId)
 
             const risk: RiskLevel =
                 depth === 1 && crossesBoundary ? 'critical' :

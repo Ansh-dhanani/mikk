@@ -54,6 +54,7 @@ const ROUTE_PATTERNS: RoutePattern[] = [
  */
 export class GoExtractor {
     private readonly lines: string[]
+    private cachedFunctions: ReturnType<typeof this.scanFunctions> | null = null
 
     constructor(
         private readonly filePath: string,
@@ -174,6 +175,7 @@ export class GoExtractor {
         endLine: number
         purpose: string
     }> {
+        if (this.cachedFunctions) return this.cachedFunctions
         const results: Array<{
             name: string
             receiverType?: string
@@ -237,6 +239,7 @@ export class GoExtractor {
             i = bodyEnd + 1
         }
 
+        this.cachedFunctions = results
         return results
     }
 
@@ -547,9 +550,15 @@ function findBodyBounds(lines: string[], startLine: number): { bodyStart: number
 
             if (ch === '/' && next === '/') { inLineComment = true; break }
             if (ch === '/' && next === '*') { inBlockComment = true; j++; continue }
-            if (ch === '"' || ch === '`' || ch === '\'') {
+            if (ch === '"' || ch === '`') {
                 inString = true
                 stringChar = ch
+                continue
+            }
+            if (ch === '\'') {
+                // Go rune literal: consume exactly one character (or escape) then close
+                if (next === '\\') j += 3 // '\n' or '\x00' etc.
+                else j += 2 // 'a'
                 continue
             }
 

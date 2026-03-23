@@ -195,9 +195,31 @@ export class DeadCodeDetector {
     }
 
     private isCalledByExportedInSameFile(fn: MikkLock['functions'][string]): boolean {
-        for (const callerId of fn.calledBy) {
-            const caller = this.lock.functions[callerId]
-            if (caller && caller.isExported && caller.file === fn.file) return true
+        // Multi-pass transitive liveness: propagate liveness through the full calledBy
+        // chain until no new live functions are discovered.  A single-hop check misses
+        // patterns like: exportedFn → internalA → internalB (internalB is still live).
+        const file = fn.file
+        const visited = new Set<string>()
+        const queue: string[] = [fn.id]
+
+        while (queue.length > 0) {
+            const currentId = queue.pop()!
+            if (visited.has(currentId)) continue
+            visited.add(currentId)
+
+            const current = this.lock.functions[currentId]
+            if (!current) continue
+
+            for (const callerId of current.calledBy) {
+                if (visited.has(callerId)) continue
+                const caller = this.lock.functions[callerId]
+                if (!caller) continue
+                // Only follow the chain within the same file
+                if (caller.file !== file) continue
+                // Found a live exported caller in the same file — the original fn is live
+                if (caller.isExported) return true
+                queue.push(callerId)
+            }
         }
         return false
     }
@@ -213,9 +235,9 @@ export class DeadCodeDetector {
      *  high   — none of the above: safe to remove.
      */
     private inferConfidence(fn: MikkLock['functions'][string]): DeadCodeConfidence {
+        if (DYNAMIC_USAGE_PATTERNS.some(p => p.test(fn.name))) return 'low'
         if (fn.calledBy.length > 0) return 'medium'
         if (this.filesWithUnresolvedImports.has(fn.file)) return 'medium'
-        if (DYNAMIC_USAGE_PATTERNS.some(p => p.test(fn.name))) return 'low'
         return 'high'
     }
 
@@ -240,7 +262,7 @@ export class DeadCodeDetector {
         if (!this.lock.files) return result
 
         for (const [filePath, fileInfo] of Object.entries(this.lock.files)) {
-            const imports = (fileInfo as any).imports ?? []
+            const imports = fileInfo.imports ?? []
             for (const imp of imports) {
                 if (!imp.resolvedPath || imp.resolvedPath === '') {
                     result.add(filePath)

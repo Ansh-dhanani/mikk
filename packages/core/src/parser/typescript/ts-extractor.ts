@@ -5,9 +5,18 @@ import { hashContent } from '../../hash/file-hasher.js'
 /**
  * TypeScript AST extractor walks the TypeScript AST using the TS Compiler API
  * and extracts functions, classes, imports, exports and call relationships.
+ *
+ * ID FORMAT: fn:<filePath>:<name> — no startLine suffix.
+ * Same-name collisions within the same file are resolved with a #2, #3 suffix.
+ * Removing startLine from the ID means:
+ *  1. graph-builder local lookup (fn:file:name) matches without extra info
+ *  2. lock-reader parseEntityKey correctly extracts name via lastIndexOf(':')
+ *  3. Incremental caching is not invalidated by line-number shifts on edits
  */
 export class TypeScriptExtractor {
     protected readonly sourceFile: ts.SourceFile
+    /** Per-file collision counter: name -> count of times seen so far */
+    private nameCounter = new Map<string, number>()
 
     constructor(
         protected readonly filePath: string,
@@ -28,6 +37,23 @@ export class TypeScriptExtractor {
         if (filePath.endsWith('.jsx')) return ts.ScriptKind.JSX
         if (filePath.endsWith('.js') || filePath.endsWith('.mjs') || filePath.endsWith('.cjs')) return ts.ScriptKind.JS
         return ts.ScriptKind.TS
+    }
+
+    /**
+     * Allocate a stable, collision-free function ID.
+     * First occurrence: fn:file:name
+     * Second occurrence: fn:file:name#2
+     * Third occurrence:  fn:file:name#3  … etc.
+     */
+    private allocateFnId(name: string): string {
+        const count = (this.nameCounter.get(name) ?? 0) + 1
+        this.nameCounter.set(name, count)
+        return count === 1 ? `fn:${this.filePath}:${name}` : `fn:${this.filePath}:${name}#${count}`
+    }
+
+    /** Reset the collision counter (call before each full extraction pass if reused) */
+    resetCounters(): void {
+        this.nameCounter.clear()
     }
 
     /** Extract all top-level and variable-assigned functions */
@@ -78,7 +104,7 @@ export class TypeScriptExtractor {
                     name: node.name.text,
                     type: 'interface',
                     file: this.filePath,
-                    startLine: this.getLineNumber(node.getStart()),
+                    startLine: this.getLineNumber(node.getStart(this.sourceFile)),
                     endLine: this.getLineNumber(node.getEnd()),
                     isExported: this.hasExportModifier(node),
                     ...(tp.length > 0 ? { typeParameters: tp } : {}),
@@ -91,7 +117,7 @@ export class TypeScriptExtractor {
                     name: node.name.text,
                     type: 'type',
                     file: this.filePath,
-                    startLine: this.getLineNumber(node.getStart()),
+                    startLine: this.getLineNumber(node.getStart(this.sourceFile)),
                     endLine: this.getLineNumber(node.getEnd()),
                     isExported: this.hasExportModifier(node),
                     ...(tp.length > 0 ? { typeParameters: tp } : {}),
@@ -106,7 +132,7 @@ export class TypeScriptExtractor {
                             name: decl.name.text,
                             type: 'const',
                             file: this.filePath,
-                            startLine: this.getLineNumber(node.getStart()),
+                            startLine: this.getLineNumber(node.getStart(this.sourceFile)),
                             endLine: this.getLineNumber(node.getEnd()),
                             isExported: this.hasExportModifier(node),
                             purpose: this.extractPurpose(node),
@@ -299,7 +325,7 @@ export class TypeScriptExtractor {
                         handler,
                         middlewares,
                         file: this.filePath,
-                        line: this.getLineNumber(node.getStart()),
+                        line: this.getLineNumber(node.getStart(this.sourceFile)),
                     })
                 }
             }
@@ -313,7 +339,8 @@ export class TypeScriptExtractor {
 
     protected parseFunctionDeclaration(node: ts.FunctionDeclaration): ParsedFunction {
         const name = node.name!.text
-        const startLine = this.getLineNumber(node.getStart())
+        const id = this.allocateFnId(name)
+        const startLine = this.getLineNumber(node.getStart(this.sourceFile))
         const endLine = this.getLineNumber(node.getEnd())
         const params = this.extractParams(node.parameters)
         const returnType = normalizeTypeAnnotation(node.type ? node.type.getText(this.sourceFile) : 'void')
@@ -324,9 +351,7 @@ export class TypeScriptExtractor {
         const bodyText = node.getText(this.sourceFile)
 
         return {
-            // Include startLine in the ID to prevent collision between overload signatures
-            // and same-named functions in different scopes (e.g. two `init` declarations).
-            id: `fn:${this.filePath}:${name}:${startLine}`,
+            id,
             name,
             file: this.filePath,
             startLine,
@@ -352,7 +377,8 @@ export class TypeScriptExtractor {
         fn: ts.ArrowFunction | ts.FunctionExpression
     ): ParsedFunction {
         const name = (decl.name as ts.Identifier).text
-        const startLine = this.getLineNumber(stmt.getStart())
+        const id = this.allocateFnId(name)
+        const startLine = this.getLineNumber(stmt.getStart(this.sourceFile))
         const endLine = this.getLineNumber(stmt.getEnd())
         const params = this.extractParams(fn.parameters)
         const returnType = normalizeTypeAnnotation(fn.type ? fn.type.getText(this.sourceFile) : 'void')
@@ -363,9 +389,7 @@ export class TypeScriptExtractor {
         const bodyText = stmt.getText(this.sourceFile)
 
         return {
-            // Include startLine to prevent collision between same-named const arrow functions
-            // at different scopes (e.g. two `handler` declarations in different blocks).
-            id: `fn:${this.filePath}:${name}:${startLine}`,
+            id,
             name,
             file: this.filePath,
             startLine,
@@ -387,7 +411,7 @@ export class TypeScriptExtractor {
 
     protected parseClass(node: ts.ClassDeclaration): ParsedClass {
         const name = node.name!.text
-        const startLine = this.getLineNumber(node.getStart())
+        const startLine = this.getLineNumber(node.getStart(this.sourceFile))
         const endLine = this.getLineNumber(node.getEnd())
         const methods: ParsedFunction[] = []
         const decorators = this.extractDecorators(node)
@@ -396,15 +420,16 @@ export class TypeScriptExtractor {
         for (const member of node.members) {
             if (ts.isConstructorDeclaration(member)) {
                 // Track class constructors as methods
-                const mStartLine = this.getLineNumber(member.getStart())
+                const mStartLine = this.getLineNumber(member.getStart(this.sourceFile))
                 const mEndLine = this.getLineNumber(member.getEnd())
                 const params = this.extractParams(member.parameters)
                 const calls = this.extractCalls(member)
                 const bodyText = member.getText(this.sourceFile)
+                const methodName = `${name}.constructor`
 
                 methods.push({
-                    id: `fn:${this.filePath}:${name}.constructor:${mStartLine}`,
-                    name: `${name}.constructor`,
+                    id: this.allocateFnId(methodName),
+                    name: methodName,
                     file: this.filePath,
                     startLine: mStartLine,
                     endLine: mEndLine,
@@ -420,8 +445,8 @@ export class TypeScriptExtractor {
                     detailedLines: this.extractDetailedLines(member),
                 })
             } else if (ts.isMethodDeclaration(member) && member.name) {
-                const methodName = member.name.getText(this.sourceFile)
-                const mStartLine = this.getLineNumber(member.getStart())
+                const methodName = `${name}.${member.name.getText(this.sourceFile)}`
+                const mStartLine = this.getLineNumber(member.getStart(this.sourceFile))
                 const mEndLine = this.getLineNumber(member.getEnd())
                 const params = this.extractParams(member.parameters)
                 const returnType = normalizeTypeAnnotation(member.type ? member.type.getText(this.sourceFile) : 'void')
@@ -432,8 +457,8 @@ export class TypeScriptExtractor {
                 const bodyText = member.getText(this.sourceFile)
 
                 methods.push({
-                    id: `fn:${this.filePath}:${name}.${methodName}:${mStartLine}`,
-                    name: `${name}.${methodName}`,
+                    id: this.allocateFnId(methodName),
+                    name: methodName,
                     file: this.filePath,
                     startLine: mStartLine,
                     endLine: mEndLine,
@@ -475,6 +500,9 @@ export class TypeScriptExtractor {
         let isDefault = false
 
         if (node.importClause) {
+            // Skip type-only imports: import type { Foo } or import type * as X
+            if (node.importClause.isTypeOnly) return null
+
             // import Foo from './module' (default import)
             if (node.importClause.name) {
                 names.push(node.importClause.name.text)
@@ -484,7 +512,10 @@ export class TypeScriptExtractor {
             if (node.importClause.namedBindings) {
                 if (ts.isNamedImports(node.importClause.namedBindings)) {
                     for (const element of node.importClause.namedBindings.elements) {
-                        names.push(element.name.text)
+                        // Skip individual type-only elements: import { type Foo }
+                        if (!element.isTypeOnly) {
+                            names.push(element.name.text)
+                        }
                     }
                 }
                 // import * as foo from './module'
@@ -493,9 +524,6 @@ export class TypeScriptExtractor {
                 }
             }
         }
-
-        // Skip type-only imports
-        if (node.importClause?.isTypeOnly) return null
 
         return {
             source,
@@ -506,9 +534,21 @@ export class TypeScriptExtractor {
         }
     }
 
-    /** Extract function/method call expressions from a node (including new Foo()) */
+    /**
+     * Extract function/method call expressions from the BODY of a node only.
+     * Deliberately skips parameter lists, decorator expressions and type annotations
+     * to avoid recording spurious calls from default-param expressions like
+     *   fn(config = getDefaultConfig())  → getDefaultConfig should NOT appear in calls
+     *
+     * Strategy: walk only the body block, not the full node subtree.
+     */
     protected extractCalls(node: ts.Node): string[] {
         const calls: string[] = []
+
+        // Determine the actual body to walk — skip params, type nodes, decorators
+        const bodyNode = getBodyNode(node)
+        if (!bodyNode) return []
+
         const walkCalls = (n: ts.Node) => {
             if (ts.isCallExpression(n)) {
                 const callee = n.expression
@@ -530,7 +570,7 @@ export class TypeScriptExtractor {
             }
             ts.forEachChild(n, walkCalls)
         }
-        ts.forEachChild(node, walkCalls)
+        ts.forEachChild(bodyNode, walkCalls)
         return [...new Set(calls)] // deduplicate
     }
 
@@ -545,9 +585,6 @@ export class TypeScriptExtractor {
                 const comment = fullText.slice(range.pos, range.end)
                 let clean = ''
                 if (comment.startsWith('/**') || comment.startsWith('/*')) {
-                    // Strip only the comment delimiters (/* ** */) NOT arbitrary slashes.
-                    // Using /[\/\*]/g was wrong — it removes slashes inside URL paths and
-                    // regex literals embedded in doc comments (e.g. "/api/users" → "apiusers").
                     clean = comment
                         .replace(/^\/\*+/, '')   // remove leading /*  or /**
                         .replace(/\*+\/$/, '')   // remove trailing */
@@ -563,7 +600,6 @@ export class TypeScriptExtractor {
                 if (clean) meaningfulLines.push(clean)
             }
 
-            // Return the first meaningful line in JSDoc, the first line is the summary.
             const fromComment = meaningfulLines.length > 0 ? meaningfulLines[0].split('\n')[0].trim() : ''
             if (fromComment) return fromComment
         }
@@ -585,7 +621,7 @@ export class TypeScriptExtractor {
         if (ts.isMethodDeclaration(node) && ts.isIdentifier(node.name)) return node.name.text
         if (ts.isConstructorDeclaration(node)) return 'constructor'
         if ((ts.isInterfaceDeclaration(node) || ts.isTypeAliasDeclaration(node) || ts.isClassDeclaration(node)) && node.name) {
-            return (node as any).name.text
+            return (node as ts.InterfaceDeclaration | ts.TypeAliasDeclaration | ts.ClassDeclaration).name!.text
         }
         return ''
     }
@@ -617,14 +653,14 @@ export class TypeScriptExtractor {
         const walkErrors = (n: ts.Node) => {
             if (ts.isTryStatement(n)) {
                 errors.push({
-                    line: this.getLineNumber(n.getStart()),
+                    line: this.getLineNumber(n.getStart(this.sourceFile)),
                     type: 'try-catch',
                     detail: 'try-catch block'
                 })
             }
             if (ts.isThrowStatement(n)) {
                 errors.push({
-                    line: this.getLineNumber(n.getStart()),
+                    line: this.getLineNumber(n.getStart(this.sourceFile)),
                     type: 'throw',
                     detail: n.expression ? n.expression.getText(this.sourceFile) : 'throw error'
                 })
@@ -641,18 +677,16 @@ export class TypeScriptExtractor {
         const walkBlocks = (n: ts.Node) => {
             if (ts.isIfStatement(n) || ts.isSwitchStatement(n)) {
                 blocks.push({
-                    startLine: this.getLineNumber(n.getStart()),
+                    startLine: this.getLineNumber(n.getStart(this.sourceFile)),
                     endLine: this.getLineNumber(n.getEnd()),
                     blockType: 'ControlFlow'
                 })
             } else if (ts.isForStatement(n) || ts.isWhileStatement(n) || ts.isForOfStatement(n) || ts.isForInStatement(n)) {
                 blocks.push({
-                    startLine: this.getLineNumber(n.getStart()),
+                    startLine: this.getLineNumber(n.getStart(this.sourceFile)),
                     endLine: this.getLineNumber(n.getEnd()),
                     blockType: 'Loop'
                 })
-            } else if (ts.isVariableStatement(n) || ts.isExpressionStatement(n)) {
-                // Ignore single lines for brevity unless part of larger logical units
             }
             ts.forEachChild(n, walkBlocks)
         }
@@ -705,15 +739,45 @@ export class TypeScriptExtractor {
         return this.sourceFile.getLineAndCharacterOfPosition(pos).line + 1
     }
 
-    /** Walk the top-level children of a node (non-recursive callbacks decide depth) */
+    /**
+     * Walk ALL descendant nodes recursively (depth-first).
+     * This ensures nested functions inside if/try/namespace/module blocks are found.
+     *
+     * NOTE: The callback controls depth — returning early from the callback is NOT
+     * supported here. If you need to stop at certain depths (e.g. don't recurse
+     * into nested function bodies), handle that in the callback by checking node kind.
+     */
     protected walkNode(node: ts.Node, callback: (node: ts.Node) => void): void {
         ts.forEachChild(node, (child) => {
             callback(child)
+            this.walkNode(child, callback)
         })
     }
 }
 
-// 
+// ---------------------------------------------------------------------------
+// Module-level helpers
+// ---------------------------------------------------------------------------
+
+/**
+ * Return the body node of a function-like node to limit call extraction scope.
+ * Skips parameter lists, type annotations and decorators.
+ * Returns null for nodes with no body (abstract methods, overload signatures).
+ */
+function getBodyNode(node: ts.Node): ts.Node | null {
+    if (ts.isFunctionDeclaration(node) || ts.isFunctionExpression(node) || ts.isArrowFunction(node)) {
+        return (node as ts.FunctionLikeDeclaration).body ?? null
+    }
+    if (ts.isMethodDeclaration(node) || ts.isConstructorDeclaration(node)) {
+        return (node as ts.MethodDeclaration).body ?? null
+    }
+    // For class declarations, walk members but not decorators/heritage
+    if (ts.isClassDeclaration(node)) {
+        return node
+    }
+    // For anything else (e.g. class body node) walk as-is
+    return node
+}
 
 /**
  * Derive a human-readable purpose sentence from a camelCase/PascalCase identifier.

@@ -83,12 +83,17 @@ export const MikkLockModuleSchema = z.object({
     fragmentPath: z.string(),
 })
 
+export const MikkLockImportSchema = z.object({
+    source: z.string(),
+    resolvedPath: z.string().optional(),
+})
+
 export const MikkLockFileSchema = z.object({
     path: z.string(),
     hash: z.string(),
     moduleId: z.string(),
     lastModified: z.string(),
-    imports: z.array(z.string()).optional(),
+    imports: z.array(MikkLockImportSchema).optional(),
 })
 
 export const MikkLockClassSchema = z.object({

@@ -74,7 +74,9 @@ export class BoundaryChecker {
 
         for (const file of Object.values(this.lock.files)) {
             if (file.moduleId === 'unknown' || !file.imports?.length) continue
-            for (const importedPath of file.imports) {
+            for (const imp of file.imports) {
+                const importedPath = imp.resolvedPath
+                if (!importedPath) continue
                 const importedFile = this.lock.files[importedPath]
                 if (!importedFile || importedFile.moduleId === 'unknown' || file.moduleId === importedFile.moduleId) continue
                 const v = this.checkFileImport(file, importedFile)
