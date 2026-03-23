@@ -45,7 +45,9 @@ export class HealthDiagramGenerator {
         }
         for (const file of Object.values(this.lock.files)) {
             if (!file.imports) continue
-            for (const importedPath of file.imports) {
+            for (const imp of file.imports) {
+                const importedPath = imp.resolvedPath
+                if (!importedPath) continue
                 const importedFile = this.lock.files[importedPath]
                 if (importedFile && file.moduleId !== importedFile.moduleId) {
                     const key = `${file.moduleId}|${importedFile.moduleId}`
@@ -88,7 +90,9 @@ export class HealthDiagramGenerator {
         }
         for (const file of moduleFiles) {
             if (!file.imports) continue
-            for (const importedPath of file.imports) {
+            for (const imp of file.imports) {
+                const importedPath = imp.resolvedPath
+                if (!importedPath) continue
                 const importedFile = this.lock.files[importedPath]
                 if (importedFile) {
                     if (importedFile.moduleId === moduleId) internalCalls++

@@ -61,7 +61,9 @@ export class MainDiagramGenerator {
         // File-level cross-module imports
         for (const file of Object.values(this.lock.files)) {
             if (!file.imports) continue
-            for (const importedPath of file.imports) {
+            for (const imp of file.imports) {
+                const importedPath = imp.resolvedPath
+                if (!importedPath) continue
                 const importedFile = this.lock.files[importedPath]
                 if (importedFile && file.moduleId !== importedFile.moduleId) {
                     const edgeKey = `${file.moduleId}→${importedFile.moduleId}`
@@ -103,7 +105,7 @@ export class MainDiagramGenerator {
         const ranked = allFiles
             .map(f => ({
                 ...f,
-                connections: (f.imports?.length || 0) + (Object.values(this.lock.files).filter(other => other.imports?.includes(f.path)).length),
+                connections: (f.imports?.length || 0) + (Object.values(this.lock.files).filter(other => other.imports?.some(i => i.resolvedPath === f.path)).length),
             }))
             .sort((a, b) => b.connections - a.connections)
 
@@ -146,8 +148,8 @@ export class MainDiagramGenerator {
         for (const file of filesToShow) {
             if (!file.imports) continue
             for (const imp of file.imports) {
-                if (shownPaths.has(imp)) {
-                    lines.push(`    ${this.sanitizeId(file.path)} --> ${this.sanitizeId(imp)}`)
+                if (imp.resolvedPath && shownPaths.has(imp.resolvedPath)) {
+                    lines.push(`    ${this.sanitizeId(file.path)} --> ${this.sanitizeId(imp.resolvedPath)}`)
                 }
             }
         }

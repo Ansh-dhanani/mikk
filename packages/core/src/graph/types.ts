@@ -19,6 +19,7 @@ export interface GraphNode {
         isAsync?: boolean
         hash?: string
         purpose?: string
+        genericKind?: string
         params?: { name: string; type: string; optional?: boolean }[]
         returnType?: string
         edgeCasesHandled?: string[]

@@ -325,18 +325,19 @@ export class LockCompiler {
         for (const file of parsedFiles) {
             const moduleId = this.findModule(file.path, contract.declared.modules)
 
-            // Collect file-level imports from the graph's import edges
-            const outEdges = graph.outEdges.get(file.path) || []
-            const importedFiles = outEdges
-                .filter(e => e.type === 'imports')
-                .map(e => e.target)
-
+            // Collect file-level imports from the parsed file info directly
+            // to include both source and resolvedPath for unresolved analysis.
+            const imports = file.imports.map(imp => ({
+                source: imp.source,
+                resolvedPath: imp.resolvedPath || undefined,
+            }))
+ 
             result[file.path] = {
                 path: file.path,
                 hash: file.hash,
                 moduleId: moduleId || 'unknown',
                 lastModified: new Date(file.parsedAt).toISOString(),
-                ...(importedFiles.length > 0 ? { imports: importedFiles } : {}),
+                ...(imports.length > 0 ? { imports } : {}),
             }
         }
 

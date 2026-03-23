@@ -142,6 +142,7 @@ function assignCallsToFunctions(
 export class TreeSitterParser extends BaseParser {
     private parser: any = null
     private languages = new Map<string, any>()
+    private nameCounter = new Map<string, number>()
 
     getSupportedExtensions(): string[] {
         return ['.py', '.java', '.c', '.cpp', '.cc', '.h', '.hpp', '.cs', '.go', '.rs', '.php', '.rb']
@@ -155,6 +156,7 @@ export class TreeSitterParser extends BaseParser {
     }
 
     async parse(filePath: string, content: string): Promise<ParsedFile> {
+        this.nameCounter.clear()
         await this.init()
         const ext = path.extname(filePath).toLowerCase()
         const config = await this.getLanguageConfig(ext)
@@ -215,11 +217,12 @@ export class TreeSitterParser extends BaseParser {
                     const startLine = defNode.startPosition.row + 1
                     const endLine = defNode.endPosition.row + 1
                     const nodeText = defNode.text ?? ''
+                    const count = (this.nameCounter.get(fnName) ?? 0) + 1
+                    this.nameCounter.set(fnName, count)
 
-                    // Unique ID: include start line to handle overloads and same-name scoped functions
-                    let fnId = `fn:${filePath}:${fnName}:${startLine}`
+                    // Unique ID: use stable format with counter for collisions
+                    let fnId = count === 1 ? `fn:${filePath}:${fnName}` : `fn:${filePath}:${fnName}#${count}`
                     if (seenFnIds.has(fnId)) {
-                        // Extremely rare duplicate — skip rather than corrupt
                         continue
                     }
                     seenFnIds.add(fnId)
@@ -269,7 +272,7 @@ export class TreeSitterParser extends BaseParser {
                     const startLine = defNode.startPosition.row + 1
                     const endLine = defNode.endPosition.row + 1
                     const nodeText = defNode.text ?? ''
-                    const clsId = `cls:${filePath}:${clsName}:${startLine}`
+                    const clsId = `class:${filePath}:${clsName}` // consistent with ts-extractor
 
                     if (!classesMap.has(clsId)) {
                         classesMap.set(clsId, {
@@ -300,7 +303,7 @@ export class TreeSitterParser extends BaseParser {
                 endLine: lineCount || 1,
                 params: [],
                 returnType: 'void',
-                isExported: true,
+                isExported: false, // Don't export the synthetic module function
                 isAsync: false,
                 calls: Array.from(new Set(unassignedCalls)),
                 hash: '',
