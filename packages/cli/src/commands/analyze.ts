@@ -1,12 +1,63 @@
+import fs from 'node:fs'
 import * as path from 'node:path'
+import { pathToFileURL } from 'node:url'
 import type { Command } from 'commander'
 import ora from 'ora'
 import chalk from 'chalk'
-import {
-    discoverFiles, discoverContextFiles, parseFiles, readFileContent,
-    GraphBuilder, LockCompiler, ContractReader, LockReader,
-    detectProjectLanguage, getDiscoveryPatterns,
-} from '@getmikk/core'
+
+type CoreModule = typeof import('@getmikk/core')
+
+function findWorkspaceRoot(start: string): string | null {
+    let current = path.resolve(start)
+    while (true) {
+        if (fs.existsSync(path.join(current, 'packages', 'core', 'package.json'))) {
+            return current
+        }
+        const parent = path.dirname(current)
+        if (parent === current) break
+        current = parent
+    }
+    return null
+}
+
+async function resolveCoreModule(projectRoot: string): Promise<CoreModule> {
+    const workspaceRoot = findWorkspaceRoot(projectRoot)
+    const candidates: string[] = []
+    if (workspaceRoot) {
+        const distPath = path.join(workspaceRoot, 'packages', 'core', 'dist', 'index.js')
+        const srcPath = path.join(workspaceRoot, 'packages', 'core', 'src', 'index.ts')
+        const hasDist = fs.existsSync(distPath)
+        const hasSrc = fs.existsSync(srcPath)
+        if (hasDist && hasSrc) {
+            const distMtime = fs.statSync(distPath).mtimeMs
+            const srcMtime = fs.statSync(srcPath).mtimeMs
+            if (srcMtime > distMtime) {
+                candidates.push(srcPath, distPath)
+            } else {
+                candidates.push(distPath, srcPath)
+            }
+        } else if (hasDist) {
+            candidates.push(distPath)
+        } else if (hasSrc) {
+            candidates.push(srcPath)
+        }
+    }
+    candidates.push('@getmikk/core')
+
+    let lastError: Error | null = null
+        for (const candidate of candidates) {
+            try {
+                if (candidate.startsWith('@')) {
+                    return await import(candidate)
+                }
+                return await import(pathToFileURL(candidate).href)
+            } catch (err: any) {
+                lastError = err
+            }
+        }
+
+    throw lastError ?? new Error('Unable to resolve @getmikk/core')
+}
 
 export function registerAnalyzeCommand(program: Command) {
     program
@@ -17,6 +68,13 @@ export function registerAnalyzeCommand(program: Command) {
             const projectRoot = process.cwd()
 
             try {
+                const core = await resolveCoreModule(projectRoot)
+                const {
+                    discoverFiles, discoverContextFiles, parseFiles, readFileContent,
+                    GraphBuilder, LockCompiler, ContractReader, LockReader,
+                    detectProjectLanguage, getDiscoveryPatterns,
+                } = core
+
                 const contractReader = new ContractReader()
                 const contract = await contractReader.read(path.join(projectRoot, 'mikk.json'))
 
@@ -47,7 +105,7 @@ export function registerAnalyzeCommand(program: Command) {
                 const contextFiles = await discoverContextFiles(projectRoot)
 
                 spinner.text = 'Compiling lock file...'
-                const lock = new LockCompiler().compile(graph, contract, parsedFiles, contextFiles)
+                const lock = new LockCompiler().compile(graph, contract, parsedFiles, contextFiles, projectRoot)
 
                 const lockReader = new LockReader()
                 await lockReader.write(lock, path.join(projectRoot, 'mikk.lock.json'))

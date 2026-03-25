@@ -48,6 +48,8 @@ export class JavaScriptParser extends BaseParser {
             imports,
             exports,
             routes,
+            variables: [],
+            calls: [],
             hash: hashContent(content),
             parsedAt: Date.now(),
         }

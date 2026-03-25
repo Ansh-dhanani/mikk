@@ -43,12 +43,14 @@ export class BM25Index {
     private documents: BM25Document[] = []
     private documentFrequency = new Map<string, number>()  // term → how many docs contain it
     private avgDocLength = 0
+    private totalDocLength = 0  // running total — avoids O(n²) recompute on every addDocument
 
     /** Clear the index */
     clear(): void {
         this.documents = []
         this.documentFrequency.clear()
         this.avgDocLength = 0
+        this.totalDocLength = 0
     }
 
     /** Add a document with pre-tokenized terms */
@@ -62,8 +64,9 @@ export class BM25Index {
             this.documentFrequency.set(term, (this.documentFrequency.get(term) ?? 0) + 1)
         }
 
-        // Recompute average document length
-        this.avgDocLength = this.documents.reduce((sum, d) => sum + d.length, 0) / this.documents.length
+        // O(1) running average — was O(n) reduce over all documents on every insert
+        this.totalDocLength += normalizedTokens.length
+        this.avgDocLength = this.totalDocLength / this.documents.length
     }
 
     /** Search the index and return ranked results */

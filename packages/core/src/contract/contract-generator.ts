@@ -76,6 +76,13 @@ export class ContractGenerator {
                 mode: 'never',
                 requireConfirmation: true,
             },
+            policies: {
+                maxRiskScore: 70,
+                maxImpactNodes: 10,
+                protectedModules: ['auth', 'security', 'billing'],
+                enforceStrictBoundaries: true,
+                requireReasoningForCritical: true,
+            },
         }
     }
 

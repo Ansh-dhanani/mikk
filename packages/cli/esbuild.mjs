@@ -12,7 +12,7 @@ await esbuild.build({
   target: 'node18',
   sourcemap: true,
   banner: { js: '#!/usr/bin/env node' },
-  external: ['@xenova/transformers'],
+  external: ['@xenova/transformers', 'oxc-parser', 'oxc-resolver', 'web-tree-sitter'],
   define: {
     '__MIKK_VERSION__': JSON.stringify(version)
   },

@@ -195,8 +195,6 @@ export class ClusterDetector {
         for (const [name, dupes] of nameCount) {
             if (dupes.length <= 1) continue
             for (const cluster of dupes) {
-                // Try to find a distinctive directory segment from the cluster ID
-                // e.g. "packages-diagram-generator" → "Diagram Generator"
                 const segments = cluster.id.split('-')
                     .filter(s => s !== 'packages' && s !== 'apps' && s !== 'src')
                 const suffix = segments
@@ -208,7 +206,11 @@ export class ClusterDetector {
             }
         }
 
-        return merged.sort((a, b) => b.confidence - a.confidence)
+        const sorted = merged.sort((a, b) => b.confidence - a.confidence)
+        if (sorted.length <= 1 && files.length > 1) {
+            return this.buildDirectoryClusters(files)
+        }
+        return sorted
     }
 
     // ─── Coupling Matrix ──────────────────────────────────────────
@@ -235,8 +237,8 @@ export class ClusterDetector {
         for (const edge of this.graph.edges) {
             if (edge.type !== 'imports' && edge.type !== 'calls') continue
 
-            const sourceFile = this.getFileForNode(edge.source)
-            const targetFile = this.getFileForNode(edge.target)
+            const sourceFile = this.getFileForNode(edge.from)
+            const targetFile = this.getFileForNode(edge.to)
 
             if (!sourceFile || !targetFile || sourceFile === targetFile) continue
             if (!fileSet.has(sourceFile) || !fileSet.has(targetFile)) continue
@@ -317,7 +319,7 @@ export class ClusterDetector {
             const outEdges = this.graph.outEdges.get(file) || []
             for (const edge of outEdges) {
                 if (edge.type === 'imports') {
-                    if (fileSet.has(edge.target)) {
+                    if (fileSet.has(edge.to)) {
                         internalEdges++
                     } else {
                         externalEdges++
@@ -331,10 +333,10 @@ export class ClusterDetector {
             const containEdges = this.graph.outEdges.get(file) || []
             for (const containEdge of containEdges) {
                 if (containEdge.type === 'contains') {
-                    const fnOutEdges = this.graph.outEdges.get(containEdge.target) || []
+                    const fnOutEdges = this.graph.outEdges.get(containEdge.to) || []
                     for (const callEdge of fnOutEdges) {
                         if (callEdge.type === 'calls') {
-                            const targetNode = this.graph.nodes.get(callEdge.target)
+                            const targetNode = this.graph.nodes.get(callEdge.to)
                             if (targetNode && fileSet.has(targetNode.file)) {
                                 internalEdges++
                             } else if (targetNode) {
@@ -380,7 +382,7 @@ export class ClusterDetector {
             const containEdges = this.graph.outEdges.get(f) || []
             return containEdges
                 .filter(e => e.type === 'contains')
-                .map(e => e.target)
+                .map(e => e.to)
         })
     }
 
@@ -413,18 +415,16 @@ export class ClusterDetector {
      *      "features/auth/api/route.ts"   → "features-auth-api"
      */
     private getDirSegments(filePath: string): string {
-        const parts = filePath.split('/')
-        // Remove filename (last part with an extension)
-        const dirs = parts.filter((p, i) => i < parts.length - 1 || !p.includes('.'))
-        // Drop 'src' prefix — it carries no semantic meaning
-        const meaningful = dirs.filter(d => d !== 'src' && d !== '')
-        if (meaningful.length === 0) {
-            // Fallback: use the filename without extension
-            const last = parts[parts.length - 1]
+        const parts = filePath.replace(/\\/g, '/').split('/')
+        const filtered = parts.filter(part => part && part.toLowerCase() !== 'src')
+        const dirs = filtered.slice(0, -1) // drop filename
+        if (dirs.length === 0) {
+            const last = filtered[filtered.length - 1] || ''
             return last.replace(/\.[^.]+$/, '') || 'unknown'
         }
-        // Take up to 3 segments for a unique but concise ID
-        return meaningful.slice(0, 3).join('-')
+        const sliceStart = Math.max(0, dirs.length - 3)
+        const meaningful = dirs.slice(sliceStart)
+        return meaningful.map(seg => seg.replace(/[^a-zA-Z0-9]+/g, '-').toLowerCase()).join('-') || 'unknown'
     }
 
     // ─── Cluster Merging ──────────────────────────────────────────
@@ -470,6 +470,31 @@ export class ClusterDetector {
         return result
     }
 
+    private buildDirectoryClusters(fileNodes: string[]): ModuleCluster[] {
+        const buckets = new Map<string, string[]>()
+        for (const file of fileNodes) {
+            const bucketId = this.getDirSegments(this.getNodeFile(file))
+            const entry = buckets.get(bucketId) ?? []
+            entry.push(file)
+            buckets.set(bucketId, entry)
+        }
+
+        const clusters: ModuleCluster[] = []
+        for (const [id, bucket] of buckets) {
+            const filePaths = bucket.map(f => this.getNodeFile(f))
+            const functions = this.getFunctionIdsForFiles(bucket)
+            clusters.push({
+                id,
+                files: filePaths,
+                confidence: this.computeClusterConfidence(bucket),
+                suggestedName: this.inferSemanticName(filePaths, functions),
+                functions,
+            })
+        }
+
+        return clusters.sort((a, b) => b.confidence - a.confidence)
+    }
+
     /** Get the base directory (first meaningful segment) for a set of files */
     private getBaseDir(files: string[]): string {
         if (files.length === 0) return 'unknown'
@@ -505,7 +530,7 @@ export class ClusterDetector {
     private inferSemanticName(filePaths: string[], functionIds: string[]): string {
         // Collect words from function names
         const fnLabels = functionIds
-            .map(id => this.graph.nodes.get(id)?.label ?? '')
+            .map(id => this.graph.nodes.get(id)?.name ?? '')
             .filter(Boolean)
 
         // Collect file basenames without extension

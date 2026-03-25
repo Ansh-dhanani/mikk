@@ -31,7 +31,7 @@ function generateDummyLock(graphNodes: Map<string, any>): MikkLock {
 
     for (const [id, node] of graphNodes.entries()) {
         if (node.type === 'function') {
-            const name = node.label
+            const name = node.name
             const file = node.file
             // We need to populate `calledBy` for transitive liveness checks
 
@@ -68,7 +68,7 @@ describe('DeadCodeDetector', () => {
         // lookups for the lock structure (it only does it for the graph)
         Object.values(lock.functions).forEach(fn => {
             const inEdges = graph.inEdges.get(fn.id) ?? []
-            fn.calledBy = inEdges.filter(e => e.type === 'calls').map(e => e.source)
+            fn.calledBy = inEdges.filter(e => e.type === 'calls').map(e => e.from)
         })
 
         const detector = new DeadCodeDetector(graph, lock)
@@ -83,7 +83,7 @@ describe('DeadCodeDetector', () => {
         const graph = buildTestGraph([
             ['D', 'nothing']
         ])
-        graph.nodes.get('fn:src/D.ts:D')!.metadata!.isExported = true
+        graph.nodes.get('fn:src/d.ts:d')!.metadata!.isExported = true
 
         const lock = generateDummyLock(graph.nodes)
 
@@ -115,16 +115,16 @@ describe('DeadCodeDetector', () => {
         ])
 
         // Both in same file by default from buildTestGraph
-        graph.nodes.get('fn:src/ExportedFn.ts:ExportedFn')!.metadata!.isExported = true
+        graph.nodes.get('fn:src/exportedfn.ts:exportedfn')!.metadata!.isExported = true
 
         // In the lock, we must place them in the SAME file manually because buildTestGraph 
         // puts them in separate files based on name
         const lock = generateDummyLock(graph.nodes)
-        lock.functions['fn:src/ExportedFn.ts:ExportedFn'].file = 'src/shared.ts'
-        lock.functions['fn:src/InternalHelper.ts:InternalHelper'].file = 'src/shared.ts'
+        lock.functions['fn:src/exportedfn.ts:exportedfn'].file = 'src/shared.ts'
+        lock.functions['fn:src/internalhelper.ts:internalhelper'].file = 'src/shared.ts'
 
         // Set up the calledBy relation
-        lock.functions['fn:src/InternalHelper.ts:InternalHelper'].calledBy = ['fn:src/ExportedFn.ts:ExportedFn']
+        lock.functions['fn:src/internalhelper.ts:internalhelper'].calledBy = ['fn:src/exportedfn.ts:exportedfn']
 
         const detector = new DeadCodeDetector(graph, lock)
         const result = detector.detect()

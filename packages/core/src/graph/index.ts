@@ -4,4 +4,8 @@ export { ImpactAnalyzer } from './impact-analyzer.js'
 export { ClusterDetector } from './cluster-detector.js'
 export { DeadCodeDetector } from './dead-code-detector.js'
 export type { DeadCodeResult, DeadCodeEntry } from './dead-code-detector.js'
+export { RiskEngine } from './risk-engine.js'
+export type { RiskContext, RiskModifiers } from './risk-engine.js'
+export { ConfidenceEngine } from './confidence-engine.js'
+export { QueryEngine } from './query-engine.js'
 

@@ -1,12 +1,14 @@
 import { describe, it, expect } from 'bun:test'
 import { spawn } from 'node:child_process'
 import * as path from 'node:path'
+import * as fs from 'node:fs'
 
 const CLI_ENTRY = path.resolve(import.meta.dir, '../src/index.ts')
+const bunCommand = resolveBunCommand()
 
 async function runCli(args: string[]): Promise<{ stdout: string; stderr: string; code: number | null }> {
     return new Promise((resolve) => {
-        const proc = spawn('bun', ['run', CLI_ENTRY, ...args], { shell: true })
+        const proc = spawn(bunCommand, ['run', CLI_ENTRY, ...args], { shell: false })
         let stdout = ''
         let stderr = ''
 
@@ -22,6 +24,23 @@ async function runCli(args: string[]): Promise<{ stdout: string; stderr: string;
             resolve({ stdout, stderr, code })
         })
     })
+}
+
+function resolveBunCommand(): string {
+    const override = process.env.MIKK_BUN_CLI ?? process.env.BUN_CLI_PATH ?? process.env.BUN_BINARY
+    if (override) return override
+    if (process.platform === 'win32') {
+        const appData = process.env.APPDATA ?? ''
+        const candidates = [
+            path.join(appData, 'npm', 'bun.exe'),
+            path.join(appData, 'npm', 'node_modules', 'bun', 'bin', 'bun.exe'),
+        ]
+        for (const candidate of candidates) {
+            if (candidate && fs.existsSync(candidate)) return candidate
+        }
+        return 'bun.exe'
+    }
+    return 'bun'
 }
 
 describe('@getmikk/cli integration', () => {

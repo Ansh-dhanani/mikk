@@ -1,5 +1,5 @@
 import * as path from 'node:path'
-import type { ParsedImport } from '../types.js'
+import type { ParsedImport, ParsedFile } from '../types.js'
 
 interface TSConfigPaths {
     [alias: string]: string[]
@@ -25,6 +25,16 @@ export class TypeScriptResolver {
     ) {
         this.aliases = tsConfigPaths ?? {}
     }
+
+    /** Resolve all imports for a batch of files */
+    public resolveBatch(files: ParsedFile[]): ParsedFile[] {
+        const allFilePaths = files.map(f => f.path)
+        return files.map(file => ({
+            ...file,
+            imports: this.resolveAll(file.imports, file.path, allFilePaths)
+        }))
+    }
+
 
     /** Resolve a single import relative to the importing file */
     resolve(imp: ParsedImport, fromFile: string, allProjectFiles: string[] = []): ParsedImport {

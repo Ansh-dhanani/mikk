@@ -39,6 +39,44 @@ Mikk delivers dramatic token on every agentic coding task.
 
 ***
 
+## CLI snapshot (professional, detailed)
+
+`mikk init --force` now emits a **Project snapshot** panel so you instantly understand the graph surface:
+
+- **Files** / **graph nodes** / **graph edges** — the structural scale of the analysis
+- **Total functions** + **exported APIs** — the surface your agents can call into
+- **Modules** — the cluster count the contract generator found
+- **Graph density** — edges per node to gauge coupling
+
+After the snapshot you get the top modules (files, functions, confidence) and a **Context & schema files** panel listing every schema/model/config file (type + path + KB) that the AI context engine ingests. The condensed output keeps the terminal professional while still surfacing the detail your engineers expect.
+
+```
+  ┌─ Project snapshot ─────────────────────────────────────────────────────────┐
+  │ Files         181                                                          │
+  │ Graph nodes   3716                                                         │
+  │ Graph edges   3611                                                         │
+  │ Functions     213                                                          │
+  │ Exported APIs 79                                                           │
+  │ Modules       1                                                            │
+  └────────────────────────────────────────────────────────────────────────────┘
+  █  Graph density  0.97 edges/node
+```
+
+The CLI still prints the usual “What was generated?” checklist afterward, but the new panel and module/context summaries make every init transparent and traceable.
+
+## GitNexus comparison attempt
+
+We also tried to run a benchmark versus [GitNexus](https://github.com/abhigyanpatwari/GitNexus), the zero-server knowledge-graph engine with a built-in Graph-RAG agent and browser-first explorer. The golden path is `npx gitnexus analyze`, but the install failed in this sandbox:
+
+| Tool | Command | Result |
+| --- | --- | --- |
+| **Mikk** | `cmd /c "bun.cmd packages/cli/src/index.ts init --force"` | Completed locally; snapshot shows 181 files, 3716 nodes, 3611 edges, 213 functions, 79 exported APIs, 5 context files |
+| **GitNexus** | `cmd /c "npx --yes --package gitnexus gitnexus analyze"` | Blocked before running; npm reported `EACCES` while fetching `gitnexus` (`FetchError: request to https://registry.npmjs.org/gitnexus failed`), so there’s no timed result yet |
+
+Because the sandbox blocks writing to `C:\Users\Ansh\AppData\Roaming\npm`/cache, we could not finish the benchmark. Once that restriction is lifted you can rerun the GitNexus command and plug the numbers into this section.
+
+***
+
 ## The Problem
 
 AI coding agents are fast but architecturally blind. They don't know your module boundaries. They can't trace your dependency graph. They have no idea that touching `auth/login.ts` breaks 14 downstream functions across 3 packages. They get a flat paste of files and hallucinate the rest.

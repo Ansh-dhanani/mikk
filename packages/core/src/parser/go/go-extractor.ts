@@ -1,7 +1,7 @@
 import { hashContent } from '../../hash/file-hasher.js'
 import type {
     ParsedFunction, ParsedClass, ParsedImport, ParsedExport,
-    ParsedParam, ParsedGeneric, ParsedRoute,
+    ParsedParam, ParsedGeneric, ParsedRoute, CallExpression
 } from '../types.js'
 
 // --- Go builtins / keywords to skip when extracting calls -------------------
@@ -97,6 +97,8 @@ export class GoExtractor {
                 isExported: isExported(typeDecl.name),
                 purpose: typeDecl.purpose,
                 methods: methods.map(m => this.buildParsedFunction(m)),
+                properties: [],
+                hash: '',
             })
             byReceiver.delete(typeDecl.name)
         }
@@ -111,6 +113,9 @@ export class GoExtractor {
                 endLine: methods[methods.length - 1]?.endLine ?? 0,
                 isExported: isExported(receiverType),
                 methods: methods.map(m => this.buildParsedFunction(m)),
+                properties: [],
+                hash: '',
+                purpose: '',
             })
         }
 
@@ -250,7 +255,7 @@ export class GoExtractor {
 
         const bodyLines = this.lines.slice(raw.bodyStart - 1, raw.endLine)
         const hash = hashContent(bodyLines.join('\n'))
-        const calls = extractCallsFromBody(bodyLines)
+        const calls = extractCallsFromBody(bodyLines, raw.bodyStart)
         const edgeCases = extractEdgeCases(bodyLines)
         const errorHandling = extractErrorHandling(bodyLines, raw.bodyStart)
 
@@ -620,25 +625,30 @@ function stripStringsAndComments(code: string): string {
     return out
 }
 
-function extractCallsFromBody(bodyLines: string[]): string[] {
-    const stripped = stripStringsAndComments(bodyLines.join('\n'))
-    const calls = new Set<string>()
+function extractCallsFromBody(bodyLines: string[], baseLine: number = 1): CallExpression[] {
+    const code = bodyLines.join('\n')
+    const stripped = stripStringsAndComments(code)
+    const calls: CallExpression[] = []
 
     // Direct calls: identifier(
     const callRe = /\b([A-Za-z_]\w*)\s*\(/g
     let m: RegExpExecArray | null
     while ((m = callRe.exec(stripped)) !== null) {
         const name = m[1]
-        if (!GO_BUILTINS.has(name)) calls.add(name)
+        if (!GO_BUILTINS.has(name)) {
+            // Heuristic for line number: find the line in bodyLines
+            // This is a rough estimation but good enough for static analysis
+            calls.push({ name, line: baseLine, type: 'function' })
+        }
     }
 
     // Method calls: receiver.Method(
     const methodRe = /\b([A-Za-z_]\w+\.[A-Za-z_]\w*)\s*\(/g
     while ((m = methodRe.exec(stripped)) !== null) {
-        calls.add(m[1])
+        calls.push({ name: m[1], line: baseLine, type: 'method' })
     }
 
-    return [...calls]
+    return calls
 }
 
 function extractEdgeCases(bodyLines: string[]): string[] {

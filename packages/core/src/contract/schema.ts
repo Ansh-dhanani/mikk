@@ -26,6 +26,20 @@ export const MikkOverwriteSchema = z.object({
     lastOverwrittenAt: z.string().optional(),
 }).default({ mode: 'never', requireConfirmation: true })
 
+export const MikkPolicySchema = z.object({
+    maxRiskScore: z.number().default(70),
+    maxImpactNodes: z.number().default(10),
+    protectedModules: z.array(z.string()).default(['auth', 'security', 'billing']),
+    enforceStrictBoundaries: z.boolean().default(true),
+    requireReasoningForCritical: z.boolean().default(true),
+}).default({
+    maxRiskScore: 70,
+    maxImpactNodes: 10,
+    protectedModules: ['auth', 'security', 'billing'],
+    enforceStrictBoundaries: true,
+    requireReasoningForCritical: true,
+})
+
 export const MikkContractSchema = z.object({
     version: z.string(),
     project: z.object({
@@ -41,11 +55,13 @@ export const MikkContractSchema = z.object({
         decisions: z.array(MikkDecisionSchema).default([]),
     }),
     overwrite: MikkOverwriteSchema,
+    policies: MikkPolicySchema,
 })
 
 export type MikkContract = z.infer<typeof MikkContractSchema>
 export type MikkModule = z.infer<typeof MikkModuleSchema>
 export type MikkDecision = z.infer<typeof MikkDecisionSchema>
+export type MikkPolicy = z.infer<typeof MikkPolicySchema>
 
 // ─── mikk.lock.json schema ──────────────────────────────
 
@@ -74,6 +90,8 @@ export const MikkLockFunctionSchema = z.object({
         type: z.enum(['try-catch', 'throw']),
         detail: z.string(),
     })).optional(),
+    confidence: z.number().optional(),
+    riskScore: z.number().optional(),
 })
 
 export const MikkLockModuleSchema = z.object({
@@ -86,6 +104,7 @@ export const MikkLockModuleSchema = z.object({
 export const MikkLockImportSchema = z.object({
     source: z.string(),
     resolvedPath: z.string().optional(),
+    names: z.array(z.string()).optional(),
 })
 
 export const MikkLockFileSchema = z.object({
@@ -111,6 +130,8 @@ export const MikkLockClassSchema = z.object({
         type: z.enum(['try-catch', 'throw']),
         detail: z.string(),
     })).optional(),
+    confidence: z.number().optional(),
+    riskScore: z.number().optional(),
 })
 
 export const MikkLockGenericSchema = z.object({

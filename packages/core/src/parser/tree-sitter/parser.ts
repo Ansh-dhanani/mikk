@@ -109,8 +109,8 @@ function findFirstChild(node: any, predicate: (n: any) => boolean): any {
 function assignCallsToFunctions(
     functions: ParsedFunction[],
     callEntries: Array<{ name: string; line: number }>
-): string[] {
-    const unassigned: string[] = []
+): Array<{ name: string; line: number }> {
+    const unassigned: Array<{ name: string; line: number }> = []
     for (const { name, line } of callEntries) {
         // Find the innermost (smallest range) function that contains this line
         let best: ParsedFunction | null = null
@@ -125,11 +125,11 @@ function assignCallsToFunctions(
             }
         }
         if (best) {
-            if (!best.calls.includes(name)) {
-                best.calls.push(name)
+            if (!best.calls.some(c => c.name === name && c.line === line)) {
+                best.calls.push({ name, line, type: 'function' })
             }
         } else {
-            unassigned.push(name)
+            unassigned.push({ name, line })
         }
     }
     return unassigned
@@ -187,10 +187,13 @@ export class TreeSitterParser extends BaseParser {
             // --- Calls: record name and line position ---
             if (captures['call.name']) {
                 const callNode = captures['call.name']
-                callEntries.push({
-                    name: callNode.text,
-                    line: (callNode.startPosition?.row ?? 0) + 1,
-                })
+                const name = callNode.text
+                if (name) {
+                    callEntries.push({
+                        name,
+                        line: (callNode.startPosition?.row ?? 0) + 1,
+                    })
+                }
                 continue
             }
 
@@ -282,7 +285,9 @@ export class TreeSitterParser extends BaseParser {
                             startLine,
                             endLine,
                             methods: [],
+                            properties: [],
                             isExported: isExportedByLanguage(ext, clsName, nodeText),
+                            hash: hashContent(nodeText),
                         })
                     }
                 }
@@ -305,7 +310,7 @@ export class TreeSitterParser extends BaseParser {
                 returnType: 'void',
                 isExported: false, // Don't export the synthetic module function
                 isAsync: false,
-                calls: Array.from(new Set(unassignedCalls)),
+                calls: unassignedCalls.map(c => ({ name: c.name, line: c.line, type: 'function' })),
                 hash: '',
                 purpose: 'Module-level initialization code',
                 edgeCasesHandled: [],
@@ -333,6 +338,8 @@ export class TreeSitterParser extends BaseParser {
                 file: filePath,
             })),
             routes: [],
+            variables: [],
+            calls: [],
             hash: hashContent(content),
             parsedAt: Date.now(),
         }
@@ -355,6 +362,8 @@ export class TreeSitterParser extends BaseParser {
             imports: [],
             exports: [],
             routes: [],
+            variables: [],
+            calls: [],
             hash: hashContent(content),
             parsedAt: Date.now(),
         }

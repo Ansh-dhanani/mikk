@@ -40,6 +40,30 @@ mikk init
 ```
 
 ---
+ 
+## Professional CLI snapshot
+
+`mikk init --force` now emits a structured **Project snapshot** panel (files, nodes, edges, functions, exports, modules) followed by the top module coordinates and a **Context & schema files** panel so you can review the analysis without hunting through logs.
+
+```
+  ┌─ Project snapshot ─────────────────────────────────────────────────────────┐
+  │ Files         181                                                          │
+  │ Graph nodes   3716                                                         │
+  │ Graph edges   3611                                                         │
+  │ Functions     213                                                          │
+  │ Exported APIs 79                                                           │
+  │ Modules       1                                                            │
+  └────────────────────────────────────────────────────────────────────────────┘
+  █  Graph density  0.97 edges/node
+```
+
+The human-friendly digest makes it easy to confirm the graph scale before drilling into modules, contexts, or constraints.
+
+## Benchmark note (GitNexus)
+
+We attempted to benchmark against GitNexus (`npx --yes --package gitnexus gitnexus analyze`) but the CLI install is blocked inside this sandbox: npm raises `EACCES` while fetching `gitnexus` (error: `FetchError: request to https://registry.npmjs.org/gitnexus failed`). Once the platform permissions allow installing npm packages you can rerun the command to capture the repo metrics.
+
+---
 
 ## Commands
 

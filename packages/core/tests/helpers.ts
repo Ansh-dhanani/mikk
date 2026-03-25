@@ -1,5 +1,5 @@
 import { hashContent } from '../src/hash/file-hasher'
-import type { ParsedFile, ParsedFunction, ParsedImport } from '../src/parser/types'
+import type { ParsedFile, ParsedFunction, ParsedImport, CallExpression } from '../src/parser/types'
 import { GraphBuilder } from '../src/graph/graph-builder'
 import type { DependencyGraph } from '../src/graph/types'
 
@@ -10,7 +10,7 @@ export function mockParsedFile(
     imports: ParsedImport[] = []
 ): ParsedFile {
     return {
-        path: filePath,
+        path: filePath.replace(/\\/g, '/'),
         language: 'typescript',
         functions,
         classes: [],
@@ -26,25 +26,30 @@ export function mockParsedFile(
 /** Build a minimal ParsedFunction */
 export function mockFunction(
     name: string,
-    calls: string[] = [],
+    calls: (string | CallExpression)[] = [],
     file: string = 'src/test.ts',
     isExported: boolean = false
 ): ParsedFunction {
+    const mappedCalls: CallExpression[] = calls.map(c => 
+        typeof c === 'string' ? { name: c, line: 1, type: 'function' } : c
+    )
+    const normalizedPath = file.replace(/\\/g, '/')
     return {
-        id: `fn:${file}:${name}`,
+        id: `fn:${normalizedPath}:${name}`.toLowerCase(),
         name,
-        file,
+        file: normalizedPath,
         startLine: 1,
         endLine: 10,
         params: [],
         returnType: 'void',
         isExported,
         isAsync: false,
-        calls,
+        calls: mappedCalls,
         hash: hashContent(name),
         purpose: '',
         edgeCasesHandled: [],
         errorHandling: [],
+        detailedLines: [],
     }
 }
 

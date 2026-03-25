@@ -10,6 +10,7 @@ import {
     detectProjectLanguage, getDiscoveryPatterns,
     type MikkContract
 } from '@getmikk/core'
+import { panel, kv, cols, gap, line, sq } from '../ui.js'
 
 export function registerInitCommand(program: Command) {
     program
@@ -79,6 +80,33 @@ export function registerInitCommand(program: Command) {
                 const detector = new ClusterDetector(graph)
                 const clusters = detector.detect()
                 spinner.succeed(`Analysis complete: ${files.length} files, ${graph.nodes.size} nodes`)
+                const parsedFunctionCount = parsedFiles.reduce((sum, file) => sum + file.functions.length, 0)
+                const exportedFunctionCount = parsedFiles.reduce((sum, file) =>
+                    sum + file.functions.filter(fn => fn.isExported).length, 0)
+                const snapshotRows = [
+                    kv('Files', files.length.toString()),
+                    kv('Graph nodes', graph.nodes.size.toString()),
+                    kv('Graph edges', graph.edges.length.toString()),
+                    kv('Functions', parsedFunctionCount.toString()),
+                    kv('Exported APIs', exportedFunctionCount.toString()),
+                    kv('Modules', clusters.length.toString()),
+                ]
+                panel('Project snapshot', snapshotRows)
+                line(sq.info, 'Graph density', `${(graph.edges.length / Math.max(1, graph.nodes.size)).toFixed(2)} edges/node`)
+                gap()
+                if (clusters.length > 0) {
+                    const topClusters = clusters.slice(0, 6)
+                    const moduleRows = topClusters.map(cluster => {
+                        const conf = (cluster.confidence * 100).toFixed(0)
+                        const detail = `${cluster.files.length} files · ${cluster.functions.length} functions · ${conf}% confidence`
+                        return cols(cluster.suggestedName, detail)
+                    })
+                    panel(`Top ${moduleRows.length} modules`, moduleRows)
+                    if (clusters.length > moduleRows.length) {
+                        line(sq.dim, 'Modules remaining', `${clusters.length - moduleRows.length} more clusters (see mikk.json)`)
+                    }
+                    gap()
+                }
 
                 // 5. Read package.json for project metadata
                 const fs = await import('node:fs/promises')
@@ -96,28 +124,27 @@ export function registerInitCommand(program: Command) {
                 )
 
                 // 7. Show detected modules
-                console.log(chalk.bold('\n📋 Detected modules:'))
-                for (const cluster of clusters) {
-                    const icon = cluster.confidence > 0.7 ? chalk.green('✓') : chalk.yellow('~')
-                    const conf = cluster.confidence.toFixed(2)
-                    console.log(`   ${icon} ${chalk.bold(cluster.suggestedName.padEnd(20))} (${cluster.files.length} files, confidence: ${conf})`)
-                }
 
                 // 7. Discover context/schema files
                 const ctxSpinner = ora('Discovering schema & config files...').start()
                 const contextFiles = await discoverContextFiles(projectRoot)
                 ctxSpinner.stop()
                 if (contextFiles.length > 0) {
-                    console.log(chalk.bold(`\n📦 Discovered ${contextFiles.length} context file(s):`))
-                    for (const cf of contextFiles) {
+                    const contextRows = contextFiles.map(cf => {
                         const sizeKb = (cf.size / 1024).toFixed(1)
-                        console.log(`   ${chalk.cyan(cf.type.padEnd(10))} ${chalk.dim(cf.path)} (${sizeKb}KB)`)
-                    }
+                        const label = `${chalk.cyan(cf.type.padEnd(10))} ${chalk.dim(cf.path)}`
+                        return `${label} ${chalk.dim(`(${sizeKb} KB)`)}`
+                    })
+                    panel('Context & schema files', contextRows)
+                    gap()
+                } else {
+                    console.log(chalk.dim('\nNo schema or config files detected.'))
+                    gap()
                 }
 
                 // 8. Compile lock file
                 const compiler = new LockCompiler()
-                const lock = compiler.compile(graph, contract, parsedFiles, contextFiles)
+                const lock = compiler.compile(graph, contract, parsedFiles, contextFiles, projectRoot)
                 const functionCount = Object.keys(lock.functions).length
 
                 // 9. Write everything to disk

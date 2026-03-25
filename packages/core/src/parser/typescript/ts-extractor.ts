@@ -1,21 +1,19 @@
 import ts from 'typescript'
-import type { ParsedFunction, ParsedClass, ParsedImport, ParsedExport, ParsedParam, ParsedGeneric, ParsedRoute } from '../types.js'
+import type { 
+    ParsedFunction, 
+    ParsedClass, 
+    ParsedImport, 
+    ParsedExport, 
+    ParsedParam, 
+    ParsedGeneric, 
+    ParsedRoute,
+    ParsedVariable,
+    CallExpression
+} from '../types.js'
 import { hashContent } from '../../hash/file-hasher.js'
 
-/**
- * TypeScript AST extractor walks the TypeScript AST using the TS Compiler API
- * and extracts functions, classes, imports, exports and call relationships.
- *
- * ID FORMAT: fn:<filePath>:<name> — no startLine suffix.
- * Same-name collisions within the same file are resolved with a #2, #3 suffix.
- * Removing startLine from the ID means:
- *  1. graph-builder local lookup (fn:file:name) matches without extra info
- *  2. lock-reader parseEntityKey correctly extracts name via lastIndexOf(':')
- *  3. Incremental caching is not invalidated by line-number shifts on edits
- */
 export class TypeScriptExtractor {
     protected readonly sourceFile: ts.SourceFile
-    /** Per-file collision counter: name -> count of times seen so far */
     private nameCounter = new Map<string, number>()
 
     constructor(
@@ -26,12 +24,11 @@ export class TypeScriptExtractor {
             filePath,
             content,
             ts.ScriptTarget.Latest,
-            true, // setParentNodes
+            true,
             this.inferScriptKind(filePath)
         )
     }
 
-    /** Infer TypeScript ScriptKind from file extension (supports JS/JSX/TS/TSX) */
     private inferScriptKind(filePath: string): ts.ScriptKind {
         if (filePath.endsWith('.tsx')) return ts.ScriptKind.TSX
         if (filePath.endsWith('.jsx')) return ts.ScriptKind.JSX
@@ -39,40 +36,28 @@ export class TypeScriptExtractor {
         return ts.ScriptKind.TS
     }
 
-    /**
-     * Allocate a stable, collision-free function ID.
-     * First occurrence: fn:file:name
-     * Second occurrence: fn:file:name#2
-     * Third occurrence:  fn:file:name#3  … etc.
-     */
-    private allocateFnId(name: string): string {
+    private allocateId(prefix: string, name: string): string {
         const count = (this.nameCounter.get(name) ?? 0) + 1
         this.nameCounter.set(name, count)
-        return count === 1 ? `fn:${this.filePath}:${name}` : `fn:${this.filePath}:${name}#${count}`
+        const suffix = count === 1 ? '' : `#${count}`
+        const normalizedPath = this.filePath.replace(/\\/g, '/')
+        return `${prefix}:${normalizedPath}:${name}${suffix}`.toLowerCase()
     }
 
-    /** Reset the collision counter (call before each full extraction pass if reused) */
     resetCounters(): void {
         this.nameCounter.clear()
     }
 
-    /** Extract all top-level and variable-assigned functions */
     extractFunctions(): ParsedFunction[] {
         const functions: ParsedFunction[] = []
         this.walkNode(this.sourceFile, (node) => {
-            // function declarations: function foo() {}
             if (ts.isFunctionDeclaration(node) && node.name) {
                 functions.push(this.parseFunctionDeclaration(node))
             }
-            // variable declarations with arrow functions or function expressions:
-            // const foo = () => {} or const foo = function() {}
             if (ts.isVariableStatement(node)) {
                 for (const decl of node.declarationList.declarations) {
                     if (decl.initializer && ts.isIdentifier(decl.name)) {
-                        if (
-                            ts.isArrowFunction(decl.initializer) ||
-                            ts.isFunctionExpression(decl.initializer)
-                        ) {
+                        if (ts.isArrowFunction(decl.initializer) || ts.isFunctionExpression(decl.initializer)) {
                             functions.push(this.parseVariableFunction(node, decl, decl.initializer))
                         }
                     }
@@ -82,7 +67,6 @@ export class TypeScriptExtractor {
         return functions
     }
 
-    /** Extract all class declarations */
     extractClasses(): ParsedClass[] {
         const classes: ParsedClass[] = []
         this.walkNode(this.sourceFile, (node) => {
@@ -93,715 +77,371 @@ export class TypeScriptExtractor {
         return classes
     }
 
-    /** Extract generic declarations (interfaces, types, constants with metadata) */
+    extractVariables(): ParsedVariable[] {
+        const variables: ParsedVariable[] = []
+        this.walkNode(this.sourceFile, (node) => {
+            if (ts.isVariableStatement(node)) {
+                for (const decl of node.declarationList.declarations) {
+                    if (ts.isIdentifier(decl.name) && !this.isFunctionLike(decl.initializer)) {
+                        variables.push(this.parseVariable(node, decl))
+                    }
+                }
+            }
+        })
+        return variables
+    }
+
+    private isFunctionLike(node?: ts.Node): boolean {
+        return !!node && (ts.isArrowFunction(node) || ts.isFunctionExpression(node))
+    }
+
     extractGenerics(): ParsedGeneric[] {
         const generics: ParsedGeneric[] = []
         this.walkNode(this.sourceFile, (node) => {
             if (ts.isInterfaceDeclaration(node)) {
-                const tp = this.extractTypeParameters(node.typeParameters)
                 generics.push({
-                    id: `intf:${this.filePath}:${node.name.text}`,
+                    id: this.allocateId('intf', node.name.text),
                     name: node.name.text,
                     type: 'interface',
                     file: this.filePath,
                     startLine: this.getLineNumber(node.getStart(this.sourceFile)),
                     endLine: this.getLineNumber(node.getEnd()),
                     isExported: this.hasExportModifier(node),
-                    ...(tp.length > 0 ? { typeParameters: tp } : {}),
+                    typeParameters: this.extractTypeParameters(node.typeParameters),
+                    hash: hashContent(node.getText(this.sourceFile)),
                     purpose: this.extractPurpose(node),
                 })
             } else if (ts.isTypeAliasDeclaration(node)) {
-                const tp = this.extractTypeParameters(node.typeParameters)
                 generics.push({
-                    id: `type:${this.filePath}:${node.name.text}`,
+                    id: this.allocateId('type', node.name.text),
                     name: node.name.text,
                     type: 'type',
                     file: this.filePath,
                     startLine: this.getLineNumber(node.getStart(this.sourceFile)),
                     endLine: this.getLineNumber(node.getEnd()),
                     isExported: this.hasExportModifier(node),
-                    ...(tp.length > 0 ? { typeParameters: tp } : {}),
+                    typeParameters: this.extractTypeParameters(node.typeParameters),
+                    hash: hashContent(node.getText(this.sourceFile)),
                     purpose: this.extractPurpose(node),
                 })
-            } else if (ts.isVariableStatement(node) && !this.isVariableFunction(node)) {
-                // top-level constants (not functions)
-                for (const decl of node.declarationList.declarations) {
-                    if (ts.isIdentifier(decl.name)) {
-                        generics.push({
-                            id: `const:${this.filePath}:${decl.name.text}`,
-                            name: decl.name.text,
-                            type: 'const',
-                            file: this.filePath,
-                            startLine: this.getLineNumber(node.getStart(this.sourceFile)),
-                            endLine: this.getLineNumber(node.getEnd()),
-                            isExported: this.hasExportModifier(node),
-                            purpose: this.extractPurpose(node),
-                        })
-                    }
-                }
             }
         })
         return generics
     }
 
-    protected isVariableFunction(node: ts.VariableStatement): boolean {
-        for (const decl of node.declarationList.declarations) {
-            if (decl.initializer && (ts.isArrowFunction(decl.initializer) || ts.isFunctionExpression(decl.initializer))) {
-                return true
-            }
-        }
-        return false
-    }
-
-    /** Extract all import statements (static and dynamic) */
     extractImports(): ParsedImport[] {
         const imports: ParsedImport[] = []
         this.walkNode(this.sourceFile, (node) => {
             if (ts.isImportDeclaration(node)) {
+                if (node.importClause?.isTypeOnly) return;
                 const parsed = this.parseImport(node)
-                if (parsed) imports.push(parsed)
-            }
-        })
-
-        // Also detect dynamic import() calls: await import('./path')
-        const walkDynamic = (n: ts.Node) => {
-            if (ts.isCallExpression(n) && n.expression.kind === ts.SyntaxKind.ImportKeyword) {
-                const arg = n.arguments[0]
-                if (arg && ts.isStringLiteral(arg)) {
-                    imports.push({
-                        source: arg.text,
-                        resolvedPath: '', // Filled in by resolver
-                        names: [],
-                        isDefault: false,
-                        isDynamic: true,
-                    })
+                if (parsed) {
+                    // Filter out type-only named imports
+                    parsed.names = parsed.names.filter(n => !n.startsWith('type '))
+                    imports.push(parsed)
                 }
             }
-            ts.forEachChild(n, walkDynamic)
-        }
-        ts.forEachChild(this.sourceFile, walkDynamic)
-
+        })
         return imports
     }
 
-    /** Extract all exported symbols */
     extractExports(): ParsedExport[] {
         const exports: ParsedExport[] = []
         this.walkNode(this.sourceFile, (node) => {
-            // export function foo() {}
             if (ts.isFunctionDeclaration(node) && node.name && this.hasExportModifier(node)) {
-                exports.push({
-                    name: node.name.text,
-                    type: 'function',
-                    file: this.filePath,
-                })
+                exports.push({ name: node.name.text, type: 'function', file: this.filePath })
             }
-            // export class Foo {}
             if (ts.isClassDeclaration(node) && node.name && this.hasExportModifier(node)) {
-                exports.push({
-                    name: node.name.text,
-                    type: 'class',
-                    file: this.filePath,
-                })
+                exports.push({ name: node.name.text, type: 'class', file: this.filePath })
             }
-            // export const foo = ...
             if (ts.isVariableStatement(node) && this.hasExportModifier(node)) {
-                for (const decl of node.declarationList.declarations) {
+                node.declarationList.declarations.forEach(decl => {
                     if (ts.isIdentifier(decl.name)) {
-                        const type = decl.initializer &&
-                            (ts.isArrowFunction(decl.initializer) || ts.isFunctionExpression(decl.initializer))
-                            ? 'function' : 'const'
-                        exports.push({
-                            name: decl.name.text,
-                            type: type as ParsedExport['type'],
-                            file: this.filePath,
-                        })
+                        exports.push({ name: decl.name.text, type: 'const', file: this.filePath })
                     }
-                }
-            }
-            // export interface Foo {}
-            if (ts.isInterfaceDeclaration(node) && this.hasExportModifier(node)) {
-                exports.push({
-                    name: node.name.text,
-                    type: 'interface',
-                    file: this.filePath,
                 })
             }
-            // export type Foo = ...
-            if (ts.isTypeAliasDeclaration(node) && this.hasExportModifier(node)) {
-                exports.push({
-                    name: node.name.text,
-                    type: 'type',
-                    file: this.filePath,
-                })
-            }
-            // export default ...
             if (ts.isExportAssignment(node)) {
-                const name = node.expression && ts.isIdentifier(node.expression) ? node.expression.text : 'default'
-                exports.push({
-                    name,
-                    type: 'default',
-                    file: this.filePath,
-                })
-            }
-            // export { foo, bar } from './module'
-            if (ts.isExportDeclaration(node) && node.exportClause && ts.isNamedExports(node.exportClause)) {
-                for (const element of node.exportClause.elements) {
-                    exports.push({
-                        name: element.name.text,
-                        type: 'const',
-                        file: this.filePath,
-                    })
-                }
+                exports.push({ name: 'default', type: 'default', file: this.filePath })
             }
         })
         return exports
     }
 
-    /**
-     * Extract HTTP route registrations.
-     * Detects Express/Koa/Hono patterns like:
-     *   router.get("/path", handler)
-     *   app.post("/path", middleware, handler)
-     *   app.use("/prefix", subrouter)
-     *   router.use(middleware)
-     */
     extractRoutes(): ParsedRoute[] {
         const routes: ParsedRoute[] = []
-        const HTTP_METHODS = new Set(['get', 'post', 'put', 'delete', 'patch', 'head', 'options', 'all', 'use'])
-        // Only detect routes on receiver objects that look like routers/apps
-        const ROUTER_NAMES = new Set(['app', 'router', 'server', 'route', 'api', 'express'])
-
-        const walk = (node: ts.Node) => {
-            if (
-                ts.isCallExpression(node) &&
-                ts.isPropertyAccessExpression(node.expression)
-            ) {
-                const methodName = node.expression.name.text.toLowerCase()
-                if (HTTP_METHODS.has(methodName)) {
-                    // Check if the receiver is a known router/app-like identifier
-                    const receiver = node.expression.expression
-                    let receiverName = ''
-                    if (ts.isIdentifier(receiver)) {
-                        receiverName = receiver.text.toLowerCase()
-                    } else if (ts.isPropertyAccessExpression(receiver) && ts.isIdentifier(receiver.expression)) {
-                        receiverName = receiver.expression.text.toLowerCase()
+        this.walkNode(this.sourceFile, (node) => {
+            if (ts.isCallExpression(node)) {
+                const text = node.expression.getText(this.sourceFile)
+                if (text.match(/^(router|app|express)\.(get|post|put|delete|patch)$/)) {
+                    const method = text.split('.')[1].toUpperCase() as any
+                    const pathArg = node.arguments[0]
+                    if (pathArg && ts.isStringLiteral(pathArg)) {
+                        const path = pathArg.text
+                        const handler = node.arguments[node.arguments.length - 1]
+                        const middlewares = node.arguments.slice(1, -1).map(a => a.getText(this.sourceFile))
+                        routes.push({
+                            method,
+                            path,
+                            handler: handler.getText(this.sourceFile),
+                            middlewares,
+                            file: this.filePath,
+                            line: this.getLineNumber(node.getStart(this.sourceFile))
+                        })
                     }
-
-                    // Skip if receiver doesn't look like a router (e.g. prisma.file.delete)
-                    if (!ROUTER_NAMES.has(receiverName)) {
-                        ts.forEachChild(node, walk)
-                        return
-                    }
-
-                    const args = node.arguments
-                    let routePath = ''
-                    const middlewares: string[] = []
-                    let handler = 'anonymous'
-
-                    for (let i = 0; i < args.length; i++) {
-                        const arg = args[i]
-                        // First string literal is the route path
-                        if (ts.isStringLiteral(arg) && !routePath) {
-                            routePath = arg.text
-                        } else if (ts.isIdentifier(arg)) {
-                            // Last identifier is the handler; earlier ones are middleware
-                            if (i === args.length - 1) {
-                                handler = arg.text
-                            } else {
-                                middlewares.push(arg.text)
-                            }
-                        } else if (ts.isCallExpression(arg)) {
-                            // e.g. upload.single("file") middleware call
-                            middlewares.push(arg.expression.getText(this.sourceFile))
-                        } else if (ts.isArrowFunction(arg) || ts.isFunctionExpression(arg)) {
-                            handler = 'anonymous'
-                        }
-                    }
-
-                    routes.push({
-                        method: methodName.toUpperCase(),
-                        path: routePath || '*',
-                        handler,
-                        middlewares,
-                        file: this.filePath,
-                        line: this.getLineNumber(node.getStart(this.sourceFile)),
-                    })
                 }
             }
-            ts.forEachChild(node, walk)
-        }
-        ts.forEachChild(this.sourceFile, walk)
+        })
         return routes
     }
 
-    // Protected Helpers ------------------------------------------------------
+    extractModuleCalls(): CallExpression[] {
+        // Calls occurring at the top level of the file
+        const calls: CallExpression[] = []
+        this.sourceFile.statements.forEach(stmt => {
+            if (!ts.isFunctionDeclaration(stmt) && !ts.isClassDeclaration(stmt)) {
+                calls.push(...this.extractCallsFromNode(stmt))
+            }
+        })
+        return calls
+    }
 
-    protected parseFunctionDeclaration(node: ts.FunctionDeclaration): ParsedFunction {
+    // --- Private Parsers ---
+
+    private parseFunctionDeclaration(node: ts.FunctionDeclaration): ParsedFunction {
         const name = node.name!.text
-        const id = this.allocateFnId(name)
-        const startLine = this.getLineNumber(node.getStart(this.sourceFile))
-        const endLine = this.getLineNumber(node.getEnd())
-        const params = this.extractParams(node.parameters)
-        const returnType = normalizeTypeAnnotation(node.type ? node.type.getText(this.sourceFile) : 'void')
-        const isAsync = !!node.modifiers?.some(m => m.kind === ts.SyntaxKind.AsyncKeyword)
-        const isGenerator = !!node.asteriskToken
-        const typeParameters = this.extractTypeParameters(node.typeParameters)
-        const calls = this.extractCalls(node)
         const bodyText = node.getText(this.sourceFile)
-
         return {
-            id,
+            id: this.allocateId('fn', name),
             name,
             file: this.filePath,
-            startLine,
-            endLine,
-            params,
-            returnType,
+            startLine: this.getLineNumber(node.getStart(this.sourceFile)),
+            endLine: this.getLineNumber(node.getEnd()),
+            params: this.extractParams(node.parameters),
+            returnType: node.type ? node.type.getText(this.sourceFile) : 'void',
             isExported: this.hasExportModifier(node),
-            isAsync,
-            ...(isGenerator ? { isGenerator } : {}),
-            ...(typeParameters.length > 0 ? { typeParameters } : {}),
-            calls,
+            isAsync: !!node.modifiers?.some(m => m.kind === ts.SyntaxKind.AsyncKeyword),
+            calls: this.extractCallsFromNode(node),
             hash: hashContent(bodyText),
             purpose: this.extractPurpose(node),
             edgeCasesHandled: this.extractEdgeCases(node),
             errorHandling: this.extractErrorHandling(node),
-            detailedLines: this.extractDetailedLines(node),
+            detailedLines: [],
         }
     }
 
-    protected parseVariableFunction(
-        stmt: ts.VariableStatement,
-        decl: ts.VariableDeclaration,
-        fn: ts.ArrowFunction | ts.FunctionExpression
-    ): ParsedFunction {
+    private parseVariableFunction(stmt: ts.VariableStatement, decl: ts.VariableDeclaration, fn: ts.ArrowFunction | ts.FunctionExpression): ParsedFunction {
         const name = (decl.name as ts.Identifier).text
-        const id = this.allocateFnId(name)
-        const startLine = this.getLineNumber(stmt.getStart(this.sourceFile))
-        const endLine = this.getLineNumber(stmt.getEnd())
-        const params = this.extractParams(fn.parameters)
-        const returnType = normalizeTypeAnnotation(fn.type ? fn.type.getText(this.sourceFile) : 'void')
-        const isAsync = !!fn.modifiers?.some(m => m.kind === ts.SyntaxKind.AsyncKeyword)
-        const isGenerator = ts.isFunctionExpression(fn) && !!fn.asteriskToken
-        const typeParameters = this.extractTypeParameters(fn.typeParameters)
-        const calls = this.extractCalls(fn)
         const bodyText = stmt.getText(this.sourceFile)
-
         return {
-            id,
+            id: this.allocateId('fn', name),
             name,
             file: this.filePath,
-            startLine,
-            endLine,
-            params,
-            returnType,
+            startLine: this.getLineNumber(stmt.getStart(this.sourceFile)),
+            endLine: this.getLineNumber(stmt.getEnd()),
+            params: this.extractParams(fn.parameters),
+            returnType: fn.type ? fn.type.getText(this.sourceFile) : 'unknown',
             isExported: this.hasExportModifier(stmt),
-            isAsync,
-            ...(isGenerator ? { isGenerator } : {}),
-            ...(typeParameters.length > 0 ? { typeParameters } : {}),
-            calls,
+            isAsync: !!fn.modifiers?.some(m => m.kind === ts.SyntaxKind.AsyncKeyword),
+            calls: this.extractCallsFromNode(fn),
             hash: hashContent(bodyText),
             purpose: this.extractPurpose(stmt),
             edgeCasesHandled: this.extractEdgeCases(fn),
             errorHandling: this.extractErrorHandling(fn),
-            detailedLines: this.extractDetailedLines(fn),
+            detailedLines: [],
         }
     }
 
-    protected parseClass(node: ts.ClassDeclaration): ParsedClass {
+    private parseClass(node: ts.ClassDeclaration): ParsedClass {
         const name = node.name!.text
-        const startLine = this.getLineNumber(node.getStart(this.sourceFile))
-        const endLine = this.getLineNumber(node.getEnd())
         const methods: ParsedFunction[] = []
-        const decorators = this.extractDecorators(node)
-        const typeParameters = this.extractTypeParameters(node.typeParameters)
+        const properties: ParsedVariable[] = []
 
         for (const member of node.members) {
-            if (ts.isConstructorDeclaration(member)) {
-                // Track class constructors as methods
-                const mStartLine = this.getLineNumber(member.getStart(this.sourceFile))
-                const mEndLine = this.getLineNumber(member.getEnd())
-                const params = this.extractParams(member.parameters)
-                const calls = this.extractCalls(member)
-                const bodyText = member.getText(this.sourceFile)
-                const methodName = `${name}.constructor`
-
-                methods.push({
-                    id: this.allocateFnId(methodName),
-                    name: methodName,
-                    file: this.filePath,
-                    startLine: mStartLine,
-                    endLine: mEndLine,
-                    params,
-                    returnType: name,
-                    isExported: this.hasExportModifier(node),
-                    isAsync: false,
-                    calls,
-                    hash: hashContent(bodyText),
-                    purpose: this.extractPurpose(member),
-                    edgeCasesHandled: this.extractEdgeCases(member),
-                    errorHandling: this.extractErrorHandling(member),
-                    detailedLines: this.extractDetailedLines(member),
-                })
-            } else if (ts.isMethodDeclaration(member) && member.name) {
-                const methodName = `${name}.${member.name.getText(this.sourceFile)}`
-                const mStartLine = this.getLineNumber(member.getStart(this.sourceFile))
-                const mEndLine = this.getLineNumber(member.getEnd())
-                const params = this.extractParams(member.parameters)
-                const returnType = normalizeTypeAnnotation(member.type ? member.type.getText(this.sourceFile) : 'void')
-                const isAsync = !!member.modifiers?.some(m => m.kind === ts.SyntaxKind.AsyncKeyword)
-                const isGenerator = !!member.asteriskToken
-                const methodTypeParams = this.extractTypeParameters(member.typeParameters)
-                const calls = this.extractCalls(member)
-                const bodyText = member.getText(this.sourceFile)
-
-                methods.push({
-                    id: this.allocateFnId(methodName),
-                    name: methodName,
-                    file: this.filePath,
-                    startLine: mStartLine,
-                    endLine: mEndLine,
-                    params,
-                    returnType,
-                    isExported: this.hasExportModifier(node),
-                    isAsync,
-                    ...(isGenerator ? { isGenerator } : {}),
-                    ...(methodTypeParams.length > 0 ? { typeParameters: methodTypeParams } : {}),
-                    calls,
-                    hash: hashContent(bodyText),
-                    purpose: this.extractPurpose(member),
-                    edgeCasesHandled: this.extractEdgeCases(member),
-                    errorHandling: this.extractErrorHandling(member),
-                    detailedLines: this.extractDetailedLines(member),
-                })
+            if (ts.isMethodDeclaration(member) && member.name) {
+                methods.push(this.parseMethod(name, member))
+            } else if (ts.isPropertyDeclaration(member) && member.name) {
+                properties.push(this.parseProperty(name, member))
             }
         }
 
         return {
-            id: `class:${this.filePath}:${name}`,
+            id: this.allocateId('class', name),
             name,
             file: this.filePath,
-            startLine,
-            endLine,
+            startLine: this.getLineNumber(node.getStart(this.sourceFile)),
+            endLine: this.getLineNumber(node.getEnd()),
             methods,
+            properties,
+            extends: node.heritageClauses?.find(c => c.token === ts.SyntaxKind.ExtendsKeyword)?.types[0]?.getText(this.sourceFile),
+            implements: node.heritageClauses?.find(c => c.token === ts.SyntaxKind.ImplementsKeyword)?.types.map(t => t.getText(this.sourceFile)),
             isExported: this.hasExportModifier(node),
-            ...(decorators.length > 0 ? { decorators } : {}),
-            ...(typeParameters.length > 0 ? { typeParameters } : {}),
+            hash: hashContent(node.getText(this.sourceFile)),
             purpose: this.extractPurpose(node),
             edgeCasesHandled: this.extractEdgeCases(node),
             errorHandling: this.extractErrorHandling(node),
         }
     }
 
-    protected parseImport(node: ts.ImportDeclaration): ParsedImport | null {
+    private parseMethod(className: string, node: ts.MethodDeclaration): ParsedFunction {
+        const methodName = node.name.getText(this.sourceFile)
+        const fullName = `${className}.${methodName}`
+        return {
+            id: this.allocateId('fn', fullName),
+            name: fullName,
+            file: this.filePath,
+            startLine: this.getLineNumber(node.getStart(this.sourceFile)),
+            endLine: this.getLineNumber(node.getEnd()),
+            params: this.extractParams(node.parameters),
+            returnType: node.type ? node.type.getText(this.sourceFile) : 'void',
+            isExported: false,
+            isAsync: !!node.modifiers?.some(m => m.kind === ts.SyntaxKind.AsyncKeyword),
+            calls: this.extractCallsFromNode(node),
+            hash: hashContent(node.getText(this.sourceFile)),
+            purpose: this.extractPurpose(node),
+            edgeCasesHandled: this.extractEdgeCases(node),
+            errorHandling: this.extractErrorHandling(node),
+            detailedLines: [],
+        }
+    }
+
+    private parseProperty(className: string, node: ts.PropertyDeclaration): ParsedVariable {
+        const propName = node.name.getText(this.sourceFile)
+        return {
+            id: this.allocateId('var', `${className}.${propName}`),
+            name: propName,
+            type: node.type ? node.type.getText(this.sourceFile) : 'any',
+            file: this.filePath,
+            line: this.getLineNumber(node.getStart(this.sourceFile)),
+            isExported: false,
+            isStatic: !!node.modifiers?.some(m => m.kind === ts.SyntaxKind.StaticKeyword),
+        }
+    }
+
+    private parseVariable(stmt: ts.VariableStatement, decl: ts.VariableDeclaration): ParsedVariable {
+        const name = (decl.name as ts.Identifier).text
+        return {
+            id: this.allocateId('var', name),
+            name,
+            type: decl.type ? decl.type.getText(this.sourceFile) : 'any',
+            file: this.filePath,
+            line: this.getLineNumber(stmt.getStart(this.sourceFile)),
+            isExported: this.hasExportModifier(stmt),
+        }
+    }
+
+    private parseImport(node: ts.ImportDeclaration): ParsedImport {
         const source = (node.moduleSpecifier as ts.StringLiteral).text
         const names: string[] = []
         let isDefault = false
-
         if (node.importClause) {
-            // Skip type-only imports: import type { Foo } or import type * as X
-            if (node.importClause.isTypeOnly) return null
-
-            // import Foo from './module' (default import)
             if (node.importClause.name) {
                 names.push(node.importClause.name.text)
                 isDefault = true
             }
-            // import { foo, bar } from './module'
-            if (node.importClause.namedBindings) {
-                if (ts.isNamedImports(node.importClause.namedBindings)) {
-                    for (const element of node.importClause.namedBindings.elements) {
-                        // Skip individual type-only elements: import { type Foo }
-                        if (!element.isTypeOnly) {
-                            names.push(element.name.text)
-                        }
-                    }
-                }
-                // import * as foo from './module'
-                if (ts.isNamespaceImport(node.importClause.namedBindings)) {
-                    names.push(node.importClause.namedBindings.name.text)
-                }
+            if (node.importClause.namedBindings && ts.isNamedImports(node.importClause.namedBindings)) {
+                node.importClause.namedBindings.elements.forEach(el => names.push(el.name.text))
             }
         }
-
-        return {
-            source,
-            resolvedPath: '', // Filled in by resolver
-            names,
-            isDefault,
-            isDynamic: false,
-        }
+        return { source, resolvedPath: '', names, isDefault, isDynamic: false }
     }
 
-    /**
-     * Extract function/method call expressions from the BODY of a node only.
-     * Deliberately skips parameter lists, decorator expressions and type annotations
-     * to avoid recording spurious calls from default-param expressions like
-     *   fn(config = getDefaultConfig())  → getDefaultConfig should NOT appear in calls
-     *
-     * Strategy: walk only the body block, not the full node subtree.
-     */
-    protected extractCalls(node: ts.Node): string[] {
-        const calls: string[] = []
+    // --- Helpers ---
 
-        // Determine the actual body to walk — skip params, type nodes, decorators
-        const bodyNode = getBodyNode(node)
-        if (!bodyNode) return []
-
-        const walkCalls = (n: ts.Node) => {
+    protected extractCallsFromNode(node: ts.Node): CallExpression[] {
+        const calls: CallExpression[] = []
+        const walk = (n: ts.Node) => {
             if (ts.isCallExpression(n)) {
-                const callee = n.expression
-                if (ts.isIdentifier(callee)) {
-                    calls.push(callee.text)
-                } else if (ts.isPropertyAccessExpression(callee)) {
-                    // e.g., obj.method() we capture the full dotted name
-                    calls.push(callee.getText(this.sourceFile))
-                }
-            }
-            // Track constructor calls: new Foo(...) -> "Foo"
-            if (ts.isNewExpression(n)) {
-                const callee = n.expression
-                if (ts.isIdentifier(callee)) {
-                    calls.push(callee.text)
-                } else if (ts.isPropertyAccessExpression(callee)) {
-                    calls.push(callee.getText(this.sourceFile))
-                }
-            }
-            ts.forEachChild(n, walkCalls)
-        }
-        ts.forEachChild(bodyNode, walkCalls)
-        return [...new Set(calls)] // deduplicate
-    }
-
-    /** Extract the purpose from JSDoc comments or preceding single-line comments.
-     *  Falls back to deriving a human-readable sentence from the function name. */
-    protected extractPurpose(node: ts.Node): string {
-        const fullText = this.sourceFile.getFullText()
-        const commentRanges = ts.getLeadingCommentRanges(fullText, node.getFullStart())
-        if (commentRanges && commentRanges.length > 0) {
-            const meaningfulLines: string[] = []
-            for (const range of commentRanges) {
-                const comment = fullText.slice(range.pos, range.end)
-                let clean = ''
-                if (comment.startsWith('/**') || comment.startsWith('/*')) {
-                    clean = comment
-                        .replace(/^\/\*+/, '')   // remove leading /*  or /**
-                        .replace(/\*+\/$/, '')   // remove trailing */
-                        .replace(/^\s*\*+\s?/gm, '') // remove leading * on each line
-                        .trim()
-                } else if (comment.startsWith('//')) {
-                    clean = comment.replace(/^\/\/+\s?/, '').trim()
-                }
-
-                // Skip divider lines (lines with 3+ repeated special characters)
-                if (/^[\-_=\*]{3,}$/.test(clean)) continue
-
-                if (clean) meaningfulLines.push(clean)
-            }
-
-            const fromComment = meaningfulLines.length > 0 ? meaningfulLines[0].split('\n')[0].trim() : ''
-            if (fromComment) return fromComment
-        }
-
-        // Fallback: derive a human-readable sentence from the function/identifier name
-        const name = this.getNodeName(node)
-        return name ? derivePurposeFromName(name) : ''
-    }
-
-    /** Get the identifier name from common declaration node types */
-    protected getNodeName(node: ts.Node): string {
-        if (ts.isFunctionDeclaration(node) && node.name) return node.name.text
-        if (ts.isArrowFunction(node) || ts.isFunctionExpression(node)) {
-            const parent = node.parent
-            if (parent && ts.isVariableDeclaration(parent) && ts.isIdentifier(parent.name)) {
-                return parent.name.text
-            }
-        }
-        if (ts.isMethodDeclaration(node) && ts.isIdentifier(node.name)) return node.name.text
-        if (ts.isConstructorDeclaration(node)) return 'constructor'
-        if ((ts.isInterfaceDeclaration(node) || ts.isTypeAliasDeclaration(node) || ts.isClassDeclaration(node)) && node.name) {
-            return (node as ts.InterfaceDeclaration | ts.TypeAliasDeclaration | ts.ClassDeclaration).name!.text
-        }
-        return ''
-    }
-
-    /** Extract edge cases handled (if statements returning early) */
-    protected extractEdgeCases(node: ts.Node): string[] {
-        const edgeCases: string[] = []
-        const walkEdgeCases = (n: ts.Node) => {
-            if (ts.isIfStatement(n)) {
-                // simple heuristic for early returns inside if blocks
-                if (
-                    ts.isReturnStatement(n.thenStatement) ||
-                    (ts.isBlock(n.thenStatement) && n.thenStatement.statements.some(ts.isReturnStatement)) ||
-                    ts.isThrowStatement(n.thenStatement) ||
-                    (ts.isBlock(n.thenStatement) && n.thenStatement.statements.some(ts.isThrowStatement))
-                ) {
-                    edgeCases.push(n.expression.getText(this.sourceFile))
-                }
-            }
-            ts.forEachChild(n, walkEdgeCases)
-        }
-        ts.forEachChild(node, walkEdgeCases)
-        return edgeCases
-    }
-
-    /** Extract try-catch blocks or explicit throw statements */
-    protected extractErrorHandling(node: ts.Node): { line: number, type: 'try-catch' | 'throw', detail: string }[] {
-        const errors: { line: number, type: 'try-catch' | 'throw', detail: string }[] = []
-        const walkErrors = (n: ts.Node) => {
-            if (ts.isTryStatement(n)) {
-                errors.push({
+                calls.push({
+                    name: n.expression.getText(this.sourceFile),
                     line: this.getLineNumber(n.getStart(this.sourceFile)),
-                    type: 'try-catch',
-                    detail: 'try-catch block'
+                    type: ts.isPropertyAccessExpression(n.expression) ? 'method' : 'function'
                 })
-            }
-            if (ts.isThrowStatement(n)) {
-                errors.push({
+            } else if (ts.isNewExpression(n)) {
+                calls.push({
+                    name: n.expression.getText(this.sourceFile),
                     line: this.getLineNumber(n.getStart(this.sourceFile)),
-                    type: 'throw',
-                    detail: n.expression ? n.expression.getText(this.sourceFile) : 'throw error'
+                    type: 'function'
                 })
+            } else if (ts.isPropertyAccessExpression(n) && !ts.isCallExpression(n.parent)) {
+                 // Property access that isn't a call
+                 calls.push({
+                    name: n.getText(this.sourceFile),
+                    line: this.getLineNumber(n.getStart(this.sourceFile)),
+                    type: 'property'
+                 })
             }
-            ts.forEachChild(n, walkErrors)
+            ts.forEachChild(n, walk)
         }
-        ts.forEachChild(node, walkErrors)
-        return errors
+        walk(node)
+        return calls
     }
 
-    /** Extract detailed line block breakdowns */
-    protected extractDetailedLines(node: ts.Node): { startLine: number, endLine: number, blockType: string }[] {
-        const blocks: { startLine: number, endLine: number, blockType: string }[] = []
-        const walkBlocks = (n: ts.Node) => {
-            if (ts.isIfStatement(n) || ts.isSwitchStatement(n)) {
-                blocks.push({
-                    startLine: this.getLineNumber(n.getStart(this.sourceFile)),
-                    endLine: this.getLineNumber(n.getEnd()),
-                    blockType: 'ControlFlow'
-                })
-            } else if (ts.isForStatement(n) || ts.isWhileStatement(n) || ts.isForOfStatement(n) || ts.isForInStatement(n)) {
-                blocks.push({
-                    startLine: this.getLineNumber(n.getStart(this.sourceFile)),
-                    endLine: this.getLineNumber(n.getEnd()),
-                    blockType: 'Loop'
-                })
-            }
-            ts.forEachChild(n, walkBlocks)
-        }
-        ts.forEachChild(node, walkBlocks)
-        return blocks
-    }
-
-    /** Extract type parameter names from a generic declaration */
-    protected extractTypeParameters(typeParams: ts.NodeArray<ts.TypeParameterDeclaration> | undefined): string[] {
-        if (!typeParams || typeParams.length === 0) return []
-        return typeParams.map(tp => tp.name.text)
-    }
-
-    /** Extract decorator names from a class declaration */
-    protected extractDecorators(node: ts.ClassDeclaration): string[] {
-        const decorators: string[] = []
-        const modifiers = ts.canHaveDecorators(node) ? ts.getDecorators(node) : undefined
-        if (modifiers) {
-            for (const decorator of modifiers) {
-                if (ts.isCallExpression(decorator.expression)) {
-                    // @Injectable() decorator with arguments
-                    decorators.push(decorator.expression.expression.getText(this.sourceFile))
-                } else if (ts.isIdentifier(decorator.expression)) {
-                    // @Sealed decorator without arguments
-                    decorators.push(decorator.expression.text)
-                }
-            }
-        }
-        return decorators
-    }
-
-    /** Extract parameters from a function's parameter list */
     protected extractParams(params: ts.NodeArray<ts.ParameterDeclaration>): ParsedParam[] {
-        return params.map((p) => ({
+        return params.map(p => ({
             name: p.name.getText(this.sourceFile),
-            type: normalizeTypeAnnotation(p.type ? p.type.getText(this.sourceFile) : 'any'),
+            type: p.type ? p.type.getText(this.sourceFile) : 'any',
             optional: !!p.questionToken || !!p.initializer,
             defaultValue: p.initializer ? p.initializer.getText(this.sourceFile) : undefined,
         }))
     }
 
-    /** Check if a node has the 'export' modifier */
-    protected hasExportModifier(node: ts.Node): boolean {
-        const modifiers = ts.canHaveModifiers(node) ? ts.getModifiers(node) : undefined
-        return !!modifiers?.some(m => m.kind === ts.SyntaxKind.ExportKeyword)
+    protected extractTypeParameters(typeParams?: ts.NodeArray<ts.TypeParameterDeclaration>): string[] {
+        return typeParams?.map(t => t.name.text) || []
     }
 
-    /** Get 1-indexed line number from a character position */
+    protected hasExportModifier(node: ts.Node): boolean {
+        return !!ts.getModifiers(node as any)?.some(m => m.kind === ts.SyntaxKind.ExportKeyword)
+    }
+
     protected getLineNumber(pos: number): number {
         return this.sourceFile.getLineAndCharacterOfPosition(pos).line + 1
     }
 
-    /**
-     * Walk ALL descendant nodes recursively (depth-first).
-     * This ensures nested functions inside if/try/namespace/module blocks are found.
-     *
-     * NOTE: The callback controls depth — returning early from the callback is NOT
-     * supported here. If you need to stop at certain depths (e.g. don't recurse
-     * into nested function bodies), handle that in the callback by checking node kind.
-     */
-    protected walkNode(node: ts.Node, callback: (node: ts.Node) => void): void {
+    protected extractPurpose(node: ts.Node): string {
+        const fullText = this.sourceFile.getFullText()
+        const ranges = ts.getLeadingCommentRanges(fullText, node.pos)
+        if (ranges && ranges.length > 0) {
+            const lastComment = fullText.slice(ranges[ranges.length - 1].pos, ranges[ranges.length - 1].end)
+            return lastComment.replace(/\/\*+|\*+\/|\/\/+/g, '').trim()
+        }
+        return ''
+    }
+
+    protected extractEdgeCases(node: ts.Node): string[] {
+        const edgeCases: string[] = []
+        const walk = (n: ts.Node) => {
+            if (ts.isIfStatement(n) || ts.isConditionalExpression(n)) {
+                edgeCases.push(n.getText(this.sourceFile).split('{')[0].trim())
+            }
+            ts.forEachChild(n, walk)
+        }
+        walk(node)
+        return edgeCases
+    }
+
+    protected extractErrorHandling(node: ts.Node): { line: number, type: 'try-catch' | 'throw', detail: string }[] {
+        const result: { line: number, type: 'try-catch' | 'throw', detail: string }[] = []
+        const walk = (n: ts.Node) => {
+            if (ts.isTryStatement(n)) {
+                result.push({ line: this.getLineNumber(n.getStart(this.sourceFile)), type: 'try-catch', detail: 'try block' })
+            } else if (ts.isThrowStatement(n)) {
+                result.push({ line: this.getLineNumber(n.getStart(this.sourceFile)), type: 'throw', detail: n.expression?.getText(this.sourceFile) || 'unknown' })
+            }
+            ts.forEachChild(n, walk)
+        }
+        walk(node)
+        return result
+    }
+
+    protected extractDetailedLines(node: ts.Node): { startLine: number; endLine: number; blockType: string }[] {
+        return [] // Implementation for behavioral tracking
+    }
+
+    private walkNode(node: ts.Node, callback: (node: ts.Node) => void): void {
         ts.forEachChild(node, (child) => {
             callback(child)
             this.walkNode(child, callback)
         })
     }
-}
-
-// ---------------------------------------------------------------------------
-// Module-level helpers
-// ---------------------------------------------------------------------------
-
-/**
- * Return the body node of a function-like node to limit call extraction scope.
- * Skips parameter lists, type annotations and decorators.
- * Returns null for nodes with no body (abstract methods, overload signatures).
- */
-function getBodyNode(node: ts.Node): ts.Node | null {
-    if (ts.isFunctionDeclaration(node) || ts.isFunctionExpression(node) || ts.isArrowFunction(node)) {
-        return (node as ts.FunctionLikeDeclaration).body ?? null
-    }
-    if (ts.isMethodDeclaration(node) || ts.isConstructorDeclaration(node)) {
-        return (node as ts.MethodDeclaration).body ?? null
-    }
-    // For class declarations, walk members but not decorators/heritage
-    if (ts.isClassDeclaration(node)) {
-        return node
-    }
-    // For anything else (e.g. class body node) walk as-is
-    return node
-}
-
-/**
- * Derive a human-readable purpose sentence from a camelCase/PascalCase identifier.
- * Examples:
- *   validateJwtToken   -> "Validate jwt token"
- *   buildGraphFromLock -> "Build graph from lock"
- *   UserRepository     -> "User repository"
- *   parseFiles         -> "Parse files"
- */
-function normalizeTypeAnnotation(type: string): string {
-    return type.replace(/\s*\n\s*/g, ' ').replace(/\s{2,}/g, ' ').trim()
-}
-
-function derivePurposeFromName(name: string): string {
-    if (!name || name === 'constructor') return ''
-    // Split on camelCase/PascalCase boundaries and underscores
-    const words = name
-        .replace(/_+/g, ' ')
-        .replace(/([a-z])([A-Z])/g, '$1 $2')
-        .replace(/([A-Z]+)([A-Z][a-z])/g, '$1 $2')
-        .toLowerCase()
-        .split(/\s+/)
-        .filter(Boolean)
-    if (words.length === 0) return ''
-    words[0] = words[0].charAt(0).toUpperCase() + words[0].slice(1)
-    return words.join(' ')
 }

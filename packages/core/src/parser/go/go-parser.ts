@@ -22,6 +22,8 @@ export class GoParser extends BaseParser {
             imports: extractor.extractImports(),
             exports: extractor.extractExports(),
             routes: extractor.extractRoutes(),
+            variables: [],
+            calls: [],
             hash: hashContent(content),
             parsedAt: Date.now(),
         }

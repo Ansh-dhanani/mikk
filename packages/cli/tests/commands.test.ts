@@ -2,13 +2,15 @@ import { describe, it, expect } from 'bun:test'
 import { spawn } from 'node:child_process'
 import * as path from 'node:path'
 import * as os from 'node:os'
-import * as fs from 'node:fs/promises'
+import * as fsPromises from 'node:fs/promises'
+import { existsSync } from 'node:fs'
 
 const CLI_ENTRY = path.resolve(import.meta.dir, '../src/index.ts')
+const bunCommand = resolveBunCommand()
 
 async function runCli(args: string[], cwd?: string): Promise<{ stdout: string; stderr: string; code: number | null }> {
     return new Promise((resolve) => {
-        const proc = spawn('bun', ['run', CLI_ENTRY, ...args], { shell: true, cwd })
+        const proc = spawn(bunCommand, ['run', CLI_ENTRY, ...args], { shell: false, cwd })
         let stdout = ''
         let stderr = ''
 
@@ -26,17 +28,34 @@ async function runCli(args: string[], cwd?: string): Promise<{ stdout: string; s
     })
 }
 
+function resolveBunCommand(): string {
+    const override = process.env.MIKK_BUN_CLI ?? process.env.BUN_CLI_PATH ?? process.env.BUN_BINARY
+    if (override) return override
+    if (process.platform === 'win32') {
+        const appData = process.env.APPDATA ?? ''
+        const candidates = [
+            path.join(appData, 'npm', 'bun.exe'),
+            path.join(appData, 'npm', 'node_modules', 'bun', 'bin', 'bun.exe'),
+        ]
+        for (const candidate of candidates) {
+            if (candidate && existsSync(candidate)) return candidate
+        }
+        return 'bun.exe'
+    }
+    return 'bun'
+}
+
 describe('@getmikk/cli subcommands edge cases', () => {
     it('init requires no arguments but aborts if mikk.json already exists', async () => {
-        const tmpDir = await fs.mkdtemp(path.join(os.tmpdir(), 'mikk-test-'))
+        const tmpDir = await fsPromises.mkdtemp(path.join(os.tmpdir(), 'mikk-test-'))
         // Create an existing mikk.json
-        await fs.writeFile(path.join(tmpDir, 'mikk.json'), JSON.stringify({ version: '1.0.0' }))
+        await fsPromises.writeFile(path.join(tmpDir, 'mikk.json'), JSON.stringify({ version: '1.0.0' }))
         
         const result = await runCli(['init'], tmpDir)
         expect(result.code).toBe(1)
         expect(result.stderr).toContain('This project is already initialized')
         
-        await fs.rm(tmpDir, { recursive: true, force: true })
+        await fsPromises.rm(tmpDir, { recursive: true, force: true })
     })
 
     it('diff command errors gracefully when file does not exist', async () => {
@@ -53,11 +72,11 @@ describe('@getmikk/cli subcommands edge cases', () => {
     })
     
     it('analyze catches uninitialized directories gracefully', async () => {
-        const tmpDir = await fs.mkdtemp(path.join(os.tmpdir(), 'mikk-test-'))
+        const tmpDir = await fsPromises.mkdtemp(path.join(os.tmpdir(), 'mikk-test-'))
         const result = await runCli(['analyze'], tmpDir)
         // Usually should say missing mikk.json or similar
         expect(result.code).toBe(1)
         expect(result.stderr).toContain('mikk.json') 
-        await fs.rm(tmpDir, { recursive: true, force: true })
+        await fsPromises.rm(tmpDir, { recursive: true, force: true })
     })
 })

@@ -28,6 +28,16 @@ export class ClaudeProvider implements ContextProvider {
         lines.push(`  <seeds_found>${context.meta?.seedCount ?? 0}</seeds_found>`)
         lines.push(`  <functions_selected>${context.meta?.selectedFunctions ?? 0} of ${context.meta?.totalFunctionsConsidered ?? 0}</functions_selected>`)
         lines.push(`  <estimated_tokens>${context.meta?.estimatedTokens ?? 0}</estimated_tokens>`)
+        if (context.meta?.reasons && context.meta.reasons.length > 0) {
+            for (const reason of context.meta.reasons) {
+                lines.push(`  <reason>${esc(reason)}</reason>`)
+            }
+        }
+        if (context.meta?.suggestions && context.meta.suggestions.length > 0) {
+            for (const s of context.meta.suggestions) {
+                lines.push(`  <suggestion>${esc(s)}</suggestion>`)
+            }
+        }
         lines.push('</context_meta>')
         lines.push('')
 
@@ -77,6 +87,23 @@ export class ClaudeProvider implements ContextProvider {
             }
             lines.push('</module>')
             lines.push('')
+        }
+
+        if (context.modules.length === 0 && context.meta?.reasons?.length) {
+            lines.push('<no_match_reason>')
+            for (const reason of context.meta.reasons) {
+                lines.push(`  <item>${esc(reason)}</item>`)
+            }
+            lines.push('</no_match_reason>')
+            lines.push('')
+            if (context.meta.suggestions && context.meta.suggestions.length > 0) {
+                lines.push('<did_you_mean>')
+                for (const suggestion of context.meta.suggestions) {
+                    lines.push(`  <item>${esc(suggestion)}</item>`)
+                }
+                lines.push('</did_you_mean>')
+                lines.push('')
+            }
         }
 
         // ── Context files (schemas, data models, config) ───────────────────
@@ -160,6 +187,20 @@ export class CompactProvider implements ContextProvider {
             `Task keywords: ${context.meta?.keywords?.join(', ') ?? ''}`,
             '',
         ]
+        if (context.modules.length === 0 && context.meta?.reasons?.length) {
+            lines.push('No exact context selected:')
+            for (const reason of context.meta.reasons) {
+                lines.push(`- ${reason}`)
+            }
+            if (context.meta.suggestions && context.meta.suggestions.length > 0) {
+                lines.push('')
+                lines.push('Did you mean:')
+                for (const suggestion of context.meta.suggestions) {
+                    lines.push(`- ${suggestion}`)
+                }
+            }
+            lines.push('')
+        }
         for (const mod of context.modules) {
             lines.push(`## ${mod.name}`)
             for (const fn of mod.functions) {

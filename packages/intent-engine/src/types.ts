@@ -38,6 +38,25 @@ export interface Suggestion {
     implementation: string
 }
 
+export type DecisionStatus = 'APPROVED' | 'WARNING' | 'BLOCKED';
+
+export interface DecisionResult {
+    status: DecisionStatus
+    reasons: string[]
+    riskScore: number
+    impactNodes: number
+}
+
+export interface Explanation {
+    summary: string
+    details: string[]
+    riskBreakdown: {
+        symbol: string
+        reason: string
+        score: number
+    }[]
+}
+
 /** Configuration for the AI provider */
 export interface AIProviderConfig {
     provider: 'anthropic' | 'openai' | 'local'
@@ -50,5 +69,7 @@ export interface PreflightResult {
     intents: Intent[]
     conflicts: ConflictResult
     suggestions: Suggestion[]
+    decision: DecisionResult
+    explanation: Explanation
     approved: boolean
 }

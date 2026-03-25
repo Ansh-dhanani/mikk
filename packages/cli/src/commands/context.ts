@@ -33,6 +33,13 @@ export function registerContextCommands(program: Command) {
         .option('--provider <name>', 'Output provider: claude | generic | compact', 'claude')
         .option('--hops <n>', 'Graph traversal depth (default 4)', '4')
         .option('--tokens <n>', 'Token budget for functions (default 6000)', '6000')
+        .option('--strict', 'High-precision mode: include only tightly relevant context')
+        .option('--must <terms>', 'Comma-separated required terms, e.g. resolver,import,ts')
+        .option('--all-keywords', 'In strict mode, require every extracted keyword to match')
+        .option('--min-keywords <n>', 'In strict mode, minimum keyword matches per function (default 1)', '1')
+        .option('--exact-only', 'Hard gate: only keep strict keyword matches in output')
+        .option('--fail-fast', 'Return empty context when strict filters find no exact match')
+        .option('--no-auto-fallback', 'Disable automatic fallback to balanced mode when strict mode returns no matches')
         .option('--no-callgraph', 'Omit call/calledBy edges from output')
         .option('--out <file>', 'Write context to a file instead of stdout')
         .option('--meta', 'Print meta diagnostics (seed count, tokens used, keywords)')
@@ -47,10 +54,16 @@ export function registerContextCommands(program: Command) {
                     maxHops: parseIntOption(options.hops, 'hops', 4),
                     tokenBudget: parseIntOption(options.tokens, 'tokens', 6000),
                     includeCallGraph: options.callgraph !== false,
+                    relevanceMode: options.strict ? 'strict' : 'balanced',
+                    requiredKeywords: parseCsvOption(options.must),
+                    requireAllKeywords: options.allKeywords === true,
+                    minKeywordMatches: parseIntOption(options.minKeywords, 'min-keywords', 1),
+                    exactOnly: options.exactOnly === true,
+                    failFast: options.failFast === true,
                 }
 
                 const builder = new ContextBuilder(contract, lock)
-                const ctx = builder.build(query)
+                const { ctx, fallbackUsed } = buildContextWithOptionalFallback(builder, query, options.autoFallback !== false)
 
                 if (options.meta) {
                     printMeta(ctx.meta, question)
@@ -58,12 +71,15 @@ export function registerContextCommands(program: Command) {
 
                 const provider = getProvider(options.provider)
                 const output = provider.formatContext(ctx)
+                const finalOutput = fallbackUsed
+                    ? `${chalk.yellow('Note: strict mode had no exact matches; showing balanced fallback context.')}\n\n${output}`
+                    : output
 
                 if (options.out) {
-                    await fs.writeFile(options.out, output, 'utf-8')
-                    console.log(chalk.green(`✓ Context written to ${options.out}`))
+                    await fs.writeFile(options.out, finalOutput, 'utf-8')
+                    console.log(chalk.green(`Context written to ${options.out}`))
                 } else {
-                    console.log(output)
+                    console.log(finalOutput)
                 }
 
             } catch (err: any) {
@@ -140,7 +156,7 @@ export function registerContextCommands(program: Command) {
                     maxHops: 3,
                 }
                 const builder = new ContextBuilder(contract, lock)
-                const ctx = builder.build(query)
+                const { ctx } = buildContextWithOptionalFallback(builder, query, false)
                 const provider = getProvider(options.provider)
 
                 console.log('\n' + chalk.bold('=== AI Context for impacted area ==='))
@@ -159,6 +175,13 @@ export function registerContextCommands(program: Command) {
         .option('--provider <name>', 'Output provider: claude | generic | compact', 'claude')
         .option('--hops <n>', 'Graph traversal depth (default 4)', '4')
         .option('--tokens <n>', 'Token budget for functions (default 6000)', '6000')
+        .option('--strict', 'High-precision mode: include only tightly relevant context')
+        .option('--must <terms>', 'Comma-separated required terms, e.g. resolver,import,ts')
+        .option('--all-keywords', 'In strict mode, require every extracted keyword to match')
+        .option('--min-keywords <n>', 'In strict mode, minimum keyword matches per function (default 1)', '1')
+        .option('--exact-only', 'Hard gate: only keep strict keyword matches in output')
+        .option('--fail-fast', 'Return empty context when strict filters find no exact match')
+        .option('--no-auto-fallback', 'Disable automatic fallback to balanced mode when strict mode returns no matches')
         .option('--file <path>', 'Anchor traversal from a specific file')
         .option('--module <id>', 'Anchor traversal from a specific module')
         .option('--no-callgraph', 'Omit call/calledBy edges')
@@ -178,11 +201,17 @@ export function registerContextCommands(program: Command) {
                     tokenBudget: parseIntOption(options.tokens, 'tokens', 6000),
                     includeCallGraph: options.callgraph !== false,
                     includeBodies: true,
+                    relevanceMode: options.strict ? 'strict' : 'balanced',
+                    requiredKeywords: parseCsvOption(options.must),
+                    requireAllKeywords: options.allKeywords === true,
+                    minKeywordMatches: parseIntOption(options.minKeywords, 'min-keywords', 1),
+                    exactOnly: options.exactOnly === true,
+                    failFast: options.failFast === true,
                     projectRoot,
                 }
 
                 const builder = new ContextBuilder(contract, lock)
-                const ctx = builder.build(query)
+                const { ctx, fallbackUsed } = buildContextWithOptionalFallback(builder, query, options.autoFallback !== false)
 
                 if (options.meta) {
                     printMeta(ctx.meta, task)
@@ -190,13 +219,16 @@ export function registerContextCommands(program: Command) {
 
                 const provider = getProvider(options.provider)
                 const output = provider.formatContext(ctx)
+                const finalOutput = fallbackUsed
+                    ? `${chalk.yellow('Note: strict mode had no exact matches; showing balanced fallback context.')}\n\n${output}`
+                    : output
 
                 if (options.out) {
-                    await fs.writeFile(options.out, output, 'utf-8')
-                    console.log(chalk.green(`✓ Context written to ${options.out}`))
+                    await fs.writeFile(options.out, finalOutput, 'utf-8')
+                    console.log(chalk.green(`Context written to ${options.out}`))
                     console.log(chalk.dim(`  ${ctx.meta.selectedFunctions} functions, ~${ctx.meta.estimatedTokens} tokens`))
                 } else {
-                    console.log(output)
+                    console.log(finalOutput)
                 }
 
             } catch (err: any) {
@@ -256,14 +288,63 @@ function printMeta(
         selectedFunctions: number
         estimatedTokens: number
         keywords: string[]
+        reasons?: string[]
+        suggestions?: string[]
     },
     task: string
 ) {
-    console.error(chalk.bold('\n── Context Meta ──────────────────────────'))
+    console.error(chalk.bold('\n-- Context Meta --------------------------'))
     console.error(`  Task:           ${task} `)
     console.error(`  Keywords:       ${meta.keywords.join(', ') || '(none extracted)'} `)
     console.error(`  Seeds found:    ${meta.seedCount} functions matched task`)
     console.error(`  Scope:          ${meta.selectedFunctions} / ${meta.totalFunctionsConsidered} functions included`)
     console.error(`  Est. tokens:    ~${meta.estimatedTokens}`)
-    console.error('──────────────────────────────────────────\n')
+    if (meta.reasons && meta.reasons.length > 0) {
+        console.error(`  Why:            ${meta.reasons.join(' | ')}`)
+    }
+    if (meta.suggestions && meta.suggestions.length > 0) {
+        console.error(`  Suggestions:    ${meta.suggestions.join(' | ')}`)
+    }
+    console.error('------------------------------------------\n')
+}
+
+function parseCsvOption(value?: string | string[]): string[] | undefined {
+    if (!value) return undefined
+    const raw = Array.isArray(value) ? value.join(',') : value
+    const items = raw
+        .split(',')
+        .map(s => s.trim())
+        .filter(Boolean)
+    return items.length > 0 ? items : undefined
+}
+
+function buildContextWithOptionalFallback(
+    builder: ContextBuilder,
+    query: ContextQuery,
+    autoFallback: boolean
+): { ctx: ReturnType<ContextBuilder['build']>, fallbackUsed: boolean } {
+    const initial = builder.build(query)
+    if (!autoFallback || query.relevanceMode !== 'strict' || initial.modules.length > 0) {
+        return { ctx: initial, fallbackUsed: false }
+    }
+
+    const relaxed: ContextQuery = {
+        ...query,
+        relevanceMode: 'balanced',
+        requiredKeywords: undefined,
+        requireAllKeywords: false,
+        minKeywordMatches: 1,
+        exactOnly: false,
+        failFast: false,
+    }
+    const fallback = builder.build(relaxed)
+    if (fallback.modules.length === 0) {
+        return { ctx: initial, fallbackUsed: false }
+    }
+
+    fallback.meta.reasons = [
+        ...(fallback.meta.reasons ?? []),
+        'strict query had no exact matches; returned balanced fallback context',
+    ]
+    return { ctx: fallback, fallbackUsed: true }
 }
