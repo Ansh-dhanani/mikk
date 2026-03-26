@@ -107,31 +107,92 @@ const STOP_WORDS = new Set([
     'want', 'like', 'just', 'also', 'some', 'all', 'any', 'my', 'your',
 ])
 
-function extractKeywords(task: string): string[] {
-    return task
+const SHORT_TECH_WORDS = new Set([
+    'ai', 'ml', 'ui', 'ux', 'ts', 'js', 'db', 'io', 'id', 'ip',
+    'ci', 'cd', 'qa', 'api', 'mcp', 'jwt', 'sql',
+])
+
+function normalizeKeyword(value: string): string {
+    return value.toLowerCase().trim().replace(/[^a-z0-9_-]/g, '')
+}
+
+function extractKeywords(task: string, requiredKeywords: string[] = []): string[] {
+    const out: string[] = []
+    const seen = new Set<string>()
+
+    for (const match of task.matchAll(/"([^"]+)"|'([^']+)'/g)) {
+        const phrase = (match[1] ?? match[2] ?? '').toLowerCase().trim()
+        if (!phrase || seen.has(phrase)) continue
+        seen.add(phrase)
+        out.push(phrase)
+    }
+
+    const words = task
         .toLowerCase()
         .replace(/[^a-z0-9\s_-]/g, ' ')
         .split(/\s+/)
-        .filter(w => w.length > 2 && !STOP_WORDS.has(w))
+        .map(normalizeKeyword)
+        .filter(w => {
+            if (!w || STOP_WORDS.has(w)) return false
+            if (w.length > 2) return true
+            return SHORT_TECH_WORDS.has(w)
+        })
+
+    for (const w of words) {
+        if (seen.has(w)) continue
+        seen.add(w)
+        out.push(w)
+    }
+
+    const expandedRequired = requiredKeywords
+        .flatMap(item => item.split(/[,\s]+/))
+        .map(normalizeKeyword)
+        .filter(Boolean)
+
+    for (const kw of expandedRequired) {
+        if (seen.has(kw)) continue
+        seen.add(kw)
+        out.push(kw)
+    }
+
+    return out
 }
 
 /**
  * Keyword score for a function: exact match > partial match
  */
-function keywordScore(fn: MikkLockFunction, keywords: string[]): number {
-    if (keywords.length === 0) return 0
+function keywordScore(
+    fn: MikkLockFunction,
+    keywords: string[]
+): { score: number; matchedKeywords: string[] } {
+    if (keywords.length === 0) return { score: 0, matchedKeywords: [] }
     const nameLower = fn.name.toLowerCase()
     const fileLower = fn.file.toLowerCase()
+    const fileNoExt = fileLower.replace(/\.(d\.ts|ts|tsx|js|jsx|mjs|cjs|mts|cts)\b/g, ' ')
+    const purposeLower = (fn.purpose ?? '').toLowerCase()
+    const tokenSet = new Set<string>([
+        ...(nameLower.match(/[a-z0-9]+/g) ?? []),
+        ...(fileNoExt.match(/[a-z0-9]+/g) ?? []),
+        ...(purposeLower.match(/[a-z0-9]+/g) ?? []),
+    ])
     let score = 0
+    const matched: string[] = []
 
     for (const kw of keywords) {
-        if (nameLower === kw) {
+        const shortKw = kw.length <= 2
+        const exactName = nameLower === kw
+        const partial = shortKw
+            ? tokenSet.has(kw)
+            : (nameLower.includes(kw) || fileLower.includes(kw) || purposeLower.includes(kw))
+        if (exactName) {
             score = Math.max(score, WEIGHT.KEYWORD_EXACT)
-        } else if (nameLower.includes(kw) || fileLower.includes(kw)) {
+            matched.push(kw)
+        } else if (partial) {
             score = Math.max(score, WEIGHT.KEYWORD_PARTIAL)
+            matched.push(kw)
         }
     }
-    return score
+    return { score, matchedKeywords: matched }
 }
 
 // ---------------------------------------------------------------------------
@@ -145,8 +206,10 @@ function keywordScore(fn: MikkLockFunction, keywords: string[]): number {
 function resolveSeeds(
     query: ContextQuery,
     contract: MikkContract,
-    lock: MikkLock
+    lock: MikkLock,
+    keywords: string[]
 ): string[] {
+    const strictMode = query.relevanceMode === 'strict'
     const seeds = new Set<string>()
 
     // 1. Explicit focus files → all functions in those files
@@ -171,16 +234,15 @@ function resolveSeeds(
 
     // 3. Keyword match against function names and file paths
     if (seeds.size === 0) {
-        const keywords = extractKeywords(query.task)
         for (const fn of Object.values(lock.functions)) {
-            if (keywordScore(fn, keywords) >= WEIGHT.KEYWORD_PARTIAL) {
+            if (keywordScore(fn, keywords).score >= WEIGHT.KEYWORD_PARTIAL) {
                 seeds.add(fn.id)
             }
         }
     }
 
     // 4. Module name match against task
-    if (seeds.size === 0) {
+    if (!strictMode && seeds.size === 0) {
         const taskLower = query.task.toLowerCase()
         for (const mod of contract.declared.modules) {
             if (
@@ -219,11 +281,22 @@ export class ContextBuilder {
      * 6. Group survivors by module, emit structured context
      */
     build(query: ContextQuery): AIContext {
+        const relevanceMode = query.relevanceMode ?? 'balanced'
+        const strictMode = relevanceMode === 'strict'
         const tokenBudget = query.tokenBudget ?? DEFAULT_TOKEN_BUDGET
         const maxHops = query.maxHops ?? 4
+        const requiredKeywords = query.requiredKeywords ?? []
+        const keywords = extractKeywords(query.task, requiredKeywords)
+        const requiredKeywordSet = new Set(
+            requiredKeywords
+                .flatMap(item => item.split(/[,\s]+/))
+                .map(normalizeKeyword)
+                .filter(Boolean)
+        )
 
         // ── Step 1: Resolve seeds ──────────────────────────────────────────
-        const seeds = resolveSeeds(query, this.contract, this.lock)
+        const seeds = resolveSeeds(query, this.contract, this.lock, keywords)
+        const seedSet = new Set(seeds)
 
         // ── Step 2: BFS proximity scores ──────────────────────────────────
         const proximityMap = seeds.length > 0
@@ -231,8 +304,15 @@ export class ContextBuilder {
             : new Map<string, number>()
 
         // ── Step 3: Score every function ──────────────────────────────────
-        const keywords = extractKeywords(query.task)
         const allFunctions = Object.values(this.lock.functions)
+        const focusFiles = query.focusFiles ?? []
+        const focusModules = new Set(query.focusModules ?? [])
+        const requireAllKeywords = query.requireAllKeywords ?? false
+        const minKeywordMatches = query.minKeywordMatches ?? 1
+        const strictPassIds = new Set<string>()
+        const reasons: string[] = []
+        const suggestions: string[] = []
+        const nearMissSuggestions: string[] = []
 
         const scored: { fn: MikkLockFunction; score: number }[] = allFunctions.map(fn => {
             let score = 0
@@ -244,19 +324,55 @@ export class ContextBuilder {
             }
 
             // Keyword match
-            score += keywordScore(fn, keywords)
+            const kwInfo = keywordScore(fn, keywords)
+            score += kwInfo.score
+
+            const matchedSet = new Set(kwInfo.matchedKeywords)
+            const inFocusFile = focusFiles.some(filePath => fn.file.includes(filePath) || filePath.includes(fn.file))
+            const inFocusModule = focusModules.has(fn.moduleId)
+            const inFocus = inFocusFile || inFocusModule
+
+            const requiredPass = requiredKeywordSet.size === 0
+                ? true
+                : [...requiredKeywordSet].every(kw => matchedSet.has(kw))
+            const generalPass = requireAllKeywords
+                ? (keywords.length > 0 && matchedSet.size >= keywords.length)
+                : (keywords.length === 0 ? false : matchedSet.size >= minKeywordMatches)
+            const keywordPass = requiredPass && generalPass
+            if (keywordPass) strictPassIds.add(fn.id)
+
+            if (strictMode) {
+                const isSeed = seedSet.has(fn.id)
+                const seedFromFocus = isSeed && (inFocus || focusFiles.length > 0 || focusModules.size > 0)
+                if (!(inFocus || keywordPass || seedFromFocus)) {
+                    if (kwInfo.score > 0) {
+                        nearMissSuggestions.push(`${fn.name} (${fn.file}:${fn.startLine})`)
+                    }
+                    return { fn, score: -1 }
+                }
+            }
 
             // Entry-point bonus
-            if (fn.calledBy.length === 0) score += WEIGHT.ENTRY_POINT
+            if (!strictMode && fn.calledBy.length === 0) score += WEIGHT.ENTRY_POINT
 
             return { fn, score }
         })
 
         // ── Step 4: Sort by score descending ──────────────────────────────
         scored.sort((a, b) => b.score - a.score)
+        for (const { fn, score } of scored) {
+            if (score <= 0) continue
+            suggestions.push(`${fn.name} (${fn.file}:${fn.startLine})`)
+            if (suggestions.length >= 5) break
+        }
+        for (const s of nearMissSuggestions) {
+            if (suggestions.includes(s)) continue
+            suggestions.push(s)
+            if (suggestions.length >= 5) break
+        }
 
         // ── Step 5: Fill token budget ──────────────────────────────────────
-        const selected: MikkLockFunction[] = []
+        let selected: MikkLockFunction[] = []
         let usedTokens = 0
 
         for (const { fn, score } of scored) {
@@ -269,6 +385,57 @@ export class ContextBuilder {
             if (usedTokens + tokens > tokenBudget) continue  // skip, try smaller ones later
             selected.push(fn)
             usedTokens += tokens
+        }
+
+        if (strictMode) {
+            if (requiredKeywordSet.size > 0) {
+                reasons.push(`required terms: ${[...requiredKeywordSet].join(', ')}`)
+            }
+            if (strictPassIds.size === 0) {
+                reasons.push('no functions matched strict keyword filters')
+            }
+        }
+
+        if (strictMode && query.exactOnly) {
+            selected = selected.filter(fn => strictPassIds.has(fn.id))
+            usedTokens = selected.reduce(
+                (sum, fn) => sum + estimateTokens(this.buildFunctionSnippet(fn, query)),
+                0
+            )
+            if (selected.length === 0 && strictPassIds.size > 0) {
+                reasons.push('exact matches exist but did not fit token budget or max function limit')
+            }
+        }
+
+        if (strictMode && query.failFast && selected.length === 0) {
+            reasons.push('fail-fast enabled: returning no context when exact match set is empty')
+            return {
+                project: {
+                    name: this.contract.project.name,
+                    language: this.contract.project.language,
+                    description: this.contract.project.description,
+                    moduleCount: this.contract.declared.modules.length,
+                    functionCount: Object.keys(this.lock.functions).length,
+                },
+                modules: [],
+                constraints: this.contract.declared.constraints,
+                decisions: this.contract.declared.decisions.map(d => ({
+                    title: d.title,
+                    reason: d.reason,
+                })),
+                contextFiles: [],
+                routes: [],
+                prompt: '',
+                meta: {
+                    seedCount: seeds.length,
+                    totalFunctionsConsidered: allFunctions.length,
+                    selectedFunctions: 0,
+                    estimatedTokens: 0,
+                    keywords,
+                    reasons,
+                    suggestions: suggestions.length > 0 ? suggestions : undefined,
+                },
+            }
         }
 
         // ── Step 6: Group by module ────────────────────────────────────────
@@ -298,6 +465,10 @@ export class ContextBuilder {
         // Sort modules: ones with more selected functions first
         contextModules.sort((a, b) => b.functions.length - a.functions.length)
 
+        // Strict mode favors precision and token efficiency: keep only function graph context.
+        const contextFiles = strictMode ? [] : this.lock.contextFiles
+        const routes = strictMode ? [] : this.lock.routes
+
         return {
             project: {
                 name: this.contract.project.name,
@@ -312,12 +483,12 @@ export class ContextBuilder {
                 title: d.title,
                 reason: d.reason,
             })),
-            contextFiles: this.lock.contextFiles?.map(cf => ({
+            contextFiles: contextFiles?.map(cf => ({
                 path: cf.path,
                 content: readContextFile(cf.path, query.projectRoot),
                 type: cf.type,
             })),
-            routes: this.lock.routes?.map(r => ({
+            routes: routes?.map(r => ({
                 method: r.method,
                 path: r.path,
                 handler: r.handler,
@@ -332,6 +503,8 @@ export class ContextBuilder {
                 selectedFunctions: selected.length,
                 estimatedTokens: usedTokens,
                 keywords,
+                reasons: reasons.length > 0 ? reasons : undefined,
+                suggestions: (selected.length === 0 && suggestions.length > 0) ? suggestions : undefined,
             },
         }
     }
@@ -414,6 +587,7 @@ export class ContextBuilder {
     /** Generate the natural-language prompt section */
     private generatePrompt(query: ContextQuery, modules: ContextModule[]): string {
         const lines: string[] = []
+        const strictMode = query.relevanceMode === 'strict'
 
         lines.push('=== ARCHITECTURAL CONTEXT ===')
         lines.push(`Project: ${this.contract.project.name} (${this.contract.project.language})`)
@@ -425,7 +599,7 @@ export class ContextBuilder {
 
         // Include routes (API endpoints) — critical for understanding how the app works
         const routes = this.lock.routes
-        if (routes && routes.length > 0) {
+        if (!strictMode && routes && routes.length > 0) {
             lines.push('=== HTTP ROUTES ===')
             for (const r of routes) {
                 const mw = r.middlewares.length > 0 ? ` [${r.middlewares.join(', ')}]` : ''
@@ -436,7 +610,7 @@ export class ContextBuilder {
 
         // Include context files (schemas, data models) first — they define the shape
         const ctxFiles = this.lock.contextFiles
-        if (ctxFiles && ctxFiles.length > 0) {
+        if (!strictMode && ctxFiles && ctxFiles.length > 0) {
             lines.push('=== DATA MODELS & SCHEMAS ===')
             for (const cf of ctxFiles) {
                 lines.push(`--- ${cf.path} (${cf.type}) ---`)

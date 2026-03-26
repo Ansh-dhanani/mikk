@@ -1,9 +1,9 @@
 <repository_context>
   <name>mikk</name>
   <stats>
-    <files>172</files>
-    <functions>706</functions>
-    <modules>11</modules>
+    <files>183</files>
+    <functions>604</functions>
+    <modules>28</modules>
     <language>typescript</language>
   </stats>
 </repository_context>
@@ -32,175 +32,319 @@
     <executes>turbo run lint</executes>
   </command>
 </commands>
-  <module id="apps-web-components">
-    <name>Components & Navigation</name>
-    <location>apps/web/**</location>
-    <purpose>Middleware; Root layout; Robots</purpose>
-    <entry_points>
-      <function signature="async POST(req) [apps/web/app/api/feedback/route.ts:133]" purpose="--- Main handler -----------------------------------------------------------" />
-      <function signature="ContributionGraphCalendar({ title = &quot;Contribution Graph&quot;, hideMonthLabels = false, className, children, ...props }) [apps/web/components/kibo-ui/contribution-graph/index.tsx:369]" purpose="Contribution graph calendar ({ title = &quot;Contribution Graph&quot;, hideMonthLabels = false, className, children, ...props })" />
-      <function signature="sitemap() [apps/web/app/sitemap.ts:45]" purpose="Sitemap" />
-      <function signature="CopyButton({ value, getValue, event, className, variant, size, label, children, ...props }) [apps/web/components/copy-button.tsx:33]" purpose="Copy button" />
-      <function signature="Header() [apps/web/components/header.tsx:44]" purpose="Header" />
-    </entry_points>
-    <key_internal_functions>
-      <function name="useFormField" callers="4" purpose="Hook for form field" />
-      <function name="useContributionGraph" callers="4" purpose="Hook for contribution graph" />
-      <function name="useActiveAnchors" callers="2" purpose="Use active anchors" />
-      <function name="mdxFileToRoute" callers="1" purpose="Mdx file to route" />
-      <function name="collectDocsRoutes" callers="1" purpose="Collect docs routes" />
-    </key_internal_functions>
-  </module>
-  <module id="packages-core">
-    <name>Utils & Search</name>
-    <location>packages/core/src/**</location>
-    <purpose>Infer the project language from the file extensions present; Heuristic purpose inference; Infer a short purpose string from function metadata when ...</purpose>
-    <entry_points>
-      <function signature="async TreeSitterParser.parse(filePath, content) [packages/core/src/parser/tree-sitter/parser.ts:157]" purpose="Parse" />
-      <function signature="GoExtractor.buildParsedFunction(raw) [packages/core/src/parser/go/go-extractor.ts:244]" purpose="Build ParsedFunction from scanned raw data" />
-      <function signature="GoExtractor.scanFunctions() [packages/core/src/parser/go/go-extractor.ts:166]" purpose="--- Internal scanning ---------------------------------------------------" />
-      <function signature="JavaScriptExtractor.extractCommonJsExports() [packages/core/src/parser/javascript/js-extractor.ts:123]" purpose="--- CommonJS: module.exports / exports.x exports -------------------------" />
-      <function signature="JavaScriptExtractor.extractCommonJsFunctions() [packages/core/src/parser/javascript/js-extractor.ts:191]" purpose="--- CommonJS: module.exports / exports.x function bodies -----------------" />
-    </entry_points>
-    <key_internal_functions>
-      <function name="fileExists" callers="4" purpose="Check if a file exists." />
-      <function name="normalizeTypeAnnotation" callers="4" purpose="Derive a human-readable purpose sentence from a camelCasePascalCase identifier." />
-      <function name="inferPurpose" callers="3" purpose="Infer a short purpose string from function metadata when JSDoc is missing" />
-      <function name="isExported" callers="3" purpose="--- Utility helpers ----------------------------------------------------------" />
-      <function name="isModuleExports" callers="3" purpose="--- Helpers -----------------------------------------------------------------" />
-    </key_internal_functions>
-  </module>
-  <module id="benchmarks">
-    <name>Benchmarks</name>
-    <location>benchmarks/**</location>
+  <module id="desktop-web-mesh">
+    <name>Testing</name>
+    <location>c:/users/ansh/desktop/web/mesh/**</location>
     <purpose>1 files, 0 functions</purpose>
     <entry_points>
-      <function signature="AsciinemaBenchmark.constructor() [benchmarks/asciinema-benchmark.ts:78]" purpose="Asciinema benchmark.constructor" />
-      <function signature="async AsciinemaBenchmark.recordScenario(scenario, mode) [benchmarks/asciinema-benchmark.ts:85]" purpose="Record scenario" />
-      <function signature="AsciinemaBenchmark.generateScript(scenario, mode) [benchmarks/asciinema-benchmark.ts:138]" purpose="Generate script" />
-      <function signature="AsciinemaBenchmark.analyzeRecording(castFile) [benchmarks/asciinema-benchmark.ts:160]" purpose="Analyze recording" />
-      <function signature="async AsciinemaBenchmark.runAll() [benchmarks/asciinema-benchmark.ts:197]" purpose="Run all" />
+      <function signature="async test() [c:/users/ansh/desktop/web/mesh/test-oxc.ts:5]" purpose="Test" />
     </entry_points>
   </module>
-  <module id="apps-registry">
-    <name>Search (Registry)</name>
-    <location>apps/registry/src/**</location>
-    <purpose>Placeholder</purpose>
+  <module id="mesh-apps-web">
+    <name>API & Config</name>
+    <location>c:/users/ansh/desktop/web/mesh/apps/web/**</location>
+    <purpose>2 files, 0 functions</purpose>
     <entry_points>
-      <function signature="placeholder() [apps/registry/src/index.ts:34]" purpose="Placeholder" />
+      <function signature="middleware(request) [c:/users/ansh/desktop/web/mesh/apps/web/middleware.ts:6]" purpose="Middleware (request)" />
+      <function signature="middleware(request) [c:/users/ansh/desktop/web/mesh/apps/web/middleware.ts:6]" purpose="Middleware (request)" />
     </entry_points>
   </module>
-  <module id="packages-ai-context">
-    <name>Providers (Ai Context)</name>
-    <location>packages/ai-context/src/**</location>
-    <purpose>Rough token estimation: ~4 chars per token; Read context file; Rough token estimator: 1 token ≈ 4 chars for codeidentifiers</purpose>
+  <module id="apps-web-app">
+    <name>API</name>
+    <location>c:/users/ansh/desktop/web/mesh/apps/web/app/**</location>
+    <purpose>3 files, 0 functions</purpose>
     <entry_points>
-      <function signature="ContextBuilder.build(query) [packages/ai-context/src/context-builder.ts:221]" purpose="Build AI context for a given query." />
-      <function signature="ClaudeMdGenerator.generate() [packages/ai-context/src/claude-md-generator.ts:45]" purpose="Generate the full claude.md content" />
-      <function signature="ContextBuilder.readFunctionBody(fn, projectRoot) [packages/ai-context/src/context-builder.ts:371]" purpose="Read the actual source code of a function from disk." />
-      <function signature="ContextBuilder.generatePrompt(query, modules) [packages/ai-context/src/context-builder.ts:415]" purpose="Generate the natural-language prompt section" />
-      <function signature="ClaudeProvider.formatContext(context) [packages/ai-context/src/providers.ts:13]" purpose="Format context" />
+      <function signature="mdxFileToRoute(filePath) [c:/users/ansh/desktop/web/mesh/apps/web/app/sitemap.ts:13]" purpose="Mdx file to route (filePath)" />
+      <function signature="collectDocsRoutes(dir) [c:/users/ansh/desktop/web/mesh/apps/web/app/sitemap.ts:27]" purpose="Collect docs routes (dir)" />
+      <function signature="sitemap() [c:/users/ansh/desktop/web/mesh/apps/web/app/sitemap.ts:45]" purpose="Sitemap" />
+      <function signature="sitemap() [c:/users/ansh/desktop/web/mesh/apps/web/app/sitemap.ts:45]" purpose="Sitemap" />
+      <function signature="robots() [c:/users/ansh/desktop/web/mesh/apps/web/app/robots.ts:4]" purpose="Robots" />
     </entry_points>
-    <key_internal_functions>
-      <function name="readContextFile" callers="2" purpose="Read context file" />
-      <function name="extractKeywords" callers="2" purpose="Extract keywords" />
-      <function name="keywordScore" callers="2" purpose="Keyword score for a function: exact match > partial match" />
-      <function name="estimateTokens" callers="1" purpose="Rough token estimation: ~4 chars per token" />
-      <function name="estimateTokens" callers="1" purpose="Rough token estimator: 1 token ≈ 4 chars for codeidentifiers" />
-    </key_internal_functions>
   </module>
-  <module id="packages-intent-engine">
-    <name>Search (Intent Engine)</name>
-    <location>packages/intent-engine/src/**</location>
-    <purpose>--- Helpers ---------------------------------------------...; Cosine similarity</purpose>
+  <module id="web-mesh-benchmarks">
+    <name>Storage & Authentication</name>
+    <location>c:/users/ansh/desktop/web/mesh/benchmarks/**</location>
+    <purpose>3 files, 0 functions</purpose>
     <entry_points>
-      <function signature="async SemanticSearcher.index(lock) [packages/intent-engine/src/semantic-searcher.ts:62]" purpose="Build (or load from cache) embeddings for every function in the lock." />
-      <function signature="async SemanticSearcher.search(query, lock, topK?) [packages/intent-engine/src/semantic-searcher.ts:120]" purpose="Find the `topK` functions most semantically similar to `query`." />
-      <function signature="ConflictDetector.constructor(contract, lock?) [packages/intent-engine/src/conflict-detector.ts:22]" purpose="Conflict detector.constructor (contract, lock)" />
-      <function signature="ConflictDetector.detect(intents) [packages/intent-engine/src/conflict-detector.ts:28]" purpose="Check all intents for conflicts" />
-      <function signature="ConflictDetector.classifyConstraint(text) [packages/intent-engine/src/conflict-detector.ts:111]" purpose="--- Constraint Classification & Checking ---------------------" />
+      <function signature="countTokens(text) [c:/users/ansh/desktop/web/mesh/benchmarks/mikk-benchmark.ts:57]" purpose="Count tokens (text)" />
+      <function signature="score(checks) [c:/users/ansh/desktop/web/mesh/benchmarks/mikk-benchmark.ts:61]" purpose="Score (checks)" />
+      <function signature="async callMikkTool(projectRoot, toolName, args) [c:/users/ansh/desktop/web/mesh/benchmarks/mikk-benchmark.ts:70]" purpose="Call mikk tool (projectRoot, toolName)" />
+      <function signature="buildGraphFromLockInline(lock) [c:/users/ansh/desktop/web/mesh/benchmarks/mikk-benchmark.ts:210]" purpose="Build graph from lock inline (lock)" />
+      <function signature="async callGitNexusBaseline(projectRoot, capability, args) [c:/users/ansh/desktop/web/mesh/benchmarks/mikk-benchmark.ts:247]" purpose="Call git nexus baseline (projectRoot, capability)" />
     </entry_points>
-    <key_internal_functions>
-      <function name="lockFingerprint" callers="1" purpose="--- Helpers -----------------------------------------------------------------" />
-      <function name="cosineSimilarity" callers="1" purpose="Cosine similarity" />
-    </key_internal_functions>
   </module>
-  <module id="packages-vscode-extension">
-    <name>Providers (Vscode Extension)</name>
-    <location>packages/vscode-extension/src/**</location>
-    <purpose>─── Extension Entry ─────────────────────────────────────...; Deactivate; ─── Helpers ─────────────────────────────────────────────...</purpose>
+  <module id="mesh-apps-registry">
+    <name>Search</name>
+    <location>c:/users/ansh/desktop/web/mesh/apps/registry/src/**</location>
+    <purpose>1 files, 0 functions</purpose>
     <entry_points>
-      <function signature="activate(context) [packages/vscode-extension/src/extension.ts:58]" purpose="─── Extension Entry ──────────────────────────────────────────────────────────" />
-      <function signature="deactivate() [packages/vscode-extension/src/extension.ts:191]" purpose="Deactivate" />
-      <function signature="MikkDataProvider.constructor(projectRoot) [packages/vscode-extension/src/extension.ts:238]" purpose="Mikk data provider.constructor (projectRoot)" />
-      <function signature="MikkDataProvider.reload() [packages/vscode-extension/src/extension.ts:242]" purpose="Reload" />
-      <function signature="MikkDataProvider.getContract() [packages/vscode-extension/src/extension.ts:247]" purpose="Get contract" />
+      <function signature="placeholder() [c:/users/ansh/desktop/web/mesh/apps/registry/src/index.ts:34]" purpose="Placeholder" />
     </entry_points>
-    <key_internal_functions>
-      <function name="runInTerminal" callers="1" purpose="─── Helpers ──────────────────────────────────────────────────────────────────" />
-      <function name="updateStatusBar" callers="1" purpose="Update status bar" />
-    </key_internal_functions>
   </module>
-  <module id="packages-mcp-server">
-    <name>Storage & Search</name>
-    <location>packages/mcp-server/src/**, packages/mcp-server/bin/**</location>
-    <purpose>Register all MCP resources — structured data an AI assist...; Safe read; Create a Mikk MCP server instance with all tools and reso...</purpose>
+  <module id="apps-web-components">
+    <name>Components</name>
+    <location>c:/users/ansh/desktop/web/mesh/apps/web/components/**</location>
+    <purpose>19 files, 0 functions</purpose>
     <entry_points>
-      <function signature="registerTools(server, projectRoot) [packages/mcp-server/src/tools.ts:78]" purpose="Register all MCP tools — actions an AI assistant can invoke." />
-      <function signature="registerResources(server, projectRoot) [packages/mcp-server/src/resources.ts:8]" purpose="Register all MCP resources — structured data an AI assistant can read." />
-      <function signature="createMikkMcpServer(projectRoot) [packages/mcp-server/src/server.ts:12]" purpose="Create a Mikk MCP server instance with all tools and resources registered." />
-      <function signature="async startStdioServer() [packages/mcp-server/src/stdio.ts:8]" purpose="Start the MCP server with stdio transport." />
-      <function signature="invalidateCache(projectRoot) [packages/mcp-server/src/tools.ts:34]" purpose="Invalidate cache" />
+      <function signature="getMDXComponents(components?) [c:/users/ansh/desktop/web/mesh/apps/web/components/mdx.tsx:14]" purpose="Get mdx components (components)" />
     </entry_points>
-    <key_internal_functions>
-      <function name="_tally" callers="2" purpose="Tally" />
-      <function name="_fileTok" callers="2" purpose="File tok" />
-      <function name="buildGraphFromLock" callers="2" purpose="Build a DependencyGraph from the lock file in O(n) time." />
-      <function name="safeRead" callers="1" purpose="Safe read" />
-      <function name="_tok" callers="1" purpose="Tok" />
-    </key_internal_functions>
   </module>
-  <module id="packages-watcher">
-    <name>Storage</name>
-    <location>packages/watcher/src/**</location>
+  <module id="apps-web-lib">
+    <name>Utils</name>
+    <location>c:/users/ansh/desktop/web/mesh/apps/web/lib/**</location>
+    <purpose>7 files, 0 functions</purpose>
+    <entry_points>
+      <function signature="trackEvent(_event) [c:/users/ansh/desktop/web/mesh/apps/web/lib/events.ts:8]" purpose="Track event (_event)" />
+      <function signature="buildGraph() [c:/users/ansh/desktop/web/mesh/apps/web/lib/build-graph.ts:8]" purpose="Build graph" />
+      <function signature="baseOptions() [c:/users/ansh/desktop/web/mesh/apps/web/lib/layout.shared.tsx:2]" purpose="Base options" />
+      <function signature="mergeRefs(refs) [c:/users/ansh/desktop/web/mesh/apps/web/lib/merge-refs.ts:3]" purpose="Merge refs (refs)" />
+      <function signature="cn(inputs) [c:/users/ansh/desktop/web/mesh/apps/web/lib/utils.ts:4]" purpose="Cn (inputs)" />
+    </entry_points>
+  </module>
+  <module id="mesh-packages-ai-context">
+    <name>Providers & Authentication</name>
+    <location>c:/users/ansh/desktop/web/mesh/packages/ai-context/src/**</location>
     <purpose>5 files, 0 functions</purpose>
     <entry_points>
-      <function signature="WatcherDaemon.constructor(config) [packages/watcher/src/daemon.ts:42]" purpose="Watcher daemon.constructor (config)" />
-      <function signature="async WatcherDaemon.start() [packages/watcher/src/daemon.ts:46]" purpose="Start" />
-      <function signature="async WatcherDaemon.stop() [packages/watcher/src/daemon.ts:99]" purpose="Stop" />
-      <function signature="WatcherDaemon.on(handler) [packages/watcher/src/daemon.ts:106]" purpose="On" />
-      <function signature="WatcherDaemon.enqueueChange(event) [packages/watcher/src/daemon.ts:112]" purpose="─── Debounce & Batch Processing ──────────────────────────────" />
+      <function signature="estimateTokens(text) [c:/users/ansh/desktop/web/mesh/packages/ai-context/src/claude-md-generator.ts:9]" purpose="Estimate tokens (text)" />
+      <function signature="ClaudeMdGenerator.constructor(contract, lock, tokenBudget, meta?, projectRoot?) [c:/users/ansh/desktop/web/mesh/packages/ai-context/src/claude-md-generator.ts:34]" purpose="Claude md generator.constructor" />
+      <function signature="ClaudeMdGenerator.generate() [c:/users/ansh/desktop/web/mesh/packages/ai-context/src/claude-md-generator.ts:45]" purpose="Claude md generator.generate" />
+      <function signature="ClaudeMdGenerator.generateSummary() [c:/users/ansh/desktop/web/mesh/packages/ai-context/src/claude-md-generator.ts:140]" purpose="Claude md generator.generate summary" />
+      <function signature="ClaudeMdGenerator.generateModuleSection(moduleId) [c:/users/ansh/desktop/web/mesh/packages/ai-context/src/claude-md-generator.ts:187]" purpose="Claude md generator.generate module section (moduleId)" />
     </entry_points>
   </module>
-  <module id="packages-cli">
-    <name>CLI (Cli)</name>
-    <location>packages/cli/src/**, packages/cli/bin/**</location>
-    <purpose>Banner; ─── Strip ANSI for length measurement ───────────────────...; Pad</purpose>
+  <module id="mesh-packages-cli">
+    <name>Notifications & CLI</name>
+    <location>c:/users/ansh/desktop/web/mesh/packages/cli/src/**</location>
+    <purpose>2 files, 0 functions</purpose>
     <entry_points>
-      <function signature="panel(title, rows, width?) [packages/cli/src/ui.ts:73]" purpose="Panel" />
-      <function signature="registerContextCommands(program) [packages/cli/src/commands/context.ts:24]" purpose="Register context commands" />
-      <function signature="cols(left, right, totalWidth?) [packages/cli/src/ui.ts:100]" purpose="Two columns side by side." />
-      <function signature="rule(width?) [packages/cli/src/ui.ts:87]" purpose="Thin separator inside a panel (use as a row)." />
-      <function signature="registerCiCommand(program) [packages/cli/src/commands/ci.ts:10]" purpose="Register ci command" />
+      <function signature="banner(tagline?) [c:/users/ansh/desktop/web/mesh/packages/cli/src/ui.ts:13]" purpose="Banner (tagline)" />
+      <function signature="visLen(s) [c:/users/ansh/desktop/web/mesh/packages/cli/src/ui.ts:23]" purpose="Vis len (s)" />
+      <function signature="pad(s, width) [c:/users/ansh/desktop/web/mesh/packages/cli/src/ui.ts:27]" purpose="Pad (s, width)" />
+      <function signature="tw() [c:/users/ansh/desktop/web/mesh/packages/cli/src/ui.ts:33]" purpose="Tw" />
+      <function signature="infoBar(value, max, width) [c:/users/ansh/desktop/web/mesh/packages/cli/src/ui.ts:52]" purpose="Info bar (value, max, width)" />
     </entry_points>
-    <key_internal_functions>
-      <function name="tw" callers="3" purpose="─── Terminal width (capped at 78) ───────────────────────────────────────────" />
-      <function name="buildMcpEntry" callers="3" purpose="Build mcp entry" />
-      <function name="parseJsonSafe" callers="3" purpose="Parse json safe" />
-      <function name="visLen" callers="2" purpose="─── Strip ANSI for length measurement ───────────────────────────────────────" />
-      <function name="pad" callers="2" purpose="Pad" />
-    </key_internal_functions>
   </module>
-  <module id="packages-diagram-generator">
-    <name>CLI (Diagram Generator)</name>
-    <location>packages/diagram-generator/src/**, packages/diagram-generator/src/generators/**</location>
-    <purpose>10 files, 0 functions</purpose>
+  <module id="mesh-packages-diagram-generator">
+    <name>Search</name>
+    <location>c:/users/ansh/desktop/web/mesh/packages/diagram-generator/src/**</location>
+    <purpose>2 files, 0 functions</purpose>
     <entry_points>
-      <function signature="DiagramOrchestrator.constructor(contract, lock, projectRoot) [packages/diagram-generator/src/orchestrator.ts:18]" purpose="Diagram orchestrator.constructor (contract, lock, projectRoot)" />
-      <function signature="async DiagramOrchestrator.generateAll() [packages/diagram-generator/src/orchestrator.ts:25]" purpose="Generate all diagrams" />
-      <function signature="async DiagramOrchestrator.generateImpact(changedIds, impactedIds) [packages/diagram-generator/src/orchestrator.ts:63]" purpose="Generate impact diagram for specific changes" />
-      <function signature="async DiagramOrchestrator.writeDiagram(relativePath, content) [packages/diagram-generator/src/orchestrator.ts:72]" purpose="Write diagram" />
-      <function signature="CapsuleDiagramGenerator.constructor(contract, lock) [packages/diagram-generator/src/generators/capsule-diagram.ts:9]" purpose="Capsule diagram generator.constructor (contract, lock)" />
+      <function signature="DiagramOrchestrator.constructor(contract, lock, projectRoot) [c:/users/ansh/desktop/web/mesh/packages/diagram-generator/src/orchestrator.ts:18]" purpose="Diagram orchestrator.constructor (contract, lock, projectRoot)" />
+      <function signature="async DiagramOrchestrator.generateAll() [c:/users/ansh/desktop/web/mesh/packages/diagram-generator/src/orchestrator.ts:25]" purpose="Diagram orchestrator.generate all" />
+      <function signature="async DiagramOrchestrator.generateImpact(changedIds, impactedIds) [c:/users/ansh/desktop/web/mesh/packages/diagram-generator/src/orchestrator.ts:63]" purpose="Diagram orchestrator.generate impact (changedIds, impactedIds)" />
+      <function signature="async DiagramOrchestrator.writeDiagram(relativePath, content) [c:/users/ansh/desktop/web/mesh/packages/diagram-generator/src/orchestrator.ts:72]" purpose="Diagram orchestrator.write diagram (relativePath, content)" />
+    </entry_points>
+  </module>
+  <module id="mesh-packages-intent-engine">
+    <name>AI & ML & Search</name>
+    <location>c:/users/ansh/desktop/web/mesh/packages/intent-engine/src/**</location>
+    <purpose>9 files, 0 functions</purpose>
+    <entry_points>
+      <function signature="ExplanationEngine.explain(impact, decision) [c:/users/ansh/desktop/web/mesh/packages/intent-engine/src/explanation-engine.ts:12]" purpose="Explanation engine.explain (impact, decision)" />
+      <function signature="ExplanationEngine.getSummary(decision) [c:/users/ansh/desktop/web/mesh/packages/intent-engine/src/explanation-engine.ts:24]" purpose="Explanation engine.get summary (decision)" />
+      <function signature="ExplanationEngine.getDetails(impact, decision) [c:/users/ansh/desktop/web/mesh/packages/intent-engine/src/explanation-engine.ts:32]" purpose="Explanation engine.get details (impact, decision)" />
+      <function signature="ExplanationEngine.getRiskBreakdown(impact) [c:/users/ansh/desktop/web/mesh/packages/intent-engine/src/explanation-engine.ts:53]" purpose="Explanation engine.get risk breakdown (impact)" />
+      <function signature="ExplanationEngine.getRiskReason(score) [c:/users/ansh/desktop/web/mesh/packages/intent-engine/src/explanation-engine.ts:65]" purpose="Explanation engine.get risk reason (score)" />
+    </entry_points>
+  </module>
+  <module id="mesh-packages-mcp-server">
+    <name>Storage</name>
+    <location>c:/users/ansh/desktop/web/mesh/packages/mcp-server/src/**</location>
+    <purpose>5 files, 0 functions</purpose>
+    <entry_points>
+      <function signature="createMikkMcpServer(projectRoot) [c:/users/ansh/desktop/web/mesh/packages/mcp-server/src/server.ts:12]" purpose="Create mikk mcp server (projectRoot)" />
+      <function signature="registerResources(server, projectRoot) [c:/users/ansh/desktop/web/mesh/packages/mcp-server/src/resources.ts:8]" purpose="Register resources (server, projectRoot)" />
+      <function signature="async safeRead(filePath) [c:/users/ansh/desktop/web/mesh/packages/mcp-server/src/resources.ts:59]" purpose="Safe read (filePath)" />
+      <function signature="async startStdioServer() [c:/users/ansh/desktop/web/mesh/packages/mcp-server/src/stdio.ts:8]" purpose="Start stdio server" />
+      <function signature="invalidateCache(projectRoot) [c:/users/ansh/desktop/web/mesh/packages/mcp-server/src/tools.ts:34]" purpose="Invalidate cache (projectRoot)" />
+    </entry_points>
+  </module>
+  <module id="mesh-packages-watcher">
+    <name>Storage & Messaging</name>
+    <location>c:/users/ansh/desktop/web/mesh/packages/watcher/src/**</location>
+    <purpose>5 files, 0 functions</purpose>
+    <entry_points>
+      <function signature="WatcherDaemon.constructor(config) [c:/users/ansh/desktop/web/mesh/packages/watcher/src/daemon.ts:42]" purpose="Watcher daemon.constructor (config)" />
+      <function signature="async WatcherDaemon.start() [c:/users/ansh/desktop/web/mesh/packages/watcher/src/daemon.ts:46]" purpose="Watcher daemon.start" />
+      <function signature="async WatcherDaemon.stop() [c:/users/ansh/desktop/web/mesh/packages/watcher/src/daemon.ts:99]" purpose="Watcher daemon.stop" />
+      <function signature="WatcherDaemon.on(handler) [c:/users/ansh/desktop/web/mesh/packages/watcher/src/daemon.ts:106]" purpose="Watcher daemon.on (handler)" />
+      <function signature="WatcherDaemon.enqueueChange(event) [c:/users/ansh/desktop/web/mesh/packages/watcher/src/daemon.ts:112]" purpose="Watcher daemon.enqueue change" />
+    </entry_points>
+  </module>
+  <module id="mesh-packages-vscode-extension">
+    <name>Providers & Storage</name>
+    <location>c:/users/ansh/desktop/web/mesh/packages/vscode-extension/src/**</location>
+    <purpose>1 files, 0 functions</purpose>
+    <entry_points>
+      <function signature="activate(context) [c:/users/ansh/desktop/web/mesh/packages/vscode-extension/src/extension.ts:58]" purpose="Activate (context)" />
+      <function signature="refreshAll() [c:/users/ansh/desktop/web/mesh/packages/vscode-extension/src/extension.ts:90]" purpose="Refresh all" />
+      <function signature="deactivate() [c:/users/ansh/desktop/web/mesh/packages/vscode-extension/src/extension.ts:191]" purpose="Deactivate" />
+      <function signature="runInTerminal(command) [c:/users/ansh/desktop/web/mesh/packages/vscode-extension/src/extension.ts:195]" purpose="Run in terminal (command)" />
+      <function signature="updateStatusBar(statusBar, data) [c:/users/ansh/desktop/web/mesh/packages/vscode-extension/src/extension.ts:201]" purpose="Update status bar (statusBar, data)" />
+    </entry_points>
+  </module>
+  <module id="packages-cli-commands">
+    <name>CLI & Storage</name>
+    <location>c:/users/ansh/desktop/web/mesh/packages/cli/src/commands/**</location>
+    <purpose>14 files, 0 functions</purpose>
+    <entry_points>
+      <function signature="registerAdrCommand(program) [c:/users/ansh/desktop/web/mesh/packages/cli/src/commands/adr.ts:6]" purpose="Register adr command (program)" />
+      <function signature="getManager() [c:/users/ansh/desktop/web/mesh/packages/cli/src/commands/adr.ts:11]" purpose="Get manager" />
+      <function signature="findWorkspaceRoot(start) [c:/users/ansh/desktop/web/mesh/packages/cli/src/commands/analyze.ts:10]" purpose="Find workspace root (start)" />
+      <function signature="async resolveCoreModule(projectRoot) [c:/users/ansh/desktop/web/mesh/packages/cli/src/commands/analyze.ts:23]" purpose="Resolve core module (projectRoot)" />
+      <function signature="registerAnalyzeCommand(program) [c:/users/ansh/desktop/web/mesh/packages/cli/src/commands/analyze.ts:62]" purpose="Register analyze command (program)" />
+    </entry_points>
+  </module>
+  <module id="packages-core-graph">
+    <name>Storage</name>
+    <location>c:/users/ansh/desktop/web/mesh/packages/core/src/graph/**</location>
+    <purpose>9 files, 0 functions</purpose>
+    <entry_points>
+      <function signature="ImpactAnalyzer.constructor(graph) [c:/users/ansh/desktop/web/mesh/packages/core/src/graph/impact-analyzer.ts:14]" purpose="Impact analyzer.constructor (graph)" />
+      <function signature="ImpactAnalyzer.analyze(changedNodeIds) [c:/users/ansh/desktop/web/mesh/packages/core/src/graph/impact-analyzer.ts:20]" purpose="Impact analyzer.analyze (changedNodeIds)" />
+      <function signature="DeadCodeDetector.constructor(graph, lock) [c:/users/ansh/desktop/web/mesh/packages/core/src/graph/dead-code-detector.ts:98]" purpose="Dead code detector.constructor (graph, lock)" />
+      <function signature="DeadCodeDetector.detect() [c:/users/ansh/desktop/web/mesh/packages/core/src/graph/dead-code-detector.ts:111]" purpose="Dead code detector.detect" />
+      <function signature="DeadCodeDetector.isExempt(fn, id) [c:/users/ansh/desktop/web/mesh/packages/core/src/graph/dead-code-detector.ts:187]" purpose="Dead code detector.is exempt (fn, id)" />
+    </entry_points>
+  </module>
+  <module id="packages-core-contract">
+    <name>Storage & Validation</name>
+    <location>c:/users/ansh/desktop/web/mesh/packages/core/src/contract/**</location>
+    <purpose>8 files, 0 functions</purpose>
+    <entry_points>
+      <function signature="AdrManager.constructor(contractPath) [c:/users/ansh/desktop/web/mesh/packages/core/src/contract/adr-manager.ts:13]" purpose="Adr manager.constructor (contractPath)" />
+      <function signature="async AdrManager.list() [c:/users/ansh/desktop/web/mesh/packages/core/src/contract/adr-manager.ts:17]" purpose="Adr manager.list" />
+      <function signature="async AdrManager.get(id) [c:/users/ansh/desktop/web/mesh/packages/core/src/contract/adr-manager.ts:22]" purpose="Adr manager.get (id)" />
+      <function signature="async AdrManager.add(decision) [c:/users/ansh/desktop/web/mesh/packages/core/src/contract/adr-manager.ts:29]" purpose="Adr manager.add (decision)" />
+      <function signature="async AdrManager.update(id, fields) [c:/users/ansh/desktop/web/mesh/packages/core/src/contract/adr-manager.ts:42]" purpose="Adr manager.update (id, fields)" />
+    </entry_points>
+  </module>
+  <module id="packages-core-hash">
+    <name>Database & Providers</name>
+    <location>c:/users/ansh/desktop/web/mesh/packages/core/src/hash/**</location>
+    <purpose>4 files, 0 functions</purpose>
+    <entry_points>
+      <function signature="computeModuleHash(fileHashes) [c:/users/ansh/desktop/web/mesh/packages/core/src/hash/tree-hasher.ts:7]" purpose="Compute module hash (fileHashes)" />
+      <function signature="computeRootHash(moduleHashes) [c:/users/ansh/desktop/web/mesh/packages/core/src/hash/tree-hasher.ts:15]" purpose="Compute root hash (moduleHashes)" />
+      <function signature="HashStore.constructor(projectRoot) [c:/users/ansh/desktop/web/mesh/packages/core/src/hash/hash-store.ts:25]" purpose="Hash store.constructor (projectRoot)" />
+      <function signature="HashStore.openDatabase(dbPath) [c:/users/ansh/desktop/web/mesh/packages/core/src/hash/hash-store.ts:38]" purpose="Hash store.open database (dbPath)" />
+      <function signature="HashStore.get(filePath) [c:/users/ansh/desktop/web/mesh/packages/core/src/hash/hash-store.ts:60]" purpose="Hash store.get (filePath)" />
+    </entry_points>
+  </module>
+  <module id="packages-core-parser">
+    <name>Storage & Logging</name>
+    <location>c:/users/ansh/desktop/web/mesh/packages/core/src/parser/**</location>
+    <purpose>8 files, 0 functions</purpose>
+    <entry_points>
+      <function signature="makeAllocator(filePath) [c:/users/ansh/desktop/web/mesh/packages/core/src/parser/oxc-parser.ts:56]" purpose="Make allocator (filePath)" />
+      <function signature="isDirectlyExported(parent) [c:/users/ansh/desktop/web/mesh/packages/core/src/parser/oxc-parser.ts:71]" purpose="Check if directly exported (parent)" />
+      <function signature="normalizeCallee(node) [c:/users/ansh/desktop/web/mesh/packages/core/src/parser/oxc-parser.ts:88]" purpose="Normalize callee (node)" />
+      <function signature="resolvePropertyName(node) [c:/users/ansh/desktop/web/mesh/packages/core/src/parser/oxc-parser.ts:95]" purpose="Resolve property name (node)" />
+      <function signature="resolveObjectName(node) [c:/users/ansh/desktop/web/mesh/packages/core/src/parser/oxc-parser.ts:105]" purpose="Resolve object name (node)" />
+    </entry_points>
+  </module>
+  <module id="packages-core-utils">
+    <name>Utils & Storage</name>
+    <location>c:/users/ansh/desktop/web/mesh/packages/core/src/utils/**</location>
+    <purpose>6 files, 0 functions</purpose>
+    <entry_points>
+      <function signature="MikkError.constructor(message, code) [c:/users/ansh/desktop/web/mesh/packages/core/src/utils/errors.ts:2]" purpose="Mikk error.constructor (message, code)" />
+      <function signature="ParseError.constructor(file, cause) [c:/users/ansh/desktop/web/mesh/packages/core/src/utils/errors.ts:9]" purpose="Parse error.constructor (file, cause)" />
+      <function signature="ContractNotFoundError.constructor(path) [c:/users/ansh/desktop/web/mesh/packages/core/src/utils/errors.ts:15]" purpose="Contract not found error.constructor (path)" />
+      <function signature="LockNotFoundError.constructor() [c:/users/ansh/desktop/web/mesh/packages/core/src/utils/errors.ts:21]" purpose="Lock not found error.constructor" />
+      <function signature="UnsupportedLanguageError.constructor(ext) [c:/users/ansh/desktop/web/mesh/packages/core/src/utils/errors.ts:27]" purpose="Unsupported language error.constructor (ext)" />
+    </entry_points>
+  </module>
+  <module id="packages-diagram-generator-generators">
+    <name>Storage & CLI</name>
+    <location>c:/users/ansh/desktop/web/mesh/packages/diagram-generator/src/generators/**</location>
+    <purpose>8 files, 0 functions</purpose>
+    <entry_points>
+      <function signature="CapsuleDiagramGenerator.constructor(contract, lock) [c:/users/ansh/desktop/web/mesh/packages/diagram-generator/src/generators/capsule-diagram.ts:9]" purpose="Capsule diagram generator.constructor (contract, lock)" />
+      <function signature="CapsuleDiagramGenerator.generate(moduleId) [c:/users/ansh/desktop/web/mesh/packages/diagram-generator/src/generators/capsule-diagram.ts:14]" purpose="Capsule diagram generator.generate (moduleId)" />
+      <function signature="CapsuleDiagramGenerator.sanitizeId(id) [c:/users/ansh/desktop/web/mesh/packages/diagram-generator/src/generators/capsule-diagram.ts:91]" purpose="Capsule diagram generator.sanitize id (id)" />
+      <function signature="FlowDiagramGenerator.constructor(lock) [c:/users/ansh/desktop/web/mesh/packages/diagram-generator/src/generators/flow-diagram.ts:9]" purpose="Flow diagram generator.constructor (lock)" />
+      <function signature="FlowDiagramGenerator.generate(startFunctionId, maxDepth) [c:/users/ansh/desktop/web/mesh/packages/diagram-generator/src/generators/flow-diagram.ts:14]" purpose="Flow diagram generator.generate (startFunctionId, maxDepth)" />
+    </entry_points>
+  </module>
+  <module id="packages-core-search">
+    <name>Search & Authentication</name>
+    <location>c:/users/ansh/desktop/web/mesh/packages/core/src/search/**</location>
+    <purpose>2 files, 0 functions</purpose>
+    <entry_points>
+      <function signature="reciprocalRankFusion(rankedLists) [c:/users/ansh/desktop/web/mesh/packages/core/src/search/bm25.ts:120]" purpose="Reciprocal rank fusion (rankedLists)" />
+      <function signature="tokenize(text) [c:/users/ansh/desktop/web/mesh/packages/core/src/search/bm25.ts:148]" purpose="Tokenize (text)" />
+      <function signature="buildFunctionTokens(fn) [c:/users/ansh/desktop/web/mesh/packages/core/src/search/bm25.ts:173]" purpose="Build function tokens (fn)" />
+      <function signature="BM25Index.clear() [c:/users/ansh/desktop/web/mesh/packages/core/src/search/bm25.ts:49]" purpose="Bm25 index.clear" />
+      <function signature="BM25Index.addDocument(id, tokens) [c:/users/ansh/desktop/web/mesh/packages/core/src/search/bm25.ts:57]" purpose="Bm25 index.add document (id, tokens)" />
+    </entry_points>
+  </module>
+  <module id="app-api-feedback">
+    <name>Blog & Database</name>
+    <location>c:/users/ansh/desktop/web/mesh/apps/web/app/api/feedback/**</location>
+    <purpose>1 files, 0 functions</purpose>
+    <entry_points>
+      <function signature="async getOctokit() [c:/users/ansh/desktop/web/mesh/apps/web/app/api/feedback/route.ts:36]" purpose="Get octokit" />
+      <function signature="async getRepoInfo(octokit) [c:/users/ansh/desktop/web/mesh/apps/web/app/api/feedback/route.ts:70]" purpose="Get repo info (octokit)" />
+      <function signature="async findDiscussion(octokit, title) [c:/users/ansh/desktop/web/mesh/apps/web/app/api/feedback/route.ts:106]" purpose="Find discussion (octokit, title)" />
+      <function signature="async POST(req) [c:/users/ansh/desktop/web/mesh/apps/web/app/api/feedback/route.ts:133]" purpose="Post (req)" />
+    </entry_points>
+  </module>
+  <module id="cli-commands-contract">
+    <name>CLI & Storage</name>
+    <location>c:/users/ansh/desktop/web/mesh/packages/cli/src/commands/contract/**</location>
+    <purpose>1 files, 0 functions</purpose>
+    <entry_points>
+      <function signature="registerContractCommands(program) [c:/users/ansh/desktop/web/mesh/packages/cli/src/commands/contract/index.ts:9]" purpose="Register contract commands (program)" />
+    </entry_points>
+  </module>
+  <module id="core-parser-go">
+    <name>Blog & API</name>
+    <location>c:/users/ansh/desktop/web/mesh/packages/core/src/parser/go/**</location>
+    <purpose>3 files, 0 functions</purpose>
+    <entry_points>
+      <function signature="async GoParser.parse(filePath, content) [c:/users/ansh/desktop/web/mesh/packages/core/src/parser/go/go-parser.ts:13]" purpose="Go parser.parse (filePath, content)" />
+      <function signature="GoParser.resolveImports(files, projectRoot) [c:/users/ansh/desktop/web/mesh/packages/core/src/parser/go/go-parser.ts:32]" purpose="Go parser.resolve imports (files, projectRoot)" />
+      <function signature="GoParser.getSupportedExtensions() [c:/users/ansh/desktop/web/mesh/packages/core/src/parser/go/go-parser.ts:40]" purpose="Go parser.get supported extensions" />
+      <function signature="extractBalancedParens(s, fromIdx) [c:/users/ansh/desktop/web/mesh/packages/core/src/parser/go/go-extractor.ts:369]" purpose="Extract balanced parens (s, fromIdx)" />
+      <function signature="parseGoFuncSignature(sig) [c:/users/ansh/desktop/web/mesh/packages/core/src/parser/go/go-extractor.ts:383]" purpose="Parse go func signature (sig)" />
+    </entry_points>
+  </module>
+  <module id="core-parser-javascript">
+    <name>Config & CLI</name>
+    <location>c:/users/ansh/desktop/web/mesh/packages/core/src/parser/javascript/**</location>
+    <purpose>3 files, 0 functions</purpose>
+    <entry_points>
+      <function signature="walk(node) [c:/users/ansh/desktop/web/mesh/packages/core/src/parser/javascript/js-extractor.ts:63]" purpose="Walk (node)" />
+      <function signature="walk(node) [c:/users/ansh/desktop/web/mesh/packages/core/src/parser/javascript/js-extractor.ts:127]" purpose="Walk (node)" />
+      <function signature="walk(node) [c:/users/ansh/desktop/web/mesh/packages/core/src/parser/javascript/js-extractor.ts:194]" purpose="Walk (node)" />
+      <function signature="isModuleExports(node) [c:/users/ansh/desktop/web/mesh/packages/core/src/parser/javascript/js-extractor.ts:254]" purpose="Check if module exports (node)" />
+      <function signature="isExportsDotProp(node) [c:/users/ansh/desktop/web/mesh/packages/core/src/parser/javascript/js-extractor.ts:264]" purpose="Check if exports dot prop (node)" />
+    </entry_points>
+  </module>
+  <module id="core-parser-tree-sitter">
+    <name>Database</name>
+    <location>c:/users/ansh/desktop/web/mesh/packages/core/src/parser/tree-sitter/**</location>
+    <purpose>2 files, 0 functions</purpose>
+    <entry_points>
+      <function signature="getRequire() [c:/users/ansh/desktop/web/mesh/packages/core/src/parser/tree-sitter/parser.ts:9]" purpose="Get require" />
+      <function signature="isExportedByLanguage(ext, name, nodeText) [c:/users/ansh/desktop/web/mesh/packages/core/src/parser/tree-sitter/parser.ts:28]" purpose="Check if exported by language (ext, name, nodeText)" />
+      <function signature="extractParamsFromNode(defNode) [c:/users/ansh/desktop/web/mesh/packages/core/src/parser/tree-sitter/parser.ts:53]" purpose="Extract params from node (defNode)" />
+      <function signature="walk(node) [c:/users/ansh/desktop/web/mesh/packages/core/src/parser/tree-sitter/parser.ts:58]" purpose="Walk (node)" />
+      <function signature="findFirstChild(node, predicate) [c:/users/ansh/desktop/web/mesh/packages/core/src/parser/tree-sitter/parser.ts:89]" purpose="Find first child (node, predicate)" />
+    </entry_points>
+  </module>
+  <module id="core-parser-typescript">
+    <name>Storage & GraphQL</name>
+    <location>c:/users/ansh/desktop/web/mesh/packages/core/src/parser/typescript/**</location>
+    <purpose>3 files, 0 functions</purpose>
+    <entry_points>
+      <function signature="walk(n) [c:/users/ansh/desktop/web/mesh/packages/core/src/parser/typescript/ts-extractor.ts:353]" purpose="Walk (n)" />
+      <function signature="walk(n) [c:/users/ansh/desktop/web/mesh/packages/core/src/parser/typescript/ts-extractor.ts:413]" purpose="Walk (n)" />
+      <function signature="walk(n) [c:/users/ansh/desktop/web/mesh/packages/core/src/parser/typescript/ts-extractor.ts:425]" purpose="Walk (n)" />
+      <function signature="TypeScriptExtractor.constructor(filePath, content) [c:/users/ansh/desktop/web/mesh/packages/core/src/parser/typescript/ts-extractor.ts:19]" purpose="Type script extractor.constructor (filePath, content)" />
+      <function signature="TypeScriptExtractor.inferScriptKind(filePath) [c:/users/ansh/desktop/web/mesh/packages/core/src/parser/typescript/ts-extractor.ts:32]" purpose="Type script extractor.infer script kind (filePath)" />
     </entry_points>
   </module>
 </modules>
@@ -239,6 +383,8 @@ export interface AIContext {
         selectedFunctions: number
         estimatedTokens: number
         keywords: string[]
+        reasons?: string[]
+        suggestions?: string[]
     }
 }
 
@@ -287,6 +433,18 @@ export interface ContextQuery {
     includeCallGraph?: boolean
     /** Include function bodies for top-scored functions (default true) */
     includeBodies?: boolean
+    /** Relevance mode: balanced (default) or strict (high-precision filtering) */
+    relevanceMode?: 'balanced' | 'strict'
+    /** Additional required terms (comma-separated in CLI) that must be respected */
+    requiredKeywords?: string[]
+    /** In strict mode, require all extracted/required keywords to match */
+    requireAllKeywords?: boolean
+    /** Minimum number of matched keywords required in strict mode (default 1) */
+    minKeywordMatches?: number
+    /** Hard gate in strict mode: final output keeps only strict keyword matches */
+    exactOnly?: boolean
+    /** In strict mode, return empty context if no exact matches are found */
+    failFast?: boolean
     /** Absolute filesystem path to the project root (needed for body reading) */
     projectRoot?: string
 }
@@ -342,6 +500,25 @@ export interface Suggestion {
     implementation: string
 }
 
+export type DecisionStatus = 'APPROVED' | 'WARNING' | 'BLOCKED';
+
+export interface DecisionResult {
+    status: DecisionStatus
+    reasons: string[]
+    riskScore: number
+    impactNodes: number
+}
+
+export interface Explanation {
+    summary: string
+    details: string[]
+    riskBreakdown: {
+        symbol: string
+        reason: string
+        score: number
+    }[]
+}
+
 /** Configuration for the AI provider */
 export interface AIProviderConfig {
     provider: 'anthropic' | 'openai' | 'local'
@@ -354,6 +531,8 @@ export interface PreflightResult {
     intents: Intent[]
     conflicts: ConflictResult
     suggestions: Suggestion[]
+    decision: DecisionResult
+    explanation: Explanation
     approved: boolean
 }
 ```
@@ -391,87 +570,112 @@ export type WatcherEvent =
 ### `packages/core/src/graph/types.ts` (types)
 
 ```typescript
-/**
- * Graph types — nodes, edges, and the dependency graph itself.
- */
+export type NodeType =
+  | "file"
+  | "class"
+  | "function"
+  | "variable"
+  | "generic";
 
-export type NodeType = 'function' | 'file' | 'module' | 'class' | 'generic'
-export type EdgeType = 'calls' | 'imports' | 'exports' | 'contains'
+export type EdgeType =
+  | "imports"
+  | "calls"
+  | "extends"
+  | "implements"
+  | "accesses"
+  | "contains"; // Keeping for containment edges
 
-/** A single node in the dependency graph */
 export interface GraphNode {
-    id: string              // "fn:src/auth/verify.ts:verifyToken"
-    type: NodeType
-    label: string           // "verifyToken"
-    file: string            // "src/auth/verify.ts"
-    moduleId?: string       // "auth" — which declared module this belongs to
-    metadata: {
-        startLine?: number
-        endLine?: number
-        isExported?: boolean
-        isAsync?: boolean
-        hash?: string
-        purpose?: string
-        params?: { name: string; type: string; optional?: boolean }[]
-        returnType?: string
-        edgeCasesHandled?: string[]
-        errorHandling?: { line: number; type: 'try-catch' | 'throw'; detail: string }[]
-        detailedLines?: { startLine: number; endLine: number; blockType: string }[]
-    }
+  id: string;              // unique (normalized file::name)
+  type: NodeType;
+  name: string;
+  file: string;
+  moduleId?: string;       // Original cluster feature
+
+  metadata?: {
+    isExported?: boolean;
+    inheritsFrom?: string[];
+    implements?: string[];
+    className?: string; // for methods
+    startLine?: number;
+    endLine?: number;
+    isAsync?: boolean;
+    hash?: string;
+    purpose?: string;
+    genericKind?: string;
+    params?: { name: string; type: string; optional?: boolean }[];
+    returnType?: string;
+    edgeCasesHandled?: string[];
+    errorHandling?: { line: number; type: 'try-catch' | 'throw'; detail: string }[];
+    detailedLines?: { startLine: number; endLine: number; blockType: string }[];
+  };
 }
 
-/** A single edge in the dependency graph */
 export interface GraphEdge {
-    source: string          // "fn:src/auth/verify.ts:verifyToken"
-    target: string          // "fn:src/utils/jwt.ts:jwtDecode"
-    type: EdgeType
-    weight?: number         // How often this call happens (for coupling metrics)
-    confidence?: number     // 0.0–1.0: 1.0 = direct AST call, 0.8 = via interface, 0.5 = fuzzy/inferred
+  from: string;
+  to: string;
+  type: EdgeType;
+  confidence: number; // 0–1
+  weight?: number;    // Weight from EDGE_WEIGHT constants
 }
 
-/** The full dependency graph */
 export interface DependencyGraph {
-    nodes: Map<string, GraphNode>
-    edges: GraphEdge[]
-    outEdges: Map<string, GraphEdge[]>   // node → [edges going out]
-    inEdges: Map<string, GraphEdge[]>    // node → [edges coming in]
+  nodes: Map<string, GraphNode>;
+  edges: GraphEdge[];
+  outEdges: Map<string, GraphEdge[]>;   // node → [edges going out]
+  inEdges: Map<string, GraphEdge[]>;    // node → [edges coming in]
 }
 
-/** Risk level for an impacted node */
-export type RiskLevel = 'critical' | 'high' | 'medium' | 'low'
-
-/** A single node in the classified impact result */
-export interface ClassifiedImpact {
-    nodeId: string
-    label: string
-    file: string
-    moduleId?: string
-    risk: RiskLevel
-    depth: number           // hops from change
+/**
+ * Canonical ID helpers.
+ * Function IDs:  fn:<absolute-posix-path>:<FunctionName>
+ * Class IDs:     class:<absolute-posix-path>:<ClassName>
+ * Type/enum IDs: type:<absolute-posix-path>:<Name> | enum:<absolute-posix-path>:<Name>
+ * File IDs:      <absolute-posix-path>  (no prefix)
+ *
+ * NOTE: The old normalizeId() that used `file::name` (double-colon, lowercase)
+ * was removed — it did not match any current ID format and would produce IDs
+ * that never matched any graph node.
+ */
+export function makeFnId(file: string, name: string): string {
+  return `fn:${file.replace(/\\/g, '/')}:${name}`;
 }
 
-/** Result of impact analysis */
+export type RiskLevel = 'CRITICAL' | 'HIGH' | 'MEDIUM' | 'LOW';
+
 export interface ImpactResult {
-    changed: string[]        // The directly changed nodes
-    impacted: string[]       // Everything that depends on changed nodes
-    depth: number            // How many hops from change to furthest impact
-    confidence: 'high' | 'medium' | 'low'
-    /** Risk-classified breakdown of impacted nodes */
-    classified: {
-        critical: ClassifiedImpact[]
-        high: ClassifiedImpact[]
-        medium: ClassifiedImpact[]
-        low: ClassifiedImpact[]
-    }
+  changed: string[];
+  impacted: string[];
+  allImpacted: ClassifiedImpact[]; // New field for Decision Engine
+  depth: number;
+  entryPoints: string[];
+  criticalModules: string[];
+  paths: string[][];
+  confidence: number;
+  riskScore: number;
+  classified: {
+    critical: ClassifiedImpact[];
+    high: ClassifiedImpact[];
+    medium: ClassifiedImpact[];
+    low: ClassifiedImpact[];
+  };
 }
 
-/** A cluster of files that naturally belong together */
+export interface ClassifiedImpact {
+  nodeId: string;
+  label: string;
+  file: string;
+  risk: RiskLevel;
+  riskScore: number; // numeric score for precise policy checks
+  depth: number;
+}
+
 export interface ModuleCluster {
-    id: string
-    files: string[]
-    confidence: number      // 0.0 to 1.0
-    suggestedName: string   // inferred from folder names
-    functions: string[]     // function IDs in this cluster
+  id: string;
+  files: string[];
+  confidence: number;
+  suggestedName: string;
+  functions: string[];
 }
 ```
 
@@ -480,120 +684,134 @@ export interface ModuleCluster {
 ```typescript
 /**
  * Parser types — data shapes that flow through the entire Mikk system.
- * Parser produces them, graph consumes them, contract stores them.
  */
 
 /** A single parameter in a function signature */
 export interface ParsedParam {
-    name: string
-    type: string
-    optional: boolean
-    defaultValue?: string
+  name: string;
+  type: string;
+  optional: boolean;
+  defaultValue?: string;
 }
 
+/** A single call expression found in code (Mikk 2.0) */
+export interface CallExpression {
+  name: string;
+  line: number;
+  type: 'function' | 'method' | 'property';
+  arguments?: string[];
+}
+
+/** A detailed function declaration */
 export interface ParsedFunction {
-    id: string              // "fn:auth/verify.ts:verifyToken"
-    name: string            // "verifyToken"
-    file: string            // "src/auth/verify.ts"
-    moduleId?: string
-    startLine: number       // 14
-    endLine: number         // 28
-    params: ParsedParam[]   // [{name: "token", type: "string"}]
-    returnType: string      // "boolean"
-    isExported: boolean     // true
-    isAsync: boolean        // false
-    isGenerator?: boolean   // true for function* / async function*
-    typeParameters?: string[] // ["T", "U"] for generic functions
-    calls: string[]         // ["jwtDecode", "findUser"]
-    hash: string            // SHA-256 of the function body
-    purpose: string         // Extracted from JSDoc or comments
-    edgeCasesHandled: string[] // Found conditions like 'if (!x) return'
-    errorHandling: { line: number, type: 'try-catch' | 'throw', detail: string }[]
-    detailedLines: { startLine: number, endLine: number, blockType: string }[]
+  id: string;              // unique normalized ID (file::name)
+  name: string;
+  file: string;
+  moduleId?: string;
+  startLine: number;
+  endLine: number;
+  params: ParsedParam[];
+  returnType: string;
+  isExported: boolean;
+  isAsync: boolean;
+  isGenerator?: boolean;
+  typeParameters?: string[];
+  calls: CallExpression[]; // Behavioral tracking (Upgraded from string[])
+  hash: string;
+  purpose: string;
+  edgeCasesHandled: string[];
+  errorHandling: { line: number; type: 'try-catch' | 'throw'; detail: string }[];
+  detailedLines: { startLine: number; endLine: number; blockType: string }[];
 }
 
 /** A single import statement */
 export interface ParsedImport {
-    source: string          // "../../utils/jwt"
-    resolvedPath: string    // "src/utils/jwt.ts" (absolute within project)
-    names: string[]         // ["jwtDecode", "jwtSign"]
-    isDefault: boolean      // false
-    isDynamic: boolean      // false
+  source: string;
+  resolvedPath: string;
+  names: string[];
+  isDefault: boolean;
+  isDynamic: boolean;
 }
 
 /** A single exported symbol */
 export interface ParsedExport {
-    name: string            // "verifyToken"
-    type: 'function' | 'class' | 'const' | 'type' | 'default' | 'interface'
-    file: string
+  name: string;
+  type: 'function' | 'class' | 'const' | 'type' | 'default' | 'interface' | 'variable';
+  file: string;
+}
+
+/** A single variable or property */
+export interface ParsedVariable {
+  id: string;
+  name: string;
+  type: string;
+  file: string;
+  line: number;
+  isExported: boolean;
+  isStatic?: boolean;
+  purpose?: string;
 }
 
 /** A parsed class */
 export interface ParsedClass {
-    id: string
-    name: string
-    file: string
-    moduleId?: string
-    startLine: number
-    endLine: number
-    methods: ParsedFunction[]
-    isExported: boolean
-    decorators?: string[]   // ["Injectable", "Controller"]
-    typeParameters?: string[] // ["T"] for generic classes
-    purpose?: string
-    edgeCasesHandled?: string[]
-    errorHandling?: { line: number, type: 'try-catch' | 'throw', detail: string }[]
+  id: string;
+  name: string;
+  file: string;
+  moduleId?: string;
+  startLine: number;
+  endLine: number;
+  methods: ParsedFunction[];
+  properties: ParsedVariable[];
+  extends?: string;
+  implements?: string[];
+  isExported: boolean;
+  decorators?: string[];
+  typeParameters?: string[];
+  hash: string;
+  purpose?: string;
+  edgeCasesHandled?: string[];
+  errorHandling?: { line: number; type: 'try-catch' | 'throw'; detail: string }[];
 }
 
-/** A detected HTTP route registration (Express/Koa/Hono style) */
-export interface ParsedRoute {
-    method: string            // "GET", "POST", "PUT", "DELETE", "USE", etc.
-    path: string              // "/upload", "/:shortId", "/api"
-    handler: string           // "createZap" or "anonymous"
-    middlewares: string[]     // ["uploadLimiter", "upload.single"]
-    file: string              // "src/Routes/zap.routes.ts"
-    line: number              // 15
-}
-
-/** A generic declaration like interface, type, or constant with metadata */
+/** A generic declaration (interface, type aliase, etc.) */
 export interface ParsedGeneric {
-    id: string
-    name: string
-    type: string // "interface" | "type" | "const"
-    file: string
-    startLine: number
-    endLine: number
-    isExported: boolean
-    typeParameters?: string[] // ["T", "K"] for generic interfaces/types
-    purpose?: string
+  id: string;
+  name: string;
+  type: string; // "interface" | "type"
+  file: string;
+  startLine: number;
+  endLine: number;
+  isExported: boolean;
+  typeParameters?: string[];
+  hash: string;
+  purpose?: string;
+}
+
+/** A detected HTTP route registration */
+export interface ParsedRoute {
+  method: string;
+  path: string;
+  handler: string;
+  middlewares: string[];
+  file: string;
+  line: number;
 }
 
 /** Everything extracted from a single file */
 export interface ParsedFile {
-    path: string            // "src/auth/verify.ts"
-    language: 'python' | 'go' | 'typescript' | 'javascript' | 'java' | 'c' | 'cpp' | 'csharp' | 'rust' | 'php' | 'ruby' | 'unknown'
-    functions: ParsedFunction[]
-    classes: ParsedClass[]
-    generics: ParsedGeneric[]
-    imports: ParsedImport[]
-    exports: ParsedExport[]
-    routes: ParsedRoute[]    // Detected HTTP route registrations
-    hash: string            // SHA-256 of the entire file content
-    parsedAt: number        // Date.now()
+  path: string;            // normalized absolute path
+  language: 'python' | 'go' | 'typescript' | 'javascript' | 'java' | 'c' | 'cpp' | 'csharp' | 'rust' | 'php' | 'ruby' | 'unknown';
+  functions: ParsedFunction[];
+  classes: ParsedClass[];
+  variables: ParsedVariable[];
+  generics: ParsedGeneric[];
+  imports: ParsedImport[];
+  exports: ParsedExport[];
+  routes: ParsedRoute[];
+  calls: CallExpression[]; // module-level calls
+  hash: string;
+  parsedAt: number;
 }
 ```
-
-## File Import Graph
-
-Which files import which — useful for understanding data flow.
-
-### Components & Navigation
-- `apps/web/components/code-block-command.tsx` → `apps/web/components/copy-button.tsx`
-- `apps/web/components/code-tabs.tsx` → `apps/web/components/base/ui/tabs.tsx`
-- `apps/web/components/command-menu.tsx` → `apps/web/components/ui/button.tsx`, `apps/web/components/ui/kbd.tsx`, `apps/web/components/ui/separator.tsx`
-- `apps/web/components/consent-manager.tsx` → `apps/web/components/consent-manager-client.tsx`
-- `apps/web/components/copy-button.tsx` → `apps/web/components/ui/button.tsx`
-- `apps/web/providers/providers.tsx` → `apps/web/providers/fuma-provider.tsx`
-- `apps/web/components/ui/collapsible.tsx` → `apps/web/components/animated-icons/chevrons-down-up-icon.tsx`
 
 

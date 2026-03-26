@@ -24,6 +24,8 @@ export interface AIContext {
         selectedFunctions: number
         estimatedTokens: number
         keywords: string[]
+        reasons?: string[]
+        suggestions?: string[]
     }
 }
 
@@ -72,6 +74,18 @@ export interface ContextQuery {
     includeCallGraph?: boolean
     /** Include function bodies for top-scored functions (default true) */
     includeBodies?: boolean
+    /** Relevance mode: balanced (default) or strict (high-precision filtering) */
+    relevanceMode?: 'balanced' | 'strict'
+    /** Additional required terms (comma-separated in CLI) that must be respected */
+    requiredKeywords?: string[]
+    /** In strict mode, require all extracted/required keywords to match */
+    requireAllKeywords?: boolean
+    /** Minimum number of matched keywords required in strict mode (default 1) */
+    minKeywordMatches?: number
+    /** Hard gate in strict mode: final output keeps only strict keyword matches */
+    exactOnly?: boolean
+    /** In strict mode, return empty context if no exact matches are found */
+    failFast?: boolean
     /** Absolute filesystem path to the project root (needed for body reading) */
     projectRoot?: string
 }

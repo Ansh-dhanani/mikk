@@ -137,7 +137,9 @@ function compactifyLock(lock: MikkLock): any {
             lastModified: file.lastModified,
         }
         if (file.moduleId && file.moduleId !== 'unknown') c.moduleId = file.moduleId
-        if (file.imports && file.imports.length > 0) c.imports = file.imports
+        if (file.imports && file.imports.length > 0) {
+            c.imports = file.imports.map(normalizeImportEntry)
+        }
         out.files[key] = c
     }
 
@@ -180,7 +182,10 @@ function hydrateLock(raw: any): any {
     // P6: build file->moduleId map before function loop
     const fileModuleMap: Record<string, string> = {}
     for (const [key, c] of Object.entries(raw.files || {}) as [string, any][]) {
-        fileModuleMap[key] = c.moduleId || 'unknown'
+        const moduleId = c.moduleId || 'unknown'
+        const normalizedKey = normalizeFilePath(key)
+        fileModuleMap[key] = moduleId
+        fileModuleMap[normalizedKey] = moduleId
     }
 
     // Hydrate functions
@@ -194,6 +199,7 @@ function hydrateLock(raw: any): any {
         const calls = (c.calls || []).map((v: any) => typeof v === 'number' ? (fnIndex[v] ?? null) : v).filter(Boolean)
         const calledBy = (c.calledBy || []).map((v: any) => typeof v === 'number' ? (fnIndex[v] ?? null) : v).filter(Boolean)
 
+        const normalizedFile = normalizeFilePath(file)
         out.functions[fullId] = {
             id: fullId,
             name,
@@ -203,7 +209,7 @@ function hydrateLock(raw: any): any {
             hash: c.hash || '',  // P4: empty string when not stored
             calls,
             calledBy,
-            moduleId: fileModuleMap[file] || c.moduleId || 'unknown',  // P6: derive from file
+            moduleId: fileModuleMap[normalizedFile] || fileModuleMap[file] || c.moduleId || 'unknown',  // P6: derive from file
             ...(c.params ? { params: c.params } : {}),
             ...(c.returnType ? { returnType: c.returnType } : {}),
             ...(c.isAsync ? { isAsync: true } : {}),
@@ -276,7 +282,7 @@ function hydrateLock(raw: any): any {
             hash: c.hash || '',
             moduleId: c.moduleId || 'unknown',
             lastModified: c.lastModified || '',
-            ...(c.imports && c.imports.length > 0 ? { imports: c.imports } : {}),
+            ...(c.imports && c.imports.length > 0 ? { imports: c.imports.map(normalizeImportEntry) } : {}),
         }
     }
 
@@ -314,4 +320,18 @@ function parseEntityKeyFull(key: string): { prefix: string; file: string; name: 
         file: rest.slice(0, lastColon),
         name: rest.slice(lastColon + 1),
     }
+}
+
+function normalizeImportEntry(entry: any): { source: string; resolvedPath?: string; names?: string[] } {
+    if (!entry) return { source: '' }
+    if (typeof entry === 'string') return { source: entry }
+    return {
+        source: entry.source,
+        resolvedPath: entry.resolvedPath || undefined,
+        names: entry.names?.length ? entry.names : undefined,
+    }
+}
+
+function normalizeFilePath(p: string): string {
+    return (p || '').replace(/\\/g, '/').toLowerCase()
 }

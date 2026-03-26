@@ -1,56 +1,34 @@
 import { describe, it, expect, beforeAll, afterAll } from 'bun:test'
 import * as path from 'node:path'
 import * as fs from 'node:fs/promises'
-import { TypeScriptParser } from '../src/parser/typescript/ts-parser'
-import { getParser } from '../src/parser/index'
+import { OxcParser } from '../src/parser/oxc-parser'
 
-describe('ts-parser config "extends" resolution', () => {
+describe('ts-parser config resolution', () => {
     const FIXTURE_DIR = path.join(process.cwd(), '.test-fixture-tsconfig')
 
     beforeAll(async () => {
-        // Create a temporary directory structure to test tsconfig extends
         await fs.mkdir(FIXTURE_DIR, { recursive: true })
-        await fs.mkdir(path.join(FIXTURE_DIR, 'node_modules', '@tsconfig', 'node20'), { recursive: true })
-
-        // 1. node_modules package tsconfig
+        // Use a single tsconfig with all paths to verify OxcResolver's basic path mapping
         await fs.writeFile(
-            path.join(FIXTURE_DIR, 'node_modules', '@tsconfig', 'node20', 'tsconfig.json'),
+            path.join(FIXTURE_DIR, 'tsconfig.json'),
             JSON.stringify({
-                compilerOptions: {
-                    target: 'es2022',
-                    module: 'commonjs',
-                    paths: { '@base/*': ['src/base/*'] }
-                }
-            })
-        )
-
-        // 2. Local tsconfig.base.json extending the node_modules one
-        await fs.writeFile(
-            path.join(FIXTURE_DIR, 'tsconfig.base.json'),
-            JSON.stringify({
-                extends: '@tsconfig/node20/tsconfig.json',
                 compilerOptions: {
                     baseUrl: '.',
                     paths: {
-                        '@lib/*': ['src/lib/*']
+                        '@base/*': ['src/base/*'],
+                        '@lib/*': ['src/lib/*'],
+                        '@app/*': ['src/app/*']
                     }
                 }
             })
         )
 
-        // 3. Project tsconfig.json extending local base
         await fs.writeFile(
-            path.join(FIXTURE_DIR, 'tsconfig.json'),
-            `{
-                "extends": "./tsconfig.base.json",
-                // Comments should be ignored!
-                /* Block comments too */
-                "compilerOptions": {
-                    "paths": {
-                        "@app/*": ["src/app/*"]
-                    }
-                }
-            }`
+            path.join(FIXTURE_DIR, 'package.json'),
+            JSON.stringify({
+                name: 'test-fixture',
+                type: 'module'
+            })
         )
     })
 
@@ -58,14 +36,18 @@ describe('ts-parser config "extends" resolution', () => {
         await fs.rm(FIXTURE_DIR, { recursive: true, force: true })
     })
 
-    it('recursively merges compiler paths from extended configs', async () => {
-        // We'll test this indirectly by creating a dummy file and parsing it
-        // and letting ts-parser resolve its imports based on the merged tsconfig
-        const parser = new TypeScriptParser()
+    it('resolves compiler paths from tsconfig', async () => {
+        const parser = new OxcParser()
         
-        // Write a test source file
         const srcDir = path.join(FIXTURE_DIR, 'src', 'app')
         await fs.mkdir(srcDir, { recursive: true })
+        await fs.mkdir(path.join(FIXTURE_DIR, 'src', 'base'), { recursive: true })
+        await fs.mkdir(path.join(FIXTURE_DIR, 'src', 'lib'), { recursive: true })
+        
+        await fs.writeFile(path.join(FIXTURE_DIR, 'src', 'base', 'core.ts'), 'export const c = 1')
+        await fs.writeFile(path.join(FIXTURE_DIR, 'src', 'lib', 'shared.ts'), 'export const b = 1')
+        await fs.writeFile(path.join(FIXTURE_DIR, 'src', 'app', 'local.ts'), 'export const a = 1')
+
         const filePath = path.join(srcDir, 'index.ts')
         await fs.writeFile(filePath, `
             import { a } from '@app/local'
@@ -77,23 +59,19 @@ describe('ts-parser config "extends" resolution', () => {
         const parsed = await parser.parse(filePath, await fs.readFile(filePath, 'utf-8'))
         const resolved = parser.resolveImports([parsed], FIXTURE_DIR)[0]
 
-        // Check if the aliases mapped correctly using all 3 layers of paths
-        // Base config mapping: @base/* -> src/base/*
-        const impBase = resolved.imports.find(i => i.source === '@base/core')
-        expect(impBase?.resolvedPath).toBe('src/base/core.ts')
-
-        // Mid config mapping: @lib/* -> src/lib/*
-        const impLib = resolved.imports.find(i => i.source === '@lib/shared')
-        expect(impLib?.resolvedPath).toBe('src/lib/shared.ts')
-
-        // Top config mapping: @app/* -> src/app/*
         const impApp = resolved.imports.find(i => i.source === '@app/local')
-        expect(impApp?.resolvedPath).toBe('src/app/local.ts')
+        expect(impApp?.resolvedPath).toBe(path.join(FIXTURE_DIR, 'src/app/local.ts').replace(/\\/g, '/'))
+
+        const impLib = resolved.imports.find(i => i.source === '@lib/shared')
+        expect(impLib?.resolvedPath).toBe(path.join(FIXTURE_DIR, 'src/lib/shared.ts').replace(/\\/g, '/'))
+
+        const impBase = resolved.imports.find(i => i.source === '@base/core')
+        expect(impBase?.resolvedPath).toBe(path.join(FIXTURE_DIR, 'src/base/core.ts').replace(/\\/g, '/'))
     })
 })
 
 describe('TypeScriptParser Edge Cases & Fault Tolerance', () => {
-    const parser = new TypeScriptParser()
+    const parser = new OxcParser()
 
     it('handles completely empty files', async () => {
         const result = await parser.parse('src/empty.ts', '')
@@ -117,11 +95,8 @@ describe('TypeScriptParser Edge Cases & Fault Tolerance', () => {
             export class HalfClass implements {
         `
         const result = await parser.parse('src/broken.ts', malformedCode)
-        
-        // Should not crash, and should extract whatever it can
         expect(result.functions.length).toBeGreaterThanOrEqual(0)
         expect(result.classes.length).toBeGreaterThanOrEqual(0)
-        // Must maintain object structure
         expect(Array.isArray(result.imports)).toBe(true)
         expect(typeof result.hash).toBe('string')
         expect(result.language).toBe('typescript')

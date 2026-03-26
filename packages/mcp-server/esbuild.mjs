@@ -3,7 +3,7 @@ import { readFileSync } from 'node:fs'
 
 const pkg = JSON.parse(readFileSync('./package.json', 'utf-8'))
 
-await esbuild.build({
+esbuild.buildSync({
     entryPoints: ['src/index.ts'],
     bundle: true,
     platform: 'node',
@@ -11,7 +11,7 @@ await esbuild.build({
     format: 'cjs',
     outfile: 'dist/index.cjs',
     sourcemap: true,
-    external: ['better-sqlite3', '@xenova/transformers'],
+    external: ['better-sqlite3', '@xenova/transformers', 'oxc-parser', 'oxc-resolver', 'web-tree-sitter'],
     define: {
         __MCP_VERSION__: JSON.stringify(pkg.version),
     },

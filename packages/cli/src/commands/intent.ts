@@ -51,6 +51,32 @@ export function registerIntentCommand(program: Command) {
                 }
                 console.log()
 
+                // 🧠 Decision & Explanation (New in Milestone 3)
+                const d = result.decision
+                const statusColor = d.status === 'BLOCKED' ? chalk.red : d.status === 'WARNING' ? chalk.yellow : chalk.green
+                const statusIcon = d.status === 'BLOCKED' ? '🚫' : d.status === 'WARNING' ? '⚠️' : '✅'
+
+                console.log(chalk.bold.magenta('  🧠 Mikk Decision:'), statusColor.bold(`${statusIcon} ${d.status}`))
+                
+                if (d.reasons.length > 0) {
+                    for (const reason of d.reasons) {
+                        console.log(`    ${chalk.dim('•')} ${reason}`)
+                    }
+                }
+
+                console.log(`\n  ${chalk.bold('📜 Explanation:')} ${chalk.italic(result.explanation.summary)}`)
+                for (const detail of result.explanation.details) {
+                    console.log(`    ${chalk.dim('→')} ${detail}`)
+                }
+
+                if (result.explanation.riskBreakdown.length > 0) {
+                    console.log(`\n    ${chalk.dim('Top Risks:')}`)
+                    for (const rb of result.explanation.riskBreakdown) {
+                        console.log(`      ${chalk.bold(rb.symbol.padEnd(20))} ${chalk.red(rb.score + '%')} ${chalk.dim(rb.reason)}`)
+                    }
+                }
+                console.log()
+
                 // Conflicts
                 if (result.conflicts.hasConflicts) {
                     console.log(chalk.bold.red('  ⚠ Conflicts:'))
@@ -81,10 +107,11 @@ export function registerIntentCommand(program: Command) {
                 console.log()
 
                 // Summary line
-                const status = result.approved
-                    ? chalk.green('✓ Approved — no conflicts')
-                    : chalk.red('✗ Blocked — resolve conflicts first')
-                console.log(`  ${status}`)
+                const finalStatus = result.approved
+                    ? chalk.green.bold('✓ PROCEEDED')
+                    : d.status === 'BLOCKED' ? chalk.red.bold('✗ BLOCKED BY POLICY') : chalk.yellow.bold('⚠ NUDGE REQUIRED')
+                
+                console.log(`  ${finalStatus}`)
                 console.log()
 
             } catch (err: any) {

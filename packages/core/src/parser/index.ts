@@ -1,12 +1,22 @@
-import * as path from 'node:path'
+import * as nodePath from 'node:path'
 import { BaseParser } from './base-parser.js'
-import { TypeScriptParser } from './typescript/ts-parser.js'
+import { OxcParser } from './oxc-parser.js'
 import { GoParser } from './go/go-parser.js'
-import { JavaScriptParser } from './javascript/js-parser.js'
 import { UnsupportedLanguageError } from '../utils/errors.js'
 import type { ParsedFile } from './types.js'
 
-export type { ParsedFile, ParsedFunction, ParsedImport, ParsedExport, ParsedClass, ParsedParam } from './types.js'
+export type {
+    ParsedFile,
+    ParsedFunction,
+    ParsedImport,
+    ParsedExport,
+    ParsedClass,
+    ParsedParam,
+    ParsedVariable,
+    CallExpression,
+    ParsedGeneric,
+    ParsedRoute
+} from './types.js'
 export { BaseParser } from './base-parser.js'
 export { TypeScriptParser } from './typescript/ts-parser.js'
 export { TypeScriptExtractor } from './typescript/ts-extractor.js'
@@ -19,22 +29,20 @@ export { JavaScriptExtractor } from './javascript/js-extractor.js'
 export { JavaScriptResolver } from './javascript/js-resolver.js'
 export { BoundaryChecker } from './boundary-checker.js'
 export { TreeSitterParser } from './tree-sitter/parser.js'
-import { TreeSitterParser } from './tree-sitter/parser.js'
 
 /** Get the appropriate parser for a file based on its extension */
 export function getParser(filePath: string): BaseParser {
-    const ext = path.extname(filePath)
+    const ext = nodePath.extname(filePath).toLowerCase()
     switch (ext) {
         case '.ts':
         case '.tsx':
-            return new TypeScriptParser()
         case '.js':
         case '.mjs':
         case '.cjs':
         case '.jsx':
-            return new JavaScriptParser()
+            return new OxcParser()
         case '.go':
-            return new GoParser() // Mikk's custom Regex Go parser
+            return new GoParser()
         case '.py':
         case '.java':
         case '.c':
@@ -46,55 +54,97 @@ export function getParser(filePath: string): BaseParser {
         case '.rs':
         case '.php':
         case '.rb':
-            return new TreeSitterParser()
+            throw new UnsupportedLanguageError(ext)
         default:
             throw new UnsupportedLanguageError(ext)
     }
 }
 
-/** Parse multiple files and resolve imports across them */
+/**
+ * Parse multiple files, resolve their imports, and return ParsedFile[].
+ *
+ * Path contract (critical for graph correctness):
+ *   - filePaths come from discoverFiles() as project-root-relative strings
+ *   - We resolve them to ABSOLUTE posix paths before passing to parse()
+ *   - ParsedFile.path is therefore always absolute + forward-slash
+ *   - OxcResolver also returns absolute paths → import edges always consistent
+ */
 export async function parseFiles(
     filePaths: string[],
     projectRoot: string,
     readFile: (fp: string) => Promise<string>
 ): Promise<ParsedFile[]> {
-    const parsersMap = new Map<BaseParser, ParsedFile[]>()
-    // Re-use parser instances so they can share cache/bindings
-    const tsParser = new TypeScriptParser()
-    const jsParser = new JavaScriptParser()
+    // Shared parser instances — avoid re-initialisation overhead per file
+    const oxcParser = new OxcParser()
     const goParser = new GoParser()
-    const treeSitterParser = new TreeSitterParser()
 
-    const getCachedParser = (ext: string): BaseParser | null => {
-        switch (ext) {
-            case '.ts': case '.tsx': return tsParser
-            case '.js': case '.mjs': case '.cjs': case '.jsx': return jsParser
-            case '.go': return goParser
-            case '.py': case '.java': case '.c': case '.h': case '.cpp': case '.cc': case '.hpp': case '.cs': case '.rs': case '.php': case '.rb': return treeSitterParser
-            default: return null
+    // Lazily loaded to avoid mandatory dep on tree-sitter
+    let treeSitterParser: BaseParser | null = null
+    const getTreeSitter = async (): Promise<BaseParser> => {
+        if (!treeSitterParser) {
+            const { TreeSitterParser } = await import('./tree-sitter/parser.js')
+            treeSitterParser = new TreeSitterParser()
         }
+        return treeSitterParser!
     }
 
-    for (const fp of filePaths) {
-        const ext = path.extname(fp).toLowerCase()
-        const parser = getCachedParser(ext)
-        if (!parser) continue
+    const tsExtensions = new Set(['.ts', '.tsx', '.js', '.jsx', '.mjs', '.cjs'])
+    const goExtensions = new Set(['.go'])
+    const treeSitterExtensions = new Set(['.py', '.java', '.c', '.h', '.cpp', '.cc', '.hpp', '.cs', '.rs', '.php', '.rb'])
+
+    // Normalised project root for absolute path construction
+    const normalizedRoot = nodePath.resolve(projectRoot).replace(/\\/g, '/')
+
+    // Group by parser to enable batch resolveImports
+    const oxcFiles: ParsedFile[] = []
+    const goFiles: ParsedFile[] = []
+    const treeFiles: ParsedFile[] = []
+
+    const parsePromises = filePaths.map(async (fp) => {
+        const ext = nodePath.extname(fp).toLowerCase()
+
+        // Build absolute posix path — this is the single source of truth for all IDs
+        const absoluteFp = nodePath.resolve(normalizedRoot, fp).replace(/\\/g, '/')
+
+        let content: string
+        try {
+            content = await readFile(absoluteFp)
+        } catch {
+            // File unreadable — skip silently (deleted, permission error, binary)
+            return
+        }
 
         try {
-            const content = await readFile(path.join(projectRoot, fp))
-            const parsed = await parser.parse(fp, content)
-            
-            if (!parsersMap.has(parser)) parsersMap.set(parser, [])
-            parsersMap.get(parser)!.push(parsed)
+            if (tsExtensions.has(ext)) {
+                const parsed = await oxcParser.parse(absoluteFp, content)
+                oxcFiles.push(parsed)
+            } else if (goExtensions.has(ext)) {
+                const parsed = await goParser.parse(absoluteFp, content)
+                goFiles.push(parsed)
+            } else if (treeSitterExtensions.has(ext)) {
+                const ts = await getTreeSitter()
+                const parsed = await ts.parse(absoluteFp, content)
+                treeFiles.push(parsed)
+            }
         } catch {
-            // Skip unreadable files (permissions, binary, etc.) — don't abort the whole parse
+            // Parser error — skip this file, don't abort the whole run
         }
+    })
+
+    await Promise.all(parsePromises)
+
+    // Resolve imports batch-wise per parser (each has its own resolver)
+    let resolvedTreeFiles: ParsedFile[] = treeFiles
+    if (treeFiles.length > 0) {
+        const treeParser = treeSitterParser ?? await getTreeSitter()
+        resolvedTreeFiles = treeParser.resolveImports(treeFiles, normalizedRoot)
     }
 
-    const allResolvedFiles: ParsedFile[] = []
-    for (const [parser, files] of parsersMap.entries()) {
-        allResolvedFiles.push(...parser.resolveImports(files, projectRoot))
-    }
+    const resolved: ParsedFile[] = [
+        ...oxcParser.resolveImports(oxcFiles, normalizedRoot),
+        ...goParser.resolveImports(goFiles, normalizedRoot),
+        ...resolvedTreeFiles,
+    ]
 
-    return allResolvedFiles
+    return resolved
 }

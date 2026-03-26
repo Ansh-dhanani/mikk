@@ -1,0 +1,13 @@
+{
+  "task": "dead-code",
+  "capability": "dead_code",
+  "command": "gitnexus query \"unused functions\"",
+  "timestamp": "2026-03-26T05:41:08.493Z",
+  "output_file": "C:\\Users\\Ansh\\Desktop\\web\\Mesh\\benchmarks\\results\\gitnexus-calls\\dead-code_2026-03-26T05-41-08.json",
+  "raw_output": "{\n  \"status\": \"not_found\",\n  \"message\": \"No unused functions found\"\n}",
+  "output_length": 69,
+  "tokens": 45,
+  "capture_method": "manual_console_copy",
+  "success": true,
+  "note": "GitNexus bypasses stdout capture, this was manually copied from console output"
+}

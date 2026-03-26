@@ -24,5 +24,5 @@ export function minimatch(filePath: string, pattern: string): boolean {
     .replace(/\*\*/g, '.*')
     .replace(/\*/g, '[^/]*')
 
-  return new RegExp(`^${regexStr}$`).test(normalizedPath)
+  return new RegExp(`^${regexStr}$`, 'i').test(normalizedPath)
 }

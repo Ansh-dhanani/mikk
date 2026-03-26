@@ -1,83 +1,107 @@
-/**
- * Graph types — nodes, edges, and the dependency graph itself.
- */
+export type NodeType =
+  | "file"
+  | "class"
+  | "function"
+  | "variable"
+  | "generic";
 
-export type NodeType = 'function' | 'file' | 'module' | 'class' | 'generic'
-export type EdgeType = 'calls' | 'imports' | 'exports' | 'contains'
+export type EdgeType =
+  | "imports"
+  | "calls"
+  | "extends"
+  | "implements"
+  | "accesses"
+  | "contains"; // Keeping for containment edges
 
-/** A single node in the dependency graph */
 export interface GraphNode {
-    id: string              // "fn:src/auth/verify.ts:verifyToken"
-    type: NodeType
-    label: string           // "verifyToken"
-    file: string            // "src/auth/verify.ts"
-    moduleId?: string       // "auth" — which declared module this belongs to
-    metadata: {
-        startLine?: number
-        endLine?: number
-        isExported?: boolean
-        isAsync?: boolean
-        hash?: string
-        purpose?: string
-        genericKind?: string
-        params?: { name: string; type: string; optional?: boolean }[]
-        returnType?: string
-        edgeCasesHandled?: string[]
-        errorHandling?: { line: number; type: 'try-catch' | 'throw'; detail: string }[]
-        detailedLines?: { startLine: number; endLine: number; blockType: string }[]
-    }
+  id: string;              // unique (normalized file::name)
+  type: NodeType;
+  name: string;
+  file: string;
+  moduleId?: string;       // Original cluster feature
+
+  metadata?: {
+    isExported?: boolean;
+    inheritsFrom?: string[];
+    implements?: string[];
+    className?: string; // for methods
+    startLine?: number;
+    endLine?: number;
+    isAsync?: boolean;
+    hash?: string;
+    purpose?: string;
+    genericKind?: string;
+    params?: { name: string; type: string; optional?: boolean }[];
+    returnType?: string;
+    edgeCasesHandled?: string[];
+    errorHandling?: { line: number; type: 'try-catch' | 'throw'; detail: string }[];
+    detailedLines?: { startLine: number; endLine: number; blockType: string }[];
+  };
 }
 
-/** A single edge in the dependency graph */
 export interface GraphEdge {
-    source: string          // "fn:src/auth/verify.ts:verifyToken"
-    target: string          // "fn:src/utils/jwt.ts:jwtDecode"
-    type: EdgeType
-    weight?: number         // How often this call happens (for coupling metrics)
-    confidence?: number     // 0.0–1.0: 1.0 = direct AST call, 0.8 = via interface, 0.5 = fuzzy/inferred
+  from: string;
+  to: string;
+  type: EdgeType;
+  confidence: number; // 0–1
+  weight?: number;    // Weight from EDGE_WEIGHT constants
 }
 
-/** The full dependency graph */
 export interface DependencyGraph {
-    nodes: Map<string, GraphNode>
-    edges: GraphEdge[]
-    outEdges: Map<string, GraphEdge[]>   // node → [edges going out]
-    inEdges: Map<string, GraphEdge[]>    // node → [edges coming in]
+  nodes: Map<string, GraphNode>;
+  edges: GraphEdge[];
+  outEdges: Map<string, GraphEdge[]>;   // node → [edges going out]
+  inEdges: Map<string, GraphEdge[]>;    // node → [edges coming in]
 }
 
-/** Risk level for an impacted node */
-export type RiskLevel = 'critical' | 'high' | 'medium' | 'low'
-
-/** A single node in the classified impact result */
-export interface ClassifiedImpact {
-    nodeId: string
-    label: string
-    file: string
-    moduleId?: string
-    risk: RiskLevel
-    depth: number           // hops from change
+/**
+ * Canonical ID helpers.
+ * Function IDs:  fn:<absolute-posix-path>:<FunctionName>
+ * Class IDs:     class:<absolute-posix-path>:<ClassName>
+ * Type/enum IDs: type:<absolute-posix-path>:<Name> | enum:<absolute-posix-path>:<Name>
+ * File IDs:      <absolute-posix-path>  (no prefix)
+ *
+ * NOTE: The old normalizeId() that used `file::name` (double-colon, lowercase)
+ * was removed — it did not match any current ID format and would produce IDs
+ * that never matched any graph node.
+ */
+export function makeFnId(file: string, name: string): string {
+  return `fn:${file.replace(/\\/g, '/')}:${name}`;
 }
 
-/** Result of impact analysis */
+export type RiskLevel = 'CRITICAL' | 'HIGH' | 'MEDIUM' | 'LOW';
+
 export interface ImpactResult {
-    changed: string[]        // The directly changed nodes
-    impacted: string[]       // Everything that depends on changed nodes
-    depth: number            // How many hops from change to furthest impact
-    confidence: 'high' | 'medium' | 'low'
-    /** Risk-classified breakdown of impacted nodes */
-    classified: {
-        critical: ClassifiedImpact[]
-        high: ClassifiedImpact[]
-        medium: ClassifiedImpact[]
-        low: ClassifiedImpact[]
-    }
+  changed: string[];
+  impacted: string[];
+  allImpacted: ClassifiedImpact[]; // New field for Decision Engine
+  depth: number;
+  entryPoints: string[];
+  criticalModules: string[];
+  paths: string[][];
+  confidence: number;
+  riskScore: number;
+  classified: {
+    critical: ClassifiedImpact[];
+    high: ClassifiedImpact[];
+    medium: ClassifiedImpact[];
+    low: ClassifiedImpact[];
+  };
 }
 
-/** A cluster of files that naturally belong together */
+export interface ClassifiedImpact {
+  nodeId: string;
+  label: string;
+  file: string;
+  risk: RiskLevel;
+  riskScore: number; // numeric score for precise policy checks
+  depth: number;
+}
+
 export interface ModuleCluster {
-    id: string
-    files: string[]
-    confidence: number      // 0.0 to 1.0
-    suggestedName: string   // inferred from folder names
-    functions: string[]     // function IDs in this cluster
+  id: string;
+  files: string[];
+  confidence: number;
+  suggestedName: string;
+  functions: string[];
 }

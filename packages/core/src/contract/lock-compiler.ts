@@ -4,6 +4,7 @@ import type { MikkContract, MikkLock } from './schema.js'
 import type { DependencyGraph } from '../graph/types.js'
 import type { ParsedFile } from '../parser/types.js'
 import type { ContextFile } from '../utils/fs.js'
+import * as nodePath from 'node:path'
 import { hashContent } from '../hash/file-hasher.js'
 import { computeModuleHash, computeRootHash } from '../hash/tree-hasher.js'
 import { minimatch } from '../utils/minimatch.js'
@@ -41,6 +42,17 @@ const HANDLER_PREFIXES = ['handle', 'on']
 const GETTER_PREFIXES = ['get', 'fetch', 'load', 'find', 'query', 'retrieve', 'read']
 const SETTER_PREFIXES = ['set', 'update', 'save', 'write', 'put', 'patch', 'create', 'delete', 'remove']
 const CHECKER_PREFIXES = ['is', 'has', 'can', 'should', 'check', 'validate']
+
+function getModuleMatchPath(filePath: string, projectRootPath: string | null): string {
+    const normalized = filePath.replace(/\\/g, '/')
+    if (!projectRootPath) return normalized
+    const relative = nodePath.relative(projectRootPath, filePath)
+    if (relative === '') return normalized
+    if (!relative.startsWith('..')) {
+        return relative.replace(/\\/g, '/')
+    }
+    return normalized
+}
 
 /** Infer a short purpose string from function metadata when JSDoc is missing */
 function inferPurpose(
@@ -111,6 +123,7 @@ function capitalise(s: string): string {
  * and compiles the complete mikk.lock.json.
  */
 export class LockCompiler {
+    private projectRootPath: string | null = null
     /** Main entry -- compile full lock from graph + contract + parsed files */
     compile(
         graph: DependencyGraph,
@@ -119,6 +132,7 @@ export class LockCompiler {
         contextFiles?: ContextFile[],
         projectRoot?: string
     ): MikkLock {
+        this.projectRootPath = projectRoot ? nodePath.resolve(projectRoot) : null
         const functions = this.compileFunctions(graph, contract)
         const classes = this.compileClasses(graph, contract)
         const generics = this.compileGenerics(graph, contract)
@@ -132,7 +146,7 @@ export class LockCompiler {
         }
 
         const lockData: MikkLock = {
-            version: '1.7.0',
+            version: '2.0.0',
             generatedAt: new Date().toISOString(),
             generatorVersion: VERSION,
             projectRoot: projectRoot ?? contract.project.name,
@@ -181,33 +195,35 @@ export class LockCompiler {
             if (node.type !== 'function') continue
 
             const moduleId = this.findModule(node.file, contract.declared.modules)
+            const displayName = node.name ?? ''
+            const metadata = node.metadata ?? {}
             const inEdges = graph.inEdges.get(id) || []
             const outEdges = graph.outEdges.get(id) || []
 
             result[id] = {
                 id,
-                name: node.label,
+                name: displayName,
                 file: node.file,
-                startLine: node.metadata.startLine ?? 0,
-                endLine: node.metadata.endLine ?? 0,
-                hash: node.metadata.hash ?? '',
-                calls: outEdges.filter(e => e.type === 'calls').map(e => e.target),
-                calledBy: inEdges.filter(e => e.type === 'calls').map(e => e.source),
+                startLine: metadata.startLine ?? 0,
+                endLine: metadata.endLine ?? 0,
+                hash: metadata.hash ?? '',
+                calls: outEdges.filter(e => e.type === 'calls').map(e => e.to),
+                calledBy: inEdges.filter(e => e.type === 'calls').map(e => e.from),
                 moduleId: moduleId || 'unknown',
-                ...(node.metadata.params && node.metadata.params.length > 0
-                    ? { params: node.metadata.params }
+                ...(metadata.params && metadata.params.length > 0
+                    ? { params: metadata.params }
                     : {}),
-                ...(node.metadata.returnType ? { returnType: node.metadata.returnType } : {}),
-                ...(node.metadata.isAsync ? { isAsync: true } : {}),
-                ...(node.metadata.isExported ? { isExported: true } : {}),
-                purpose: node.metadata.purpose || inferPurpose(
-                    node.label,
-                    node.metadata.params,
-                    node.metadata.returnType,
-                    node.metadata.isAsync,
+                ...(metadata.returnType ? { returnType: metadata.returnType } : {}),
+                ...(metadata.isAsync ? { isAsync: true } : {}),
+                ...(metadata.isExported ? { isExported: true } : {}),
+                purpose: metadata.purpose || inferPurpose(
+                    displayName,
+                    metadata.params,
+                    metadata.returnType,
+                    metadata.isAsync,
                 ),
-                edgeCasesHandled: node.metadata.edgeCasesHandled,
-                errorHandling: node.metadata.errorHandling,
+                edgeCasesHandled: metadata.edgeCasesHandled,
+                errorHandling: metadata.errorHandling,
             }
         }
 
@@ -222,17 +238,19 @@ export class LockCompiler {
         for (const [id, node] of graph.nodes) {
             if (node.type !== 'class') continue
             const moduleId = this.findModule(node.file, contract.declared.modules)
+            const className = node.name ?? ''
+            const metadata = node.metadata ?? {}
             result[id] = {
                 id,
-                name: node.label,
+                name: className,
                 file: node.file,
-                startLine: node.metadata.startLine ?? 0,
-                endLine: node.metadata.endLine ?? 0,
+                startLine: metadata.startLine ?? 0,
+                endLine: metadata.endLine ?? 0,
                 moduleId: moduleId || 'unknown',
-                isExported: node.metadata.isExported ?? false,
-                purpose: node.metadata.purpose || inferPurpose(node.label),
-                edgeCasesHandled: node.metadata.edgeCasesHandled,
-                errorHandling: node.metadata.errorHandling,
+                isExported: metadata.isExported ?? false,
+                purpose: metadata.purpose || inferPurpose(className),
+                edgeCasesHandled: metadata.edgeCasesHandled,
+                errorHandling: metadata.errorHandling,
             }
         }
         return result
@@ -247,18 +265,20 @@ export class LockCompiler {
             if (node.type !== 'generic') continue
             // Only include exported generics  non-exported types/interfaces are
             // internal implementation details that add noise without value.
-            if (!node.metadata.isExported) continue
+            if (!(node.metadata?.isExported)) continue
             const moduleId = this.findModule(node.file, contract.declared.modules)
+            const genericName = node.name ?? ''
+            const metadata = node.metadata ?? {}
             raw[id] = {
                 id,
-                name: node.label,
-                type: node.metadata.hash ?? 'generic', // we stored type name in hash
+                name: genericName,
+                type: metadata.hash ?? 'generic', // we stored type name in hash
                 file: node.file,
-                startLine: node.metadata.startLine ?? 0,
-                endLine: node.metadata.endLine ?? 0,
+                startLine: metadata.startLine ?? 0,
+                endLine: metadata.endLine ?? 0,
                 moduleId: moduleId || 'unknown',
-                isExported: node.metadata.isExported ?? false,
-                purpose: node.metadata.purpose || inferPurpose(node.label),
+                isExported: metadata.isExported ?? false,
+                purpose: metadata.purpose || inferPurpose(genericName),
             }
         }
 
@@ -379,9 +399,20 @@ export class LockCompiler {
 
     /** Check if a file path matches any of the module's path patterns */
     private fileMatchesModule(filePath: string, patterns: string[]): boolean {
-        const normalized = filePath.replace(/\\/g, '/')
+        const relativePath = getModuleMatchPath(filePath, this.projectRootPath)
+        const normalizedRelative = relativePath.replace(/\\/g, '/').toLowerCase()
+        const normalizedAbsolute = filePath.replace(/\\/g, '/').toLowerCase()
+        const normalizedProjectRoot = this.projectRootPath
+            ? this.projectRootPath.replace(/\\/g, '/').toLowerCase()
+            : null
+
         for (const pattern of patterns) {
-            if (minimatch(normalized, pattern)) {
+            const normalizedPattern = pattern.replace(/\\/g, '/').toLowerCase()
+            const relativePattern = normalizedProjectRoot && normalizedPattern.startsWith(`${normalizedProjectRoot}/`)
+                ? normalizedPattern.slice(normalizedProjectRoot.length + 1)
+                : normalizedPattern
+            if (minimatch(normalizedRelative, relativePattern) ||
+                minimatch(normalizedAbsolute, normalizedPattern)) {
                 return true
             }
         }

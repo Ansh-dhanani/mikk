@@ -34,14 +34,31 @@ const CACHE_TTL_MS = 30_000 // 30 seconds
 function invalidateCache(projectRoot: string): void {
     projectCache.delete(projectRoot)
 }
-// ─── Token savings tracking ───────────────────────────────────────────────────
+
+// Semantic searcher singletons per project root.
+// Capped at MAX_SEARCHER_ROOTS to prevent unbounded memory growth in
+// long-running MCP sessions with many project roots.
+const MAX_SEARCHER_ROOTS = 5
+function getSemanticSearcher(projectRoot: string): SemanticSearcher {
+    let s = semanticSearchers.get(projectRoot)
+    if (!s) {
+        // Evict the oldest entry when the cap is exceeded
+        if (semanticSearchers.size >= MAX_SEARCHER_ROOTS) {
+            const oldestKey = semanticSearchers.keys().next().value
+            if (oldestKey !== undefined) semanticSearchers.delete(oldestKey)
+        }
+        s = new SemanticSearcher(projectRoot)
+        semanticSearchers.set(projectRoot, s)
+    }
+    return s
+}
 const _CPT = 4; const _ALC = 42
 interface TokenTally { calls: number; used: number; raw: number; saved: number; start: number }
 const _tallies = new Map<string, TokenTally>()
-function _tally(r: string): TokenTally { let t = _tallies.get(r); if (!t) { t = { calls:0, used:0, raw:0, saved:0, start:Date.now() }; _tallies.set(r,t) } return t }
+function _tally(r: string): TokenTally { let t = _tallies.get(r); if (!t) { t = { calls: 0, used: 0, raw: 0, saved: 0, start: Date.now() }; _tallies.set(r, t) } return t }
 function _tok(o: unknown): number { return Math.max(1, Math.round(JSON.stringify(o).length / _CPT)) }
-function _fileTok(lock: MikkLock, fp: string): number { const fs2 = Object.values(lock.functions).filter(f=>f.file===fp); const ln = fs2.length>0 ? Math.max(...fs2.map(f=>f.endLine)) : 80; return Math.round((ln*_ALC)/_CPT) }
-function _filesTok(lock: MikkLock, fps: string[]): number { return fps.reduce((s,f)=>s+_fileTok(lock,f),0) }
+function _fileTok(lock: MikkLock, fp: string): number { const fs2 = Object.values(lock.functions).filter(f => f.file === fp); const ln = fs2.length > 0 ? Math.max(...fs2.map(f => f.endLine)) : 80; return Math.round((ln * _ALC) / _CPT) }
+function _filesTok(lock: MikkLock, fps: string[]): number { return fps.reduce((s, f) => s + _fileTok(lock, f), 0) }
 function _track(root: string, raw: number, resp: unknown): Record<string, number> {
     const used = _tok(resp); const saved = Math.max(0, raw - used); const t = _tally(root)
     t.calls++; t.used += used; t.raw += raw; t.saved += saved
@@ -50,14 +67,6 @@ function _track(root: string, raw: number, resp: unknown): Record<string, number
 
 // Singleton per projectRoot — pipeline load is ~1-2s, must not repeat per request
 const semanticSearchers = new Map<string, SemanticSearcher>()
-function getSemanticSearcher(projectRoot: string): SemanticSearcher {
-    let s = semanticSearchers.get(projectRoot)
-    if (!s) {
-        s = new SemanticSearcher(projectRoot)
-        semanticSearchers.set(projectRoot, s)
-    }
-    return s
-}
 
 /** Quick-hash a file by reading first 8KB for fast drift detection */
 async function quickHashFile(filePath: string): Promise<string> {
@@ -126,7 +135,7 @@ export function registerTools(server: McpServer, projectRoot: string) {
 
             // Token savings: replaces agent reading every module's files to get project structure
             const _rawOverview = Math.min(15, Object.keys(lock.files).length) * Math.round((80 * _ALC) / _CPT)
-            ;(overview as any).tokens = _track(projectRoot, _rawOverview, overview)
+                ; (overview as any).tokens = _track(projectRoot, _rawOverview, overview)
             return { content: [{ type: 'text' as const, text: JSON.stringify(overview, null, 2) }] }
         },
     )
@@ -143,9 +152,16 @@ export function registerTools(server: McpServer, projectRoot: string) {
             tokenBudget: z.number().optional().default(6000).describe('Max tokens for function bodies (default: 6000)'),
             focusFile: z.string().optional().describe('Anchor traversal from a specific file path'),
             focusModule: z.string().optional().describe('Anchor traversal from a specific module ID'),
+            strict: z.boolean().optional().default(false).describe('High-precision mode: include only tightly relevant context'),
+            requiredTerms: z.array(z.string()).optional().describe('Required terms that must match returned context'),
+            requireAllKeywords: z.boolean().optional().default(false).describe('In strict mode, require all extracted keywords'),
+            minKeywordMatches: z.number().optional().default(1).describe('In strict mode, minimum keyword hits per function'),
+            exactOnly: z.boolean().optional().default(false).describe('Hard gate: keep only strict keyword matches'),
+            failFast: z.boolean().optional().default(false).describe('Return no context if strict filters find no exact match'),
+            autoFallback: z.boolean().optional().default(true).describe('When strict mode returns empty, retry with balanced retrieval'),
             provider: z.enum(['claude', 'generic', 'compact']).optional().default('generic').describe('AI provider format: claude (XML tags), generic (plain), compact (minimal tokens)'),
         },
-        async ({ question, maxHops, tokenBudget, focusFile, focusModule, provider }) => {
+        async ({ question, maxHops, tokenBudget, focusFile, focusModule, strict, requiredTerms, requireAllKeywords, minKeywordMatches, exactOnly, failFast, autoFallback, provider }) => {
             const { contract, lock, staleness } = await loadContractAndLock(projectRoot)
 
             const query: ContextQuery = {
@@ -156,11 +172,38 @@ export function registerTools(server: McpServer, projectRoot: string) {
                 focusModules: focusModule ? [focusModule] : undefined,
                 includeCallGraph: true,
                 includeBodies: true,
+                relevanceMode: strict ? 'strict' : 'balanced',
+                requiredKeywords: requiredTerms,
+                requireAllKeywords,
+                minKeywordMatches,
+                exactOnly,
+                failFast,
                 projectRoot,
             }
 
             const builder = new ContextBuilder(contract, lock)
-            const ctx = builder.build(query)
+            let ctx = builder.build(query)
+            let fallbackUsed = false
+            if (autoFallback !== false && strict && ctx.modules.length === 0) {
+                const relaxed: ContextQuery = {
+                    ...query,
+                    relevanceMode: 'balanced',
+                    requiredKeywords: undefined,
+                    requireAllKeywords: false,
+                    minKeywordMatches: 1,
+                    exactOnly: false,
+                    failFast: false,
+                }
+                const fallback = builder.build(relaxed)
+                if (fallback.modules.length > 0) {
+                    ctx = fallback
+                    fallbackUsed = true
+                    ctx.meta.reasons = [
+                        ...(ctx.meta.reasons ?? []),
+                        'strict query had no exact matches; returned balanced fallback context',
+                    ]
+                }
+            }
 
             if (ctx.modules.length === 0) {
                 return {
@@ -178,13 +221,16 @@ export function registerTools(server: McpServer, projectRoot: string) {
             const formatter = getProvider(provider ?? 'generic')
             const output = formatter.formatContext(ctx)
             const warning = staleness ? `\n\n${staleness}` : ''
+            const fallbackNote = fallbackUsed
+                ? 'Note: strict mode had no exact matches; showing balanced fallback context.\n\n'
+                : ''
 
             // Token savings: tokenBudget is the cap — raw cost without Mikk is reading all files naively
             const _rawQC = (tokenBudget ?? 6000) * 3   // Mikk's BFS gives ~3x compression over naive search
             const _tokQC = _track(projectRoot, _rawQC, output)
             const tokLine = `\n\n---\n// tokens: ${JSON.stringify(_tokQC)}`
             return {
-                content: [{ type: 'text' as const, text: output + warning + '\n\n---\nHint: Use mikk_before_edit on any files you plan to modify, then mikk_impact_analysis to see the full blast radius.' + tokLine }],
+                content: [{ type: 'text' as const, text: fallbackNote + output + warning + '\n\n---\nHint: Use mikk_before_edit on any files you plan to modify, then mikk_impact_analysis to see the full blast radius.' + tokLine }],
             }
         },
     )
@@ -225,7 +271,7 @@ export function registerTools(server: McpServer, projectRoot: string) {
 
             const impactedDetails = result.impacted.slice(0, 30).map(id => {
                 const node = graph.nodes.get(id)
-                return { function: node?.label ?? id, file: node?.file ?? '', module: node?.moduleId ?? '' }
+                return { function: node?.name ?? id, file: node?.file ?? '', module: node?.moduleId ?? '' }
             })
 
             const response = {
@@ -250,7 +296,7 @@ export function registerTools(server: McpServer, projectRoot: string) {
 
             // Token savings: replaces reading the changed file + all its dependents manually
             const _rawIA = _fileTok(lock, normalizedFile) + result.impacted.length * Math.round((40 * _ALC) / _CPT)
-            ;(response as any).tokens = _track(projectRoot, _rawIA, response)
+                ; (response as any).tokens = _track(projectRoot, _rawIA, response)
             return { content: [{ type: 'text' as const, text: JSON.stringify(response, null, 2) }] }
         },
     )
@@ -352,7 +398,7 @@ export function registerTools(server: McpServer, projectRoot: string) {
                 const result = analyzer.analyze(fileFns.map(fn => fn.id))
                 const impactedDetails = result.impacted.slice(0, 20).map(id => {
                     const node = graph.nodes.get(id)
-                    return { function: node?.label ?? id, file: node?.file ?? '', module: node?.moduleId ?? '' }
+                    return { function: node?.name ?? id, file: node?.file ?? '', module: node?.moduleId ?? '' }
                 })
 
                 const exportedAtRisk = fileFns.filter(fn => fn.isExported).map(fn => ({
@@ -409,7 +455,7 @@ export function registerTools(server: McpServer, projectRoot: string) {
 
             // Token savings: replaces reading each edited file + tracing call graph manually
             const _rawBE = _filesTok(lock, filesToEdit) * 4  // file contents + dependency traversal
-            ;(response as any).tokens = _track(projectRoot, _rawBE, response)
+                ; (response as any).tokens = _track(projectRoot, _rawBE, response)
             return { content: [{ type: 'text' as const, text: JSON.stringify(response, null, 2) }] }
         },
     )
@@ -889,7 +935,7 @@ export function registerTools(server: McpServer, projectRoot: string) {
 
             // Token savings: replaces grep/find across repo for changed files + hashing manually
             const _rawGC = Math.min(50, Object.keys(lock.files).length) * Math.round((60 * _ALC) / _CPT)
-            ;(response as any).tokens = _track(projectRoot, _rawGC, response)
+                ; (response as any).tokens = _track(projectRoot, _rawGC, response)
             return { content: [{ type: 'text' as const, text: JSON.stringify(response, null, 2) }] }
         },
     )
@@ -1052,7 +1098,7 @@ export function registerTools(server: McpServer, projectRoot: string) {
 
             // Token savings: session_context replaces reading all module files individually
             const _rawSC = Math.min(20, Object.keys(lock.files).length) * Math.round((100 * _ALC) / _CPT)
-            ;(response as any).tokens = _track(projectRoot, _rawSC, response)
+                ; (response as any).tokens = _track(projectRoot, _rawSC, response)
             return { content: [{ type: 'text' as const, text: JSON.stringify(response, null, 2) }] }
         },
     )
@@ -1089,10 +1135,14 @@ export function registerTools(server: McpServer, projectRoot: string) {
                     }
                 }
                 const totalFns = affectedSymbols.reduce((s, f) => s + f.functions.length, 0)
-                return { content: [{ type: 'text' as const, text: JSON.stringify({
-                    summary: `${affectedSymbols.length} file(s), ${totalFns} function(s) affected`,
-                    affectedSymbols, warning: staleness,
-                }, null, 2) }] }
+                return {
+                    content: [{
+                        type: 'text' as const, text: JSON.stringify({
+                            summary: `${affectedSymbols.length} file(s), ${totalFns} function(s) affected`,
+                            affectedSymbols, warning: staleness,
+                        }, null, 2)
+                    }]
+                }
             } catch (err: any) {
                 return { content: [{ type: 'text' as const, text: `Git diff failed: ${err.message}` }], isError: true }
             }
@@ -1135,7 +1185,7 @@ export function registerTools(server: McpServer, projectRoot: string) {
                 }))
 
             const filesImporting = Object.values(lock.files).filter(file =>
-                file.imports?.some(imp => imp.includes(functionName) || imp.includes(targetFn.file))
+                file.imports?.some(imp => imp.names.includes(functionName) || imp.source === targetFn.file)
             )
 
             const instructions = [
@@ -1209,14 +1259,28 @@ export function registerTools(server: McpServer, projectRoot: string) {
 
 /**
  * Load contract + lock from disk with 30s caching and active staleness detection.
- * Instead of just reading syncState.status (self-reported), we quick-hash a sample
- * of files to detect real drift.
+ * Cache is invalidated immediately when the lock file's mtime is newer than
+ * cachedAt — this means `mikk analyze` takes effect on the very next tool call,
+ * not after a 30s wait.
  */
 async function loadContractAndLock(projectRoot: string) {
-    // Check cache first
+    // Check lock file mtime first — if the file changed since we cached, bust immediately.
+    const lockFilePath = path.join(projectRoot, 'mikk.lock.json')
     const cached = projectCache.get(projectRoot)
-    if (cached && (Date.now() - cached.cachedAt) < CACHE_TTL_MS) {
-        return { contract: cached.contract, lock: cached.lock, staleness: cached.staleness }
+    if (cached) {
+        try {
+            const stat = await fs.stat(lockFilePath)
+            if (stat.mtimeMs > cached.cachedAt) {
+                // Lock file was written after we cached (e.g. `mikk analyze` ran) — invalidate
+                invalidateCache(projectRoot)
+            } else if ((Date.now() - cached.cachedAt) < CACHE_TTL_MS) {
+                // Still within TTL and lock file unchanged — serve from cache
+                return { contract: cached.contract, lock: cached.lock, staleness: cached.staleness }
+            }
+        } catch {
+            // stat failed (lock deleted?) — fall through to re-read
+            invalidateCache(projectRoot)
+        }
     }
 
     const contractReader = new ContractReader()
@@ -1287,7 +1351,7 @@ function buildGraphFromLock(lock: MikkLock): DependencyGraph {
         nodes.set(fn.id, {
             id: fn.id,
             type: 'function',
-            label: fn.name,
+            name: fn.name,
             file: fn.file,
             moduleId: fn.moduleId,
             metadata: {
@@ -1309,7 +1373,7 @@ function buildGraphFromLock(lock: MikkLock): DependencyGraph {
         nodes.set(file.path, {
             id: file.path,
             type: 'file',
-            label: path.basename(file.path),
+            name: path.basename(file.path),
             file: file.path,
             moduleId: file.moduleId,
             metadata: {},
@@ -1319,7 +1383,7 @@ function buildGraphFromLock(lock: MikkLock): DependencyGraph {
     for (const fn of Object.values(lock.functions)) {
         for (const calleeId of fn.calls) {
             if (!nodes.has(calleeId)) continue
-            const edge: GraphEdge = { source: fn.id, target: calleeId, type: 'calls' }
+            const edge: GraphEdge = { from: fn.id, to: calleeId, type: 'calls', confidence: 1.0 }
             edges.push(edge)
 
             const out = outEdges.get(fn.id) ?? []

@@ -1,5 +1,6 @@
 import { describe, it, expect } from 'bun:test'
 import { TypeScriptParser } from '../src/parser/typescript/ts-parser'
+import { OxcParser } from '../src/parser/oxc-parser'
 import { TypeScriptExtractor } from '../src/parser/typescript/ts-extractor'
 import { TypeScriptResolver } from '../src/parser/typescript/ts-resolver'
 import { getParser } from '../src/parser/index'
@@ -53,7 +54,7 @@ describe('TypeScriptExtractor', () => {
       }
     `)
         const fns = extractor.extractFunctions()
-        expect(fns[0].calls).toContain('jwtDecode')
+        expect(fns[0].calls.some(c => c.name === 'jwtDecode')).toBe(true)
     })
 
     it('extracts imports', () => {
@@ -147,6 +148,7 @@ describe('TypeScriptParser', () => {
       }
     `)
         expect(result.functions).toHaveLength(1)
+        expect(result.functions[0].calls.some(c => c.name === 'jwtDecode')).toBe(true)
         expect(result.imports).toHaveLength(1)
         expect(result.exports).toHaveLength(1)
         expect(result.hash).toBeDefined()
@@ -202,14 +204,14 @@ describe('TypeScriptResolver', () => {
 })
 
 describe('getParser', () => {
-    it('returns TypeScriptParser for .ts files', () => {
+    it('returns OxcParser for .ts files', () => {
         const parser = getParser('src/auth.ts')
-        expect(parser).toBeInstanceOf(TypeScriptParser)
+        expect(parser).toBeInstanceOf(OxcParser)
     })
 
-    it('returns TypeScriptParser for .tsx files', () => {
+    it('returns OxcParser for .tsx files', () => {
         const parser = getParser('src/App.tsx')
-        expect(parser).toBeInstanceOf(TypeScriptParser)
+        expect(parser).toBeInstanceOf(OxcParser)
     })
 
     it('throws for unsupported extensions', () => {

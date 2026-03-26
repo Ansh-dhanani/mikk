@@ -231,7 +231,7 @@ export class JavaScriptExtractor extends TypeScriptExtractor {
                         returnType: rhs.type ? rhs.type.getText(this.sourceFile) : 'void',
                         isExported: true,
                         isAsync,
-                        calls: this.extractCalls(rhs),
+                        calls: this.extractCallsFromNode(rhs),
                         hash: hashContent(rhs.getText(this.sourceFile)),
                         purpose: this.extractPurpose(node),
                         edgeCasesHandled: this.extractEdgeCases(rhs),

@@ -1,103 +1,130 @@
 /**
  * Parser types — data shapes that flow through the entire Mikk system.
- * Parser produces them, graph consumes them, contract stores them.
  */
 
 /** A single parameter in a function signature */
 export interface ParsedParam {
-    name: string
-    type: string
-    optional: boolean
-    defaultValue?: string
+  name: string;
+  type: string;
+  optional: boolean;
+  defaultValue?: string;
 }
 
+/** A single call expression found in code (Mikk 2.0) */
+export interface CallExpression {
+  name: string;
+  line: number;
+  type: 'function' | 'method' | 'property';
+  arguments?: string[];
+}
+
+/** A detailed function declaration */
 export interface ParsedFunction {
-    id: string              // "fn:auth/verify.ts:verifyToken"
-    name: string            // "verifyToken"
-    file: string            // "src/auth/verify.ts"
-    moduleId?: string
-    startLine: number       // 14
-    endLine: number         // 28
-    params: ParsedParam[]   // [{name: "token", type: "string"}]
-    returnType: string      // "boolean"
-    isExported: boolean     // true
-    isAsync: boolean        // false
-    isGenerator?: boolean   // true for function* / async function*
-    typeParameters?: string[] // ["T", "U"] for generic functions
-    calls: string[]         // ["jwtDecode", "findUser"]
-    hash: string            // SHA-256 of the function body
-    purpose: string         // Extracted from JSDoc or comments
-    edgeCasesHandled: string[] // Found conditions like 'if (!x) return'
-    errorHandling: { line: number, type: 'try-catch' | 'throw', detail: string }[]
-    detailedLines: { startLine: number, endLine: number, blockType: string }[]
+  id: string;              // unique normalized ID (file::name)
+  name: string;
+  file: string;
+  moduleId?: string;
+  startLine: number;
+  endLine: number;
+  params: ParsedParam[];
+  returnType: string;
+  isExported: boolean;
+  isAsync: boolean;
+  isGenerator?: boolean;
+  typeParameters?: string[];
+  calls: CallExpression[]; // Behavioral tracking (Upgraded from string[])
+  hash: string;
+  purpose: string;
+  edgeCasesHandled: string[];
+  errorHandling: { line: number; type: 'try-catch' | 'throw'; detail: string }[];
+  detailedLines: { startLine: number; endLine: number; blockType: string }[];
 }
 
 /** A single import statement */
 export interface ParsedImport {
-    source: string          // "../../utils/jwt"
-    resolvedPath: string    // "src/utils/jwt.ts" (absolute within project)
-    names: string[]         // ["jwtDecode", "jwtSign"]
-    isDefault: boolean      // false
-    isDynamic: boolean      // false
+  source: string;
+  resolvedPath: string;
+  names: string[];
+  isDefault: boolean;
+  isDynamic: boolean;
 }
 
 /** A single exported symbol */
 export interface ParsedExport {
-    name: string            // "verifyToken"
-    type: 'function' | 'class' | 'const' | 'type' | 'default' | 'interface'
-    file: string
+  name: string;
+  type: 'function' | 'class' | 'const' | 'type' | 'default' | 'interface' | 'variable';
+  file: string;
+}
+
+/** A single variable or property */
+export interface ParsedVariable {
+  id: string;
+  name: string;
+  type: string;
+  file: string;
+  line: number;
+  isExported: boolean;
+  isStatic?: boolean;
+  purpose?: string;
 }
 
 /** A parsed class */
 export interface ParsedClass {
-    id: string
-    name: string
-    file: string
-    moduleId?: string
-    startLine: number
-    endLine: number
-    methods: ParsedFunction[]
-    isExported: boolean
-    decorators?: string[]   // ["Injectable", "Controller"]
-    typeParameters?: string[] // ["T"] for generic classes
-    purpose?: string
-    edgeCasesHandled?: string[]
-    errorHandling?: { line: number, type: 'try-catch' | 'throw', detail: string }[]
+  id: string;
+  name: string;
+  file: string;
+  moduleId?: string;
+  startLine: number;
+  endLine: number;
+  methods: ParsedFunction[];
+  properties: ParsedVariable[];
+  extends?: string;
+  implements?: string[];
+  isExported: boolean;
+  decorators?: string[];
+  typeParameters?: string[];
+  hash: string;
+  purpose?: string;
+  edgeCasesHandled?: string[];
+  errorHandling?: { line: number; type: 'try-catch' | 'throw'; detail: string }[];
 }
 
-/** A detected HTTP route registration (Express/Koa/Hono style) */
-export interface ParsedRoute {
-    method: string            // "GET", "POST", "PUT", "DELETE", "USE", etc.
-    path: string              // "/upload", "/:shortId", "/api"
-    handler: string           // "createZap" or "anonymous"
-    middlewares: string[]     // ["uploadLimiter", "upload.single"]
-    file: string              // "src/Routes/zap.routes.ts"
-    line: number              // 15
-}
-
-/** A generic declaration like interface, type, or constant with metadata */
+/** A generic declaration (interface, type aliase, etc.) */
 export interface ParsedGeneric {
-    id: string
-    name: string
-    type: string // "interface" | "type" | "const"
-    file: string
-    startLine: number
-    endLine: number
-    isExported: boolean
-    typeParameters?: string[] // ["T", "K"] for generic interfaces/types
-    purpose?: string
+  id: string;
+  name: string;
+  type: string; // "interface" | "type"
+  file: string;
+  startLine: number;
+  endLine: number;
+  isExported: boolean;
+  typeParameters?: string[];
+  hash: string;
+  purpose?: string;
+}
+
+/** A detected HTTP route registration */
+export interface ParsedRoute {
+  method: string;
+  path: string;
+  handler: string;
+  middlewares: string[];
+  file: string;
+  line: number;
 }
 
 /** Everything extracted from a single file */
 export interface ParsedFile {
-    path: string            // "src/auth/verify.ts"
-    language: 'python' | 'go' | 'typescript' | 'javascript' | 'java' | 'c' | 'cpp' | 'csharp' | 'rust' | 'php' | 'ruby' | 'unknown'
-    functions: ParsedFunction[]
-    classes: ParsedClass[]
-    generics: ParsedGeneric[]
-    imports: ParsedImport[]
-    exports: ParsedExport[]
-    routes: ParsedRoute[]    // Detected HTTP route registrations
-    hash: string            // SHA-256 of the entire file content
-    parsedAt: number        // Date.now()
+  path: string;            // normalized absolute path
+  language: 'python' | 'go' | 'typescript' | 'javascript' | 'java' | 'c' | 'cpp' | 'csharp' | 'rust' | 'php' | 'ruby' | 'unknown';
+  functions: ParsedFunction[];
+  classes: ParsedClass[];
+  variables: ParsedVariable[];
+  generics: ParsedGeneric[];
+  imports: ParsedImport[];
+  exports: ParsedExport[];
+  routes: ParsedRoute[];
+  calls: CallExpression[]; // module-level calls
+  hash: string;
+  parsedAt: number;
 }

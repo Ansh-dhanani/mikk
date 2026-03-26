@@ -19,8 +19,8 @@ describe('GraphBuilder', () => {
             mockParsedFile('src/auth.ts', [mockFunction('verifyToken', [], 'src/auth.ts')]),
         ]
         const graph = builder.build(files)
-        expect(graph.nodes.has('fn:src/auth.ts:verifyToken')).toBe(true)
-        expect(graph.nodes.get('fn:src/auth.ts:verifyToken')!.type).toBe('function')
+        expect(graph.nodes.has('fn:src/auth.ts:verifytoken')).toBe(true)
+        expect(graph.nodes.get('fn:src/auth.ts:verifytoken')!.type).toBe('function')
     })
 
     it('creates edges for imports', () => {
@@ -35,8 +35,8 @@ describe('GraphBuilder', () => {
         const graph = builder.build(files)
         const importEdges = graph.edges.filter(e => e.type === 'imports')
         expect(importEdges.length).toBeGreaterThanOrEqual(1)
-        expect(importEdges[0].source).toBe('src/auth.ts')
-        expect(importEdges[0].target).toBe('src/utils/jwt.ts')
+        expect(importEdges[0].from).toBe('src/auth.ts')
+        expect(importEdges[0].to).toBe('src/utils/jwt.ts')
     })
 
     it('creates edges for function calls via imports', () => {
@@ -51,8 +51,8 @@ describe('GraphBuilder', () => {
         const graph = builder.build(files)
         const callEdges = graph.edges.filter(e => e.type === 'calls')
         expect(callEdges.length).toBeGreaterThanOrEqual(1)
-        expect(callEdges[0].source).toBe('fn:src/auth.ts:verifyToken')
-        expect(callEdges[0].target).toBe('fn:src/utils/jwt.ts:jwtDecode')
+        expect(callEdges[0].from).toBe('fn:src/auth.ts:verifytoken')
+        expect(callEdges[0].to).toBe('fn:src/utils/jwt.ts:jwtdecode')
     })
 
     it('creates containment edges', () => {
@@ -62,8 +62,8 @@ describe('GraphBuilder', () => {
         const graph = builder.build(files)
         const containEdges = graph.edges.filter(e => e.type === 'contains')
         expect(containEdges.length).toBeGreaterThanOrEqual(1)
-        expect(containEdges[0].source).toBe('src/auth.ts')
-        expect(containEdges[0].target).toBe('fn:src/auth.ts:verifyToken')
+        expect(containEdges[0].from).toBe('src/auth.ts')
+        expect(containEdges[0].to).toBe('fn:src/auth.ts:verifytoken')
     })
 
     it('builds adjacency maps', () => {
@@ -72,7 +72,7 @@ describe('GraphBuilder', () => {
         ]
         const graph = builder.build(files)
         expect(graph.outEdges.has('src/auth.ts')).toBe(true)
-        expect(graph.inEdges.has('fn:src/auth.ts:verifyToken')).toBe(true)
+        expect(graph.inEdges.has('fn:src/auth.ts:verifytoken')).toBe(true)
     })
 })
 
@@ -83,8 +83,8 @@ describe('ImpactAnalyzer', () => {
             ['B', 'nothing'],
         ])
         const analyzer = new ImpactAnalyzer(graph)
-        const result = analyzer.analyze(['fn:src/B.ts:B'])
-        expect(result.impacted).toContain('fn:src/A.ts:A')
+        const result = analyzer.analyze(['fn:src/b.ts:b'])
+        expect(result.impacted).toContain('fn:src/a.ts:a')
     })
 
     it('finds transitive dependents', () => {
@@ -94,9 +94,9 @@ describe('ImpactAnalyzer', () => {
             ['C', 'nothing'],
         ])
         const analyzer = new ImpactAnalyzer(graph)
-        const result = analyzer.analyze(['fn:src/C.ts:C'])
-        expect(result.impacted).toContain('fn:src/B.ts:B')
-        expect(result.impacted).toContain('fn:src/A.ts:A')
+        const result = analyzer.analyze(['fn:src/c.ts:c'])
+        expect(result.impacted).toContain('fn:src/b.ts:b')
+        expect(result.impacted).toContain('fn:src/a.ts:a')
     })
 
     it('reports correct depth', () => {
@@ -107,7 +107,7 @@ describe('ImpactAnalyzer', () => {
             ['D', 'nothing'],
         ])
         const analyzer = new ImpactAnalyzer(graph)
-        const result = analyzer.analyze(['fn:src/D.ts:D'])
+        const result = analyzer.analyze(['fn:src/d.ts:d'])
         expect(result.depth).toBeGreaterThanOrEqual(3)
     })
 
@@ -117,8 +117,8 @@ describe('ImpactAnalyzer', () => {
             ['B', 'nothing'],
         ])
         const analyzer = new ImpactAnalyzer(graph)
-        const result = analyzer.analyze(['fn:src/B.ts:B'])
-        expect(result.confidence).toBe('high')
+        const result = analyzer.analyze(['fn:src/b.ts:b'])
+        expect(result.confidence).toBeGreaterThanOrEqual(0.8)
     })
 
     it('does not include changed nodes in impacted', () => {
@@ -127,9 +127,9 @@ describe('ImpactAnalyzer', () => {
             ['B', 'nothing'],
         ])
         const analyzer = new ImpactAnalyzer(graph)
-        const result = analyzer.analyze(['fn:src/B.ts:B'])
-        expect(result.impacted).not.toContain('fn:src/B.ts:B')
-        expect(result.changed).toContain('fn:src/B.ts:B')
+        const result = analyzer.analyze(['fn:src/b.ts:b'])
+        expect(result.impacted).not.toContain('fn:src/b.ts:b')
+        expect(result.changed).toContain('fn:src/b.ts:b')
     })
 })
 
