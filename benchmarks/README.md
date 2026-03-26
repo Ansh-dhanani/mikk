@@ -1,107 +1,71 @@
-# Mikk Benchmark Pipeline
+# Mikk Benchmark Suite
 
-Measures the real value of Mikk by having AI agents answer developer questions
-with and without access to Mikk's pre-computed architectural graph.
-
-Every number in the output is real — no simulation, no hardcoded values.
-
----
-
-## Structure
-
-```
-benchmarks/
-├── run.py                      ← Entry point
-├── generate_sample_charts.py   ← Pre-generate charts for the README
-├── requirements.txt
-├── .env.example
-│
-├── core/
-│   ├── __init__.py
-│   ├── pipeline.py     ← Orchestration
-│   ├── agents.py       ← ManualAgent + MikkAgent (multi-provider)
-│   ├── mcp_client.py   ← Real MCP JSON-RPC client (stdio)
-│   ├── tasks.py        ← 6 task definitions + accuracy scoring
-│   └── report.py       ← JSON, Markdown, PNG charts
-│
-├── results/            ← Output files (git-ignored)
-└── recordings/         ← Optional asciinema recordings
-```
+End-to-end benchmark comparing **Mikk** (graph-based code intelligence) against:
+- **Manual file reading** — naive grep/cat approach (no graph, no symbols)
+- **GitNexus baseline** — embedding-based file retrieval (no call graph, file-level only)
 
 ---
 
-## Quick start — no API key needed (Claude Code)
+## Quick start
 
-You already have the **Claude Code** VS Code extension installed.
-It authenticates via OAuth — no separate API key required.
+```bash
+# 1. Build packages (required before benchmarking)
+bun run build
 
-```powershell
-# 1. Verify the claude CLI is available (installed by the extension)
-claude --version
+# 2. Run the pipeline — measures all 8 tasks, writes results/TIMESTAMP_raw.json
+bun benchmarks/pipeline.ts
 
-# 2. Install Python deps
-pip install -r benchmarks/requirements.txt
-
-# 3. Make sure Mikk is initialised
-cd C:\Users\Ansh\Desktop\web\Mesh
-npx @getmikk/cli init
-
-# 4. Run a single task to test (fast, no manual agent)
-python benchmarks/run.py --provider claude-code --tasks module-overview --skip-manual
-
-# 5. Full benchmark — all 6 tasks, both agents
-python benchmarks/run.py --provider claude-code
+# 3. Generate charts from the raw JSON
+python benchmarks/generate_charts.py --input benchmarks/results/TIMESTAMP_raw.json
 ```
+
+Charts land in `benchmarks/results/run_TIMESTAMP/`.
 
 ---
 
-## Quick start — with Anthropic API key
+## What gets measured
 
-```powershell
-set ANTHROPIC_API_KEY=sk-ant-...
-python benchmarks/run.py --provider anthropic-api
-```
-
----
-
-## All options
-
-```
-python benchmarks/run.py --help
-
-  --provider            claude-code   Use Claude Code VS Code extension (no API key)
-                        anthropic-api Use Anthropic SDK (needs ANTHROPIC_API_KEY)
-                        Default: claude-code
-
-  --project-root PATH   Project root with mikk.json (default: .)
-  --output-dir PATH     Where to write results (default: benchmarks/results)
-  --tasks TASK [...]    Subset of tasks (default: all)
-  --model MODEL         Model ID — only used with anthropic-api provider
-  --skip-manual         Run Mikk agent only — faster
-  --no-charts           Skip PNG generation
-```
+| Task | Category | What Mikk does |
+|---|---|---|
+| `context-graph-builder` | Context Query | BFS-limited context within 4000-token budget |
+| `function-search` | Function Search | BM25 + reciprocal rank fusion, symbol-level |
+| `impact-analysis` | Impact Analysis | Reverse BFS from changed file, depth + severity |
+| `dead-code` | Dead Code | Graph reachability + confidence scoring |
+| `session-context` | Session Start | Structured project onboarding (modules, counts) |
+| `constraints` | Constraints | ADRs + policies from mikk.json |
+| `token-budget-4k` | Token Efficiency | 4000-token context window fidelity |
+| `token-budget-1500` | Token Efficiency | 1500-token strict budget — accuracy under compression |
 
 ---
 
-## Providers
+## Scoring
 
-| Provider | Auth | Token counts | Notes |
-|----------|------|-------------|-------|
-| `claude-code` | OAuth via VS Code extension | Estimated (4 chars ≈ 1 token) | No API key needed |
-| `anthropic-api` | `ANTHROPIC_API_KEY` env var | Exact from `response.usage` | Billed to your key |
+Each task has a **weighted checklist** of ground-truth criteria.
+
+```
+score = Σ(weight of passing checks) / Σ(total weights) × 100
+```
+
+Example for `impact-analysis`:
+- Returns numeric impacted count → 30pts
+- Reports BFS depth → 25pts
+- Classifies by severity → 25pts
+- Reports confidence score → 20pts
+
+GitNexus and Manual baselines are scored against the **same checklist** — criteria that
+require capabilities they don't have are marked `✗ [NOT SUPPORTED]` and score 0.
 
 ---
 
-## Tasks
+## Token efficiency
 
-| ID | Question | Ground-truth tool |
-|----|----------|-------------------|
-| `find-callers`    | Which functions call `hashContent`?         | `mikk_find_usages`         |
-| `blast-radius`    | Blast radius if `file-hasher.ts` changes?   | `mikk_impact_analysis`     |
-| `module-overview` | List all modules with function counts       | `mikk_list_modules`        |
-| `dead-code`       | Unused functions in `packages-core`?        | `mikk_dead_code`           |
-| `before-edit`     | Safety check before editing `tools.ts`      | `mikk_before_edit`         |
-| `session-context` | Full architectural overview                 | `mikk_get_session_context` |
+The "token budget" tests demonstrate Mikk's key differentiator:
+
+| Tool | 1500-token budget respected? |
+|---|---|
+| Mikk | ✓ — enforced by ContextBuilder |
+| GitNexus | ✗ — returns full files regardless (~8–15k tokens) |
+| Manual | ✗ — returns full files regardless |
 
 ---
 
@@ -109,36 +73,32 @@ python benchmarks/run.py --help
 
 ```
 benchmarks/results/
-├── 20260321_143022_raw.json        ← Source of truth (all raw data)
-├── 20260321_143022_report.md       ← Human-readable report
-├── 20260321_143022_tokens.png      ← Token comparison chart
-├── 20260321_143022_time.png        ← Wall-time comparison chart
-├── 20260321_143022_accuracy.png    ← Accuracy comparison chart
-└── 20260321_143022_summary.png     ← All three side-by-side
+  TIMESTAMP_raw.json          ← machine-readable, feeds generate_charts.py
+  run_TIMESTAMP/
+    tokens.png                ← token usage bar comparison
+    latency.png               ← wall-clock time comparison
+    accuracy.png              ← accuracy grouped bars
+    overview.png              ← 4-panel summary card
+    radar.png                 ← spider chart all tasks
+    detail_strip.png          ← per-task horizontal bar strip
+    roi.png                   ← big-number ROI callout
 ```
 
-The `results/` directory is git-ignored.
-Commit only the charts you want to show in the main README.
-
 ---
 
-## How it works
+## Architecture
 
-1. **Preflight** — checks `mikk.json`, `mikk.lock.json`, Node.js on PATH
-2. **Ground truth** — calls real Mikk MCP tools directly and parses output to extract expected keywords per task
-3. **Mikk agent** — Claude + real Mikk MCP tools via JSON-RPC; answers questions using the pre-computed graph
-4. **Manual agent** — Claude + raw `read_file` / `list_directory` / `search_code`; no graph knowledge
-5. **Scoring** — fraction of ground-truth keywords found in the final answer
-6. **Output** — JSON source of truth + Markdown report + PNG charts
+```
+pipeline.ts
+  │  loadMikk()          — imports core/dist, reads lock + contract
+  │  buildGraph()        — constructs in-memory graph from lock
+  │  manualFileScan()    — naive keyword file search (baseline)
+  │  gitNexusSimulate()  — models GitNexus capability matrix
+  │  makeTasks()         — 8 TaskDef objects with run() + score()
+  └─ run()               — executes all tasks, writes _raw.json
 
----
-
-## Environment variables
-
-| Variable | Default | Description |
-|----------|---------|-------------|
-| `BENCHMARK_PROVIDER` | `claude-code` | Default provider |
-| `BENCHMARK_MODEL` | `claude-opus-4-5` | Model (anthropic-api only) |
-| `BENCHMARK_MAX_TOKENS` | `4096` | Max output tokens |
-| `BENCHMARK_MAX_ITER` | `12` | Max agent loop iterations |
-| `ANTHROPIC_API_KEY` | — | Required for anthropic-api provider only |
+generate_charts.py
+  │  load_from_json()    — reads _raw.json (both old + new format)
+  │  chart_*()           — 7 matplotlib chart functions
+  └─ main()              — CLI entry, writes run_TIMESTAMP/ folder
+```

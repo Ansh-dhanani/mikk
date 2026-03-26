@@ -87,9 +87,17 @@ export class ImpactAnalyzer {
             const confidence = this.confidenceEngine.calculateNodeAggregatedConfidence(reversedPaths);
 
             // Mikk 2.0 Hybrid Risk: Boost if boundary crossed at depth 1
+            // Check if ANY changed node crosses module boundary (not just first one)
             if (context.depth === 1 && node?.moduleId) {
-                const changedNode = this.graph.nodes.get(changedNodeIds[0]);
-                if (changedNode?.moduleId && changedNode.moduleId !== node.moduleId) {
+                const crossesBoundary = changedNodeIds.some(id => {
+                    const changedNode = this.graph.nodes.get(id);
+                    // Add proper null checks for module IDs
+                    if (!changedNode?.moduleId || !node.moduleId) {
+                        return false;
+                    }
+                    return changedNode.moduleId !== node.moduleId;
+                });
+                if (crossesBoundary) {
                     risk = Math.max(risk, 80);
                 }
             }

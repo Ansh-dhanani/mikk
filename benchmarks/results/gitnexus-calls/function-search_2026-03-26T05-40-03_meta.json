@@ -1,0 +1,13 @@
+{
+  "task": "function-search",
+  "capability": "function_search",
+  "command": "gitnexus query \"parse extract typescript function\"",
+  "timestamp": "2026-03-26T05:40:03.905Z",
+  "output_file": "C:\\Users\\Ansh\\Desktop\\web\\Mesh\\benchmarks\\results\\gitnexus-calls\\function-search_2026-03-26T05-40-03.json",
+  "raw_output": "{\n  \"processes\": [\n    {\n      \"id\": \"proc_23_resolveimports\",\n      \"summary\": \"ResolveImports → MatchesAlias\",\n      \"priority\": 0.114,\n      \"symbol_count\": 1,\n      \"process_type\": \"intra_community\",\n      \"step_count\": 4\n    }\n  ],\n  \"process_symbols\": [\n    {\n      \"id\": \"Method:packages/core/src/parser/typescript/ts-parser.ts:resolveImports\",\n      \"name\": \"resolveImports\",\n      \"filePath\": \"packages/core/src/parser/typescript/ts-parser.ts\",\n      \"startLine\": 26,\n      \"endLine\": 29,\n      \"module\": \"Typescript\",\n      \"process_id\": \"proc_23_resolveimports\",\n      \"step_index\": 1\n    }\n  ],\n  \"definitions\": [\n    {\n      \"id\": \"Interface:packages/core/src/parser/types.ts:ParsedParam\",\n      \"name\": \"ParsedParam\",\n      \"filePath\": \"packages/core/src/parser/types.ts\",\n      \"startLine\": 5,\n      \"endLine\": 10\n    }\n  ]\n}",
+  "output_length": 840,
+  "tokens": 1500,
+  "capture_method": "manual_console_copy",
+  "success": true,
+  "note": "GitNexus bypasses stdout capture, this was manually copied from console output"
+}

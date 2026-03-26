@@ -1,14 +1,10 @@
 import type { MikkContract, MikkLock, MikkLockFunction } from '@getmikk/core'
 import * as fs from 'node:fs'
 import * as path from 'node:path'
+import { countTokens, estimateFileTokens } from './token-counter.js'
 
 /** Default token budget for claude.md — generous but still bounded */
 const DEFAULT_TOKEN_BUDGET = 12000
-
-/** Rough token estimation: ~4 chars per token */
-function estimateTokens(text: string): number {
-    return Math.ceil(text.length / 4)
-}
 
 /** Metadata from package.json that enriches the AI context */
 export interface ProjectMeta {
@@ -49,20 +45,20 @@ export class ClaudeMdGenerator {
         // --- Tier 1: Summary (always included) ----------------------
         const summary = this.generateSummary()
         sections.push(summary)
-        usedTokens += estimateTokens(summary)
+        usedTokens += countTokens(summary)
 
         // --- Tech stack & conventions (always included if detectable) ---
         const techSection = this.generateTechStackSection()
         if (techSection) {
             sections.push(techSection)
-            usedTokens += estimateTokens(techSection)
+            usedTokens += countTokens(techSection)
         }
 
         // --- Build / test / run commands -----------------------------
         const commandsSection = this.generateCommandsSection()
         if (commandsSection) {
             sections.push(commandsSection)
-            usedTokens += estimateTokens(commandsSection)
+            usedTokens += countTokens(commandsSection)
         }
 
         // --- Tier 2: Module details (if budget allows) --------------
@@ -76,7 +72,7 @@ export class ClaudeMdGenerator {
 
         for (const module of modules) {
             const moduleSection = this.generateModuleSection(module.id)
-            const tokens = estimateTokens(moduleSection)
+            const tokens = countTokens(moduleSection)
             if (usedTokens + tokens > this.tokenBudget) {
                 sections.push('\n  <!-- Full details truncated due to context budget -->\n')
                 break
@@ -90,7 +86,7 @@ export class ClaudeMdGenerator {
         // --- Context files: schemas, data models, config ---------
         const contextSection = this.generateContextFilesSection()
         if (contextSection) {
-            const ctxTokens = estimateTokens(contextSection)
+            const ctxTokens = countTokens(contextSection)
             if (usedTokens + ctxTokens <= this.tokenBudget) {
                 sections.push(contextSection)
                 usedTokens += ctxTokens
@@ -100,7 +96,7 @@ export class ClaudeMdGenerator {
         // --- File import graph per module ----------------------------
         const importSection = this.generateImportGraphSection()
         if (importSection) {
-            const impTokens = estimateTokens(importSection)
+            const impTokens = countTokens(importSection)
             if (usedTokens + impTokens <= this.tokenBudget) {
                 sections.push(importSection)
                 usedTokens += impTokens
@@ -110,7 +106,7 @@ export class ClaudeMdGenerator {
         // --- HTTP Routes (Express + Next.js) -------------------------
         const routesSection = this.generateRoutesSection()
         if (routesSection) {
-            const routeTokens = estimateTokens(routesSection)
+            const routeTokens = countTokens(routesSection)
             if (usedTokens + routeTokens <= this.tokenBudget) {
                 sections.push(routesSection)
                 usedTokens += routeTokens
@@ -119,14 +115,14 @@ export class ClaudeMdGenerator {
 
         // --- Tier 3: Constraints & decisions ------------------------
         const constraintsSection = this.generateConstraintsSection()
-        const constraintTokens = estimateTokens(constraintsSection)
+        const constraintTokens = countTokens(constraintsSection)
         if (usedTokens + constraintTokens <= this.tokenBudget) {
             sections.push(constraintsSection)
             usedTokens += constraintTokens
         }
 
         const decisionsSection = this.generateDecisionsSection()
-        const decisionTokens = estimateTokens(decisionsSection)
+        const decisionTokens = countTokens(decisionsSection)
         if (usedTokens + decisionTokens <= this.tokenBudget) {
             sections.push(decisionsSection)
             usedTokens += decisionTokens
@@ -225,7 +221,10 @@ export class ClaudeMdGenerator {
         }
 
         // Key functions: top 5 by calledBy count (most depended upon)
+        // Exclude functions already in entry points to avoid duplicates
+        const entryPointIds = new Set(entryPoints.map(fn => fn.id))
         const keyFunctions = [...moduleFunctions]
+            .filter(fn => !entryPointIds.has(fn.id)) // Exclude duplicates
             .sort((a, b) => b.calledBy.length - a.calledBy.length)
             .filter(fn => fn.calledBy.length > 0)
             .slice(0, 5)
