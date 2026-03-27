@@ -261,51 +261,6 @@ async function gitNexusReal(
 ): Promise<{ output: string; ms: number }> {
   const { result: output, ms } = await time(async () => {
     try {
-      // Look for stored GitNexus captures with proper race condition protection
-      const resultsDir = path.join(root, 'benchmarks', 'results', 'gitnexus-calls')
-      
-      try {
-        // Atomic directory read with error handling - combine stat and readdir
-        const files = await fs.readdir(resultsDir, { withFileTypes: true })
-        
-        // Filter and validate meta files in single operation
-        const metaFiles = files
-          .filter((f: any) => f.isFile() && f.name.includes(taskName) && f.name.includes('_meta.json'))
-          .map((f: any) => f.name)
-          .sort()
-        
-        if (metaFiles.length > 0) {
-          // Get the most recent capture file with validation
-          const latestMeta = metaFiles[metaFiles.length - 1]
-          const metaPath = path.join(resultsDir, latestMeta)
-          
-          // Read file with proper error handling
-          try {
-            const metaContent = await fs.readFile(metaPath, 'utf-8')
-            const meta = JSON.parse(metaContent)
-            
-            if (meta.success && meta.raw_output) {
-              console.log(`    Using stored GitNexus capture for ${taskName}`)
-              return meta.raw_output
-            }
-          } catch (fileReadError: any) {
-            console.warn(`    Failed to read meta file ${latestMeta}: ${fileReadError.message}`)
-            // Continue to real-time execution
-          }
-        }
-      } catch (dirError: any) {
-        // Specific error handling for different failure modes
-        if (dirError.code === 'ENOENT') {
-          // Directory doesn't exist - this is expected
-        } else if (dirError.code === 'EACCES') {
-          console.warn(`    Permission denied accessing ${resultsDir}`)
-        } else {
-          console.warn(`    Error reading GitNexus captures: ${dirError.message}`)
-        }
-        // Continue to real-time execution
-      }
-      
-      // If no stored capture found, run the command (but it won't be capturable)
       let cmd = ''
       switch (capability) {
         case 'context_query':
@@ -328,15 +283,22 @@ async function gitNexusReal(
           break
       }
       
-      // Run command for latency measurement with timeout protection
       try {
-        execSync(cmd, { cwd: root, timeout: BENCHMARK_CONFIG.COMMAND_TIMEOUT, stdio: 'pipe' })
-        return 'NO_STORED_CAPTURE_FOUND'
+        // GitNexus prints its JSON to stderr; redirect so we capture everything for scoring/tokens.
+        const stdout = execSync(cmd + ' 2>&1', {
+          cwd: root,
+          timeout: BENCHMARK_CONFIG.COMMAND_TIMEOUT,
+          stdio: 'pipe',
+          encoding: 'utf-8',
+        })
+        return stdout ?? ''
       } catch (execError: any) {
         if (execError.signal === 'SIGTERM') {
           return 'COMMAND_TIMEOUT'
         }
-        return `COMMAND_FAILED: ${execError.message}`
+        const stdout = execError.stdout?.toString?.() ?? ''
+        const stderr = execError.stderr?.toString?.() ?? ''
+        return `COMMAND_FAILED: ${execError.message}\nSTDOUT:\n${stdout}\nSTDERR:\n${stderr}`
       }
     } catch (error: any) {
       return `ERROR: ${error.message}`

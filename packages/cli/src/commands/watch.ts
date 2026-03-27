@@ -52,10 +52,15 @@ export function registerWatchCommand(program: Command) {
                 console.log(chalk.green('  Watching for changes... (Ctrl+C to stop)\n'))
 
                 // Keep process alive
-                process.on('SIGINT', async () => {
+                process.once('SIGINT', async () => {
                     console.log(chalk.dim('\n  Stopping watcher...'))
-                    await daemon.stop()
-                    process.exit(0)
+                    try {
+                        await daemon.stop()
+                        process.exit(0)
+                    } catch (err: any) {
+                        console.error(chalk.red(`Failed to stop watcher cleanly: ${err?.message ?? String(err)}`))
+                        process.exit(1)
+                    }
                 })
             } catch (err: any) {
                 console.error(chalk.red(`Failed to start watcher: ${err.message}`))

@@ -373,16 +373,24 @@ export class ContextBuilder {
 
         // ── Step 5: Fill token budget ──────────────────────────────────────
         let selected: MikkLockFunction[] = []
+        
+        // Pre-calculate baseline overhead (context files, routes, constraints)
         let usedTokens = 0
+        const routesStr = (!strictMode && this.lock.routes) ? JSON.stringify(this.lock.routes) : ''
+        const ctxStr = (!strictMode && this.lock.contextFiles) 
+            ? this.lock.contextFiles.map(cf => readContextFile(cf.path, query.projectRoot).slice(0, 2000)).join('\n')
+            : ''
+        usedTokens += estimateTokens(routesStr + ctxStr + JSON.stringify(this.contract.declared.constraints))
 
         for (const { fn, score } of scored) {
             if (score <= 0 && seeds.length > 0) break // Nothing relevant left
             if (selected.length >= (query.maxFunctions ?? 80)) break
 
             const snippet = this.buildFunctionSnippet(fn, query)
-            const tokens = estimateTokens(snippet)
+            // Multiply tokens by 2.2 to account for it being in both JSON and text prompt, plus JSON framing
+            const tokens = estimateTokens(snippet) * 2.2
 
-            if (usedTokens + tokens > tokenBudget) continue  // skip, try smaller ones later
+            if (usedTokens + tokens > tokenBudget && selected.length > 0) continue  // skip, try smaller ones later
             selected.push(fn)
             usedTokens += tokens
         }

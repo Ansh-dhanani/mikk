@@ -26,11 +26,33 @@ export function registerMcpCommand(program: Command) {
             process.env.MIKK_PROJECT_ROOT = projectRoot
             
             try {
-                // Use a relative path to the server package
-                const serverPath = path.resolve(__dirname, '../../mcp-server/dist/index.cjs')
+                // Use a relative path to the server package (from monorepo root)
+                const cliDir = path.dirname(__filename)
+                const isSource = cliDir.includes('src')
                 
+                // Determine if we're running from source or built dist
+                let serverPath: string
+                if (isSource) {
+                    // Running from source: go to packages/mcp-server
+                    serverPath = path.resolve(cliDir, '../../mcp-server/dist/index.cjs')
+                } else {
+                    // Running from dist: go up to packages, then to mcp-server
+                    serverPath = path.resolve(cliDir, '../../mcp-server/dist/index.cjs')
+                }
+                
+                // Also check common installation paths
                 if (!fs.existsSync(serverPath)) {
-                    throw new Error(`MCP server bundle not found at ${serverPath}. Please run 'bun run build' in the monorepo root.`)
+                    // Try global npm installation
+                    const globalPaths = [
+                        path.join(process.env.APPDATA || '', 'npm', 'node_modules', '@getmikk', 'mcp-server', 'dist', 'index.cjs'),
+                        path.join(process.env.LOCALAPPDATA || '', 'npm', 'node_modules', '@getmikk', 'mcp-server', 'dist', 'index.cjs'),
+                    ]
+                    for (const globalPath of globalPaths) {
+                        if (fs.existsSync(globalPath)) {
+                            serverPath = globalPath
+                            break
+                        }
+                    }
                 }
                 
                 const mod = require(serverPath)
@@ -147,6 +169,16 @@ function buildTargets(): ToolTarget[] {
     // VS Code global MCP config (.vscode/mcp.json in the workspace)
     const vscodeMcpConfig = path.join(process.cwd(), '.vscode', 'mcp.json')
 
+    // Windsurf/Cascade global MCP config (Codeium)
+    let windsurfConfig: string
+    if (isWin) {
+        windsurfConfig = path.join(process.env.LOCALAPPDATA || '', 'Windsurf', 'User', 'globalStorage', 'windsurf.mcp', 'settings.json')
+    } else if (isMac) {
+        windsurfConfig = path.join(home, 'Library', 'Application Support', 'Windsurf', 'User', 'globalStorage', 'windsurf.mcp', 'settings.json')
+    } else {
+        windsurfConfig = path.join(home, '.config', 'Windsurf', 'User', 'globalStorage', 'windsurf.mcp', 'settings.json')
+    }
+
     return [
         {
             name: 'claude',
@@ -157,6 +189,11 @@ function buildTargets(): ToolTarget[] {
             name: 'cursor',
             configPath: cursorConfig,
             patch: (existing: string, projectRoot: string) => patchCursorConfig(existing, projectRoot, cursorConfig),
+        },
+        {
+            name: 'windsurf',
+            configPath: windsurfConfig,
+            patch: (existing: string, projectRoot: string) => patchCursorConfig(existing, projectRoot, windsurfConfig), // Same format as Cursor
         },
         {
             name: 'vscode',

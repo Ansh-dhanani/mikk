@@ -27,6 +27,10 @@
                 "title": "Mikk: Analyze"
             },
             {
+                "command": "mikk.showDashboard",
+                "title": "Mikk: Show Dashboard"
+            },
+            {
                 "command": "mikk.showDiagram",
                 "title": "Mikk: Show Architecture Diagram"
             },

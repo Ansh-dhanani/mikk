@@ -1,81 +1,109 @@
 ---
 title: "Introduction"
-description: "Mikk gives your AI real codebase intelligence — parsed AST, full dependency graph, Merkle hashing, and a live MCP server. Zero cloud. Zero hallucination."
+description: "Mikk gives AI agents a live, structural map of your codebase — dependency graph, module boundaries, call chains, constraint rules, safety gates, and drift detection. 100% local. Zero cloud."
 ---
 
 export const SectionSpacer = () => <div style={{ marginTop: '2rem' }} />;
-export const Table = ({ children }) => (
-  <div style={{ marginTop: '2rem', overflowX: 'auto' }}>
-    <table className="w-full border-collapse border border-border/40 text-sm">
-      {children}
-    </table>
-  </div>
-);
 
 <SectionSpacer />
+
 <Callout title="Your AI doesn't understand your codebase. Mikk fixes that." type="info">
-  Mikk parses your entire project via the TypeScript Compiler API, builds a bidirectional dependency
-  graph, hashes everything with Merkle-tree SHA-256, and serves it through an MCP server that
-  Claude, Cursor, and VS Code Copilot call directly. **Everything stays on your machine.**
+  Mikk parses your entire project via **OXC** (Rust-backed, 50× faster than TS Compiler API), builds a
+  bidirectional dependency graph, hashes everything with Merkle-tree SHA-256, enforces architectural
+  contracts, and serves structured intelligence through an MCP server that Claude, Cursor, and VS Code
+  Copilot call directly. **Everything stays on your machine.**
 </Callout>
 
 <SectionSpacer />
+
 ## What is Mikk?
 
-LLMs write great code — for codebases they've never seen. They don't know your module boundaries, can't trace your dependency graph, and have no idea that touching `login.ts` breaks 14 downstream functions across 3 packages.
+LLMs write great code — for codebases they've never seen. They don't know your module boundaries, can't trace your dependency graph, and have no idea that touching `auth/login.ts` breaks 14 downstream functions across 3 packages.
 
-Mikk fixes that by giving AI assistants **real architectural intelligence** — not guesses.
-
-<SectionSpacer />
-## The 7-Step Pipeline
-
+Mikk fixes that by giving AI assistants **real architectural intelligence** — not guesses, not file pastes, not embeddings alone. A live, symbol-level dependency graph with enforced constraints, pre-edit safety gates, quantitative risk scoring, and auto-correction of common mistakes.
 
 <SectionSpacer />
 
-Everything happens in ~3 seconds when you run `mikk init`:
+## What Mikk Produces in One Command
 
-<Table>
-  <thead>
-    <tr>
-      <th className="font-semibold text-left p-2 border-b border-border/40">Package</th>
-      <th className="font-semibold text-left p-2 border-b border-border/40">Role</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <td className="p-2 border-b border-border/40">`@getmikk/core`</td>
-      <td className="p-2 border-b border-border/40">AST parsing, dependency graph, Merkle hashing</td>
-    </tr>
-    <tr>
-      <td className="p-2 border-b border-border/40">`@getmikk/cli`</td>
-      <td className="p-2 border-b border-border/40">CLI commands, project initialization</td>
-    </tr>
-    <tr>
-      <td className="p-2 border-b border-border/40">`@getmikk/mcp-server`</td>
-      <td className="p-2 border-b border-border/40">Live Model Context Protocol server (21 tools)</td>
-    </tr>
-    <tr>
-      <td className="p-2 border-b border-border/40">`@getmikk/watcher`</td>
-      <td className="p-2 border-b border-border/40">Debounced incremental watcher, atomic updates</td>
-    </tr>
-    <tr>
-      <td className="p-2 border-b border-border/40">`@getmikk/diagram-generator`</td>
-      <td className="p-2 border-b border-border/40">Mermaid.js diagrams, 8 diagram types</td>
-    </tr>
-    <tr>
-      <td className="p-2 border-b border-border/40">`@getmikk/vscode-extension`</td>
-      <td className="p-2 border-b border-border/40">VS Code tree, impact analysis, AI context, status bar</td>
-    </tr>
-  </tbody>
-</Table>
+```bash
+mikk init
+```
+
+- **`mikk.json`** — your architecture contract: modules, constraints, ADRs, policies
+- **`mikk.lock.json`** — full codebase snapshot: every function, class, import, call edge, and hash
+- **`claude.md` / `AGENTS.md`** — tiered, token-budgeted AI context files (auto-regenerated on `mikk analyze`)
+- **`.mikk/diagrams/`** — 7 Mermaid architecture diagrams (health, flow, impact, modules, capsules)
 
 <SectionSpacer />
+
+## The Mikk Pipeline
+
+| Step | Package | What happens |
+|------|---------|-------------|
+| **Parse** | `@getmikk/core` | OXC extracts every symbol: functions, classes, generics, imports, exports, call graph, routes, variables |
+| **Graph** | `@getmikk/core` | Two-pass O(n) graph: nodes first, edges second. Forward + reverse adjacency maps |
+| **Hash** | `@getmikk/core` | Merkle SHA-256: function → file → module → root. One hash = full drift detection |
+| **Lock** | `@getmikk/core` | `mikk.lock.json` written — compact integer-indexed format, ~60% smaller than raw source |
+| **Serve** | `@getmikk/mcp-server` | 22 MCP tools + 3 resources. Cache busted immediately after `mikk analyze`. ~5ms per call |
+| **Watch** | `@getmikk/watcher` | Chokidar daemon — incremental re-analysis, atomic writes, single-instance PID guard |
+| **Safety** | `@getmikk/intent-engine` | Pre-edit validation: intent analysis, 6 safety gates, auto-correction, decision engine |
+
+<SectionSpacer />
+
+## Token Efficiency
+
+Mikk achieves **85% average accuracy** while using dramatically fewer tokens than manual file reading:
+
+| Task | Mikk | Manual | Savings |
+|------|------|--------|---------|
+| Session context | 743 tokens | 8,059 tokens | **91% less** |
+| Function search | 346 tokens | 15,055 tokens | **98% less** |
+| Dead code detection | 290 tokens | 5+ files read | **~100% less** |
+| Impact analysis | 55 tokens | 1,390 tokens | **96% less** |
+
+<SectionSpacer />
+
+## Intent Engine & Safety Gates
+
+Every edit is validated before it lands. The Intent Engine runs six gates automatically:
+
+| Gate | Blocks when |
+|------|------------|
+| `RISK_SCORE` | Risk score ≥ 90, or exceeds `maxRiskScore` policy |
+| `IMPACT_SCALE` | More functions affected than `maxImpactNodes` policy |
+| `PROTECTED_MODULE` | A protected module is touched (never bypassable) |
+| `BREAKING_CHANGE` | Exported API changed without `BREAKING:` commit marker |
+| `TEST_COVERAGE` | High-risk changes with no test file modifications |
+| `DOCUMENTATION` | Significant API changes with no doc file updates |
+
+The **Decision Engine** evaluates the full impact and returns `APPROVED`, `WARNING`, or `BLOCKED`.
+The **Auto-Correction Engine** detects broken references, missing imports, and boundary violations — and fixes them automatically where safe.
+
+Configure all thresholds in `mikk.json` under `policies`.
+
+<SectionSpacer />
+
+## Packages
+
+| Package | Description |
+|---------|-------------|
+| `@getmikk/core` | OXC parser, dependency graph, Merkle hashing, BM25 search, boundary checker, risk/confidence engines |
+| `@getmikk/cli` | 17+ CLI commands |
+| `@getmikk/mcp-server` | 22 MCP tools + 3 resources, lock-file-mtime cache invalidation |
+| `@getmikk/ai-context` | BFS context builder, token budgeting, strict mode, `claude.md` generation |
+| `@getmikk/intent-engine` | Pre-edit validation, 6 safety gates, decision engine, auto-correction, intent understanding |
+| `@getmikk/watcher` | Incremental watcher daemon, atomic writes |
+| `@getmikk/diagram-generator` | 7 Mermaid diagram types with real cohesion/coupling metrics |
+| `@getmikk/vscode-extension` | Module tree, status bar, impact analysis, MCP integration |
+
+<SectionSpacer />
+
 ## Next Steps
 
-<SectionSpacer />
 <Cards>
   <Card title="Installation & Quick Start" href="/docs/core/installation" description="Get Mikk running in your project in under 3 minutes." />
-  <Card title="Core Concepts" href="/docs/core/concepts" description="Understand the Mesh, Merkle hashing, and the AI Context Builder." />
-  <Card title="MCP Server" href="/docs/reference/mcp" description="Connect to Claude, Cursor, and VS Code Copilot." />
-  <Card title="CLI Reference" href="/docs/reference/cli" description="All 15+ commands with options and examples." />
+  <Card title="Core Concepts" href="/docs/core/concepts" description="The Mesh, Merkle hashing, AI Context Builder, Intent Engine, and Safety Gates." />
+  <Card title="MCP Server Reference" href="/docs/reference/mcp" description="All 22 tools with descriptions, parameters, and workflow guidance." />
+  <Card title="CLI Reference" href="/docs/reference/cli" description="All 17+ commands with flags and examples." />
 </Cards>

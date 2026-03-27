@@ -1,4 +1,8 @@
 import { Command } from 'commander'
+import { ErrorHandler, createDefaultErrorListener } from '@getmikk/core'
+// Register default error listener once at CLI bootstrap
+ErrorHandler.getInstance().addListener(createDefaultErrorListener())
+
 
 // Force UTF-8 on Windows so Unicode block chars render correctly
 if (process.platform === 'win32') {
@@ -27,9 +31,10 @@ import { banner, sq, gap } from './ui.js'
 
 declare const __MIKK_VERSION__: string
 
-process.on('unhandledRejection', (reason: any) => {
-    process.stderr.write(`\nerror  ${reason?.message ?? reason}\n`)
-    if (process.env.MIKK_DEBUG) process.stderr.write(reason?.stack ?? reason)
+process.on('unhandledRejection', (reason: unknown) => {
+    const message = reason instanceof Error ? reason.message : String(reason)
+    process.stderr.write(`\nerror  ${message}\n`)
+    if (process.env.MIKK_DEBUG && reason instanceof Error) process.stderr.write(reason.stack ?? '')
     process.exit(1)
 })
 process.on('uncaughtException', (err) => {
@@ -53,7 +58,7 @@ if (process.argv.length <= 2) {
         ['intent',    'Pre-flight a refactor before writing code'],
         ['context',   'Graph-traced context queries'],
         ['dead-code', 'Detect unused functions'],
-        ['mcp',       'Start MCP server (19 tools)'],
+        ['mcp',       'Start MCP server (22 tools)'],
         ['visualize', 'Regenerate Mermaid diagrams'],
     ]
 

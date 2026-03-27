@@ -95,7 +95,14 @@ export class BM25Index {
 
                 // BM25 score component
                 const tfNorm = (tf * (K1 + 1)) / (tf + K1 * (1 - B + B * (doc.length / this.avgDocLength)))
-                score += idf * tfNorm
+                let termScore = idf * tfNorm
+
+                // Bonus for direct name match in the ID
+                if (doc.id.toLowerCase().includes(term.toLowerCase())) {
+                    termScore += 0.5
+                }
+
+                score += termScore
             }
 
             if (score > 0) {
@@ -181,7 +188,9 @@ export function buildFunctionTokens(fn: {
 
     // Function name tokens (highest signal)
     parts.push(...tokenize(fn.name))
-    parts.push(...tokenize(fn.name)) // Double-weight the name
+    parts.push(...tokenize(fn.name))
+    parts.push(...tokenize(fn.name)) // Triple-weight the name
+    parts.push(`name_exact:${fn.name.toLowerCase()}`)
 
     // File path tokens
     const filename = fn.file.split('/').pop() ?? fn.file

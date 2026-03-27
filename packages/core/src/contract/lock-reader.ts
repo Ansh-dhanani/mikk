@@ -77,6 +77,10 @@ function compactifyLock(lock: MikkLock): any {
             // P4: no hash, P6: no moduleId
         }
         // P7: integer calls/calledBy referencing fnIndex positions
+        const { name: parsedName } = parseEntityKey(fn.id, 'fn:')
+        if (fn.name && fn.name !== parsedName) {
+            c.name = fn.name
+        }
         if (fn.calls.length > 0) c.calls = fn.calls.map(id => fnIndexMap.get(id) ?? -1).filter((n: number) => n >= 0)
         if (fn.calledBy.length > 0) c.calledBy = fn.calledBy.map(id => fnIndexMap.get(id) ?? -1).filter((n: number) => n >= 0)
         if (fn.params && fn.params.length > 0) c.params = fn.params
@@ -193,7 +197,8 @@ function hydrateLock(raw: any): any {
     for (const [key, c] of Object.entries(raw.functions || {}) as [string, any][]) {
         // P7: key is integer index -> look up full ID via fnIndex
         const fullId = hasFnIndex ? (fnIndex[parseInt(key)] || key) : key
-        const { name, file } = parseEntityKey(fullId, 'fn:')
+        const { name: parsedName, file } = parseEntityKey(fullId, 'fn:')
+        const name = c.name || parsedName
         const lines = c.lines || [c.startLine || 0, c.endLine || 0]
         // P7: integer calls/calledBy -> resolve to full string IDs (backward compat: strings pass through)
         const calls = (c.calls || []).map((v: any) => typeof v === 'number' ? (fnIndex[v] ?? null) : v).filter(Boolean)

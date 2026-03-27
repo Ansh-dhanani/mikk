@@ -11,7 +11,7 @@ esbuild.buildSync({
     format: 'cjs',
     outfile: 'dist/index.cjs',
     sourcemap: true,
-    external: ['better-sqlite3', '@xenova/transformers', 'oxc-parser', 'oxc-resolver', 'web-tree-sitter'],
+    external: ['better-sqlite3', '@xenova/transformers', 'web-tree-sitter', 'oxc-resolver', 'oxc-parser'],
     define: {
         __MCP_VERSION__: JSON.stringify(pkg.version),
     },

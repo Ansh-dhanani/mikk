@@ -49,6 +49,14 @@ Mikk is a Turborepo monorepo:
 - Use `mikk_read_file` with function names instead of `mikk_get_file` to save tokens
 - Run `mikk analyze` after significant changes to keep the lock file current
 
+## Extra Mikk Guides
+
+For faster decision-making, prefer reading:
+
+- `mikk-workflow.md` — the recommended tool call order
+- `mikk-token-efficiency.md` — how to reduce token waste
+- `mikk-safety-editing.md` — guardrails for safe edits
+
 ## Skills
 
 See `.claude/skills/` for detailed workflows:

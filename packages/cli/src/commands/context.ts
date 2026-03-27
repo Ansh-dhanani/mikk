@@ -149,9 +149,20 @@ export function registerContextCommands(program: Command) {
                 }
 
                 // Also build AI context focused on the impacted set
+                let focusFiles = [file]
+                if (result.impacted.length === 0) {
+                    const normalizedTarget = file.replace(/\\/g, '/')
+                    const importers = Object.values(lock.files)
+                        .filter(f => f.imports?.some(imp => imp.resolvedPath === normalizedTarget))
+                        .map(f => f.path)
+                    if (importers.length > 0) {
+                        focusFiles = [...focusFiles, ...importers]
+                    }
+                }
+
                 const query: ContextQuery = {
                     task: `Understanding the impact of changes in ${file}`,
-                    focusFiles: [file],
+                    focusFiles,
                     tokenBudget: parseIntOption(options.tokens, 'tokens', 8000),
                     maxHops: 3,
                 }

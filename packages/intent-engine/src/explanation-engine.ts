@@ -1,4 +1,4 @@
-import type { ImpactResult } from '@getmikk/core'
+import type { ImpactResult, MikkLock } from '@getmikk/core'
 import type { DecisionResult, Explanation } from './types.js'
 
 /**
@@ -7,74 +7,94 @@ import type { DecisionResult, Explanation } from './types.js'
  */
 export class ExplanationEngine {
     /**
-     * Generate an explanation for the decision and impact.
+     * @param lock  Optional lock reference — used to resolve module names accurately.
+     *              If omitted, module count is estimated from file paths.
      */
-    explain(impact: ImpactResult, decision: DecisionResult): Explanation {
-        const summary = this.getSummary(decision);
-        const details = this.getDetails(impact, decision);
-        const riskBreakdown = this.getRiskBreakdown(impact);
+    constructor(private lock?: MikkLock) {}
 
+    explain(impact: ImpactResult, decision: DecisionResult): Explanation {
         return {
-            summary,
-            details,
-            riskBreakdown
-        };
+            summary:       this.getSummary(decision),
+            details:       this.getDetails(impact, decision),
+            riskBreakdown: this.getRiskBreakdown(impact),
+        }
     }
 
     private getSummary(decision: DecisionResult): string {
         switch (decision.status) {
-            case 'APPROVED': return 'This change is safe and conforms to project policies.';
-            case 'WARNING': return 'Change detected with non-trivial impact — proceed with caution.';
-            case 'BLOCKED': return 'MODIFICATION BLOCKED: This change violates safety or architectural policies.';
+            case 'APPROVED': return 'This change is safe and conforms to project policies.'
+            case 'WARNING':  return 'Change detected with non-trivial impact — proceed with caution.'
+            case 'BLOCKED':  return 'MODIFICATION BLOCKED: This change violates safety or architectural policies.'
         }
     }
 
     private getDetails(impact: ImpactResult, decision: DecisionResult): string[] {
-        const details: string[] = [];
+        const details: string[] = []
 
         if (impact.allImpacted.length === 0) {
-            details.push('No downstream symbols are affected by this change.');
+            details.push('No downstream symbols are affected by this change.')
         } else {
-            details.push(`Affects ${impact.allImpacted.length} symbols across ${this.countModules(impact)} modules.`);
-            details.push(`Maximum risk score is ${impact.riskScore}/100.`);
+            details.push(`Affects ${impact.allImpacted.length} symbols across ${this.countModules(impact)} modules.`)
+            details.push(`Maximum risk score is ${impact.riskScore}/100.`)
         }
 
         if (impact.classified.critical.length > 0) {
-            details.push(`⚠ Critical: affects ${impact.classified.critical.length} symbols in separate modules.`);
+            details.push(`⚠ Critical: affects ${impact.classified.critical.length} symbol(s) in separate modules.`)
         }
 
-        if (decision.reasons.length > 0) {
-            decision.reasons.forEach(r => details.push(`Policy: ${r}`));
+        for (const r of decision.reasons) {
+            details.push(`Policy: ${r}`)
         }
 
-        return details;
+        return details
     }
 
     private getRiskBreakdown(impact: ImpactResult): { symbol: string; reason: string; score: number }[] {
-        // Return top 3 riskiest affected symbols
-        return impact.allImpacted
+        return [...impact.allImpacted]
             .sort((a, b) => b.riskScore - a.riskScore)
             .slice(0, 3)
             .map(node => ({
                 symbol: node.label,
-                score: node.riskScore,
-                reason: this.getRiskReason(node.riskScore)
-            }));
+                score:  node.riskScore,
+                reason: this.getRiskReason(node.riskScore),
+            }))
     }
 
     private getRiskReason(score: number): string {
-        if (score >= 90) return 'Direct critical dependency in protected module';
-        if (score >= 80) return 'Large downstream reach (potential side effects)';
-        if (score >= 60) return 'Cross-module propagation';
-        return 'Standard functional dependency';
+        if (score >= 90) return 'Direct critical dependency in protected module'
+        if (score >= 80) return 'Large downstream reach (potential side effects)'
+        if (score >= 60) return 'Cross-module propagation'
+        return 'Standard functional dependency'
     }
 
+    /**
+     * Count distinct modules touched by the impact set.
+     *
+     * Preference order:
+     *  1. lock.functions[nodeId].moduleId  — accurate
+     *  2. heuristic from file path         — fallback when lock is absent
+     */
     private countModules(impact: ImpactResult): number {
-        const modules = new Set(impact.allImpacted.map(n => {
-            // Heuristic to extract module from file path if moduleId not present
-            const parts = n.file.split('/');
-            return parts.length > 1 ? parts[0] : 'root';
-        }));
-        return modules.size;
+        const modules = new Set<string>()
+
+        for (const node of impact.allImpacted) {
+            let moduleId: string | undefined
+
+            // Try to resolve via lock first
+            if (this.lock) {
+                moduleId = this.lock.functions[node.nodeId]?.moduleId
+            }
+
+            if (!moduleId) {
+                // Fallback: first meaningful path segment after stripping common prefixes
+                const parts = node.file.replace(/\\/g, '/').split('/')
+                const segIdx = parts.findIndex(p => p !== 'src' && p !== 'packages' && p !== 'apps')
+                moduleId = segIdx >= 0 ? parts[segIdx] : (parts[0] ?? 'root')
+            }
+
+            modules.add(moduleId)
+        }
+
+        return modules.size
     }
 }

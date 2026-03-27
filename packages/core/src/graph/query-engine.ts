@@ -1,79 +1,76 @@
 import type { DependencyGraph } from './types.js'
 
 /**
- * Mikk 2.0: Query Engine
- * Provides high-performance graph traversal and path-finding tools.
- * Focuses on symbol-level precision.
+ * QueryEngine — high-performance graph traversal and path-finding.
+ *
+ * All BFS loops use an index pointer instead of Array.shift() to avoid
+ * the O(n) cost of shifting the underlying array on each dequeue.
  */
 export class QueryEngine {
     constructor(private graph: DependencyGraph) {}
 
-    /** Find all direct dependents (who calls me?) */
-    public getDependents(nodeId: string): string[] {
-        return (this.graph.inEdges.get(nodeId) || [])
+    /** Find all direct dependents (who calls this node?) */
+    getDependents(nodeId: string): string[] {
+        return (this.graph.inEdges.get(nodeId) ?? [])
             .filter(e => e.type !== 'contains')
-            .map(e => e.from);
+            .map(e => e.from)
     }
 
-    /** Find all direct dependencies (who do I call?) */
-    public getDependencies(nodeId: string): string[] {
-        return (this.graph.outEdges.get(nodeId) || [])
+    /** Find all direct dependencies (what does this node call?) */
+    getDependencies(nodeId: string): string[] {
+        return (this.graph.outEdges.get(nodeId) ?? [])
             .filter(e => e.type !== 'contains')
-            .map(e => e.to);
+            .map(e => e.to)
     }
 
-    /** 
+    /**
      * Find the shortest path between two nodes using BFS.
-     * Returns an array of node IDs or null if no path exists.
+     * Returns an ordered array of node IDs, or null if no path exists.
      */
-    public findPath(start: string, end: string): string[] | null {
-        if (!this.graph.nodes.has(start) || !this.graph.nodes.has(end)) return null;
-        if (start === end) return [start];
+    findPath(start: string, end: string): string[] | null {
+        if (!this.graph.nodes.has(start) || !this.graph.nodes.has(end)) return null
+        if (start === end) return [start]
 
-        const queue: { id: string, path: string[] }[] = [{ id: start, path: [start] }];
-        const visited = new Set<string>([start]);
+        const visited = new Set<string>([start])
+        // Each entry: [nodeId, pathSoFar]
+        const queue: Array<[string, string[]]> = [[start, [start]]]
+        let head = 0
 
-        while (queue.length > 0) {
-            const { id, path } = queue.shift()!;
-            
-            const outwardEdges = this.graph.outEdges.get(id) || [];
-            for (const edge of outwardEdges) {
-                if (edge.type === 'contains') continue;
-                
-                if (edge.to === end) {
-                    return [...path, end];
-                }
+        while (head < queue.length) {
+            const [id, path] = queue[head++]
 
+            for (const edge of this.graph.outEdges.get(id) ?? []) {
+                if (edge.type === 'contains') continue
+                if (edge.to === end) return [...path, end]
                 if (!visited.has(edge.to)) {
-                    visited.add(edge.to);
-                    queue.push({ id: edge.to, path: [...path, edge.to] });
+                    visited.add(edge.to)
+                    queue.push([edge.to, [...path, edge.to]])
                 }
             }
         }
 
-        return null;
+        return null
     }
 
-    /** 
-     * Get the full downstream impact (transitive dependents) of a node.
-     * Useful for assessing "What would break if I change X?"
+    /**
+     * Get the full downstream (transitive dependents) of a node.
+     * Answers "What would break if I change X?"
      */
-    public getDownstreamImpact(nodeId: string): string[] {
-        const visited = new Set<string>();
-        const queue: string[] = [nodeId];
+    getDownstreamImpact(nodeId: string): string[] {
+        const visited = new Set<string>()
+        const queue: string[] = [nodeId]
+        let head = 0
 
-        while (queue.length > 0) {
-            const current = queue.shift()!;
-            const dependents = this.getDependents(current);
-            
-            for (const dep of dependents) {
+        while (head < queue.length) {
+            const current = queue[head++]
+            for (const dep of this.getDependents(current)) {
                 if (!visited.has(dep) && dep !== nodeId) {
-                    visited.add(dep);
-                    queue.push(dep);
+                    visited.add(dep)
+                    queue.push(dep)
                 }
             }
         }
 
-        return Array.from(visited);
+        return [...visited]
     }
 }

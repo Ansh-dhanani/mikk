@@ -426,5 +426,7 @@ export function createDefaultErrorListener(): (error: MikkError) => void {
     }
 }
 
-// Initialize default error listener
-ErrorHandler.getInstance().addListener(createDefaultErrorListener())
+// NOTE: Do NOT register listeners at module load time - every import would
+// add a duplicate listener that is never cleaned up. Instead, call:
+//   ErrorHandler.getInstance().addListener(createDefaultErrorListener())
+// once during application bootstrap (CLI entry-point, MCP server startup).

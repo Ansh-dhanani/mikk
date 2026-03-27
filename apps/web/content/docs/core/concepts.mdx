@@ -1,18 +1,18 @@
 ---
 title: Core Concepts
-description: The Mesh, Merkle-tree hashing, Module Clusters, AI Context Builder, and Intent Pre-flight — the foundational primitives of Mikk.
+description: The Mesh, Merkle-tree hashing, AI Context Builder, Intent Engine, Safety Gates, Decision Engine, Risk Engine, and Auto-Correction — the foundational primitives of Mikk.
 ---
 
 ## The Mesh
 
-The **Mesh** is Mikk's central data structure — a directed acyclic graph (DAG) where nodes are files, functions, classes, and modules, and edges are imports, calls, and containment relationships.
+The **Mesh** is Mikk's central data structure — a directed graph where nodes are files, functions, classes, generics, and variables, and edges are imports, calls, containment, inheritance, and access relationships.
 
-<Callout title="Two-pass construction for O(n) build time" type="info">
-  **Pass 1 — Nodes:** Every file, function, class, and generic declaration is registered in an index.
+<Callout title="Two-pass construction — O(n) build time" type="info">
+  **Pass 1 — Nodes:** Every file, function, class, generic declaration, and variable is registered.
 
-  **Pass 2 — Edges:** Import, call, and containment edges are resolved against the full node index.
+  **Pass 2 — Edges:** Import, call, containment, `extends`, `implements`, and access edges are resolved against the full node index.
 
-  The result is both `dependsOn` and `dependedOnBy` maps — enabling O(1) traversal in either direction.
+  The result is both `outEdges` and `inEdges` adjacency maps — enabling O(1) traversal in either direction.
 </Callout>
 
 ```
@@ -23,15 +23,26 @@ auth/login.ts
 
 ### What Gets Parsed
 
-Mikk uses **web-tree-sitter** and the **TypeScript Compiler API** to extract real ASTs (not regex sweeps) across 13 programming languages:
+Mikk uses **OXC** (Rust-backed, 50× faster than the TypeScript Compiler API) for TypeScript and JavaScript, **Tree-sitter** for 8 additional languages, and a native parser for Go.
 
-| Node type | Captured fields |
-|-----------|----------------|
-| Typescript / JS | Names, params + types, return type, start/end line, internal calls, generics |
-| Python, Java, C++, C#, Rust, PHP, Ruby | AST extraction via Tree-Sitter for methods, classes, and cross-file imports |
-| Go | High-fidelity extraction via Tree-Sitter + Go specific AST matching |
+| Language | Parser | What is extracted |
+|----------|--------|-------------------|
+| TypeScript / JavaScript | OXC | Functions, classes, generics, imports, exports, call graph, routes, variables |
+| Go | Native | Functions, structs, imports, methods, call graph |
+| Python, Java, C#, Rust, C++, C, PHP, Ruby | Tree-sitter | Functions, classes, imports, call graph |
 
-Every function gets its **exact file path and line range** stored in `mikk.lock.json`. When your AI calls `mikk_get_function_detail`, it receives the real body — not a guess.
+Every function stores its **exact file path, line range, call list, hash, and purpose**. When your AI calls `mikk_get_function_detail`, it receives the real body — not a guess.
+
+### ID Format
+
+Function IDs are stable and unambiguous. No line numbers — renaming line 42 to line 50 does not invalidate caches.
+
+```
+fn:<absolute-posix-path>:<FunctionName>
+fn:<absolute-posix-path>:<FunctionName>#2   (same-name collision — second occurrence)
+class:<absolute-posix-path>:<ClassName>
+type:<absolute-posix-path>:<TypeName>
+```
 
 ---
 
@@ -43,35 +54,33 @@ Mikk computes SHA-256 hashes at every level of the codebase hierarchy:
 function hash  →  file hash  →  module hash  →  root hash
 ```
 
-<Callout title="One hash = full drift detection" type="success">
+<Callout title="One root hash = full drift detection" type="success">
   If the root hash matches the stored hash, nothing changed — **zero file reads required**.
   If it doesn't match, the changed subtree is pinpointed by walking down the tree.
 </Callout>
-
-Hashes persist in **SQLite with WAL mode** — concurrent reads during writes, no lock contention, even while the watcher daemon runs.
 
 ### Incremental Analysis
 
 <Steps>
   <Step>
     ### Hash changed files
-    Every file modified since the last run is hashed.
+    Only files modified since last run are re-hashed (mtime + content comparison).
   </Step>
   <Step>
-    ### Compare against SQLite
-    Hashes are compared against the stored Merkle tree.
+    ### Compare against stored hashes
+    Lock file hashes compared in O(1) — no disk reads for unchanged files.
   </Step>
   <Step>
     ### Re-parse only mismatches
-    Only files with changed hashes are fully re-parsed.
+    Only files with changed hashes are re-parsed via OXC.
   </Step>
   <Step>
     ### Propagate up the tree
-    File hash changes bubble up: file → module → root.
+    Hash changes bubble up: function → file → module → root.
   </Step>
   <Step>
     ### Atomic write
-    Updated `mikk.lock.json` is written via temp file → rename. Zero corruption risk.
+    Updated `mikk.lock.json` is written via temp file → rename. Zero corruption risk on crash.
   </Step>
 </Steps>
 
@@ -81,117 +90,195 @@ A 100-file change in a 10,000-file project re-parses exactly 100 files.
 
 ## Module Clusters
 
-Mikk groups files into **logical modules** using greedy agglomeration — analyzing import patterns, naming conventions, and directory structure.
+Mikk groups files into **logical modules** using greedy agglomeration — analyzing import coupling, directory structure, and naming conventions. Each module has a confidence score.
 
-```json title="mikk.json"
+```json title="mikk.json (auto-generated, then edited by you)"
 {
-  "modules": {
-    "auth": {
-      "intent": "Handle user authentication and session management",
-      "include": ["src/auth/**"],
-      "publicApi": ["login", "logout", "validateToken"],
-      "constraints": {
-        "no-import": ["payments"],
-        "layer": 1
+  "declared": {
+    "modules": [
+      {
+        "id": "auth",
+        "name": "Authentication",
+        "description": "JWT auth and session management",
+        "paths": ["src/auth/**"],
+        "entryFunctions": ["login", "validateToken"]
       }
-    }
+    ],
+    "constraints": [
+      "auth must not import from payments"
+    ]
   }
 }
 ```
 
-Modules can be **auto-detected** via `mikk contract generate` or **manually declared** in `mikk.json`.
+Modules can be **auto-detected** via `mikk init` or **manually declared** in `mikk.json`.
 
 ---
 
 ## AI Context Builder
 
-The AI Context Builder turns a task description into a structured, token-budgeted context payload for your LLM.
+The Context Builder turns a task description into a structured, token-budgeted payload for your LLM using BFS graph traversal.
 
 <Steps>
   <Step>
     ### Seed
-    Task keywords are matched against function names, descriptions, and module intents in the lock file.
+    Task keywords are matched against function names, purposes, and module intents using BM25 + fuzzy matching.
   </Step>
   <Step>
     ### Walk
-    BFS traces the call graph outward from seed functions. Configurable `maxHops` depth.
+    BFS traces the call graph outward from seed functions. Configurable `maxHops` (default: 4, max: 12).
   </Step>
   <Step>
     ### Score
-    Each function receives a score: proximity bonus + keyword match + entry-point bonus.
+    Each function receives a composite score: graph proximity + keyword match + entry-point bonus + module relevance.
   </Step>
   <Step>
     ### Budget
-    Greedy knapsack: highest-scoring functions are packed within the token limit.
+    Greedy knapsack: highest-scoring functions packed within the token limit. Token cost pre-computed from source bodies.
   </Step>
   <Step>
     ### Format
-    Output is formatted per provider: XML tags for Claude · plain text for generic · compact for tight budgets.
+    Output formatted per provider: XML tags for Claude · plain text for generic · compact for tight budgets.
   </Step>
 </Steps>
 
-The result: your AI gets the exact functions it needs — with real file paths, real line ranges, real source bodies.
+### Strict Mode
+
+`mikk_query_context` supports a `strict` flag that restricts results to exact keyword matches only, with `autoFallback: true` (default) retrying balanced mode when strict returns nothing.
 
 ---
 
-## Intent Pre-flight
+## Intent Engine
 
-`mikk intent` validates a plain-English plan against your architecture before you write any code.
+The Intent Engine is the safety layer that validates and guards every edit before it lands. It has five cooperating components.
+
+---
+
+### 1. Intent Understanding
+
+Analyzes commit messages, branch names, and change patterns to determine whether breaking changes are intentional. Confidence is derived from:
+
+- Explicit markers in commit messages: `BREAKING:`, `REFACTOR:`, `MIGRATION:`
+- Branch naming patterns: `refactor/`, `breaking/`, `v2/`
+- Change pattern analysis: systematic renames, signature changes, new exports
+- Migration ADRs declared in `mikk.json`
 
 ```bash
-mikk intent "Add a caching layer to the auth module"
+# Intentional — explicit marker present
+git commit -m "BREAKING: rename verifyToken to validateJwt"
+
+# Risky — exported API changed without explicit intent
+# → IntentUnderstanding flags this as unintentional breaking change
 ```
 
-```
-Intents:    [CREATE] CacheLayer in module:auth  (confidence: 0.85)
-Conflicts:  ⚠ Naming constraint: ^handle|^use|^get
-Affected:   src/auth/login.ts, src/auth/session.ts
-New files:  src/auth/cache-layer.ts
-Result:     ✅ No blocking conflicts. Proceed?
+---
+
+### 2. Safety Gates
+
+Six enforced gates run before any edit is applied. Each gate returns `canProceed`, a severity (`BLOCKING` or `WARNING`), and a bypass command when applicable.
+
+| Gate | Default behaviour | Bypassable |
+|------|------------------|-----------|
+| `RISK_SCORE` | BLOCK at risk ≥ 90; WARN when risk > `maxRiskScore` policy | Yes (except ≥ 90) |
+| `IMPACT_SCALE` | BLOCK when impacted functions > `maxImpactNodes × 2`; WARN when > `maxImpactNodes` | Yes |
+| `PROTECTED_MODULE` | BLOCK if any protected module is touched | **Never** |
+| `BREAKING_CHANGE` | BLOCK exported API changes without `BREAKING:` commit marker | Yes |
+| `TEST_COVERAGE` | BLOCK high-risk changes without test file modifications | Yes |
+| `DOCUMENTATION` | BLOCK significant API changes without doc file updates | Yes |
+
+Configure thresholds in `mikk.json` under `policies`:
+
+```json
+{
+  "policies": {
+    "maxRiskScore": 70,
+    "maxImpactNodes": 10,
+    "protectedModules": ["auth", "billing"],
+    "enforceStrictBoundaries": true,
+    "requireTestsForChangedFiles": true,
+    "requireDocumentationForApiChanges": false
+  }
+}
 ```
 
-The engine checks against all 6 constraint types:
+---
 
-| Constraint | Description |
-|-----------|-------------|
-| `no-import` | Module cannot import from listed modules |
-| `must-use` | Module must import from listed modules |
-| `no-call` | Module cannot call functions from listed modules |
-| `layer` | Higher-layer modules cannot import lower layers |
-| `naming` | Exported functions must match the regex |
-| `max-files` | Module cannot exceed this file count |
+### 3. Decision Engine
+
+Evaluates impact analysis results against policies and returns a three-state verdict:
+
+| Status | Meaning |
+|--------|---------|
+| `APPROVED` | Risk score within policy, no violations |
+| `WARNING` | Risk or impact exceeds a policy threshold — review recommended |
+| `BLOCKED` | Critical risk (≥ 90), protected module touched, strict boundaries violated |
+
+The Decision Engine checks:
+1. Absolute risk threshold (≥ 90 always blocks)
+2. Impact node count vs `maxImpactNodes` policy
+3. Protected modules — uses `riskScore` to identify high/critical nodes, then matches against file paths
+4. Strict boundary enforcement for critical cross-module hits
+
+---
+
+### 4. Risk Engine
+
+Computes a quantitative risk score (0–100) per function based on its structural position in the graph:
+
+```
+score = (connectedNodes × 1.5) + (dependencyDepth × 2)
+      + 30 (if auth/security keywords in name or file)
+      + 20 (if database/state keywords in name or file)
+      + 15 (if function is exported / public API)
+```
+
+Score is clamped to [0, 100]. The engine is instantiated once per compile run — not per function — to avoid O(n) BFS repetition.
+
+---
+
+### 5. Auto-Correction Engine
+
+Detects and auto-fixes common issues without AI involvement:
+
+| Issue type | Detection | Fix |
+|-----------|-----------|-----|
+| **Broken references** | Call targets absent from lock | Finds nearest Levenshtein-distance match (threshold: 3); replaces whole-word occurrences in source |
+| **Missing imports** | Resolved import path absent from lock | Finds moved file by basename lookup; replaces path in import statement |
+| **Boundary violations** | Cross-module calls that violate constraints | Prepends a `// TODO [mikk]: Boundary violation` comment with adapter suggestion |
+
+All file writes are path-traversal guarded — only files inside `projectRoot` are modified. The engine returns a full `CorrectionResult` with `appliedFixes`, `failedFixes`, and `filesModified`.
+
+---
+
+## Confidence Engine
+
+The Confidence Engine computes path-level confidence for impact analysis. Each edge in the graph carries a confidence score (1.0 for direct AST-confirmed calls, 0.6–0.8 for resolved imports). Path confidence is the product of edge confidences along the traversal path.
+
+```
+confidence(path) = edge₁.confidence × edge₂.confidence × … × edgeₙ.confidence
+```
+
+The engine checks both `outEdges` and `inEdges` when resolving path connections, ensuring correctness regardless of traversal direction.
 
 ---
 
 ## Architecture Diagrams
 
-Mikk generates 8 Mermaid diagram types in `.mikk/diagrams/`:
+Mikk generates 7 Mermaid diagram types in `.mikk/diagrams/`:
 
-<Files>
-  <Folder name=".mikk/diagrams" defaultOpen>
-    <File name="main.mmd" />
-    <File name="health.mmd" />
-    <File name="dependency-matrix.mmd" />
-    <Folder name="flows">
-      <File name="[entry-point].mmd" />
-    </Folder>
-    <Folder name="modules">
-      <File name="[module-id].mmd" />
-    </Folder>
-    <Folder name="capsules">
-      <File name="[module-id].mmd" />
-    </Folder>
-    <Folder name="impact">
-      <File name="[file].mmd" />
-    </Folder>
-    <Folder name="exposure">
-      <File name="[module-id].mmd" />
-    </Folder>
-  </Folder>
-</Files>
+| Diagram | What it shows |
+|---------|--------------|
+| `main.mmd` | Full architecture — all modules and inter-module dependencies |
+| `health.mmd` | Module health: cohesion %, coupling score, function count, health indicator |
+| `dependency-matrix.mmd` | Which modules depend on which |
+| `flows/[entry].mmd` | Entry-point call flow |
+| `modules/[id].mmd` | Per-module internal call graph |
+| `capsules/[id].mmd` | Per-module public API surface |
+| `impact/[file].mmd` | Blast radius for a specific change |
+
+Cohesion = ratio of internal to total calls. Coupling = count of external calls + cross-module imports.
 
 ```bash
-mikk visualize all                    # regenerate all 8 diagram types
+mikk visualize all                    # regenerate all diagram types
 mikk visualize module auth            # specific module only
-mikk visualize impact src/auth/login.ts
 ```

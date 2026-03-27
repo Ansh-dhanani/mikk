@@ -6,13 +6,13 @@ description: Get Mikk running in your project in under 3 minutes — install the
 ## Requirements
 
 <Cards>
-  <Card title="Node.js ≥ 18 or Bun ≥ 1.x" description="Any modern Node runtime works. Bun is faster for global installs." />
-  <Card title="TypeScript, JavaScript, or Go project" description="Any project with .ts, .tsx, .js, .jsx, or .go files." />
+  <Card title="Node.js ≥ 18 or Bun ≥ 1.x" description="Any modern Node runtime works. Bun is recommended — it is the fastest." />
+  <Card title="TypeScript, JavaScript, Go, or any of 11 supported languages" description=".ts, .tsx, .js, .jsx, .mjs, .cjs, .go, .py, .java, .cs, .rs, .cpp, .c, .php, .rb" />
 </Cards>
 
 ## Install the CLI
 
-<Tabs items={["npm", "bun", "npx"]}>
+<Tabs items={["npm", "bun", "npx (no install)"]}>
   <Tab value="npm">
     ```bash
     npm install -g @getmikk/cli
@@ -23,9 +23,8 @@ description: Get Mikk running in your project in under 3 minutes — install the
     bun add -g @getmikk/cli
     ```
   </Tab>
-  <Tab value="npx">
+  <Tab value="npx (no install)">
     ```bash
-    # No install needed — run directly
     npx @getmikk/cli init
     ```
   </Tab>
@@ -35,7 +34,7 @@ Verify the installation:
 
 ```bash
 mikk --version
-# 1.7.0
+# @getmikk/cli@1.x.x
 ```
 
 ## Initialize Your Project
@@ -55,17 +54,17 @@ mikk --version
     mikk init
     ```
 
-    Mikk scans your codebase and writes all artifacts in ~3 seconds:
+    Mikk scans your codebase using OXC (Rust-backed parser) and writes all artifacts in seconds:
 
-    ```bash
+    ```
     ✓ 2,847 functions across 91 files parsed
     ✓ Graph: 3,201 nodes, 9,442 edges
     ✓ 8 modules auto-detected
     ✓ SHA-256 Merkle tree complete
-    ✓ mikk.lock.json written  (−60% vs raw source)
-    ✓ .mikk/diagrams/ written (8 Mermaid files)
+    ✓ mikk.lock.json written
+    ✓ .mikk/diagrams/ written (7 Mermaid files)
     ✓ claude.md + AGENTS.md written
-    Done in 3.1s.
+    Done in 2.8s.
     ```
   </Step>
   <Step>
@@ -82,18 +81,37 @@ mikk --version
           <File name="health.mmd" />
           <File name="dependency-matrix.mmd" />
         </Folder>
-        <File name="hashes.db" />
       </Folder>
     </Files>
 
     | File | Description | Commit? |
     |------|-------------|---------|
-    | `mikk.json` | Architecture contract — edit to define modules and constraints | ✅ Yes |
+    | `mikk.json` | Architecture contract — modules, constraints, ADRs, policies | ✅ Yes |
     | `mikk.lock.json` | Full codebase snapshot with Merkle hashes | ✅ Yes |
     | `claude.md` | AI context for Claude | ✅ Yes |
     | `AGENTS.md` | AI context for Codex and other agents | ✅ Yes |
-    | `.mikk/diagrams/` | 8 Mermaid architecture diagrams | Optional |
-    | `.mikk/hashes.db` | SQLite Merkle hash store | ❌ No |
+    | `.mikk/diagrams/` | 7 Mermaid architecture diagrams | Optional |
+    | `.mikk/sync-state.json` | Watcher daemon state | ❌ No |
+  </Step>
+  <Step>
+    ### Define your policies (optional)
+
+    Open `mikk.json` and add a `policies` block to configure safety gate thresholds:
+
+    ```json title="mikk.json"
+    {
+      "policies": {
+        "maxRiskScore": 70,
+        "maxImpactNodes": 10,
+        "protectedModules": ["auth", "billing"],
+        "enforceStrictBoundaries": false,
+        "requireTestsForChangedFiles": true,
+        "requireDocumentationForApiChanges": false
+      }
+    }
+    ```
+
+    These control what the Decision Engine blocks vs. warns vs. approves. All fields have safe defaults — the block is optional.
   </Step>
 </Steps>
 
@@ -112,7 +130,7 @@ coverage/
 ```
 
 <Callout type="info">
-  Mikk also automatically respects `.gitignore`. You only need `.mikkignore` for additional exclusions.
+  Mikk automatically respects `.gitignore`. You only need `.mikkignore` for additional exclusions specific to Mikk.
 </Callout>
 
 ## Connect to Your AI Assistant
@@ -163,14 +181,14 @@ coverage/
     mikk mcp install --tool vscode
     ```
 
-    This adds the MCP server configuration to VS Code's settings automatically.
+    Adds Mikk's MCP server to VS Code settings automatically.
   </Tab>
 </Tabs>
 
 ## Daily Workflow
 
 ```bash
-# After making code changes
+# After making code changes — update the lock file
 mikk analyze
 
 # Keep a live watcher running in the background
@@ -183,17 +201,26 @@ mikk context impact src/auth/login.ts
 mikk intent "Extract shared validation into a utils module"
 
 # Validate architecture in CI
-mikk contract validate --strict
+mikk ci --strict
 ```
 
 ## Supported Languages
 
-| Language | Extensions | Parser |
-|----------|-----------|--------|
-| TypeScript | `.ts`, `.tsx` | TypeScript Compiler API |
-| JavaScript | `.js`, `.jsx`, `.mjs`, `.cjs` | TypeScript Compiler API |
-| Go | `.go` | Regex + stateful scanning |
+| Language | Extensions | Parser | Coverage |
+|----------|-----------|--------|----------|
+| TypeScript | `.ts`, `.tsx` | OXC (Rust) | 100% |
+| JavaScript | `.js`, `.jsx`, `.mjs`, `.cjs` | OXC (Rust) | 100% |
+| Go | `.go` | Native | 100% |
+| Python | `.py` | Tree-sitter | 95% |
+| Java | `.java` | Tree-sitter | 90% |
+| C# | `.cs` | Tree-sitter | 90% |
+| Rust | `.rs` | Tree-sitter | 85% |
+| C++ | `.cpp`, `.cc`, `.hpp` | Tree-sitter | 85% |
+| C | `.c`, `.h` | Tree-sitter | 85% |
+| PHP | `.php` | Tree-sitter | 85% |
+| Ruby | `.rb` | Tree-sitter | 85% |
 
-<Callout type="warn">
-  Go support uses regex-based scanning, not a full AST parser. Function signatures and imports are captured accurately, but complex Go generics may not be fully resolved.
+<Callout type="info">
+  Tree-sitter languages require the `web-tree-sitter` package, which is installed automatically with `@getmikk/cli`.
+  Optional: install `@xenova/transformers` (22MB, downloads once) to enable `mikk_semantic_search`.
 </Callout>

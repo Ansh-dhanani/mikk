@@ -15,19 +15,19 @@ description: How Mikk builds token-budgeted, graph-traced context payloads — a
 
 <Steps>
   <Step>
-    ### Seed — find the entry points
+    ### Seed — find entry points
 
     Mikk matches your task description against function names, descriptions, and module intents stored in `mikk.lock.json`.
 
     ```bash
-    mikk context build "Fix the session expiry bug"
+    mikk context for "Fix the session expiry bug"
     # Seeds: validateToken, refreshSession, getSessionExpiry
     ```
   </Step>
   <Step>
     ### Walk — BFS graph traversal
 
-    From each seed function, Mikk traces the call graph outward using BFS. Configurable with `--hops` (default: 2).
+    From each seed function, Mikk traces the call graph outward using BFS. Configurable with `--hops` (default: 2 for CLI, 4 for MCP).
 
     ```
     validateToken  →  parseJWT  →  getKeystore
@@ -61,26 +61,46 @@ description: How Mikk builds token-budgeted, graph-traced context payloads — a
 
     | Format | Use case |
     |--------|----------|
-    | `xml` | Claude (default) — structured `<function>` tags |
-    | `text` | Generic — plain text with headers |
+    | `claude` | Claude — structured XML tags |
+    | `generic` | Any LLM — plain text with headers |
     | `compact` | Tight budgets — minimal whitespace, no source bodies |
   </Step>
 </Steps>
 
+## Strict Mode
+
+Set `strict: true` on `mikk_query_context` for high-precision context — only functions where the task keywords explicitly appear in name, purpose, or params are included.
+
+```typescript
+mikk_query_context({
+  question: "How does JWT validation work?",
+  strict: true,
+  autoFallback: true,   // retry with balanced mode if strict returns empty
+})
+```
+
+Use strict mode when:
+- The query is very specific (a named function, a bug in a known path)
+- You want to avoid hallucinated context from loosely-related functions
+
+Use balanced mode (default) when:
+- Exploring an unfamiliar area of the codebase
+- Building context for a large refactor
+
 ## CLI Usage
 
 ```bash
-# Basic context build
-mikk context build "How does authentication work?"
+# Basic context for
+mikk context for "How does authentication work?"
 
 # With custom token budget
-mikk context build "Refactor the payments module" --tokens 8000
+mikk context for "Refactor the payments module" --tokens 8000
 
-# XML format for Claude, 3 hops deep
-mikk context build "Debug the login flow" --format xml --hops 3
+# Claude-formatted context, 3 hops deep
+mikk context for "Debug the login flow" --provider claude --hops 3
 
 # Compact format for tight context windows
-mikk context build "What does parseToken do?" --format compact --tokens 1000
+mikk context for "What does parseToken do?" --provider compact --tokens 1000
 ```
 
 <TypeTable
@@ -90,10 +110,10 @@ mikk context build "What does parseToken do?" --format compact --tokens 1000
       type: "number",
       default: "4000",
     },
-    "--format": {
-      description: "Output format for the context payload.",
-      type: '"xml" | "text" | "compact"',
-      default: '"xml"',
+    "--provider": {
+      description: "Output format.",
+      type: '"claude" | "generic" | "compact"',
+      default: '"generic"',
     },
     "--hops": {
       description: "BFS depth from seed functions. Higher values include more context but use more tokens.",
@@ -104,7 +124,7 @@ mikk context build "What does parseToken do?" --format compact --tokens 1000
       description: "Restrict context building to a specific module.",
       type: "string",
     },
-    "--output": {
+    "--out": {
       description: "Write the context payload to a file instead of stdout.",
       type: "string",
     },
@@ -135,24 +155,30 @@ Transitive blast radius (8 files):
 Estimated impact: HIGH (8 files, 2 public API consumers)
 ```
 
-## MCP Usage
+## Pre-Edit Validation
 
-When connected via MCP, your AI assistant can call context tools directly:
+For the most comprehensive safety check before any edit, use `mikk_before_edit` via MCP:
 
 ```
-mikk_build_context({ task: "Add rate limiting to the auth module", tokens: 6000 })
-mikk_get_impact({ file: "src/auth/login.ts" })
-mikk_get_call_graph({ function: "validateToken", depth: 3 })
+mikk_before_edit({ files: ["src/auth/login.ts"] })
 ```
+
+Returns:
+- `recommendation` — `safe` / `review` / `block`
+- `violations` — live constraint violations
+- `impactedNodes` — classified blast radius (critical / high / medium / low)
+- `circularDeps` — circular dependency warnings
+
+The Intent Engine also checks if your changes have an explicit intent marker and runs auto-correction on common issues.
 
 ## Tuning Tips
 
 <Accordions>
   <Accordion title="Context is too large / hitting token limits">
-    Reduce `--hops` to 1, use `--format compact`, or restrict to a specific module with `--module auth`.
+    Reduce `--hops` to 1, use `--provider compact`, or restrict to a specific module with `--module auth`.
 
     ```bash
-    mikk context build "Fix login bug" --hops 1 --format compact --tokens 2000
+    mikk context for "Fix login bug" --hops 1 --provider compact --tokens 2000
     ```
   </Accordion>
   <Accordion title="Context is missing relevant functions">
@@ -160,7 +186,7 @@ mikk_get_call_graph({ function: "validateToken", depth: 3 })
     is keyword-based — more specific descriptions produce better seeds.
 
     ```bash
-    mikk context build "Fix JWT expiry validation in the token refresh flow" --hops 3
+    mikk context for "Fix JWT expiry validation in the token refresh flow" --hops 3
     ```
   </Accordion>
   <Accordion title="claude.md is out of date">
@@ -178,16 +204,20 @@ mikk_get_call_graph({ function: "validateToken", depth: 3 })
      to look up any function before referencing it."
     ```
   </Accordion>
+  <Accordion title="Strict mode returns empty results">
+    Set `autoFallback: true` (already the default on `mikk_query_context`). Mikk will retry with
+    balanced mode and note that a fallback was used in the response.
+  </Accordion>
 </Accordions>
 
 ## claude.md Structure
 
-The generated `claude.md` contains tiered architecture information:
+The generated `claude.md` contains tiered architecture information, kept within a 12,000 token budget:
 
 | Section | Content |
 |---------|---------|
-| **Tier 1: Overview** | Project name, language, framework, entry points |
-| **Tier 2: Modules** | Each module's intent, file count, public API |
-| **Tier 3: Key functions** | Highest-importance functions with signatures |
+| **Tier 1: Overview** | Project name, language, framework, entry points, total function/file counts |
+| **Tier 2: Modules** | Each module's intent, file count, exported API surface, key functions |
+| **Tier 3: Context files** | Discovered schemas, configs, data models |
 | **Tier 4: Constraints** | All architectural rules in plain English |
 | **Tier 5: Decisions** | ADRs summarized for AI context |
