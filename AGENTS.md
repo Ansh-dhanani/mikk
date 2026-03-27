@@ -1,9 +1,9 @@
 <repository_context>
   <name>mikk</name>
   <stats>
-    <files>183</files>
-    <functions>604</functions>
-    <modules>28</modules>
+    <files>192</files>
+    <functions>719</functions>
+    <modules>29</modules>
     <language>typescript</language>
   </stats>
 </repository_context>
@@ -32,85 +32,16 @@
     <executes>turbo run lint</executes>
   </command>
 </commands>
-  <module id="desktop-web-mesh">
-    <name>Testing</name>
-    <location>c:/users/ansh/desktop/web/mesh/**</location>
-    <purpose>1 files, 0 functions</purpose>
-    <entry_points>
-      <function signature="async test() [c:/users/ansh/desktop/web/mesh/test-oxc.ts:5]" purpose="Test" />
-    </entry_points>
-  </module>
-  <module id="mesh-apps-web">
-    <name>API & Config</name>
-    <location>c:/users/ansh/desktop/web/mesh/apps/web/**</location>
-    <purpose>2 files, 0 functions</purpose>
-    <entry_points>
-      <function signature="middleware(request) [c:/users/ansh/desktop/web/mesh/apps/web/middleware.ts:6]" purpose="Middleware (request)" />
-      <function signature="middleware(request) [c:/users/ansh/desktop/web/mesh/apps/web/middleware.ts:6]" purpose="Middleware (request)" />
-    </entry_points>
-  </module>
-  <module id="apps-web-app">
-    <name>API</name>
-    <location>c:/users/ansh/desktop/web/mesh/apps/web/app/**</location>
-    <purpose>3 files, 0 functions</purpose>
-    <entry_points>
-      <function signature="mdxFileToRoute(filePath) [c:/users/ansh/desktop/web/mesh/apps/web/app/sitemap.ts:13]" purpose="Mdx file to route (filePath)" />
-      <function signature="collectDocsRoutes(dir) [c:/users/ansh/desktop/web/mesh/apps/web/app/sitemap.ts:27]" purpose="Collect docs routes (dir)" />
-      <function signature="sitemap() [c:/users/ansh/desktop/web/mesh/apps/web/app/sitemap.ts:45]" purpose="Sitemap" />
-      <function signature="sitemap() [c:/users/ansh/desktop/web/mesh/apps/web/app/sitemap.ts:45]" purpose="Sitemap" />
-      <function signature="robots() [c:/users/ansh/desktop/web/mesh/apps/web/app/robots.ts:4]" purpose="Robots" />
-    </entry_points>
-  </module>
   <module id="web-mesh-benchmarks">
-    <name>Storage & Authentication</name>
+    <name>Storage & Dashboard</name>
     <location>c:/users/ansh/desktop/web/mesh/benchmarks/**</location>
-    <purpose>3 files, 0 functions</purpose>
+    <purpose>4 files, 0 functions</purpose>
     <entry_points>
-      <function signature="countTokens(text) [c:/users/ansh/desktop/web/mesh/benchmarks/mikk-benchmark.ts:57]" purpose="Count tokens (text)" />
-      <function signature="score(checks) [c:/users/ansh/desktop/web/mesh/benchmarks/mikk-benchmark.ts:61]" purpose="Score (checks)" />
-      <function signature="async callMikkTool(projectRoot, toolName, args) [c:/users/ansh/desktop/web/mesh/benchmarks/mikk-benchmark.ts:70]" purpose="Call mikk tool (projectRoot, toolName)" />
-      <function signature="buildGraphFromLockInline(lock) [c:/users/ansh/desktop/web/mesh/benchmarks/mikk-benchmark.ts:210]" purpose="Build graph from lock inline (lock)" />
-      <function signature="async callGitNexusBaseline(projectRoot, capability, args) [c:/users/ansh/desktop/web/mesh/benchmarks/mikk-benchmark.ts:247]" purpose="Call git nexus baseline (projectRoot, capability)" />
-    </entry_points>
-  </module>
-  <module id="mesh-apps-registry">
-    <name>Search</name>
-    <location>c:/users/ansh/desktop/web/mesh/apps/registry/src/**</location>
-    <purpose>1 files, 0 functions</purpose>
-    <entry_points>
-      <function signature="placeholder() [c:/users/ansh/desktop/web/mesh/apps/registry/src/index.ts:34]" purpose="Placeholder" />
-    </entry_points>
-  </module>
-  <module id="apps-web-components">
-    <name>Components</name>
-    <location>c:/users/ansh/desktop/web/mesh/apps/web/components/**</location>
-    <purpose>19 files, 0 functions</purpose>
-    <entry_points>
-      <function signature="getMDXComponents(components?) [c:/users/ansh/desktop/web/mesh/apps/web/components/mdx.tsx:14]" purpose="Get mdx components (components)" />
-    </entry_points>
-  </module>
-  <module id="apps-web-lib">
-    <name>Utils</name>
-    <location>c:/users/ansh/desktop/web/mesh/apps/web/lib/**</location>
-    <purpose>7 files, 0 functions</purpose>
-    <entry_points>
-      <function signature="trackEvent(_event) [c:/users/ansh/desktop/web/mesh/apps/web/lib/events.ts:8]" purpose="Track event (_event)" />
-      <function signature="buildGraph() [c:/users/ansh/desktop/web/mesh/apps/web/lib/build-graph.ts:8]" purpose="Build graph" />
-      <function signature="baseOptions() [c:/users/ansh/desktop/web/mesh/apps/web/lib/layout.shared.tsx:2]" purpose="Base options" />
-      <function signature="mergeRefs(refs) [c:/users/ansh/desktop/web/mesh/apps/web/lib/merge-refs.ts:3]" purpose="Merge refs (refs)" />
-      <function signature="cn(inputs) [c:/users/ansh/desktop/web/mesh/apps/web/lib/utils.ts:4]" purpose="Cn (inputs)" />
-    </entry_points>
-  </module>
-  <module id="mesh-packages-ai-context">
-    <name>Providers & Authentication</name>
-    <location>c:/users/ansh/desktop/web/mesh/packages/ai-context/src/**</location>
-    <purpose>5 files, 0 functions</purpose>
-    <entry_points>
-      <function signature="estimateTokens(text) [c:/users/ansh/desktop/web/mesh/packages/ai-context/src/claude-md-generator.ts:9]" purpose="Estimate tokens (text)" />
-      <function signature="ClaudeMdGenerator.constructor(contract, lock, tokenBudget, meta?, projectRoot?) [c:/users/ansh/desktop/web/mesh/packages/ai-context/src/claude-md-generator.ts:34]" purpose="Claude md generator.constructor" />
-      <function signature="ClaudeMdGenerator.generate() [c:/users/ansh/desktop/web/mesh/packages/ai-context/src/claude-md-generator.ts:45]" purpose="Claude md generator.generate" />
-      <function signature="ClaudeMdGenerator.generateSummary() [c:/users/ansh/desktop/web/mesh/packages/ai-context/src/claude-md-generator.ts:140]" purpose="Claude md generator.generate summary" />
-      <function signature="ClaudeMdGenerator.generateModuleSection(moduleId) [c:/users/ansh/desktop/web/mesh/packages/ai-context/src/claude-md-generator.ts:187]" purpose="Claude md generator.generate module section (moduleId)" />
+      <function signature="countTokens(text) [c:/users/ansh/desktop/web/mesh/benchmarks/mikk-benchmark.ts:66]" purpose="Count tokens (text)" />
+      <function signature="score(checks) [c:/users/ansh/desktop/web/mesh/benchmarks/mikk-benchmark.ts:70]" purpose="Score (checks)" />
+      <function signature="escapeShellArg(arg) [c:/users/ansh/desktop/web/mesh/benchmarks/mikk-benchmark.ts:81]" purpose="Escape shell arg (arg)" />
+      <function signature="async callMikkTool(projectRoot, toolName, args) [c:/users/ansh/desktop/web/mesh/benchmarks/mikk-benchmark.ts:103]" purpose="Call mikk tool (projectRoot, toolName)" />
+      <function signature="buildGraphFromLockInline(lock) [c:/users/ansh/desktop/web/mesh/benchmarks/mikk-benchmark.ts:348]" purpose="Build graph from lock inline (lock)" />
     </entry_points>
   </module>
   <module id="mesh-packages-cli">
@@ -125,6 +56,99 @@
       <function signature="infoBar(value, max, width) [c:/users/ansh/desktop/web/mesh/packages/cli/src/ui.ts:52]" purpose="Info bar (value, max, width)" />
     </entry_points>
   </module>
+  <module id="mesh-apps-web">
+    <name>API & Config</name>
+    <location>c:/users/ansh/desktop/web/mesh/apps/web/**</location>
+    <purpose>2 files, 0 functions</purpose>
+    <entry_points>
+      <function signature="middleware(request) [c:/users/ansh/desktop/web/mesh/apps/web/middleware.ts:6]" purpose="Middleware (request)" />
+      <function signature="middleware(request) [c:/users/ansh/desktop/web/mesh/apps/web/middleware.ts:6]" purpose="Middleware (request)" />
+    </entry_points>
+  </module>
+  <module id="mesh-apps-registry">
+    <name>Search</name>
+    <location>c:/users/ansh/desktop/web/mesh/apps/registry/src/**</location>
+    <purpose>1 files, 0 functions</purpose>
+    <entry_points>
+      <function signature="placeholder() [c:/users/ansh/desktop/web/mesh/apps/registry/src/index.ts:34]" purpose="Placeholder" />
+    </entry_points>
+  </module>
+  <module id="mesh-packages-ai-context">
+    <name>Providers & Authentication</name>
+    <location>c:/users/ansh/desktop/web/mesh/packages/ai-context/src/**</location>
+    <purpose>6 files, 0 functions</purpose>
+    <entry_points>
+      <function signature="ClaudeMdGenerator.constructor(contract, lock, tokenBudget, meta?, projectRoot?) [c:/users/ansh/desktop/web/mesh/packages/ai-context/src/claude-md-generator.ts:30]" purpose="Claude md generator.constructor" />
+      <function signature="ClaudeMdGenerator.generate() [c:/users/ansh/desktop/web/mesh/packages/ai-context/src/claude-md-generator.ts:41]" purpose="Claude md generator.generate" />
+      <function signature="ClaudeMdGenerator.generateSummary() [c:/users/ansh/desktop/web/mesh/packages/ai-context/src/claude-md-generator.ts:136]" purpose="Claude md generator.generate summary" />
+      <function signature="ClaudeMdGenerator.generateModuleSection(moduleId) [c:/users/ansh/desktop/web/mesh/packages/ai-context/src/claude-md-generator.ts:183]" purpose="Claude md generator.generate module section (moduleId)" />
+      <function signature="ClaudeMdGenerator.generateConstraintsSection() [c:/users/ansh/desktop/web/mesh/packages/ai-context/src/claude-md-generator.ts:280]" purpose="Claude md generator.generate constraints section" />
+    </entry_points>
+  </module>
+  <module id="mesh-packages-core">
+    <name>Config & API</name>
+    <location>c:/users/ansh/desktop/web/mesh/packages/core/src/**</location>
+    <purpose>3 files, 0 functions</purpose>
+    <entry_points>
+      <function signature="formatBytes(bytes) [c:/users/ansh/desktop/web/mesh/packages/core/src/constants.ts:251]" purpose="Format bytes (bytes)" />
+      <function signature="formatDuration(ms) [c:/users/ansh/desktop/web/mesh/packages/core/src/constants.ts:267]" purpose="Format duration (ms)" />
+      <function signature="inRange(value, min, max) [c:/users/ansh/desktop/web/mesh/packages/core/src/constants.ts:276]" purpose="In range (value, min, max)" />
+      <function signature="clamp(value, min, max) [c:/users/ansh/desktop/web/mesh/packages/core/src/constants.ts:283]" purpose="Clamp (value, min, max)" />
+      <function signature="createFileNotFoundError(filePath) [c:/users/ansh/desktop/web/mesh/packages/core/src/error-handler.ts:265]" purpose="Create file not found error (filePath)" />
+    </entry_points>
+  </module>
+  <module id="apps-web-components">
+    <name>Components</name>
+    <location>c:/users/ansh/desktop/web/mesh/apps/web/components/**</location>
+    <purpose>19 files, 0 functions</purpose>
+    <entry_points>
+      <function signature="getMDXComponents(components?) [c:/users/ansh/desktop/web/mesh/apps/web/components/mdx.tsx:14]" purpose="Get mdx components (components)" />
+    </entry_points>
+  </module>
+  <module id="desktop-web-mesh">
+    <name>Testing</name>
+    <location>c:/users/ansh/desktop/web/mesh/**</location>
+    <purpose>1 files, 0 functions</purpose>
+    <entry_points>
+      <function signature="async test() [c:/users/ansh/desktop/web/mesh/test-oxc.ts:5]" purpose="Test" />
+    </entry_points>
+  </module>
+  <module id="apps-web-app">
+    <name>API</name>
+    <location>c:/users/ansh/desktop/web/mesh/apps/web/app/**</location>
+    <purpose>3 files, 0 functions</purpose>
+    <entry_points>
+      <function signature="mdxFileToRoute(filePath) [c:/users/ansh/desktop/web/mesh/apps/web/app/sitemap.ts:13]" purpose="Mdx file to route (filePath)" />
+      <function signature="collectDocsRoutes(dir) [c:/users/ansh/desktop/web/mesh/apps/web/app/sitemap.ts:27]" purpose="Collect docs routes (dir)" />
+      <function signature="sitemap() [c:/users/ansh/desktop/web/mesh/apps/web/app/sitemap.ts:45]" purpose="Sitemap" />
+      <function signature="sitemap() [c:/users/ansh/desktop/web/mesh/apps/web/app/sitemap.ts:45]" purpose="Sitemap" />
+      <function signature="robots() [c:/users/ansh/desktop/web/mesh/apps/web/app/robots.ts:4]" purpose="Robots" />
+    </entry_points>
+  </module>
+  <module id="apps-web-lib">
+    <name>Utils</name>
+    <location>c:/users/ansh/desktop/web/mesh/apps/web/lib/**</location>
+    <purpose>7 files, 0 functions</purpose>
+    <entry_points>
+      <function signature="baseOptions() [c:/users/ansh/desktop/web/mesh/apps/web/lib/layout.shared.tsx:2]" purpose="Base options" />
+      <function signature="trackEvent(_event) [c:/users/ansh/desktop/web/mesh/apps/web/lib/events.ts:8]" purpose="Track event (_event)" />
+      <function signature="mergeRefs(refs) [c:/users/ansh/desktop/web/mesh/apps/web/lib/merge-refs.ts:3]" purpose="Merge refs (refs)" />
+      <function signature="buildGraph() [c:/users/ansh/desktop/web/mesh/apps/web/lib/build-graph.ts:8]" purpose="Build graph" />
+      <function signature="cn(inputs) [c:/users/ansh/desktop/web/mesh/apps/web/lib/utils.ts:4]" purpose="Cn (inputs)" />
+    </entry_points>
+  </module>
+  <module id="mesh-packages-intent-engine">
+    <name>Storage & AI & ML</name>
+    <location>c:/users/ansh/desktop/web/mesh/packages/intent-engine/src/**</location>
+    <purpose>13 files, 0 functions</purpose>
+    <entry_points>
+      <function signature="ConflictDetector.constructor(contract, lock?) [c:/users/ansh/desktop/web/mesh/packages/intent-engine/src/conflict-detector.ts:22]" purpose="Conflict detector.constructor (contract, lock)" />
+      <function signature="ConflictDetector.detect(intents) [c:/users/ansh/desktop/web/mesh/packages/intent-engine/src/conflict-detector.ts:28]" purpose="Conflict detector.detect (intents)" />
+      <function signature="ConflictDetector.classifyConstraint(text) [c:/users/ansh/desktop/web/mesh/packages/intent-engine/src/conflict-detector.ts:111]" purpose="Conflict detector.classify constraint (text)" />
+      <function signature="ConflictDetector.checkConstraint(intent, constraint) [c:/users/ansh/desktop/web/mesh/packages/intent-engine/src/conflict-detector.ts:124]" purpose="Conflict detector.check constraint (intent, constraint)" />
+      <function signature="ConflictDetector.checkNoImport(constraint, intent) [c:/users/ansh/desktop/web/mesh/packages/intent-engine/src/conflict-detector.ts:137]" purpose="Conflict detector.check no import (constraint, intent)" />
+    </entry_points>
+  </module>
   <module id="mesh-packages-diagram-generator">
     <name>Search</name>
     <location>c:/users/ansh/desktop/web/mesh/packages/diagram-generator/src/**</location>
@@ -136,40 +160,16 @@
       <function signature="async DiagramOrchestrator.writeDiagram(relativePath, content) [c:/users/ansh/desktop/web/mesh/packages/diagram-generator/src/orchestrator.ts:72]" purpose="Diagram orchestrator.write diagram (relativePath, content)" />
     </entry_points>
   </module>
-  <module id="mesh-packages-intent-engine">
-    <name>AI & ML & Search</name>
-    <location>c:/users/ansh/desktop/web/mesh/packages/intent-engine/src/**</location>
-    <purpose>9 files, 0 functions</purpose>
-    <entry_points>
-      <function signature="ExplanationEngine.explain(impact, decision) [c:/users/ansh/desktop/web/mesh/packages/intent-engine/src/explanation-engine.ts:12]" purpose="Explanation engine.explain (impact, decision)" />
-      <function signature="ExplanationEngine.getSummary(decision) [c:/users/ansh/desktop/web/mesh/packages/intent-engine/src/explanation-engine.ts:24]" purpose="Explanation engine.get summary (decision)" />
-      <function signature="ExplanationEngine.getDetails(impact, decision) [c:/users/ansh/desktop/web/mesh/packages/intent-engine/src/explanation-engine.ts:32]" purpose="Explanation engine.get details (impact, decision)" />
-      <function signature="ExplanationEngine.getRiskBreakdown(impact) [c:/users/ansh/desktop/web/mesh/packages/intent-engine/src/explanation-engine.ts:53]" purpose="Explanation engine.get risk breakdown (impact)" />
-      <function signature="ExplanationEngine.getRiskReason(score) [c:/users/ansh/desktop/web/mesh/packages/intent-engine/src/explanation-engine.ts:65]" purpose="Explanation engine.get risk reason (score)" />
-    </entry_points>
-  </module>
   <module id="mesh-packages-mcp-server">
     <name>Storage</name>
     <location>c:/users/ansh/desktop/web/mesh/packages/mcp-server/src/**</location>
     <purpose>5 files, 0 functions</purpose>
     <entry_points>
-      <function signature="createMikkMcpServer(projectRoot) [c:/users/ansh/desktop/web/mesh/packages/mcp-server/src/server.ts:12]" purpose="Create mikk mcp server (projectRoot)" />
       <function signature="registerResources(server, projectRoot) [c:/users/ansh/desktop/web/mesh/packages/mcp-server/src/resources.ts:8]" purpose="Register resources (server, projectRoot)" />
       <function signature="async safeRead(filePath) [c:/users/ansh/desktop/web/mesh/packages/mcp-server/src/resources.ts:59]" purpose="Safe read (filePath)" />
       <function signature="async startStdioServer() [c:/users/ansh/desktop/web/mesh/packages/mcp-server/src/stdio.ts:8]" purpose="Start stdio server" />
+      <function signature="createMikkMcpServer(projectRoot) [c:/users/ansh/desktop/web/mesh/packages/mcp-server/src/server.ts:12]" purpose="Create mikk mcp server (projectRoot)" />
       <function signature="invalidateCache(projectRoot) [c:/users/ansh/desktop/web/mesh/packages/mcp-server/src/tools.ts:34]" purpose="Invalidate cache (projectRoot)" />
-    </entry_points>
-  </module>
-  <module id="mesh-packages-watcher">
-    <name>Storage & Messaging</name>
-    <location>c:/users/ansh/desktop/web/mesh/packages/watcher/src/**</location>
-    <purpose>5 files, 0 functions</purpose>
-    <entry_points>
-      <function signature="WatcherDaemon.constructor(config) [c:/users/ansh/desktop/web/mesh/packages/watcher/src/daemon.ts:42]" purpose="Watcher daemon.constructor (config)" />
-      <function signature="async WatcherDaemon.start() [c:/users/ansh/desktop/web/mesh/packages/watcher/src/daemon.ts:46]" purpose="Watcher daemon.start" />
-      <function signature="async WatcherDaemon.stop() [c:/users/ansh/desktop/web/mesh/packages/watcher/src/daemon.ts:99]" purpose="Watcher daemon.stop" />
-      <function signature="WatcherDaemon.on(handler) [c:/users/ansh/desktop/web/mesh/packages/watcher/src/daemon.ts:106]" purpose="Watcher daemon.on (handler)" />
-      <function signature="WatcherDaemon.enqueueChange(event) [c:/users/ansh/desktop/web/mesh/packages/watcher/src/daemon.ts:112]" purpose="Watcher daemon.enqueue change" />
     </entry_points>
   </module>
   <module id="mesh-packages-vscode-extension">
@@ -184,28 +184,16 @@
       <function signature="updateStatusBar(statusBar, data) [c:/users/ansh/desktop/web/mesh/packages/vscode-extension/src/extension.ts:201]" purpose="Update status bar (statusBar, data)" />
     </entry_points>
   </module>
-  <module id="packages-cli-commands">
-    <name>CLI & Storage</name>
-    <location>c:/users/ansh/desktop/web/mesh/packages/cli/src/commands/**</location>
-    <purpose>14 files, 0 functions</purpose>
+  <module id="mesh-packages-watcher">
+    <name>Storage & Messaging</name>
+    <location>c:/users/ansh/desktop/web/mesh/packages/watcher/src/**</location>
+    <purpose>5 files, 0 functions</purpose>
     <entry_points>
-      <function signature="registerAdrCommand(program) [c:/users/ansh/desktop/web/mesh/packages/cli/src/commands/adr.ts:6]" purpose="Register adr command (program)" />
-      <function signature="getManager() [c:/users/ansh/desktop/web/mesh/packages/cli/src/commands/adr.ts:11]" purpose="Get manager" />
-      <function signature="findWorkspaceRoot(start) [c:/users/ansh/desktop/web/mesh/packages/cli/src/commands/analyze.ts:10]" purpose="Find workspace root (start)" />
-      <function signature="async resolveCoreModule(projectRoot) [c:/users/ansh/desktop/web/mesh/packages/cli/src/commands/analyze.ts:23]" purpose="Resolve core module (projectRoot)" />
-      <function signature="registerAnalyzeCommand(program) [c:/users/ansh/desktop/web/mesh/packages/cli/src/commands/analyze.ts:62]" purpose="Register analyze command (program)" />
-    </entry_points>
-  </module>
-  <module id="packages-core-graph">
-    <name>Storage</name>
-    <location>c:/users/ansh/desktop/web/mesh/packages/core/src/graph/**</location>
-    <purpose>9 files, 0 functions</purpose>
-    <entry_points>
-      <function signature="ImpactAnalyzer.constructor(graph) [c:/users/ansh/desktop/web/mesh/packages/core/src/graph/impact-analyzer.ts:14]" purpose="Impact analyzer.constructor (graph)" />
-      <function signature="ImpactAnalyzer.analyze(changedNodeIds) [c:/users/ansh/desktop/web/mesh/packages/core/src/graph/impact-analyzer.ts:20]" purpose="Impact analyzer.analyze (changedNodeIds)" />
-      <function signature="DeadCodeDetector.constructor(graph, lock) [c:/users/ansh/desktop/web/mesh/packages/core/src/graph/dead-code-detector.ts:98]" purpose="Dead code detector.constructor (graph, lock)" />
-      <function signature="DeadCodeDetector.detect() [c:/users/ansh/desktop/web/mesh/packages/core/src/graph/dead-code-detector.ts:111]" purpose="Dead code detector.detect" />
-      <function signature="DeadCodeDetector.isExempt(fn, id) [c:/users/ansh/desktop/web/mesh/packages/core/src/graph/dead-code-detector.ts:187]" purpose="Dead code detector.is exempt (fn, id)" />
+      <function signature="WatcherDaemon.constructor(config) [c:/users/ansh/desktop/web/mesh/packages/watcher/src/daemon.ts:42]" purpose="Watcher daemon.constructor (config)" />
+      <function signature="async WatcherDaemon.start() [c:/users/ansh/desktop/web/mesh/packages/watcher/src/daemon.ts:46]" purpose="Watcher daemon.start" />
+      <function signature="async WatcherDaemon.stop() [c:/users/ansh/desktop/web/mesh/packages/watcher/src/daemon.ts:99]" purpose="Watcher daemon.stop" />
+      <function signature="WatcherDaemon.on(handler) [c:/users/ansh/desktop/web/mesh/packages/watcher/src/daemon.ts:106]" purpose="Watcher daemon.on (handler)" />
+      <function signature="WatcherDaemon.enqueueChange(event) [c:/users/ansh/desktop/web/mesh/packages/watcher/src/daemon.ts:112]" purpose="Watcher daemon.enqueue change" />
     </entry_points>
   </module>
   <module id="packages-core-contract">
@@ -220,28 +208,52 @@
       <function signature="async AdrManager.update(id, fields) [c:/users/ansh/desktop/web/mesh/packages/core/src/contract/adr-manager.ts:42]" purpose="Adr manager.update (id, fields)" />
     </entry_points>
   </module>
+  <module id="packages-cli-commands">
+    <name>CLI & Storage</name>
+    <location>c:/users/ansh/desktop/web/mesh/packages/cli/src/commands/**</location>
+    <purpose>14 files, 0 functions</purpose>
+    <entry_points>
+      <function signature="registerCiCommand(program) [c:/users/ansh/desktop/web/mesh/packages/cli/src/commands/ci.ts:10]" purpose="Register ci command (program)" />
+      <function signature="buildGraphFromLock(lock) [c:/users/ansh/desktop/web/mesh/packages/cli/src/commands/ci.ts:100]" purpose="Build graph from lock (lock)" />
+      <function signature="registerAdrCommand(program) [c:/users/ansh/desktop/web/mesh/packages/cli/src/commands/adr.ts:6]" purpose="Register adr command (program)" />
+      <function signature="getManager() [c:/users/ansh/desktop/web/mesh/packages/cli/src/commands/adr.ts:11]" purpose="Get manager" />
+      <function signature="findWorkspaceRoot(start) [c:/users/ansh/desktop/web/mesh/packages/cli/src/commands/analyze.ts:10]" purpose="Find workspace root (start)" />
+    </entry_points>
+  </module>
+  <module id="packages-core-graph">
+    <name>Storage</name>
+    <location>c:/users/ansh/desktop/web/mesh/packages/core/src/graph/**</location>
+    <purpose>10 files, 0 functions</purpose>
+    <entry_points>
+      <function signature="ConfidenceEngine.constructor(graph) [c:/users/ansh/desktop/web/mesh/packages/core/src/graph/confidence-engine.ts:18]" purpose="Confidence engine.constructor (graph)" />
+      <function signature="ConfidenceEngine.calculatePathConfidence(pathIds) [c:/users/ansh/desktop/web/mesh/packages/core/src/graph/confidence-engine.ts:27]" purpose="Confidence engine.calculate path confidence (pathIds)" />
+      <function signature="ConfidenceEngine.calculateNodeAggregatedConfidence(paths) [c:/users/ansh/desktop/web/mesh/packages/core/src/graph/confidence-engine.ts:78]" purpose="Confidence engine.calculate node aggregated confidence (paths)" />
+      <function signature="ImpactAnalyzer.constructor(graph) [c:/users/ansh/desktop/web/mesh/packages/core/src/graph/impact-analyzer.ts:14]" purpose="Impact analyzer.constructor (graph)" />
+      <function signature="ImpactAnalyzer.analyze(changedNodeIds) [c:/users/ansh/desktop/web/mesh/packages/core/src/graph/impact-analyzer.ts:20]" purpose="Impact analyzer.analyze (changedNodeIds)" />
+    </entry_points>
+  </module>
   <module id="packages-core-hash">
     <name>Database & Providers</name>
     <location>c:/users/ansh/desktop/web/mesh/packages/core/src/hash/**</location>
     <purpose>4 files, 0 functions</purpose>
     <entry_points>
-      <function signature="computeModuleHash(fileHashes) [c:/users/ansh/desktop/web/mesh/packages/core/src/hash/tree-hasher.ts:7]" purpose="Compute module hash (fileHashes)" />
-      <function signature="computeRootHash(moduleHashes) [c:/users/ansh/desktop/web/mesh/packages/core/src/hash/tree-hasher.ts:15]" purpose="Compute root hash (moduleHashes)" />
+      <function signature="hashContent(content) [c:/users/ansh/desktop/web/mesh/packages/core/src/hash/file-hasher.ts:7]" purpose="Hash content (content)" />
+      <function signature="async hashFile(filePath) [c:/users/ansh/desktop/web/mesh/packages/core/src/hash/file-hasher.ts:14]" purpose="Hash file (filePath)" />
+      <function signature="hashFunctionBody(fileContent, startLine, endLine) [c:/users/ansh/desktop/web/mesh/packages/core/src/hash/file-hasher.ts:22]" purpose="Hash function body (fileContent, startLine, endLine)" />
       <function signature="HashStore.constructor(projectRoot) [c:/users/ansh/desktop/web/mesh/packages/core/src/hash/hash-store.ts:25]" purpose="Hash store.constructor (projectRoot)" />
       <function signature="HashStore.openDatabase(dbPath) [c:/users/ansh/desktop/web/mesh/packages/core/src/hash/hash-store.ts:38]" purpose="Hash store.open database (dbPath)" />
-      <function signature="HashStore.get(filePath) [c:/users/ansh/desktop/web/mesh/packages/core/src/hash/hash-store.ts:60]" purpose="Hash store.get (filePath)" />
     </entry_points>
   </module>
-  <module id="packages-core-parser">
-    <name>Storage & Logging</name>
-    <location>c:/users/ansh/desktop/web/mesh/packages/core/src/parser/**</location>
-    <purpose>8 files, 0 functions</purpose>
+  <module id="packages-core-search">
+    <name>Search & Authentication</name>
+    <location>c:/users/ansh/desktop/web/mesh/packages/core/src/search/**</location>
+    <purpose>2 files, 0 functions</purpose>
     <entry_points>
-      <function signature="makeAllocator(filePath) [c:/users/ansh/desktop/web/mesh/packages/core/src/parser/oxc-parser.ts:56]" purpose="Make allocator (filePath)" />
-      <function signature="isDirectlyExported(parent) [c:/users/ansh/desktop/web/mesh/packages/core/src/parser/oxc-parser.ts:71]" purpose="Check if directly exported (parent)" />
-      <function signature="normalizeCallee(node) [c:/users/ansh/desktop/web/mesh/packages/core/src/parser/oxc-parser.ts:88]" purpose="Normalize callee (node)" />
-      <function signature="resolvePropertyName(node) [c:/users/ansh/desktop/web/mesh/packages/core/src/parser/oxc-parser.ts:95]" purpose="Resolve property name (node)" />
-      <function signature="resolveObjectName(node) [c:/users/ansh/desktop/web/mesh/packages/core/src/parser/oxc-parser.ts:105]" purpose="Resolve object name (node)" />
+      <function signature="reciprocalRankFusion(rankedLists) [c:/users/ansh/desktop/web/mesh/packages/core/src/search/bm25.ts:127]" purpose="Reciprocal rank fusion (rankedLists)" />
+      <function signature="tokenize(text) [c:/users/ansh/desktop/web/mesh/packages/core/src/search/bm25.ts:155]" purpose="Tokenize (text)" />
+      <function signature="buildFunctionTokens(fn) [c:/users/ansh/desktop/web/mesh/packages/core/src/search/bm25.ts:180]" purpose="Build function tokens (fn)" />
+      <function signature="BM25Index.clear() [c:/users/ansh/desktop/web/mesh/packages/core/src/search/bm25.ts:49]" purpose="Bm25 index.clear" />
+      <function signature="BM25Index.addDocument(id, tokens) [c:/users/ansh/desktop/web/mesh/packages/core/src/search/bm25.ts:57]" purpose="Bm25 index.add document (id, tokens)" />
     </entry_points>
   </module>
   <module id="packages-core-utils">
@@ -256,47 +268,28 @@
       <function signature="UnsupportedLanguageError.constructor(ext) [c:/users/ansh/desktop/web/mesh/packages/core/src/utils/errors.ts:27]" purpose="Unsupported language error.constructor (ext)" />
     </entry_points>
   </module>
+  <module id="packages-core-parser">
+    <name>Storage & Logging</name>
+    <location>c:/users/ansh/desktop/web/mesh/packages/core/src/parser/**</location>
+    <purpose>8 files, 0 functions</purpose>
+    <entry_points>
+      <function signature="ChangeDetector.detectSymbolChanges(oldFile, newFile) [c:/users/ansh/desktop/web/mesh/packages/core/src/parser/change-detector.ts:18]" purpose="Change detector.detect symbol changes (oldFile, newFile)" />
+      <function signature="ChangeDetector.detectBatchChanges(oldFiles, newFiles) [c:/users/ansh/desktop/web/mesh/packages/core/src/parser/change-detector.ts:85]" purpose="Change detector.detect batch changes (oldFiles, newFiles)" />
+      <function signature="stripPrefix(s) [c:/users/ansh/desktop/web/mesh/packages/core/src/parser/boundary-checker.ts:26]" purpose="Strip prefix (s)" />
+      <function signature="parseList(raw) [c:/users/ansh/desktop/web/mesh/packages/core/src/parser/boundary-checker.ts:30]" purpose="Parse list (raw)" />
+      <function signature="parseConstraint(constraint) [c:/users/ansh/desktop/web/mesh/packages/core/src/parser/boundary-checker.ts:34]" purpose="Parse constraint (constraint)" />
+    </entry_points>
+  </module>
   <module id="packages-diagram-generator-generators">
     <name>Storage & CLI</name>
     <location>c:/users/ansh/desktop/web/mesh/packages/diagram-generator/src/generators/**</location>
     <purpose>8 files, 0 functions</purpose>
     <entry_points>
+      <function signature="CommandsDiagramGenerator.constructor(_contract?, _lock?) [c:/users/ansh/desktop/web/mesh/packages/diagram-generator/src/generators/commands-diagram.ts:9]" purpose="Commands diagram generator.constructor (_contract, _lock)" />
+      <function signature="CommandsDiagramGenerator.generate() [c:/users/ansh/desktop/web/mesh/packages/diagram-generator/src/generators/commands-diagram.ts:14]" purpose="Commands diagram generator.generate" />
       <function signature="CapsuleDiagramGenerator.constructor(contract, lock) [c:/users/ansh/desktop/web/mesh/packages/diagram-generator/src/generators/capsule-diagram.ts:9]" purpose="Capsule diagram generator.constructor (contract, lock)" />
       <function signature="CapsuleDiagramGenerator.generate(moduleId) [c:/users/ansh/desktop/web/mesh/packages/diagram-generator/src/generators/capsule-diagram.ts:14]" purpose="Capsule diagram generator.generate (moduleId)" />
       <function signature="CapsuleDiagramGenerator.sanitizeId(id) [c:/users/ansh/desktop/web/mesh/packages/diagram-generator/src/generators/capsule-diagram.ts:91]" purpose="Capsule diagram generator.sanitize id (id)" />
-      <function signature="FlowDiagramGenerator.constructor(lock) [c:/users/ansh/desktop/web/mesh/packages/diagram-generator/src/generators/flow-diagram.ts:9]" purpose="Flow diagram generator.constructor (lock)" />
-      <function signature="FlowDiagramGenerator.generate(startFunctionId, maxDepth) [c:/users/ansh/desktop/web/mesh/packages/diagram-generator/src/generators/flow-diagram.ts:14]" purpose="Flow diagram generator.generate (startFunctionId, maxDepth)" />
-    </entry_points>
-  </module>
-  <module id="packages-core-search">
-    <name>Search & Authentication</name>
-    <location>c:/users/ansh/desktop/web/mesh/packages/core/src/search/**</location>
-    <purpose>2 files, 0 functions</purpose>
-    <entry_points>
-      <function signature="reciprocalRankFusion(rankedLists) [c:/users/ansh/desktop/web/mesh/packages/core/src/search/bm25.ts:120]" purpose="Reciprocal rank fusion (rankedLists)" />
-      <function signature="tokenize(text) [c:/users/ansh/desktop/web/mesh/packages/core/src/search/bm25.ts:148]" purpose="Tokenize (text)" />
-      <function signature="buildFunctionTokens(fn) [c:/users/ansh/desktop/web/mesh/packages/core/src/search/bm25.ts:173]" purpose="Build function tokens (fn)" />
-      <function signature="BM25Index.clear() [c:/users/ansh/desktop/web/mesh/packages/core/src/search/bm25.ts:49]" purpose="Bm25 index.clear" />
-      <function signature="BM25Index.addDocument(id, tokens) [c:/users/ansh/desktop/web/mesh/packages/core/src/search/bm25.ts:57]" purpose="Bm25 index.add document (id, tokens)" />
-    </entry_points>
-  </module>
-  <module id="app-api-feedback">
-    <name>Blog & Database</name>
-    <location>c:/users/ansh/desktop/web/mesh/apps/web/app/api/feedback/**</location>
-    <purpose>1 files, 0 functions</purpose>
-    <entry_points>
-      <function signature="async getOctokit() [c:/users/ansh/desktop/web/mesh/apps/web/app/api/feedback/route.ts:36]" purpose="Get octokit" />
-      <function signature="async getRepoInfo(octokit) [c:/users/ansh/desktop/web/mesh/apps/web/app/api/feedback/route.ts:70]" purpose="Get repo info (octokit)" />
-      <function signature="async findDiscussion(octokit, title) [c:/users/ansh/desktop/web/mesh/apps/web/app/api/feedback/route.ts:106]" purpose="Find discussion (octokit, title)" />
-      <function signature="async POST(req) [c:/users/ansh/desktop/web/mesh/apps/web/app/api/feedback/route.ts:133]" purpose="Post (req)" />
-    </entry_points>
-  </module>
-  <module id="cli-commands-contract">
-    <name>CLI & Storage</name>
-    <location>c:/users/ansh/desktop/web/mesh/packages/cli/src/commands/contract/**</location>
-    <purpose>1 files, 0 functions</purpose>
-    <entry_points>
-      <function signature="registerContractCommands(program) [c:/users/ansh/desktop/web/mesh/packages/cli/src/commands/contract/index.ts:9]" purpose="Register contract commands (program)" />
     </entry_points>
   </module>
   <module id="core-parser-go">
@@ -311,16 +304,24 @@
       <function signature="parseGoFuncSignature(sig) [c:/users/ansh/desktop/web/mesh/packages/core/src/parser/go/go-extractor.ts:383]" purpose="Parse go func signature (sig)" />
     </entry_points>
   </module>
+  <module id="cli-commands-contract">
+    <name>CLI & Storage</name>
+    <location>c:/users/ansh/desktop/web/mesh/packages/cli/src/commands/contract/**</location>
+    <purpose>1 files, 0 functions</purpose>
+    <entry_points>
+      <function signature="registerContractCommands(program) [c:/users/ansh/desktop/web/mesh/packages/cli/src/commands/contract/index.ts:9]" purpose="Register contract commands (program)" />
+    </entry_points>
+  </module>
   <module id="core-parser-javascript">
     <name>Config & CLI</name>
     <location>c:/users/ansh/desktop/web/mesh/packages/core/src/parser/javascript/**</location>
     <purpose>3 files, 0 functions</purpose>
     <entry_points>
-      <function signature="walk(node) [c:/users/ansh/desktop/web/mesh/packages/core/src/parser/javascript/js-extractor.ts:63]" purpose="Walk (node)" />
-      <function signature="walk(node) [c:/users/ansh/desktop/web/mesh/packages/core/src/parser/javascript/js-extractor.ts:127]" purpose="Walk (node)" />
-      <function signature="walk(node) [c:/users/ansh/desktop/web/mesh/packages/core/src/parser/javascript/js-extractor.ts:194]" purpose="Walk (node)" />
-      <function signature="isModuleExports(node) [c:/users/ansh/desktop/web/mesh/packages/core/src/parser/javascript/js-extractor.ts:254]" purpose="Check if module exports (node)" />
-      <function signature="isExportsDotProp(node) [c:/users/ansh/desktop/web/mesh/packages/core/src/parser/javascript/js-extractor.ts:264]" purpose="Check if exports dot prop (node)" />
+      <function signature="loadAliases(projectRoot) [c:/users/ansh/desktop/web/mesh/packages/core/src/parser/javascript/js-parser.ts:81]" purpose="Load aliases (projectRoot)" />
+      <function signature="async JavaScriptParser.parse(filePath, content) [c:/users/ansh/desktop/web/mesh/packages/core/src/parser/javascript/js-parser.ts:18]" purpose="Java script parser.parse (filePath, content)" />
+      <function signature="JavaScriptParser.resolveImports(files, projectRoot) [c:/users/ansh/desktop/web/mesh/packages/core/src/parser/javascript/js-parser.ts:58]" purpose="Java script parser.resolve imports (files, projectRoot)" />
+      <function signature="JavaScriptParser.getSupportedExtensions() [c:/users/ansh/desktop/web/mesh/packages/core/src/parser/javascript/js-parser.ts:71]" purpose="Java script parser.get supported extensions" />
+      <function signature="JavaScriptResolver.constructor(projectRoot, aliases) [c:/users/ansh/desktop/web/mesh/packages/core/src/parser/javascript/js-resolver.ts:21]" purpose="Java script resolver.constructor (projectRoot, aliases)" />
     </entry_points>
   </module>
   <module id="core-parser-tree-sitter">
@@ -340,478 +341,24 @@
     <location>c:/users/ansh/desktop/web/mesh/packages/core/src/parser/typescript/**</location>
     <purpose>3 files, 0 functions</purpose>
     <entry_points>
-      <function signature="walk(n) [c:/users/ansh/desktop/web/mesh/packages/core/src/parser/typescript/ts-extractor.ts:353]" purpose="Walk (n)" />
-      <function signature="walk(n) [c:/users/ansh/desktop/web/mesh/packages/core/src/parser/typescript/ts-extractor.ts:413]" purpose="Walk (n)" />
-      <function signature="walk(n) [c:/users/ansh/desktop/web/mesh/packages/core/src/parser/typescript/ts-extractor.ts:425]" purpose="Walk (n)" />
-      <function signature="TypeScriptExtractor.constructor(filePath, content) [c:/users/ansh/desktop/web/mesh/packages/core/src/parser/typescript/ts-extractor.ts:19]" purpose="Type script extractor.constructor (filePath, content)" />
-      <function signature="TypeScriptExtractor.inferScriptKind(filePath) [c:/users/ansh/desktop/web/mesh/packages/core/src/parser/typescript/ts-extractor.ts:32]" purpose="Type script extractor.infer script kind (filePath)" />
+      <function signature="TypeScriptResolver.constructor(projectRoot, tsConfigPaths?) [c:/users/ansh/desktop/web/mesh/packages/core/src/parser/typescript/ts-resolver.ts:22]" purpose="Type script resolver.constructor (projectRoot, tsConfigPaths)" />
+      <function signature="TypeScriptResolver.resolveBatch(files) [c:/users/ansh/desktop/web/mesh/packages/core/src/parser/typescript/ts-resolver.ts:30]" purpose="Type script resolver.resolve batch (files)" />
+      <function signature="TypeScriptResolver.resolve(imp, fromFile, allProjectFiles) [c:/users/ansh/desktop/web/mesh/packages/core/src/parser/typescript/ts-resolver.ts:40]" purpose="Type script resolver.resolve (imp, fromFile, allProjectFiles)" />
+      <function signature="TypeScriptResolver.resolveAll(imports, fromFile, allProjectFiles) [c:/users/ansh/desktop/web/mesh/packages/core/src/parser/typescript/ts-resolver.ts:52]" purpose="Type script resolver.resolve all (imports, fromFile, allProjectFiles)" />
+      <function signature="TypeScriptResolver.resolvePath(source, fromFile, fileSet) [c:/users/ansh/desktop/web/mesh/packages/core/src/parser/typescript/ts-resolver.ts:66]" purpose="Type script resolver.resolve path (source, fromFile, fileSet)" />
+    </entry_points>
+  </module>
+  <module id="app-api-feedback">
+    <name>Blog & Database</name>
+    <location>c:/users/ansh/desktop/web/mesh/apps/web/app/api/feedback/**</location>
+    <purpose>1 files, 0 functions</purpose>
+    <entry_points>
+      <function signature="async getOctokit() [c:/users/ansh/desktop/web/mesh/apps/web/app/api/feedback/route.ts:36]" purpose="Get octokit" />
+      <function signature="async getRepoInfo(octokit) [c:/users/ansh/desktop/web/mesh/apps/web/app/api/feedback/route.ts:70]" purpose="Get repo info (octokit)" />
+      <function signature="async findDiscussion(octokit, title) [c:/users/ansh/desktop/web/mesh/apps/web/app/api/feedback/route.ts:106]" purpose="Find discussion (octokit, title)" />
+      <function signature="async POST(req) [c:/users/ansh/desktop/web/mesh/apps/web/app/api/feedback/route.ts:133]" purpose="Post (req)" />
     </entry_points>
   </module>
 </modules>
-
-## Data Models & Schemas
-
-These files define the project's data structures, schemas, and configuration.
-They are auto-discovered and included verbatim from the source.
-
-### `packages/ai-context/src/types.ts` (types)
-
-```typescript
-import type { MikkContract, MikkLock, MikkLockFunction } from '@getmikk/core'
-
-/** The structured context object passed to AI models */
-export interface AIContext {
-    project: {
-        name: string
-        language: string
-        description: string
-        moduleCount: number
-        functionCount: number
-    }
-    modules: ContextModule[]
-    constraints: string[]
-    decisions: { title: string; reason: string }[]
-    /** Discovered schema/config/model files included verbatim */
-    contextFiles?: { path: string; content: string; type: string }[]
-    /** Detected HTTP route registrations */
-    routes?: { method: string; path: string; handler: string; middlewares: string[]; file: string; line: number }[]
-    prompt: string
-    /** Diagnostic info — helpful for debugging context quality */
-    meta: {
-        seedCount: number
-        totalFunctionsConsidered: number
-        selectedFunctions: number
-        estimatedTokens: number
-        keywords: string[]
-        reasons?: string[]
-        suggestions?: string[]
-    }
-}
-
-export interface ContextModule {
-    id: string
-    name: string
-    description: string
-    intent?: string
-    functions: ContextFunction[]
-    files: string[]
-}
-
-export interface ContextFunction {
-    name: string
-    file: string
-    startLine: number
-    endLine: number
-    calls: string[]
-    calledBy: string[]
-    params?: { name: string; type: string; optional?: boolean }[]
-    returnType?: string
-    isAsync?: boolean
-    isExported?: boolean
-    purpose?: string
-    errorHandling?: string[]
-    edgeCases?: string[]
-    /** The actual source code body (only included for top-scored functions) */
-    body?: string
-}
-
-/** Query options for context generation */
-export interface ContextQuery {
-    /** The user's task description — the primary relevance signal */
-    task: string
-    /** Specific files to anchor the graph traversal from */
-    focusFiles?: string[]
-    /** Specific modules to include */
-    focusModules?: string[]
-    /** Max functions to include in output (hard cap) */
-    maxFunctions?: number
-    /** Max BFS hops from seed nodes (default 4) */
-    maxHops?: number
-    /** Approximate token budget for function listings (default 6000) */
-    tokenBudget?: number
-    /** Include call graph arrows (default true) */
-    includeCallGraph?: boolean
-    /** Include function bodies for top-scored functions (default true) */
-    includeBodies?: boolean
-    /** Relevance mode: balanced (default) or strict (high-precision filtering) */
-    relevanceMode?: 'balanced' | 'strict'
-    /** Additional required terms (comma-separated in CLI) that must be respected */
-    requiredKeywords?: string[]
-    /** In strict mode, require all extracted/required keywords to match */
-    requireAllKeywords?: boolean
-    /** Minimum number of matched keywords required in strict mode (default 1) */
-    minKeywordMatches?: number
-    /** Hard gate in strict mode: final output keeps only strict keyword matches */
-    exactOnly?: boolean
-    /** In strict mode, return empty context if no exact matches are found */
-    failFast?: boolean
-    /** Absolute filesystem path to the project root (needed for body reading) */
-    projectRoot?: string
-}
-
-/** Context provider interface for different AI platforms */
-export interface ContextProvider {
-    name: string
-    formatContext(context: AIContext): string
-    maxTokens: number
-}
-```
-
-### `packages/intent-engine/src/types.ts` (types)
-
-```typescript
-import { z } from 'zod'
-
-/** A single candidate intent parsed from user prompt */
-export const IntentSchema = z.object({
-    action: z.enum(['create', 'modify', 'delete', 'refactor', 'move']),
-    target: z.object({
-        type: z.enum(['function', 'file', 'module', 'class']),
-        name: z.string(),
-        moduleId: z.string().optional(),
-        filePath: z.string().optional(),
-    }),
-    reason: z.string(),
-    confidence: z.number().min(0).max(1),
-})
-
-export type Intent = z.infer<typeof IntentSchema>
-
-/** Result of conflict detection */
-export interface ConflictResult {
-    hasConflicts: boolean
-    conflicts: Conflict[]
-}
-
-export interface Conflict {
-    type: 'constraint-violation' | 'ownership-conflict' | 'boundary-crossing' | 'missing-dependency' | 'low-confidence'
-    severity: 'error' | 'warning'
-    message: string
-    relatedIntent: Intent
-    suggestedFix?: string
-}
-
-/** A suggestion for how to implement an intent */
-export interface Suggestion {
-    intent: Intent
-    affectedFiles: string[]
-    newFiles: string[]
-    estimatedImpact: number
-    implementation: string
-}
-
-export type DecisionStatus = 'APPROVED' | 'WARNING' | 'BLOCKED';
-
-export interface DecisionResult {
-    status: DecisionStatus
-    reasons: string[]
-    riskScore: number
-    impactNodes: number
-}
-
-export interface Explanation {
-    summary: string
-    details: string[]
-    riskBreakdown: {
-        symbol: string
-        reason: string
-        score: number
-    }[]
-}
-
-/** Configuration for the AI provider */
-export interface AIProviderConfig {
-    provider: 'anthropic' | 'openai' | 'local'
-    apiKey?: string
-    model?: string
-}
-
-/** Preflight result — the final output of the intent pipeline */
-export interface PreflightResult {
-    intents: Intent[]
-    conflicts: ConflictResult
-    suggestions: Suggestion[]
-    decision: DecisionResult
-    explanation: Explanation
-    approved: boolean
-}
-```
-
-### `packages/watcher/src/types.ts` (types)
-
-```typescript
-/** File change event emitted when a source file is added, changed, or deleted */
-export interface FileChangeEvent {
-    type: 'added' | 'changed' | 'deleted'
-    path: string
-    oldHash: string | null
-    newHash: string | null
-    timestamp: number
-    affectedModuleIds: string[]
-}
-
-/** Configuration for the watcher */
-export interface WatcherConfig {
-    projectRoot: string
-    include: string[]    // ["src/**/*.ts"]
-    exclude: string[]    // ["node_modules", ".mikk", "dist"]
-    debounceMs: number   // 100
-}
-
-/** Typed watcher events */
-export type WatcherEvent =
-    | { type: 'file:changed'; data: FileChangeEvent }
-    | { type: 'module:updated'; data: { moduleId: string; newHash: string } }
-    | { type: 'graph:updated'; data: { changedNodes: string[]; impactedNodes: string[] } }
-    | { type: 'sync:clean'; data: { rootHash: string } }
-    | { type: 'sync:drifted'; data: { reason: string; affectedModules: string[] } }
-```
-
-### `packages/core/src/graph/types.ts` (types)
-
-```typescript
-export type NodeType =
-  | "file"
-  | "class"
-  | "function"
-  | "variable"
-  | "generic";
-
-export type EdgeType =
-  | "imports"
-  | "calls"
-  | "extends"
-  | "implements"
-  | "accesses"
-  | "contains"; // Keeping for containment edges
-
-export interface GraphNode {
-  id: string;              // unique (normalized file::name)
-  type: NodeType;
-  name: string;
-  file: string;
-  moduleId?: string;       // Original cluster feature
-
-  metadata?: {
-    isExported?: boolean;
-    inheritsFrom?: string[];
-    implements?: string[];
-    className?: string; // for methods
-    startLine?: number;
-    endLine?: number;
-    isAsync?: boolean;
-    hash?: string;
-    purpose?: string;
-    genericKind?: string;
-    params?: { name: string; type: string; optional?: boolean }[];
-    returnType?: string;
-    edgeCasesHandled?: string[];
-    errorHandling?: { line: number; type: 'try-catch' | 'throw'; detail: string }[];
-    detailedLines?: { startLine: number; endLine: number; blockType: string }[];
-  };
-}
-
-export interface GraphEdge {
-  from: string;
-  to: string;
-  type: EdgeType;
-  confidence: number; // 0–1
-  weight?: number;    // Weight from EDGE_WEIGHT constants
-}
-
-export interface DependencyGraph {
-  nodes: Map<string, GraphNode>;
-  edges: GraphEdge[];
-  outEdges: Map<string, GraphEdge[]>;   // node → [edges going out]
-  inEdges: Map<string, GraphEdge[]>;    // node → [edges coming in]
-}
-
-/**
- * Canonical ID helpers.
- * Function IDs:  fn:<absolute-posix-path>:<FunctionName>
- * Class IDs:     class:<absolute-posix-path>:<ClassName>
- * Type/enum IDs: type:<absolute-posix-path>:<Name> | enum:<absolute-posix-path>:<Name>
- * File IDs:      <absolute-posix-path>  (no prefix)
- *
- * NOTE: The old normalizeId() that used `file::name` (double-colon, lowercase)
- * was removed — it did not match any current ID format and would produce IDs
- * that never matched any graph node.
- */
-export function makeFnId(file: string, name: string): string {
-  return `fn:${file.replace(/\\/g, '/')}:${name}`;
-}
-
-export type RiskLevel = 'CRITICAL' | 'HIGH' | 'MEDIUM' | 'LOW';
-
-export interface ImpactResult {
-  changed: string[];
-  impacted: string[];
-  allImpacted: ClassifiedImpact[]; // New field for Decision Engine
-  depth: number;
-  entryPoints: string[];
-  criticalModules: string[];
-  paths: string[][];
-  confidence: number;
-  riskScore: number;
-  classified: {
-    critical: ClassifiedImpact[];
-    high: ClassifiedImpact[];
-    medium: ClassifiedImpact[];
-    low: ClassifiedImpact[];
-  };
-}
-
-export interface ClassifiedImpact {
-  nodeId: string;
-  label: string;
-  file: string;
-  risk: RiskLevel;
-  riskScore: number; // numeric score for precise policy checks
-  depth: number;
-}
-
-export interface ModuleCluster {
-  id: string;
-  files: string[];
-  confidence: number;
-  suggestedName: string;
-  functions: string[];
-}
-```
-
-### `packages/core/src/parser/types.ts` (types)
-
-```typescript
-/**
- * Parser types — data shapes that flow through the entire Mikk system.
- */
-
-/** A single parameter in a function signature */
-export interface ParsedParam {
-  name: string;
-  type: string;
-  optional: boolean;
-  defaultValue?: string;
-}
-
-/** A single call expression found in code (Mikk 2.0) */
-export interface CallExpression {
-  name: string;
-  line: number;
-  type: 'function' | 'method' | 'property';
-  arguments?: string[];
-}
-
-/** A detailed function declaration */
-export interface ParsedFunction {
-  id: string;              // unique normalized ID (file::name)
-  name: string;
-  file: string;
-  moduleId?: string;
-  startLine: number;
-  endLine: number;
-  params: ParsedParam[];
-  returnType: string;
-  isExported: boolean;
-  isAsync: boolean;
-  isGenerator?: boolean;
-  typeParameters?: string[];
-  calls: CallExpression[]; // Behavioral tracking (Upgraded from string[])
-  hash: string;
-  purpose: string;
-  edgeCasesHandled: string[];
-  errorHandling: { line: number; type: 'try-catch' | 'throw'; detail: string }[];
-  detailedLines: { startLine: number; endLine: number; blockType: string }[];
-}
-
-/** A single import statement */
-export interface ParsedImport {
-  source: string;
-  resolvedPath: string;
-  names: string[];
-  isDefault: boolean;
-  isDynamic: boolean;
-}
-
-/** A single exported symbol */
-export interface ParsedExport {
-  name: string;
-  type: 'function' | 'class' | 'const' | 'type' | 'default' | 'interface' | 'variable';
-  file: string;
-}
-
-/** A single variable or property */
-export interface ParsedVariable {
-  id: string;
-  name: string;
-  type: string;
-  file: string;
-  line: number;
-  isExported: boolean;
-  isStatic?: boolean;
-  purpose?: string;
-}
-
-/** A parsed class */
-export interface ParsedClass {
-  id: string;
-  name: string;
-  file: string;
-  moduleId?: string;
-  startLine: number;
-  endLine: number;
-  methods: ParsedFunction[];
-  properties: ParsedVariable[];
-  extends?: string;
-  implements?: string[];
-  isExported: boolean;
-  decorators?: string[];
-  typeParameters?: string[];
-  hash: string;
-  purpose?: string;
-  edgeCasesHandled?: string[];
-  errorHandling?: { line: number; type: 'try-catch' | 'throw'; detail: string }[];
-}
-
-/** A generic declaration (interface, type aliase, etc.) */
-export interface ParsedGeneric {
-  id: string;
-  name: string;
-  type: string; // "interface" | "type"
-  file: string;
-  startLine: number;
-  endLine: number;
-  isExported: boolean;
-  typeParameters?: string[];
-  hash: string;
-  purpose?: string;
-}
-
-/** A detected HTTP route registration */
-export interface ParsedRoute {
-  method: string;
-  path: string;
-  handler: string;
-  middlewares: string[];
-  file: string;
-  line: number;
-}
-
-/** Everything extracted from a single file */
-export interface ParsedFile {
-  path: string;            // normalized absolute path
-  language: 'python' | 'go' | 'typescript' | 'javascript' | 'java' | 'c' | 'cpp' | 'csharp' | 'rust' | 'php' | 'ruby' | 'unknown';
-  functions: ParsedFunction[];
-  classes: ParsedClass[];
-  variables: ParsedVariable[];
-  generics: ParsedGeneric[];
-  imports: ParsedImport[];
-  exports: ParsedExport[];
-  routes: ParsedRoute[];
-  calls: CallExpression[]; // module-level calls
-  hash: string;
-  parsedAt: number;
-}
-```
 
 

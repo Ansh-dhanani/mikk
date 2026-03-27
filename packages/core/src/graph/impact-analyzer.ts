@@ -50,8 +50,8 @@ export class ImpactAnalyzer {
 
             const dependents = this.graph.inEdges.get(current) || [];
             for (const edge of dependents) {
-                if (edge.type === 'contains') continue;
-                // Use pathSet (O(1) lookup) instead of path.includes() (O(depth))
+                // Allow 'contains' edges so if a function is changed, the file it belongs to is impacted, 
+                // which then allows traversing 'imports' edges from other files.
                 if (!pathSet.has(edge.from)) {
                     const newPathSet = new Set(pathSet);
                     newPathSet.add(edge.from);
@@ -65,7 +65,9 @@ export class ImpactAnalyzer {
             }
         }
 
-        const impactedIds = Array.from(visited.keys()).filter(id => !changedNodeIds.includes(id));
+        const impactedIds = Array.from(visited.keys()).filter(id => 
+            !changedNodeIds.includes(id) && id.startsWith('fn:')
+        );
         
         let totalRisk = 0;
         let totalConfidence = 0;

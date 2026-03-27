@@ -1,60 +1,85 @@
 import type { DependencyGraph } from './types.js'
 
 /**
- * Mikk 2.0: Confidence Engine
- * Computes the reliability of impact paths using a decay-based formula.
- * Base edge confidences (direct call = 1.0, fuzzy match = 0.6) are
- * multiplied along the path to determine full path confidence.
+ * ConfidenceEngine — computes path-confidence for impact analysis results.
+ *
+ * ImpactAnalyzer builds paths by walking BACKWARDS through `inEdges`
+ * (dependent → dependency direction).  After the BFS the paths are
+ * stored in forward-traversal order (changed-node → impacted-node).
+ *
+ * To find the edge between two consecutive path nodes we must therefore
+ * look in `inEdges[next]` for an edge whose `.from === current`, which is
+ * the same as looking in `outEdges[current]` for an edge whose `.to === next`.
+ * We prefer `outEdges` because it gives O(out-degree) scans instead of
+ * O(in-degree), but we fall back to `inEdges` so the engine is correct
+ * regardless of traversal direction stored in the path.
  */
 export class ConfidenceEngine {
     constructor(private graph: DependencyGraph) {}
 
     /**
-     * Compute confidence decay along a specific path of node IDs.
+     * Compute confidence along a specific ordered path of node IDs.
+     *
      * @param pathIds Array of node IDs forming a path (e.g. ['A', 'B', 'C'])
-     * @returns Cumulative confidence score from 0.0 to 1.0
+     *                in forward (caller → callee) order.
+     * @returns Cumulative confidence from 0.0 to 1.0; 1.0 for trivial paths.
      */
-    public calculatePathConfidence(pathIds: string[]): number {
-        if (pathIds.length < 2) return 1.0;
+    calculatePathConfidence(pathIds: string[]): number {
+        if (pathIds.length < 2) return 1.0
 
-        let totalConfidence = 1.0;
+        let totalConfidence = 1.0
 
         for (let i = 0; i < pathIds.length - 1; i++) {
-            const current = pathIds[i];
-            const next = pathIds[i + 1];
+            const current = pathIds[i]
+            const next    = pathIds[i + 1]
 
-            const outEdges = this.graph.outEdges.get(current) || [];
-            // Find the highest confidence edge connecting current -> next
-            let maxEdgeConfidence = 0.0;
-            
-            for (const edge of outEdges) {
-                if (edge.to === next) {
-                    if (edge.confidence > maxEdgeConfidence) {
-                        maxEdgeConfidence = edge.confidence;
+            // Prefer outEdges[current] for O(out-degree) look-up
+            const edges = this.graph.outEdges.get(current)
+                ?? this.graph.inEdges.get(next)   // fallback: scan inEdges of the next node
+                ?? []
+
+            let maxEdgeConfidence = 0.0
+            for (const edge of edges) {
+                // outEdges: edge.from === current, edge.to === next
+                // inEdges:  edge.to   === next,    edge.from === current
+                if (edge.to === next && edge.from === current) {
+                    if ((edge.confidence ?? 1.0) > maxEdgeConfidence) {
+                        maxEdgeConfidence = edge.confidence ?? 1.0
                     }
                 }
             }
 
             if (maxEdgeConfidence === 0.0) {
-                return 0.0; // Path is broken or no valid edge
+                // Try inEdges[next] if outEdges produced no match
+                const inbound = this.graph.inEdges.get(next) ?? []
+                for (const edge of inbound) {
+                    if (edge.from === current) {
+                        if ((edge.confidence ?? 1.0) > maxEdgeConfidence) {
+                            maxEdgeConfidence = edge.confidence ?? 1.0
+                        }
+                    }
+                }
             }
 
-            totalConfidence *= maxEdgeConfidence;
+            if (maxEdgeConfidence === 0.0) {
+                // No edge found in either direction — path is broken or unresolvable
+                return 0.0
+            }
+
+            totalConfidence *= maxEdgeConfidence
         }
 
-        return totalConfidence;
+        return totalConfidence
     }
 
     /**
-     * Calculates the overall aggregated confidence for a target node
-     * by averaging the confidence of all paths leading to it.
+     * Average confidence across all paths leading to a target node.
      */
-    public calculateNodeAggregatedConfidence(paths: string[][]): number {
-        if (paths.length === 0) return 1.0;
-        
-        const pathConfidences = paths.map(path => this.calculatePathConfidence(path));
-        const sum = pathConfidences.reduce((a, b) => a + b, 0);
-        
-        return Number((sum / paths.length).toFixed(3));
+    calculateNodeAggregatedConfidence(paths: string[][]): number {
+        if (paths.length === 0) return 1.0
+
+        const pathConfidences = paths.map(p => this.calculatePathConfidence(p))
+        const sum = pathConfidences.reduce((a, b) => a + b, 0)
+        return Number((sum / paths.length).toFixed(3))
     }
 }

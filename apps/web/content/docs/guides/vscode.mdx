@@ -1,10 +1,10 @@
 ---
 title: VS Code Extension
-description: The Mikk VS Code extension brings codebase intelligence directly into your editor — module tree, impact analysis, AI context, and MCP integration.
+description: The Mikk VS Code extension brings codebase intelligence directly into your editor — module tree, impact analysis, contract status, and MCP integration.
 ---
 
 <Callout title="The extension reads from mikk.lock.json" type="info">
-  All extension features are powered by the pre-computed lock file. Run `mikk init` or `mikk watch` first to generate it.
+  All extension features are powered by the pre-computed lock file. Run `mikk init` or `mikk watch` first to generate it. The extension auto-refreshes when `mikk.lock.json` or `mikk.json` changes on disk.
 </Callout>
 
 ## Installation
@@ -30,59 +30,49 @@ description: The Mikk VS Code extension brings codebase intelligence directly in
     The extension activates automatically when it detects `mikk.lock.json` in the workspace root.
   </Step>
   <Step>
-    ### Connect to GitHub Copilot (optional)
+    ### (Optional) Connect to GitHub Copilot
 
-    Run the MCP server and add the connection in VS Code settings:
+    Register Mikk's MCP server with VS Code:
 
     ```bash
     mikk mcp install --tool vscode
     ```
+
+    This adds Mikk's 22 tools to GitHub Copilot Chat so you can use `@mikk` directly.
   </Step>
 </Steps>
 
 ## Features
 
 <Cards>
-  <Card title="Module Tree" description="Sidebar view showing all detected modules, their file counts, and public API surfaces." />
-  <Card title="Impact Analysis" description="Right-click any file → 'Show Impact' to see the full blast radius before editing." />
-  <Card title="AI Context" description="Generate a token-budgeted context payload for the current file or selection." />
-  <Card title="Contract Status" description="Status bar indicator showing current violation count. Click to see full validation output." />
-  <Card title="Function Peek" description="Hover any function call to see its signature, module, and callers inline." />
-  <Card title="MCP Integration" description="Connects Mikk's 18 MCP tools directly to GitHub Copilot Chat." />
+  <Card title="Module Tree" description="Sidebar view showing all detected modules, their file counts, function counts, and public API surfaces. Click any function to jump to definition." />
+  <Card title="Functions Explorer" description="Searchable list of all functions in the workspace with inline metadata — module, line range, exported status." />
+  <Card title="Health Dashboard" description="Contract violation count, sync status, and constraint results in a dedicated sidebar panel." />
+  <Card title="Smart Status Bar" description="Live sync state indicator in the status bar. Green = clean, yellow = drifted, red = violations. Click to run mikk analyze." />
+  <Card title="Impact Analysis" description="Right-click any file → 'Show Impact' to see the full blast radius before editing — classified by severity." />
+  <Card title="MCP Integration" description="Connects Mikk's 22 MCP tools directly to GitHub Copilot Chat via @mikk." />
 </Cards>
 
 ## Commands
 
-All commands are available via the Command Palette (`Ctrl+Shift+P` / `Cmd+Shift+P`):
+All commands available via the Command Palette (`Ctrl+Shift+P` / `Cmd+Shift+P`):
 
 <TypeTable
   type={{
-    "Mikk: Show Module Tree": {
-      description: "Open the module tree sidebar view.",
+    "Mikk: Analyze": {
+      description: "Re-run mikk analyze on the current workspace. Updates lock file, diagrams, and context files.",
       type: "command",
     },
-    "Mikk: Analyze Current File": {
-      description: "Run impact analysis on the currently open file.",
-      type: "command",
-    },
-    "Mikk: Build Context for Task": {
-      description: "Open a prompt to enter a task description and generate a context payload.",
+    "Mikk: Show Diagram": {
+      description: "Open the main.mmd Mermaid architecture diagram. Install 'Mermaid Preview' extension to visualize.",
       type: "command",
     },
     "Mikk: Validate Contracts": {
-      description: "Run full contract validation and show violations in the Problems panel.",
-      type: "command",
-    },
-    "Mikk: Re-analyze Workspace": {
-      description: "Trigger a full mikk analyze run on the workspace.",
+      description: "Run full contract validation and surface violations.",
       type: "command",
     },
     "Mikk: Start Watcher": {
       description: "Start the mikk watch daemon for the current workspace.",
-      type: "command",
-    },
-    "Mikk: Open Architecture Diagram": {
-      description: "Open the main.mmd Mermaid diagram in a preview panel.",
       type: "command",
     },
   }}
@@ -90,9 +80,9 @@ All commands are available via the Command Palette (`Ctrl+Shift+P` / `Cmd+Shift+
 
 ## Sidebar Views
 
-The extension adds two sidebar panels to the Explorer:
+The extension adds three sidebar panels:
 
-### Module Tree
+### Module Tree (`mikkModules`)
 
 ```
 📦 MIKK MODULES
@@ -106,29 +96,45 @@ The extension adds two sidebar panels to the Explorer:
   └── api (24 files)
 ```
 
-### Contract Status
+### Functions Explorer (`mikkFunctions`)
+
+Searchable, filterable list of all tracked functions — click to jump to source.
+
+### Health Dashboard (`mikkHealth`)
 
 ```
-⚡ ARCHITECTURE CONTRACTS
+⚡ ARCHITECTURE HEALTH
   ✅ auth — 0 violations
   ✅ payments — 0 violations
   ❌ api — 1 violation
      api/routes.ts imports db directly (Rule: no-call["db"])
+
+  Sync: ✅ Clean (last: 2 minutes ago)
 ```
 
 ## MCP Integration with Copilot
 
-When `mikk mcp install --tool vscode` is run, the extension registers Mikk's MCP tools with GitHub Copilot Chat. You can then ask Copilot:
+When `mikk mcp install --tool vscode` is run, Mikk's 22 tools are registered with GitHub Copilot Chat:
 
 ```
 @mikk What breaks if I change src/auth/login.ts?
 @mikk Build context for: "Add rate limiting to the API layer"
-@mikk Validate the architecture before I start this refactor
+@mikk Is it safe to rename verifyToken to validateJwt?
+@mikk Show me dead code in the auth module
 ```
 
 <Callout type="success">
-  This gives Copilot the same real architectural grounding as Claude Desktop — module boundaries, exact function locations, and constraint rules — directly in VS Code.
+  This gives Copilot the same real architectural grounding as Claude Desktop — module boundaries,
+  exact function locations, constraint rules, and pre-edit safety validation — directly in VS Code.
 </Callout>
+
+## File Watcher Integration
+
+The extension watches both `mikk.lock.json` and `mikk.json` for changes and automatically refreshes all views — no manual reload needed. This means:
+
+- Running `mikk analyze` from the terminal immediately updates all sidebar panels
+- Saving `mikk.json` (e.g. adding a constraint) immediately reflects in the Health view
+- The status bar indicator stays current without polling
 
 ## Building from Source
 
@@ -136,7 +142,7 @@ When `mikk mcp install --tool vscode` is run, the extension registers Mikk's MCP
 git clone https://github.com/getmikk/mesh
 cd packages/vscode-extension
 bun install
-bun run compile
+bun run build
 ```
 
-Then press `F5` in VS Code to launch the extension in a development host window.
+Then press `F5` in VS Code to launch the extension in a development Extension Host window.

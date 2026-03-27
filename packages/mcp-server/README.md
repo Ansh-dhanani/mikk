@@ -70,7 +70,7 @@ mikk-mcp /path/to/project
 
 ---
 
-## Tools (15)
+## Tools (22)
 
 All tools read from the lock file (`mikk.lock.json`) — fast, no re-parsing.
 
@@ -92,6 +92,12 @@ All tools read from the lock file (`mikk.lock.json`) — fast, no re-parsing.
 | `mikk_get_file` | Read raw source of any project file (with path traversal guard) |
 | `mikk_read_file` | Read raw source, scoped only to specific functions to save token context |
 | `mikk_get_routes` | Detected HTTP routes (Express / Koa / Hono style) |
+| `mikk_rename` | Coordinated multi-file rename plan (definition + call sites + imports) |
+| `mikk_git_diff_impact` | Map git diff hunks to affected symbols (added/modified/deleted) |
+| `mikk_manage_adr` | CRUD for Architectural Decision Records (ADRs) stored in `mikk.json` |
+| `mikk_dead_code` | Detect dead code (functions with zero callers after exemptions) |
+| `mikk_token_stats` | Session token savings and efficiency estimates |
+| `mikk_test_tool` | Simple test tool for verifying MCP connectivity |
 
 ### Staleness warning
 

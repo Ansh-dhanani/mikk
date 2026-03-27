@@ -194,14 +194,19 @@ export class ClusterDetector {
         }
         for (const [name, dupes] of nameCount) {
             if (dupes.length <= 1) continue
-            for (const cluster of dupes) {
+            for (let i = 0; i < dupes.length; i++) {
+                const cluster = dupes[i]
                 const segments = cluster.id.split('-')
                     .filter(s => s !== 'packages' && s !== 'apps' && s !== 'src')
                 const suffix = segments
                     .map(s => s.charAt(0).toUpperCase() + s.slice(1))
                     .join(' ')
-                if (suffix && suffix !== name) {
+                
+                if (suffix && suffix.toLowerCase() !== name.toLowerCase()) {
                     cluster.suggestedName = `${name} (${suffix})`
+                } else {
+                    // Force disambiguation using the already-deduplicated cluster.id
+                    cluster.suggestedName = `${name} (${cluster.id})`
                 }
             }
         }

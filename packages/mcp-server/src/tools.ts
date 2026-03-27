@@ -1,6 +1,6 @@
 import * as path from 'node:path'
 import * as fs from 'node:fs/promises'
-import { execSync } from 'node:child_process'
+import { execFile } from 'node:child_process'
 import { createHash } from 'node:crypto'
 import type { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js'
 import { z } from 'zod'
@@ -39,6 +39,11 @@ function invalidateCache(projectRoot: string): void {
 // Capped at MAX_SEARCHER_ROOTS to prevent unbounded memory growth in
 // long-running MCP sessions with many project roots.
 const MAX_SEARCHER_ROOTS = 5
+const MAX_QUERY_HOPS = 12
+const MAX_QUERY_TOKEN_BUDGET = 20_000
+const MAX_SOURCE_FILE_BYTES = 2 * 1024 * 1024
+const MAX_WALK_DIR_DEPTH = 10
+const MAX_WALK_FILES = 10_000
 function getSemanticSearcher(projectRoot: string): SemanticSearcher {
     let s = semanticSearchers.get(projectRoot)
     if (!s) {
@@ -70,14 +75,18 @@ const semanticSearchers = new Map<string, SemanticSearcher>()
 
 /** Quick-hash a file by reading first 8KB for fast drift detection */
 async function quickHashFile(filePath: string): Promise<string> {
+    let handle: Awaited<ReturnType<typeof fs.open>> | null = null
     try {
-        const handle = await fs.open(filePath, 'r')
+        handle = await fs.open(filePath, 'r')
         const buf = Buffer.alloc(8192)
         const { bytesRead } = await handle.read(buf, 0, 8192, 0)
-        await handle.close()
         return createHash('sha256').update(buf.subarray(0, bytesRead)).digest('hex').slice(0, 16)
     } catch {
         return 'unreadable'
+    } finally {
+        if (handle) {
+            try { await handle.close() } catch { /* best-effort close */ }
+        }
     }
 }
 
@@ -148,8 +157,8 @@ export function registerTools(server: McpServer, projectRoot: string) {
         'Ask an architecture question — returns graph-traced context with relevant functions, files, and call chains. Use this to understand how code flows through the project.',
         {
             question: z.string().describe('The architecture question or task description'),
-            maxHops: z.number().optional().default(4).describe('Graph traversal depth (default: 4)'),
-            tokenBudget: z.number().optional().default(6000).describe('Max tokens for function bodies (default: 6000)'),
+            maxHops: z.number().int().min(1).max(MAX_QUERY_HOPS).optional().default(4).describe('Graph traversal depth (default: 4)'),
+            tokenBudget: z.number().int().min(256).max(MAX_QUERY_TOKEN_BUDGET).optional().default(6000).describe('Max tokens for function bodies (default: 6000)'),
             focusFile: z.string().optional().describe('Anchor traversal from a specific file path'),
             focusModule: z.string().optional().describe('Anchor traversal from a specific module ID'),
             strict: z.boolean().optional().default(false).describe('High-precision mode: include only tightly relevant context'),
@@ -368,7 +377,7 @@ export function registerTools(server: McpServer, projectRoot: string) {
         'mikk_before_edit',
         'MANDATORY: Call BEFORE editing any file. Returns blast radius, exported functions at risk, constraint violations (6 rule types), and circular dependency warnings. WHEN TO USE: ALWAYS before modifying files. AFTER THIS: If constraintStatus is fail, redesign your approach. If pass, proceed with edits. TIP: Pass multiple files for combined blast radius.',
         {
-            files: z.array(z.string()).describe('The file paths (relative to project root) you are about to edit'),
+            files: z.array(z.string()).min(1).max(20).describe('The file paths (relative to project root) you are about to edit'),
         },
         async ({ files: filesToEdit }) => {
             const { contract, lock, staleness } = await loadContractAndLock(projectRoot)
@@ -569,7 +578,24 @@ export function registerTools(server: McpServer, projectRoot: string) {
                     const absPath = path.isAbsolute(fn.file)
                         ? fn.file
                         : path.join(projectRoot, fn.file)
-                    const fileContent = await fs.readFile(absPath, 'utf-8')
+                    const resolved = path.resolve(absPath)
+                    const rootResolved = path.resolve(projectRoot)
+                    if (!resolved.startsWith(rootResolved + path.sep) && resolved !== rootResolved) {
+                        throw new Error('Access denied')
+                    }
+
+                    const rel = path.relative(rootResolved, resolved).replace(/\\/g, '/')
+                    const allowlisted = new Set(['mikk.json', 'mikk.lock.json', 'package.json', 'tsconfig.json'])
+                    if (!(rel in lock.files) && !allowlisted.has(rel)) {
+                        throw new Error('Access denied')
+                    }
+
+                    const stat = await fs.stat(resolved)
+                    if (stat.size > MAX_SOURCE_FILE_BYTES) {
+                        throw new Error('File too large')
+                    }
+
+                    const fileContent = await fs.readFile(resolved, 'utf-8')
                     const lines = fileContent.split('\n')
                     body = lines.slice(fn.startLine - 1, fn.endLine).join('\n')
                 } catch { /* non-fatal — body may not be available */ }
@@ -605,8 +631,8 @@ export function registerTools(server: McpServer, projectRoot: string) {
         'mikk_semantic_search',
         'Find functions by meaning using local vector embeddings. Query "validate JWT" returns verifyToken ranked by cosine similarity. WHEN TO USE: When you dont know the function name but know what it does. Complements mikk_search_functions (keyword). AFTER THIS: Use mikk_get_function_detail on top matches. Requires @xenova/transformers (22MB model, downloads once).',
         {
-            query: z.string().describe('Natural-language description of what you are looking for (e.g. "validate a JWT token", "send an email notification")'),
-            topK: z.number().optional().default(10).describe('Number of results to return (default: 10)'),
+            query: z.string().min(1).max(500).describe('Natural-language description of what you are looking for (e.g. "validate a JWT token", "send an email notification")'),
+            topK: z.number().int().min(1).max(50).optional().default(10).describe('Number of results to return (default: 10)'),
         },
         async ({ query, topK }) => {
             const available = await SemanticSearcher.isAvailable()
@@ -631,8 +657,19 @@ export function registerTools(server: McpServer, projectRoot: string) {
             const { lock, staleness } = await loadContractAndLock(projectRoot)
             const searcher = getSemanticSearcher(projectRoot)
 
-            await searcher.index(lock)
-            const matches = await searcher.search(query, lock, topK)
+            let matches: Awaited<ReturnType<typeof searcher.search>>
+            try {
+                await searcher.index(lock)
+                matches = await searcher.search(query, lock, topK)
+            } catch (err: any) {
+                return {
+                    content: [{
+                        type: 'text' as const,
+                        text: `Semantic search failed: ${err?.message ?? String(err)}. Try mikk_search_functions as fallback.`,
+                    }],
+                    isError: true,
+                }
+            }
 
             const response = {
                 query,
@@ -644,6 +681,91 @@ export function registerTools(server: McpServer, projectRoot: string) {
             }
 
             return { content: [{ type: 'text' as const, text: JSON.stringify(response, null, 2) }] }
+        },
+    )
+
+
+    // TOOL: mikk_validate_edit (NEW - Uses IntentUnderstanding, AutoCorrection, SafetyGates)
+    server.tool(
+        'mikk_validate_edit',
+        'MANDATORY: Use BEFORE any edit. Combines intent analysis, impact assessment, auto-correction, and enforced safety gates. Tells you if edit is allowed, what breaks, and auto-fixes issues. WHEN TO USE: Always before modifying files. AFTER THIS: If allowed, proceed with edit. If blocked, follow nextSteps.',
+        {
+            files: z.array(z.string()).min(1).max(20).describe('Files you plan to edit (relative paths)'),
+            description: z.string().describe('What are you trying to accomplish?'),
+            commitMessage: z.string().optional().describe('Planned commit message (helps detect intent)'),
+            branchName: z.string().optional().describe('Current branch name (helps detect intent)'),
+            autoFix: z.boolean().optional().default(true).describe('Apply automatic fixes?'),
+        },
+        async ({ files, description, commitMessage, branchName, autoFix }) => {
+            const { contract, lock, staleness } = await loadContractAndLock(projectRoot)
+            const graph = buildGraphFromLock(lock)
+            
+            // Import new intent-engine capabilities
+            const { PreEditValidation } = await import('@getmikk/intent-engine')
+            
+            const validator = new PreEditValidation(contract, lock, graph, projectRoot)
+            
+            const proposal = {
+                files,
+                description,
+                author: 'AI Assistant',
+                intent: {
+                    commitMessage,
+                    branchName,
+                    filesChanged: files,
+                    changeType: 'unknown',
+                    confidence: 0.7
+                }
+            }
+            
+            const result = await validator.validate(proposal)
+            
+            // Build response
+            const response = {
+                allowed: result.allowed,
+                confidence: result.confidence,
+                
+                intent: {
+                    isIntentionalBreakingChange: result.intent.isIntentionalBreakingChange,
+                    confidence: result.intent.confidence,
+                    reasoning: result.intent.reasoning,
+                    riskAcceptance: result.intent.riskAcceptance
+                },
+                
+                impact: {
+                    totalFiles: result.impact.totalFiles,
+                    totalFunctions: result.impact.totalFunctions,
+                    riskScore: result.impact.riskScore,
+                    criticalPaths: result.impact.criticalPaths,
+                    blastRadius: result.impact.blastRadius
+                },
+                
+                gates: result.gates.map(g => ({
+                    name: g.name,
+                    passed: g.passed,
+                    severity: g.severity,
+                    message: g.message
+                })),
+                
+                corrections: result.corrections,
+                
+                recommendations: result.recommendations,
+                nextSteps: result.nextSteps,
+                tokenSavings: result.tokenSavings,
+                
+                warning: staleness,
+                hint: result.allowed 
+                    ? '✓ Edit approved. Review recommendations before proceeding.'
+                    : '✗ Edit blocked. Address blocking gates first.',
+            }
+            
+            const _rawVal = files.length * Math.round((200 * _ALC) / _CPT)
+                ; (response as any).tokens = _track(projectRoot, _rawVal, response)
+            
+            return { 
+                content: [{ type: 'text' as const, text: JSON.stringify(response, null, 2) }],
+                isError: !result.allowed
+            }
         },
     )
 
@@ -691,6 +813,23 @@ export function registerTools(server: McpServer, projectRoot: string) {
                     }
                 }
 
+                const stat = await fs.stat(resolved)
+                if (stat.size > MAX_SOURCE_FILE_BYTES) {
+                    return {
+                        content: [{ type: 'text' as const, text: `Refusing to read "${file}" because it exceeds ${MAX_SOURCE_FILE_BYTES} bytes.` }],
+                        isError: true,
+                    }
+                }
+                const rel = path.relative(path.resolve(projectRoot), resolved).replace(/\\/g, '/')
+                const { lock } = await loadContractAndLock(projectRoot)
+                const allowlisted = new Set(['mikk.json', 'mikk.lock.json', 'package.json', 'tsconfig.json'])
+                const isTracked = rel in lock.files
+                if (!isTracked && !allowlisted.has(rel)) {
+                    return {
+                        content: [{ type: 'text' as const, text: `Access denied: "${file}" is not tracked in mikk.lock.json.` }],
+                        isError: true,
+                    }
+                }
                 const content = await fs.readFile(resolved, 'utf-8')
                 const lineCount = content.split('\n').length
                 return {
@@ -886,6 +1025,7 @@ export function registerTools(server: McpServer, projectRoot: string) {
             const added: string[] = []
             const modified: string[] = []
             const deleted: string[] = []
+            let scanTruncated = false
 
             for (const [filePath, fileInfo] of Object.entries(lock.files)) {
                 const absPath = path.isAbsolute(filePath)
@@ -893,8 +1033,7 @@ export function registerTools(server: McpServer, projectRoot: string) {
                     : path.join(projectRoot, filePath)
 
                 try {
-                    const content = await fs.readFile(absPath, 'utf-8')
-                    const currentHash = createHash('sha256').update(content).digest('hex').slice(0, 16)
+                    const currentHash = await quickHashFile(absPath)
                     const storedHash = fileInfo.hash?.slice(0, 16) ?? ''
                     if (currentHash !== storedHash && storedHash !== '') {
                         modified.push(filePath)
@@ -912,6 +1051,7 @@ export function registerTools(server: McpServer, projectRoot: string) {
                     try {
                         await fs.access(dirPath)
                         const files = await walkDir(dirPath, projectRoot)
+                        if (files.length >= MAX_WALK_FILES) scanTruncated = true
                         for (const f of files) {
                             if (!lock.files[f] && isSourceFile(f)) {
                                 added.push(f)
@@ -933,6 +1073,10 @@ export function registerTools(server: McpServer, projectRoot: string) {
                     : 'Codebase is in sync with the lock file.',
             }
 
+            if (scanTruncated) {
+                response.hint += `\nNote: change scan was truncated after ${MAX_WALK_FILES} files for performance.`
+            }
+
             // Token savings: replaces grep/find across repo for changed files + hashing manually
             const _rawGC = Math.min(50, Object.keys(lock.files).length) * Math.round((60 * _ALC) / _CPT)
                 ; (response as any).tokens = _track(projectRoot, _rawGC, response)
@@ -948,7 +1092,7 @@ export function registerTools(server: McpServer, projectRoot: string) {
         'Read file scoped to specific functions. Returns bodies with metadata headers (params, calls, calledBy). WHEN TO USE: When you know which functions you need — saves tokens vs mikk_get_file. AFTER THIS: Use mikk_before_edit before making changes. TIP: This is the preferred way to read code — always specify function names when possible.',
         {
             file: z.string().describe('File path relative to project root'),
-            functions: z.array(z.string()).optional().describe('Function names to extract. If omitted, returns the whole file.'),
+            functions: z.array(z.string()).max(30).optional().describe('Function names to extract. If omitted, returns the whole file.'),
         },
         async ({ file, functions: fnNames }) => {
             const { lock, staleness } = await loadContractAndLock(projectRoot)
@@ -965,6 +1109,22 @@ export function registerTools(server: McpServer, projectRoot: string) {
 
             let content: string
             try {
+                const stat = await fs.stat(resolved)
+                if (stat.size > MAX_SOURCE_FILE_BYTES) {
+                    return {
+                        content: [{ type: 'text' as const, text: `Refusing to read "${file}" because it exceeds ${MAX_SOURCE_FILE_BYTES} bytes.` }],
+                        isError: true,
+                    }
+                }
+                const rel = path.relative(path.resolve(projectRoot), resolved).replace(/\\/g, '/')
+                const allowlisted = new Set(['mikk.json', 'mikk.lock.json', 'package.json', 'tsconfig.json'])
+                const isTracked = rel in lock.files
+                if (!isTracked && !allowlisted.has(rel)) {
+                    return {
+                        content: [{ type: 'text' as const, text: `Access denied: "${file}" is not tracked in mikk.lock.json.` }],
+                        isError: true,
+                    }
+                }
                 content = await fs.readFile(resolved, 'utf-8')
             } catch (err: any) {
                 return {
@@ -1114,9 +1274,22 @@ export function registerTools(server: McpServer, projectRoot: string) {
         async ({ ref, staged }) => {
             const { lock, staleness } = await loadContractAndLock(projectRoot)
             try {
-                const diffArgs = staged ? '--cached' : ref
-                const rawDiff = execSync(`git diff ${diffArgs} --unified=0 --no-color`, {
-                    cwd: projectRoot, encoding: 'utf-8', maxBuffer: 10 * 1024 * 1024,
+                const validatedRef = /^[A-Za-z0-9_./\-~^]+$/.test(ref) ? ref : null
+                if (!staged && !validatedRef) {
+                    return {
+                        content: [{ type: 'text' as const, text: 'Invalid git ref format.' }],
+                        isError: true,
+                    }
+                }
+                const args = ['diff']
+                if (staged) args.push('--cached')
+                else args.push(validatedRef!)
+                args.push('--unified=0', '--no-color')
+                const rawDiff = await new Promise<string>((resolve, reject) => {
+                    execFile('git', args, { cwd: projectRoot, encoding: 'utf-8', maxBuffer: 10 * 1024 * 1024 }, (err, stdout) => {
+                        if (err) return reject(err)
+                        resolve(stdout)
+                    })
                 })
                 if (!rawDiff.trim()) {
                     return { content: [{ type: 'text' as const, text: 'No changes found in git diff.' }] }
@@ -1443,22 +1616,33 @@ function detectCircularDeps(
     return [...new Set(warnings)]
 }
 
-/** Recursively walk a directory and return relative file paths */
-async function walkDir(dir: string, projectRoot: string): Promise<string[]> {
-    const files: string[] = []
+/** Recursively walk a directory and return relative file paths (bounded for safety). */
+async function walkDir(
+    dir: string,
+    projectRoot: string,
+    depth = 0,
+    acc: string[] = [],
+): Promise<string[]> {
+    if (depth > MAX_WALK_DIR_DEPTH || acc.length >= MAX_WALK_FILES) return acc
+
     try {
         const entries = await fs.readdir(dir, { withFileTypes: true })
         for (const entry of entries) {
+            if (acc.length >= MAX_WALK_FILES) break
+
             const fullPath = path.join(dir, entry.name)
+            if (entry.isSymbolicLink()) continue
+
             if (entry.isDirectory()) {
                 if (entry.name === 'node_modules' || entry.name === '.git' || entry.name === 'dist' || entry.name === '.mikk') continue
-                files.push(...await walkDir(fullPath, projectRoot))
+                await walkDir(fullPath, projectRoot, depth + 1, acc)
             } else {
-                files.push(path.relative(projectRoot, fullPath).replace(/\\/g, '/'))
+                acc.push(path.relative(projectRoot, fullPath).replace(/\\/g, '/'))
             }
         }
     } catch { /* permission error or similar */ }
-    return files
+
+    return acc
 }
 
 /** Check if a file is a source file worth tracking */

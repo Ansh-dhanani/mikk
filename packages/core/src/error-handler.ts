@@ -251,8 +251,8 @@ export class TokenBudgetError extends MikkError {
 }
 
 export class ValidationError extends MikkError {
-    constructor(code: ErrorCodes, field: string, value: unknown) {
-        super(code, undefined, { field, value })
+    constructor(code: ErrorCodes, field: string, value: unknown, message?: string) {
+        super(code, message, { field, value })
         this.name = 'ValidationError'
     }
 }
@@ -319,11 +319,7 @@ export function createTokenBudgetExceededError(used: number, budget: number): To
  * Create a validation error
  */
 export function createValidationError(field: string, value: unknown, reason?: string): ValidationError {
-    const error = new ValidationError('INVALID_INPUT', field, value)
-    if (reason) {
-        error.message = reason
-    }
-    return error
+    return new ValidationError('INVALID_INPUT', field, value, reason)
 }
 
 // ─── Error Utilities ─────────────────────────────────────────────────────────
@@ -430,5 +426,7 @@ export function createDefaultErrorListener(): (error: MikkError) => void {
     }
 }
 
-// Initialize default error listener
-ErrorHandler.getInstance().addListener(createDefaultErrorListener())
+// NOTE: Do NOT register listeners at module load time - every import would
+// add a duplicate listener that is never cleaned up. Instead, call:
+//   ErrorHandler.getInstance().addListener(createDefaultErrorListener())
+// once during application bootstrap (CLI entry-point, MCP server startup).

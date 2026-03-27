@@ -24,8 +24,9 @@ export function registerDiffCommand(program: Command) {
 
                 for (const filePath of files) {
                     const fullPath = path.join(projectRoot, filePath)
+                    const posixFullPath = fullPath.replace(/\\/g, '/')
                     const currentHash = await hashFile(fullPath)
-                    const lockedFile = lock.files[filePath]
+                    const lockedFile = lock.files[posixFullPath]
 
                     if (!lockedFile) {
                         changes.push({ type: 'added', path: filePath })
@@ -38,9 +39,10 @@ export function registerDiffCommand(program: Command) {
                 }
 
                 // Find deleted files
+                const absoluteFiles = new Set(files.map(f => path.join(projectRoot, f).replace(/\\/g, '/')))
                 for (const lockedPath of Object.keys(lock.files)) {
-                    if (!files.includes(lockedPath)) {
-                        changes.push({ type: 'deleted', path: lockedPath })
+                    if (!absoluteFiles.has(lockedPath)) {
+                        changes.push({ type: 'deleted', path: path.relative(projectRoot, lockedPath).replace(/\\/g, '/') })
                     }
                 }
 

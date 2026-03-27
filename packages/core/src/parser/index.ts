@@ -100,7 +100,9 @@ export async function parseFiles(
     const goFiles: ParsedFile[] = []
     const treeFiles: ParsedFile[] = []
 
-    const parsePromises = filePaths.map(async (fp) => {
+    // Parse sequentially to avoid races in parser implementations that keep
+    // mutable per-instance state (e.g. language switching/counters).
+    for (const fp of filePaths) {
         const ext = nodePath.extname(fp).toLowerCase()
 
         // Build absolute posix path — this is the single source of truth for all IDs
@@ -111,7 +113,7 @@ export async function parseFiles(
             content = await readFile(absoluteFp)
         } catch {
             // File unreadable — skip silently (deleted, permission error, binary)
-            return
+            continue
         }
 
         try {
@@ -129,9 +131,7 @@ export async function parseFiles(
         } catch {
             // Parser error — skip this file, don't abort the whole run
         }
-    })
-
-    await Promise.all(parsePromises)
+    }
 
     // Resolve imports batch-wise per parser (each has its own resolver)
     let resolvedTreeFiles: ParsedFile[] = treeFiles

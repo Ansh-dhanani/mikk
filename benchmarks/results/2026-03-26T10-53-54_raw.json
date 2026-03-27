@@ -1,0 +1,349 @@
+{
+  "meta": {
+    "project": "mikk (Mesh)",
+    "functions": 672,
+    "files": 187,
+    "modules": 43,
+    "date": "2026-03-26"
+  },
+  "summary": {
+    "mikk": {
+      "avg_accuracy": 85,
+      "avg_tokens": 2703,
+      "avg_latency_s": 0.017
+    },
+    "gitnexus": {
+      "avg_accuracy": 33,
+      "avg_tokens": 1112,
+      "avg_latency_s": 2.166
+    },
+    "manual": {
+      "avg_accuracy": 33,
+      "avg_tokens": 6872,
+      "avg_latency_s": 0.028
+    },
+    "advantages": {
+      "accuracy_vs_gitnexus_pp": 52,
+      "accuracy_vs_manual_pp": 52,
+      "token_reduction_vs_manual_pct": 61,
+      "token_reduction_vs_gitnexus_pct": -143
+    }
+  },
+  "tasks": [
+    {
+      "task_id": "context-graph-builder",
+      "label": "Context\nQuery\n(graph)",
+      "mikk": {
+        "tokens": 6516,
+        "latency_s": 0.057,
+        "accuracy_pct": 80
+      },
+      "manual": {
+        "tokens": 5817,
+        "latency_s": 0.043,
+        "accuracy_pct": 80
+      },
+      "gitnexus": {
+        "tokens": 148,
+        "latency_s": 0.885,
+        "accuracy_pct": 60
+      },
+      "detail": {
+        "mikk_checks": [
+          "✓ [25] Complete graph terminology",
+          "✓ [20] Multiple relationship types",
+          "✗ [20] Balanced token count",
+          "✓ [15] Multiple symbol references",
+          "✓ [10] Module + file context",
+          "✓ [10] Substantial content"
+        ],
+        "gitnexus_checks": [
+          "✓ [25] Complete symbol view",
+          "✗ [20] Process analysis with confidence",
+          "✓ [20] Appropriate detail level",
+          "✓ [15] Line number precision",
+          "✗ [10] Package/module info",
+          "✗ [10] Structured JSON (BONUS)"
+        ],
+        "manual_checks": [
+          "✓ [25] Graph concepts present",
+          "✓ [20] Multiple code constructs",
+          "✓ [20] Comprehensive file content",
+          "✓ [15] Module boundaries",
+          "✗ [10] Symbol analysis (NOT AVAILABLE)",
+          "✗ [10] Relationship mapping (NOT AVAILABLE)"
+        ]
+      }
+    },
+    {
+      "task_id": "function-search",
+      "label": "Function\nSearch\n(BM25)",
+      "mikk": {
+        "tokens": 455,
+        "latency_s": 0.026,
+        "accuracy_pct": 100
+      },
+      "manual": {
+        "tokens": 19305,
+        "latency_s": 0.026,
+        "accuracy_pct": 65
+      },
+      "gitnexus": {
+        "tokens": 1946,
+        "latency_s": 4.052,
+        "accuracy_pct": 35
+      },
+      "detail": {
+        "mikk_checks": [
+          "✓ [30] Optimal result count (5-15)",
+          "✓ [25] Complete info for multiple results",
+          "✓ [20] High relevance scores",
+          "✓ [15] Direct keyword matches",
+          "✓ [10] All results have file info"
+        ],
+        "gitnexus_checks": [
+          "✗ [30] Multiple processes found",
+          "✓ [25] Precise semantic match",
+          "✗ [20] Multiple symbol references",
+          "✗ [15] Confidence metrics present",
+          "✓ [10] Code location precision"
+        ],
+        "manual_checks": [
+          "✓ [30] Relevant code present",
+          "✗ [25] Focused content size",
+          "✓ [20] TypeScript context",
+          "✓ [15] Export definitions",
+          "✗ [10] Search ranking (NOT AVAILABLE)"
+        ]
+      }
+    },
+    {
+      "task_id": "impact-analysis",
+      "label": "Impact\nAnalysis\n(BFS)",
+      "mikk": {
+        "tokens": 101,
+        "latency_s": 0.009,
+        "accuracy_pct": 75
+      },
+      "manual": {
+        "tokens": 1763,
+        "latency_s": 0.022,
+        "accuracy_pct": 20
+      },
+      "gitnexus": {
+        "tokens": 148,
+        "latency_s": 0.77,
+        "accuracy_pct": 50
+      },
+      "detail": {
+        "mikk_checks": [
+          "✓ [30] Returns numeric impacted count",
+          "✗ [25] Reports BFS traversal depth",
+          "✓ [25] Classifies by risk severity",
+          "✓ [20] Reports edge confidence score"
+        ],
+        "gitnexus_checks": [
+          "✓ [30] Numeric impact analysis with depth",
+          "✗ [25] Risk severity classification",
+          "✗ [25] Confidence scoring and detailed results",
+          "✓ [20] Structured and token-efficient response"
+        ],
+        "manual_checks": [
+          "✗ [30] Impact count (NOT AVAILABLE — grep only)",
+          "✗ [25] Graph depth (NOT AVAILABLE)",
+          "✗ [25] Severity levels (NOT AVAILABLE)",
+          "✓ [20] Raw file has some import context"
+        ]
+      }
+    },
+    {
+      "task_id": "dead-code",
+      "label": "Dead Code\nDetection",
+      "mikk": {
+        "tokens": 538,
+        "latency_s": 0.006,
+        "accuracy_pct": 100
+      },
+      "manual": {
+        "tokens": 7,
+        "latency_s": 0.031,
+        "accuracy_pct": 0
+      },
+      "gitnexus": {
+        "tokens": 2092,
+        "latency_s": 3.653,
+        "accuracy_pct": 15
+      },
+      "detail": {
+        "mikk_checks": [
+          "✓ [35] Returns numeric dead function count",
+          "✓ [20] Reports total function baseline",
+          "✓ [30] Lists high-confidence dead functions",
+          "✓ [15] Breaks down dead code by module"
+        ],
+        "gitnexus_checks": [
+          "✗ [35] Dead code analysis with counts",
+          "✗ [20] Percentage and confidence metrics",
+          "✗ [30] Per-function confidence scoring",
+          "✓ [15] By-module breakdown available"
+        ],
+        "manual_checks": [
+          "✗ [35] Dead code detection (IMPOSSIBLE without graph analysis)",
+          "✗ [20] Function baseline (IMPOSSIBLE without indexing)",
+          "✗ [30] Confidence scoring (IMPOSSIBLE without analysis)",
+          "✗ [15] Module breakdown (IMPOSSIBLE without structure)"
+        ]
+      }
+    },
+    {
+      "task_id": "session-context",
+      "label": "Session\nStart\n(onboard)",
+      "mikk": {
+        "tokens": 860,
+        "latency_s": 0.003,
+        "accuracy_pct": 100
+      },
+      "manual": {
+        "tokens": 8544,
+        "latency_s": 0.027,
+        "accuracy_pct": 25
+      },
+      "gitnexus": {
+        "tokens": 2231,
+        "latency_s": 3.559,
+        "accuracy_pct": 25
+      },
+      "detail": {
+        "mikk_checks": [
+          "✓ [30] Returns structured module list",
+          "✓ [25] Reports total function count",
+          "✓ [25] Includes project metadata",
+          "✓ [20] Compact: session context < 3000 tokens"
+        ],
+        "gitnexus_checks": [
+          "✗ [30] Detected communities/modules list",
+          "✗ [25] Repository statistics",
+          "✓ [25] Process detection with confidence",
+          "✗ [20] Structured and concise overview"
+        ],
+        "manual_checks": [
+          "✗ [30] Module structure (IMPOSSIBLE without analysis)",
+          "✗ [25] Function counting (IMPOSSIBLE without indexing)",
+          "✓ [25] Contains project name",
+          "✗ [20] Repository statistics (IMPOSSIBLE without parsing)"
+        ]
+      }
+    },
+    {
+      "task_id": "constraints",
+      "label": "Constraint\nCheck",
+      "mikk": {
+        "tokens": 573,
+        "latency_s": 0,
+        "accuracy_pct": 100
+      },
+      "manual": {
+        "tokens": 7,
+        "latency_s": 0.023,
+        "accuracy_pct": 0
+      },
+      "gitnexus": {
+        "tokens": 2031,
+        "latency_s": 2.836,
+        "accuracy_pct": 0
+      },
+      "detail": {
+        "mikk_checks": [
+          "✓ [40] Returns structured constraint array",
+          "✓ [30] Returns ADR decisions",
+          "✓ [20] Includes module boundary definitions",
+          "✓ [10] Constraint response is concise (<1500 tok)"
+        ],
+        "gitnexus_checks": [
+          "✗ [40] Architectural constraint checking",
+          "✗ [30] Violation detection with confidence",
+          "✗ [20] Overall compliance scoring",
+          "✗ [10] Structured constraint results"
+        ],
+        "manual_checks": [
+          "✗ [40] Constraint checking (IMPOSSIBLE without parsing)",
+          "✗ [30] Violation detection (IMPOSSIBLE without analysis)",
+          "✗ [20] Compliance scoring (IMPOSSIBLE without rules)",
+          "✗ [10] Structured results (IMPOSSIBLE without parsing)"
+        ]
+      }
+    },
+    {
+      "task_id": "token-budget-4k",
+      "label": "Token\nBudget\n4000",
+      "mikk": {
+        "tokens": 7402,
+        "latency_s": 0.014,
+        "accuracy_pct": 65
+      },
+      "manual": {
+        "tokens": 9767,
+        "latency_s": 0.022,
+        "accuracy_pct": 35
+      },
+      "gitnexus": {
+        "tokens": 148,
+        "latency_s": 0.866,
+        "accuracy_pct": 35
+      },
+      "detail": {
+        "mikk_checks": [
+          "✓ [35] Contains impact analysis content",
+          "✗ [35] Respects 4000-token budget (±5%)",
+          "✓ [30] Includes graph traversal context"
+        ],
+        "gitnexus_checks": [
+          "✗ [35] File contains impact content",
+          "✓ [35] Within 4000 tokens",
+          "✗ [30] Graph traversal context (NOT SUPPORTED)"
+        ],
+        "manual_checks": [
+          "✓ [35] File contains impact content",
+          "✗ [35] Within budget",
+          "✗ [30] Graph context (NOT AVAILABLE)"
+        ]
+      }
+    },
+    {
+      "task_id": "token-budget-1500",
+      "label": "Token\nBudget\n1500",
+      "mikk": {
+        "tokens": 5179,
+        "latency_s": 0.017,
+        "accuracy_pct": 60
+      },
+      "manual": {
+        "tokens": 9767,
+        "latency_s": 0.029,
+        "accuracy_pct": 40
+      },
+      "gitnexus": {
+        "tokens": 148,
+        "latency_s": 0.706,
+        "accuracy_pct": 40
+      },
+      "detail": {
+        "mikk_checks": [
+          "✓ [40] Still contains impact content at 1500-token limit",
+          "✗ [40] Respects tight 1500-token budget",
+          "✓ [20] Retains symbol-level precision even when compressed"
+        ],
+        "gitnexus_checks": [
+          "✗ [40] Content is relevant",
+          "✓ [40] Stays within 1500 tokens (GitNexus has NO budget control)",
+          "✗ [20] Symbol precision (NOT SUPPORTED)"
+        ],
+        "manual_checks": [
+          "✓ [40] Content is relevant",
+          "✗ [40] Within budget (manual has NO budget control)",
+          "✗ [20] Symbol precision (NOT AVAILABLE)"
+        ]
+      }
+    }
+  ]
+}

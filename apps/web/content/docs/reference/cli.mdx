@@ -24,54 +24,48 @@ description: All 17+ commands for the Mikk CLI — with options, flags, and exam
 
 ### `mikk init`
 
-Full codebase scan. Builds the dependency graph, detects modules, writes all artifacts.
+Full codebase scan. Parses all source files via OXC (TS/JS) and Tree-sitter (other languages), builds the dependency graph, detects modules, writes all artifacts.
 
 ```bash
-cd my-project
 mikk init
+mikk init --force    # re-initialize even if mikk.json already exists
 ```
 
-<TypeTable
-  type={{
-    "--no-diagrams": {
-      description: "Skip Mermaid diagram generation.",
-      type: "flag",
-    },
-    "--no-context": {
-      description: "Skip claude.md and AGENTS.md generation.",
-      type: "flag",
-    },
-    "--force": {
-      description: "Re-initialize even if mikk.json already exists.",
-      type: "flag",
-    },
-  }}
-/>
+**What gets generated:**
+- `mikk.json` — architecture contract with auto-detected modules
+- `mikk.lock.json` — full codebase snapshot
+- `claude.md` + `AGENTS.md` — tiered AI context files
+- `.mikk/diagrams/` — 7 Mermaid diagrams
 
 ---
 
 ### `mikk analyze`
 
-Re-analyze and update all generated files. Uses incremental analysis — only re-parses files whose Merkle hash changed.
+Re-analyze and update all generated files. Incremental by default — only re-parses files whose content hash changed.
 
 ```bash
 mikk analyze
 mikk analyze --full    # force full re-parse (ignore hashes)
 ```
 
+After `mikk analyze` completes, the MCP server's cache is busted on the next tool call — the server detects the updated `mikk.lock.json` mtime immediately.
+
 ---
 
 ### `mikk watch`
 
-Start the live file watcher daemon. Keeps the lock file in sync as you edit code.
+Start the live file watcher daemon. Keeps `mikk.lock.json` in sync as you edit.
 
 ```bash
 mikk watch
-mikk watch --debounce 500    # debounce delay in ms (default: 300)
+mikk watch --debounce 500    # debounce delay in ms (default: 100)
 ```
 
 <Callout type="info">
-  Enforces a single-instance PID daemon — starting `mikk watch` twice will reuse the existing process, not start a duplicate.
+  The watcher enforces single-instance via PID file — starting `mikk watch` twice reuses the existing process.
+  Changes under 15 files trigger incremental re-analysis.
+  Changes ≥ 15 files trigger a full re-analysis.
+  All lock writes are atomic: temp file → rename. Zero corruption on crash.
 </Callout>
 
 ---
@@ -94,16 +88,32 @@ Deleted:  src/auth/legacy-auth.ts
 
 ---
 
+### `mikk ci`
+
+CI gate — validates architecture and exits non-zero on violations.
+
+```bash
+mikk ci                   # check constraint violations
+mikk ci --strict          # also enforce dead code threshold
+mikk ci --format json     # structured JSON output for log ingestion
+```
+
+<Callout type="warn">
+  Use `mikk ci` in automated pipelines. It is designed for non-interactive environments and always produces machine-readable exit codes.
+</Callout>
+
+---
+
 ## Context Commands
 
-### `mikk context build`
+### `mikk context for`
 
 Build an AI context payload for a task description.
 
 ```bash
-mikk context build "How does authentication work?"
-mikk context build "Refactor the payments module" --tokens 8000
-mikk context build "Fix the session bug" --format xml --hops 3
+mikk context for "How does authentication work?"
+mikk context for "Refactor the payments module" --tokens 8000
+mikk context for "Fix the session bug" --provider claude --hops 3
 ```
 
 <TypeTable
@@ -113,15 +123,23 @@ mikk context build "Fix the session bug" --format xml --hops 3
       type: "number",
       default: "4000",
     },
-    "--format": {
+    "--provider": {
       description: "Output format.",
-      type: '"xml" | "text" | "compact"',
-      default: '"xml"',
+      type: '"claude" | "generic" | "compact"',
+      default: '"generic"',
     },
     "--hops": {
       description: "BFS depth from seed functions.",
       type: "number",
       default: "2",
+    },
+    "--module": {
+      description: "Restrict to a specific module ID.",
+      type: "string",
+    },
+    "--out": {
+      description: "Write output to a file instead of stdout.",
+      type: "string",
     },
   }}
 />
@@ -152,72 +170,24 @@ mikk context query "What does src/api/routes.ts depend on?"
 
 ## Contract Commands
 
-### `mikk contract generate`
-
-Auto-detect modules and generate an initial `mikk.json`.
-
-```bash
-mikk contract generate
-mikk contract generate --force    # overwrite existing contract
-```
-
----
-
 ### `mikk contract validate`
 
 Validate the current codebase against all constraints in `mikk.json`.
 
 ```bash
 mikk contract validate
-mikk contract validate --strict              # exit code 1 on any violation
-mikk contract validate --boundaries-only     # check only no-import / layer
-```
-
-<Callout type="warn">
-  Use `--strict` in CI to fail the build on any constraint violation. Without `--strict`, `validate` prints violations but exits with code 0.
-</Callout>
-
----
-
-### `mikk contract status`
-
-Print a summary of all modules, constraint counts, and current violation state.
-
-```bash
-mikk contract status
+mikk contract validate --strict              # exit 1 on any violation
+mikk contract validate --boundaries-only     # check only no-import / layer rules
 ```
 
 ---
 
-## Architectural Decision Records (ADRs)
+### `mikk contract show-boundaries`
 
-### `mikk adr list`
-
-List all architectural decisions tracked by Mikk.
+Show the current cross-module dependency map — useful for writing constraint rules.
 
 ```bash
-mikk adr list
-```
-
----
-
-### `mikk adr get`
-
-Get the full details and reasoning for a specific decision.
-
-```bash
-mikk adr get wasm-parsing
-```
-
----
-
-### `mikk adr add` / `mikk adr rm`
-
-Add a new decision or remove an existing one. Options include `--id`, `--title`, and `--reason`.
-
-```bash
-mikk adr add --id "hybrid-search" --title "Use BM25" --reason "We need keyword support"
-mikk adr rm hybrid-search
+mikk contract show-boundaries
 ```
 
 ---
@@ -226,34 +196,43 @@ mikk adr rm hybrid-search
 
 ### `mikk intent`
 
-Validate a plain-English plan against your architecture before writing code. Checks all 6 constraint types.
+Validate a plain-English plan against your architecture before writing any code.
 
 ```bash
 mikk intent "Add a caching layer to the auth module"
 mikk intent "Extract shared validation into utils" --verbose
+mikk intent "Move user service to shared module" --json
 ```
+
+The intent engine:
+1. Parses the prompt into structured intents (action + target + confidence)
+2. Checks against all 6 constraint types
+3. Detects boundary violations
+4. Returns `approved: true/false` with affected files and new files required
 
 ---
 
-## Refactoring & Version Control commands
-
-### `mikk rename`
-
-Execute a multi-file coordinated rename. Finds the definition, updates the original export, and updates every call-site/import-site.
+## Architectural Decision Records (ADRs)
 
 ```bash
-mikk rename
+mikk adr list                                                    # list all decisions
+mikk adr get ADR-001                                             # full details for a decision
+mikk adr add --id "use-jwt" --title "Stateless JWT" --reason "No session storage needed"
+mikk adr rm use-jwt                                              # remove a decision
 ```
+
+ADRs are stored in `mikk.json` and surface automatically in every `mikk_query_context` response. The Intent Understanding component also reads ADRs to detect planned migrations — if an ADR mentions a module and contains "migration" or "deprecat", changes to that module are classified as intentional.
 
 ---
 
-### `mikk git-diff-impact`
-
-Trace Git diff hunks to actual affected functions and modules. See what code changes actually mean for execution flow.
+## Dead Code
 
 ```bash
-mikk git-diff-impact
+mikk dead-code                    # show all unreferenced functions
+mikk dead-code --module auth      # filter to a specific module
 ```
+
+Exemptions applied automatically: exported symbols, entry-point names, route handlers, test functions, constructors, and functions transitively called by any exported function in the same file.
 
 ---
 
@@ -261,60 +240,51 @@ mikk git-diff-impact
 
 <Tabs items={["mikk mcp", "mikk mcp install"]}>
   <Tab value="mikk mcp">
-    Start the MCP server.
+    Start the MCP server (stdio transport).
 
     ```bash
     mikk mcp
-    mikk mcp --port 3333     # custom port (default: 3000)
-    mikk mcp --watch         # auto-restart on file changes
+    mikk mcp --project /absolute/path/to/project
     ```
   </Tab>
   <Tab value="mikk mcp install">
-    Auto-install Mikk into your AI tool of choice.
+    Auto-install into your AI tool.
 
     ```bash
     mikk mcp install                     # auto-detect installed tools
     mikk mcp install --tool claude       # Claude Desktop
     mikk mcp install --tool cursor       # Cursor
     mikk mcp install --tool vscode       # VS Code Copilot
+    mikk mcp install --tool windsurf     # Windsurf
     ```
   </Tab>
 </Tabs>
 
 ---
 
-## Visualization Commands
+## Visualization
 
 ```bash
-mikk visualize all                        # regenerate all 8 diagram types
-mikk visualize module auth                # specific module
-mikk visualize impact src/auth/login.ts   # blast radius diagram
+mikk visualize all                        # regenerate all 7 diagram types
+mikk visualize module auth                # specific module diagram
 ```
 
 ---
 
-## Utility Commands
+## Stats & Diagnostics
 
 <TypeTable
   type={{
-    "mikk status": {
-      description: "Show project health — module count, violation count, last analysis time.",
+    "mikk stats": {
+      description: "Per-module and codebase health metrics — function counts, exported API counts, dead code %, constraint status, cohesion, and coupling scores.",
       type: "command",
     },
-    "mikk clean": {
-      description: "Remove all generated artifacts (lock file, diagrams, context files).",
+    "mikk doctor": {
+      description: "7-point diagnostic check — config file validity, lock freshness, parser availability, MCP server reachability.",
       type: "command",
     },
     "mikk remove": {
-      description: "Completely uninstall Mikk and physically delete the target project directories and the mikk.json contract.",
-      type: "command",
-    },
-    "mikk version": {
-      description: "Print CLI and all package versions.",
-      type: "command",
-    },
-    "mikk help [command]": {
-      description: "Show help for any command.",
+      description: "Uninstall Mikk — delete all generated artifacts and the mikk.json contract from the target project.",
       type: "command",
     },
   }}

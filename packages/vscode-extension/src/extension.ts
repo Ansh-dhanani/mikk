@@ -2,6 +2,10 @@ import * as vscode from 'vscode'
 import * as path from 'node:path'
 import * as fs from 'node:fs'
 
+import { DashboardPanel } from './webview/DashboardPanel'
+import { DiagramPanel } from './webview/DiagramPanel'
+import { MikkCodeLensProvider } from './providers/MikkCodeLensProvider'
+import { MikkDecoratorProvider } from './providers/MikkDecoratorProvider'
 // ─── Types ────────────────────────────────────────────────────────────────────
 
 interface MikkContract {
@@ -79,6 +83,22 @@ export function activate(context: vscode.ExtensionContext) {
     context.subscriptions.push(statusBar)
     updateStatusBar(statusBar, dataProvider)
 
+    // ── CodeLens & Decorators ───────────────────────────────────────────────
+    const codeLensProvider = new MikkCodeLensProvider(dataProvider)
+    context.subscriptions.push(
+        vscode.languages.registerCodeLensProvider({ pattern: '**/*' }, codeLensProvider)
+    )
+
+    // Apply decorations whenever the active editor changes or document is saved
+    vscode.window.onDidChangeActiveTextEditor(editor => {
+        if (editor) MikkDecoratorProvider.updateDecorations(editor, dataProvider)
+    }, null, context.subscriptions)
+    vscode.workspace.onDidSaveTextDocument(doc => {
+        const editor = vscode.window.activeTextEditor
+        if (editor && editor.document === doc) {
+            MikkDecoratorProvider.updateDecorations(editor, dataProvider)
+        }
+    }, null, context.subscriptions)
     // ── File Watcher for auto-refresh ───────────────────────────────────────
     const lockWatcher = vscode.workspace.createFileSystemWatcher(
         new vscode.RelativePattern(workspaceFolder, 'mikk.lock.json')
@@ -100,23 +120,27 @@ export function activate(context: vscode.ExtensionContext) {
     contractWatcher.onDidChange(refreshAll)
     context.subscriptions.push(lockWatcher, contractWatcher)
 
+    // Initial decorations for the already open editor
+    if (vscode.window.activeTextEditor) {
+        MikkDecoratorProvider.updateDecorations(vscode.window.activeTextEditor, dataProvider)
+    }
     // ── Commands ─────────────────────────────────────────────────────────────
     context.subscriptions.push(
         vscode.commands.registerCommand('mikk.init', () => runInTerminal('mikk init')),
         vscode.commands.registerCommand('mikk.analyze', () => runInTerminal('mikk analyze')),
 
-        vscode.commands.registerCommand('mikk.showDiagram', async () => {
+        vscode.commands.registerCommand('mikk.showDashboard', () => {
+            const contract = dataProvider.getContract()
+            const lock = dataProvider.getLock()
+            DashboardPanel.createOrShow(context.extensionUri, { contract, lock })
+        }),
+
+        vscode.commands.registerCommand('mikk.showDiagram', () => {
             const diagramPath = path.join(projectRoot, '.mikk', 'diagrams', 'main.mmd')
-            try {
-                const doc = await vscode.workspace.openTextDocument(diagramPath)
-                await vscode.window.showTextDocument(doc)
-                vscode.window.showInformationMessage(
-                    'Install the "Mermaid Preview" extension to visualize this diagram'
-                )
-            } catch {
-                vscode.window.showWarningMessage(
-                    'No diagrams found. Run "Mikk: Analyze" first.'
-                )
+            if (fs.existsSync(diagramPath)) {
+                DiagramPanel.createOrShow(diagramPath)
+            } else {
+                vscode.window.showWarningMessage('No diagrams found. Run "Mikk: Analyze" first.')
             }
         }),
 

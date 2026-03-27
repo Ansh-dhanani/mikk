@@ -161,20 +161,16 @@ mikk contract validate --strict
   run: mikk contract validate --boundaries-only --strict
 ```
 
-#### `mikk contract generate`
+#### Contract regeneration
 
-Regenerate the `mikk.json` skeleton from the current codebase. Useful after major refactoring.
+Mikk regenerates `mikk.json` / `mikk.lock.json` as part of:
 
-```bash
-mikk contract generate
-```
-
-#### `mikk contract update`
-
-Update the lock file to match the current codebase state.
+- `mikk init` (full project scan + artifacts generation)
+- `mikk analyze` (re-analyze + update generated artifacts)
 
 ```bash
-mikk contract update
+mikk init
+mikk analyze
 ```
 
 #### `mikk contract show-boundaries`
@@ -323,19 +319,19 @@ Regenerate the diagram for a specific module.
 mikk visualize module auth
 ```
 
-#### `mikk visualize impact`
+#### `mikk context impact`
 
-Generate an impact diagram based on current file changes (files that differ from the lock file).
+Analyze what breaks if a specific file changes (and includes an AI-context-focused impacted view).
 
 ```bash
-mikk visualize impact
+mikk context impact src/auth/login.ts
 ```
 
 ---
 
 ### `mikk mcp` — MCP Server for AI Assistants
 
-Connect your project architecture to Claude Desktop, Cursor, VS Code, or any MCP-compatible AI tool. The MCP server exposes 15 tools and 3 resources for your assistant, all powered by the Mikk lock file.
+Connect your project architecture to Claude Desktop, Cursor, VS Code, or any MCP-compatible AI tool. The MCP server exposes 22 tools and 3 resources for your assistant, all powered by the Mikk lock file.
 
 #### `mikk mcp` (default: start server)
 

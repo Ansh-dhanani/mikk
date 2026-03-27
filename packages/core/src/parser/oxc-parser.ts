@@ -12,7 +12,8 @@ import type {
     ParsedExport,
     ParsedParam,
     CallExpression,
-    ParsedGeneric
+    ParsedGeneric,
+    ParsedRoute
 } from './types.js';
 
 // ---------------------------------------------------------------------------
@@ -303,6 +304,7 @@ export class OxcParser extends BaseParser {
         const imports: ParsedImport[] = [];
         const exports: ParsedExport[] = [];
         const moduleCalls: CallExpression[] = [];
+        const routes: ParsedRoute[] = [];
 
         const visit = (node: any, parent: any = null): void => {
             if (!node || typeof node !== 'object') return;
@@ -608,8 +610,39 @@ export class OxcParser extends BaseParser {
                 // ── Module-level call expressions ─────────────────────────
                 case 'ExpressionStatement': {
                     if (node.expression?.type === 'CallExpression') {
-                        const calls = extractCalls(node.expression, lineIndex);
+                        const callExpr = node.expression;
+                        const calls = extractCalls(callExpr, lineIndex);
                         moduleCalls.push(...calls);
+                        
+                        // Route detection
+                        const callee = callExpr.callee;
+                        if (callee && (callee.type === 'StaticMemberExpression' || callee.type === 'MemberExpression')) {
+                            const objName = resolveObjectName(callee.object);
+                            const propName = resolvePropertyName(callee.property);
+                            if (objName && propName && /^(router|app|express|.*[Rr]outer.*)$/i.test(objName) && /^(get|post|put|delete|patch|all)$/i.test(propName)) {
+                                const args = callExpr.arguments || [];
+                                const pathArg = args[0];
+                                if (pathArg && (pathArg.type === 'StringLiteral' || pathArg.type === 'Literal' || pathArg.type === 'TemplateLiteral')) {
+                                    const pathVal = pathArg.value || (pathArg.quasis && pathArg.quasis[0]?.value?.raw) || '';
+                                    
+                                    const handlerArg = args[args.length - 1];
+                                    const handlerStr = handlerArg ? content.slice(getSpan(handlerArg).start, getSpan(handlerArg).end).replace(/\s+/g, ' ').trim() : 'unknown';
+                                    
+                                    const middlewares = args.slice(1, -1).map((a: any) => 
+                                        content.slice(getSpan(a).start, getSpan(a).end).replace(/\s+/g, ' ').trim()
+                                    );
+                                    
+                                    routes.push({
+                                        method: propName.toUpperCase() as any,
+                                        path: String(pathVal),
+                                        handler: handlerStr.length > 80 ? handlerStr.slice(0, 80) + '...' : handlerStr,
+                                        middlewares,
+                                        file: normalizedFilePath,
+                                        line: lineIndex.getLine(getSpan(callExpr).start),
+                                    });
+                                }
+                            }
+                        }
                     }
                     break;
                 }
@@ -640,7 +673,7 @@ export class OxcParser extends BaseParser {
             generics,
             imports,
             exports,
-            routes: [],
+            routes,
             calls: moduleCalls,
             hash: hashContent(content),
             parsedAt: Date.now(),
