@@ -1,10 +1,11 @@
 {
     "name": "mikk",
-    "displayName": "Mikk - Codebase Nervous System",
-    "description": "VS Code extension for Mikk — see your architecture, get AI context, detect impact",
-    "version": "1.2.0",
+    "displayName": "Mikk",
+    "description": "Deterministic AI context engine for your codebase. See your architecture, detect dead code, and get precise AI context.",
+    "version": "2.0.0",
     "license": "Apache-2.0",
-    "publisher": "mikk-dev",
+    "publisher": "AnshDhanani",
+    "icon": "resources/logo.png",
     "engines": {
         "vscode": "^1.85.0"
     },
@@ -13,50 +14,35 @@
         "Visualization"
     ],
     "activationEvents": [
-        "workspaceContains:mikk.json"
+        "onStartupFinished"
     ],
     "main": "./dist/extension.js",
     "contributes": {
         "commands": [
             {
                 "command": "mikk.init",
-                "title": "Mikk: Initialize"
+                "title": "Mikk: Initialize",
+                "icon": "$(zap)"
             },
             {
                 "command": "mikk.analyze",
-                "title": "Mikk: Analyze"
+                "title": "Mikk: Analyze",
+                "icon": "$(sync)"
             },
             {
                 "command": "mikk.showDashboard",
-                "title": "Mikk: Show Dashboard"
-            },
-            {
-                "command": "mikk.showDiagram",
-                "title": "Mikk: Show Architecture Diagram"
-            },
-            {
-                "command": "mikk.showImpact",
-                "title": "Mikk: Show Impact Analysis"
+                "title": "Mikk: Open Dashboard",
+                "icon": "$(graph)"
             },
             {
                 "command": "mikk.getContext",
-                "title": "Mikk: Get AI Context"
+                "title": "Mikk: Get AI Context",
+                "icon": "$(hubot)"
             },
             {
                 "command": "mikk.refreshAll",
-                "title": "Mikk: Refresh All Views"
-            },
-            {
-                "command": "mikk.deadCode",
-                "title": "Mikk: Find Dead Code"
-            },
-            {
-                "command": "mikk.stats",
-                "title": "Mikk: Show Stats"
-            },
-            {
-                "command": "mikk.watch",
-                "title": "Mikk: Start Watch Mode"
+                "title": "Mikk: Refresh",
+                "icon": "$(refresh)"
             }
         ],
         "viewsContainers": {
@@ -64,26 +50,30 @@
                 {
                     "id": "mikk-explorer",
                     "title": "Mikk",
-                    "icon": "resources/icon.svg"
+                    "icon": "resources/logo.svg"
                 }
             ]
         },
         "views": {
             "mikk-explorer": [
                 {
-                    "id": "mikkModules",
-                    "name": "Modules",
-                    "icon": "resources/icon.svg"
+                    "id": "mikkExplorer",
+                    "name": "Mikk",
+                    "icon": "resources/logo.svg"
+                }
+            ]
+        },
+        "menus": {
+            "view/title": [
+                {
+                    "command": "mikk.showDashboard",
+                    "when": "view == mikkExplorer",
+                    "group": "navigation@1"
                 },
                 {
-                    "id": "mikkFunctions",
-                    "name": "Functions",
-                    "icon": "resources/icon.svg"
-                },
-                {
-                    "id": "mikkHealth",
-                    "name": "Health",
-                    "icon": "resources/icon.svg"
+                    "command": "mikk.refreshAll",
+                    "when": "view == mikkExplorer",
+                    "group": "navigation@2"
                 }
             ]
         }
