@@ -122,7 +122,7 @@ export function registerAnalyzeCommand(program: Command) {
                 // Generate claude.md / AGENTS.md
                 spinner.text = 'Generating AI context files...'
                 try {
-                    const { ClaudeMdGenerator } = await import('@getmikk/ai-context')
+                    const { ClaudeMdGenerator, OpenClawRulesGenerator } = await import('@getmikk/ai-context')
                     const fs = await import('node:fs/promises')
                     let pkgJson: any = {}
                     try {
@@ -138,6 +138,12 @@ export function registerAnalyzeCommand(program: Command) {
                     const claudeMd = mdGenerator.generate()
                     await fs.writeFile(path.join(projectRoot, 'claude.md'), claudeMd, 'utf-8')
                     await fs.writeFile(path.join(projectRoot, 'AGENTS.md'), claudeMd, 'utf-8')
+
+                    const projectName = pkgJson.name || path.basename(projectRoot)
+                    const openclawGenerator = new OpenClawRulesGenerator(projectName)
+                    const clinerules = openclawGenerator.generate()
+                    await fs.writeFile(path.join(projectRoot, '.clinerules'), clinerules, 'utf-8')
+
                 } catch {
                     // ai-context package not available — skip silently
                 }

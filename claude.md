@@ -2,8 +2,8 @@
   <name>mikk</name>
   <stats>
     <files>197</files>
-    <functions>735</functions>
-    <modules>31</modules>
+    <functions>729</functions>
+    <modules>30</modules>
     <language>typescript</language>
   </stats>
 </repository_context>
@@ -37,11 +37,11 @@
     <location>c:/users/ansh/desktop/web/mesh/packages/vscode-extension/src/webview/**</location>
     <purpose>3 files, 0 functions</purpose>
     <entry_points>
-      <function signature="DashboardPanel.constructor(panel, data) [c:/users/ansh/desktop/web/mesh/packages/vscode-extension/src/webview/dashboardpanel.ts:9]" purpose="Dashboard panel.constructor (panel, data)" />
-      <function signature="DashboardPanel.createOrShow(extensionUri, data) [c:/users/ansh/desktop/web/mesh/packages/vscode-extension/src/webview/dashboardpanel.ts:15]" purpose="Dashboard panel.create or show (extensionUri, data)" />
-      <function signature="DashboardPanel._update(data) [c:/users/ansh/desktop/web/mesh/packages/vscode-extension/src/webview/dashboardpanel.ts:36]" purpose="Dashboard panel. update (data)" />
-      <function signature="DashboardPanel.generateSimpleMermaid(data) [c:/users/ansh/desktop/web/mesh/packages/vscode-extension/src/webview/dashboardpanel.ts:86]" purpose="Dashboard panel.generate simple mermaid (data)" />
-      <function signature="DashboardPanel.dispose() [c:/users/ansh/desktop/web/mesh/packages/vscode-extension/src/webview/dashboardpanel.ts:94]" purpose="Dashboard panel.dispose" />
+      <function signature="DashboardPanel.constructor(panel, data) [c:/users/ansh/desktop/web/mesh/packages/vscode-extension/src/webview/dashboardpanel.ts:8]" purpose="Dashboard panel.constructor (panel, data)" />
+      <function signature="DashboardPanel.createOrShow(extensionUri, data) [c:/users/ansh/desktop/web/mesh/packages/vscode-extension/src/webview/dashboardpanel.ts:14]" purpose="Dashboard panel.create or show (extensionUri, data)" />
+      <function signature="DashboardPanel.update(data) [c:/users/ansh/desktop/web/mesh/packages/vscode-extension/src/webview/dashboardpanel.ts:33]" purpose="Dashboard panel.update (data)" />
+      <function signature="DashboardPanel._update(data) [c:/users/ansh/desktop/web/mesh/packages/vscode-extension/src/webview/dashboardpanel.ts:37]" purpose="Dashboard panel. update (data)" />
+      <function signature="DashboardPanel._notInitializedHtml() [c:/users/ansh/desktop/web/mesh/packages/vscode-extension/src/webview/dashboardpanel.ts:221]" purpose="Dashboard panel. not initialized html" />
     </entry_points>
   </module>
   <module id="web-mesh-benchmarks">
@@ -54,14 +54,6 @@
       <function signature="AsciinemaBenchmark.generateScript(scenario, mode) [c:/users/ansh/desktop/web/mesh/benchmarks/asciinema-benchmark.ts:138]" purpose="Asciinema benchmark.generate script (scenario, mode)" />
       <function signature="AsciinemaBenchmark.analyzeRecording(castFile) [c:/users/ansh/desktop/web/mesh/benchmarks/asciinema-benchmark.ts:160]" purpose="Asciinema benchmark.analyze recording (castFile)" />
       <function signature="async AsciinemaBenchmark.runAll() [c:/users/ansh/desktop/web/mesh/benchmarks/asciinema-benchmark.ts:197]" purpose="Asciinema benchmark.run all" />
-    </entry_points>
-  </module>
-  <module id="desktop-web-mesh">
-    <name>Testing</name>
-    <location>c:/users/ansh/desktop/web/mesh/**</location>
-    <purpose>1 files, 0 functions</purpose>
-    <entry_points>
-      <function signature="async test() [c:/users/ansh/desktop/web/mesh/test-oxc.ts:5]" purpose="Test" />
     </entry_points>
   </module>
   <module id="mesh-apps-web">
@@ -106,10 +98,10 @@
     <location>c:/users/ansh/desktop/web/mesh/apps/web/lib/**</location>
     <purpose>7 files, 0 functions</purpose>
     <entry_points>
-      <function signature="baseOptions() [c:/users/ansh/desktop/web/mesh/apps/web/lib/layout.shared.tsx:2]" purpose="Base options" />
-      <function signature="mergeRefs(refs) [c:/users/ansh/desktop/web/mesh/apps/web/lib/merge-refs.ts:3]" purpose="Merge refs (refs)" />
       <function signature="buildGraph() [c:/users/ansh/desktop/web/mesh/apps/web/lib/build-graph.ts:8]" purpose="Build graph" />
       <function signature="trackEvent(_event) [c:/users/ansh/desktop/web/mesh/apps/web/lib/events.ts:8]" purpose="Track event (_event)" />
+      <function signature="baseOptions() [c:/users/ansh/desktop/web/mesh/apps/web/lib/layout.shared.tsx:2]" purpose="Base options" />
+      <function signature="mergeRefs(refs) [c:/users/ansh/desktop/web/mesh/apps/web/lib/merge-refs.ts:3]" purpose="Merge refs (refs)" />
       <function signature="cn(inputs) [c:/users/ansh/desktop/web/mesh/apps/web/lib/utils.ts:4]" purpose="Cn (inputs)" />
     </entry_points>
   </module>
@@ -237,11 +229,11 @@
     <location>c:/users/ansh/desktop/web/mesh/packages/core/src/parser/**</location>
     <purpose>8 files, 0 functions</purpose>
     <entry_points>
-      <function signature="getParser(filePath) [c:/users/ansh/desktop/web/mesh/packages/core/src/parser/index.ts:34]" purpose="Get parser (filePath)" />
-      <function signature="async parseFiles(filePaths, projectRoot, readFile) [c:/users/ansh/desktop/web/mesh/packages/core/src/parser/index.ts:72]" purpose="Parse files (filePaths, projectRoot, readFile)" />
-      <function signature="async getTreeSitter() [c:/users/ansh/desktop/web/mesh/packages/core/src/parser/index.ts:83]" purpose="Get tree sitter" />
-      <function signature="ChangeDetector.detectSymbolChanges(oldFile, newFile) [c:/users/ansh/desktop/web/mesh/packages/core/src/parser/change-detector.ts:18]" purpose="Change detector.detect symbol changes (oldFile, newFile)" />
-      <function signature="ChangeDetector.detectBatchChanges(oldFiles, newFiles) [c:/users/ansh/desktop/web/mesh/packages/core/src/parser/change-detector.ts:85]" purpose="Change detector.detect batch changes (oldFiles, newFiles)" />
+      <function signature="stripPrefix(s) [c:/users/ansh/desktop/web/mesh/packages/core/src/parser/boundary-checker.ts:26]" purpose="Strip prefix (s)" />
+      <function signature="parseList(raw) [c:/users/ansh/desktop/web/mesh/packages/core/src/parser/boundary-checker.ts:30]" purpose="Parse list (raw)" />
+      <function signature="parseConstraint(constraint) [c:/users/ansh/desktop/web/mesh/packages/core/src/parser/boundary-checker.ts:34]" purpose="Parse constraint (constraint)" />
+      <function signature="BoundaryChecker.constructor(contract, lock) [c:/users/ansh/desktop/web/mesh/packages/core/src/parser/boundary-checker.ts:57]" purpose="Boundary checker.constructor (contract, lock)" />
+      <function signature="BoundaryChecker.check() [c:/users/ansh/desktop/web/mesh/packages/core/src/parser/boundary-checker.ts:62]" purpose="Boundary checker.check" />
     </entry_points>
   </module>
   <module id="packages-core-search">
@@ -285,11 +277,11 @@
     <location>c:/users/ansh/desktop/web/mesh/packages/diagram-generator/src/generators/**</location>
     <purpose>8 files, 0 functions</purpose>
     <entry_points>
-      <function signature="CommandsDiagramGenerator.constructor(_contract?, _lock?) [c:/users/ansh/desktop/web/mesh/packages/diagram-generator/src/generators/commands-diagram.ts:9]" purpose="Commands diagram generator.constructor (_contract, _lock)" />
-      <function signature="CommandsDiagramGenerator.generate() [c:/users/ansh/desktop/web/mesh/packages/diagram-generator/src/generators/commands-diagram.ts:14]" purpose="Commands diagram generator.generate" />
       <function signature="CapsuleDiagramGenerator.constructor(contract, lock) [c:/users/ansh/desktop/web/mesh/packages/diagram-generator/src/generators/capsule-diagram.ts:9]" purpose="Capsule diagram generator.constructor (contract, lock)" />
       <function signature="CapsuleDiagramGenerator.generate(moduleId) [c:/users/ansh/desktop/web/mesh/packages/diagram-generator/src/generators/capsule-diagram.ts:14]" purpose="Capsule diagram generator.generate (moduleId)" />
       <function signature="CapsuleDiagramGenerator.sanitizeId(id) [c:/users/ansh/desktop/web/mesh/packages/diagram-generator/src/generators/capsule-diagram.ts:91]" purpose="Capsule diagram generator.sanitize id (id)" />
+      <function signature="CommandsDiagramGenerator.constructor(_contract?, _lock?) [c:/users/ansh/desktop/web/mesh/packages/diagram-generator/src/generators/commands-diagram.ts:9]" purpose="Commands diagram generator.constructor (_contract, _lock)" />
+      <function signature="CommandsDiagramGenerator.generate() [c:/users/ansh/desktop/web/mesh/packages/diagram-generator/src/generators/commands-diagram.ts:14]" purpose="Commands diagram generator.generate" />
     </entry_points>
   </module>
   <module id="packages-vscode-extension-providers">
@@ -319,11 +311,11 @@
     <location>c:/users/ansh/desktop/web/mesh/packages/core/src/parser/go/**</location>
     <purpose>3 files, 0 functions</purpose>
     <entry_points>
-      <function signature="async GoParser.parse(filePath, content) [c:/users/ansh/desktop/web/mesh/packages/core/src/parser/go/go-parser.ts:13]" purpose="Go parser.parse (filePath, content)" />
-      <function signature="GoParser.resolveImports(files, projectRoot) [c:/users/ansh/desktop/web/mesh/packages/core/src/parser/go/go-parser.ts:32]" purpose="Go parser.resolve imports (files, projectRoot)" />
-      <function signature="GoParser.getSupportedExtensions() [c:/users/ansh/desktop/web/mesh/packages/core/src/parser/go/go-parser.ts:40]" purpose="Go parser.get supported extensions" />
       <function signature="extractBalancedParens(s, fromIdx) [c:/users/ansh/desktop/web/mesh/packages/core/src/parser/go/go-extractor.ts:369]" purpose="Extract balanced parens (s, fromIdx)" />
       <function signature="parseGoFuncSignature(sig) [c:/users/ansh/desktop/web/mesh/packages/core/src/parser/go/go-extractor.ts:383]" purpose="Parse go func signature (sig)" />
+      <function signature="parseGoParams(paramStr) [c:/users/ansh/desktop/web/mesh/packages/core/src/parser/go/go-extractor.ts:421]" purpose="Parse go params (paramStr)" />
+      <function signature="looksLikeGoType(token) [c:/users/ansh/desktop/web/mesh/packages/core/src/parser/go/go-extractor.ts:471]" purpose="Looks like go type (token)" />
+      <function signature="cleanReturnType(ret) [c:/users/ansh/desktop/web/mesh/packages/core/src/parser/go/go-extractor.ts:485]" purpose="Clean return type (ret)" />
     </entry_points>
   </module>
   <module id="core-parser-javascript">
@@ -355,11 +347,11 @@
     <location>c:/users/ansh/desktop/web/mesh/packages/core/src/parser/typescript/**</location>
     <purpose>3 files, 0 functions</purpose>
     <entry_points>
-      <function signature="async TypeScriptParser.parse(filePath, content) [c:/users/ansh/desktop/web/mesh/packages/core/src/parser/typescript/ts-parser.ts:8]" purpose="Type script parser.parse (filePath, content)" />
-      <function signature="TypeScriptParser.resolveImports(files, projectRoot) [c:/users/ansh/desktop/web/mesh/packages/core/src/parser/typescript/ts-parser.ts:27]" purpose="Type script parser.resolve imports (files, projectRoot)" />
-      <function signature="TypeScriptParser.getSupportedExtensions() [c:/users/ansh/desktop/web/mesh/packages/core/src/parser/typescript/ts-parser.ts:32]" purpose="Type script parser.get supported extensions" />
       <function signature="walk(n) [c:/users/ansh/desktop/web/mesh/packages/core/src/parser/typescript/ts-extractor.ts:353]" purpose="Walk (n)" />
       <function signature="walk(n) [c:/users/ansh/desktop/web/mesh/packages/core/src/parser/typescript/ts-extractor.ts:413]" purpose="Walk (n)" />
+      <function signature="walk(n) [c:/users/ansh/desktop/web/mesh/packages/core/src/parser/typescript/ts-extractor.ts:425]" purpose="Walk (n)" />
+      <function signature="TypeScriptExtractor.constructor(filePath, content) [c:/users/ansh/desktop/web/mesh/packages/core/src/parser/typescript/ts-extractor.ts:19]" purpose="Type script extractor.constructor (filePath, content)" />
+      <function signature="TypeScriptExtractor.inferScriptKind(filePath) [c:/users/ansh/desktop/web/mesh/packages/core/src/parser/typescript/ts-extractor.ts:32]" purpose="Type script extractor.infer script kind (filePath)" />
     </entry_points>
   </module>
   <module id="cli-commands-contract">
@@ -375,11 +367,11 @@
     <location>c:/users/ansh/desktop/web/mesh/packages/vscode-extension/src/**</location>
     <purpose>1 files, 0 functions</purpose>
     <entry_points>
-      <function signature="activate(context) [c:/users/ansh/desktop/web/mesh/packages/vscode-extension/src/extension.ts:62]" purpose="Activate (context)" />
-      <function signature="findProjectRoot(startPath) [c:/users/ansh/desktop/web/mesh/packages/vscode-extension/src/extension.ts:82]" purpose="Find project root (startPath)" />
-      <function signature="refreshAll() [c:/users/ansh/desktop/web/mesh/packages/vscode-extension/src/extension.ts:98]" purpose="Refresh all" />
-      <function signature="updateContextForEditor(editor) [c:/users/ansh/desktop/web/mesh/packages/vscode-extension/src/extension.ts:109]" purpose="Update context for editor (editor)" />
-      <function signature="deactivate() [c:/users/ansh/desktop/web/mesh/packages/vscode-extension/src/extension.ts:240]" purpose="Deactivate" />
+      <function signature="activate(context) [c:/users/ansh/desktop/web/mesh/packages/vscode-extension/src/extension.ts:176]" purpose="Activate (context)" />
+      <function signature="findRoot(startPath) [c:/users/ansh/desktop/web/mesh/packages/vscode-extension/src/extension.ts:188]" purpose="Find root (startPath)" />
+      <function signature="refresh() [c:/users/ansh/desktop/web/mesh/packages/vscode-extension/src/extension.ts:202]" purpose="Refresh" />
+      <function signature="updateContext(editor) [c:/users/ansh/desktop/web/mesh/packages/vscode-extension/src/extension.ts:216]" purpose="Update context (editor)" />
+      <function signature="deactivate() [c:/users/ansh/desktop/web/mesh/packages/vscode-extension/src/extension.ts:292]" purpose="Deactivate" />
     </entry_points>
   </module>
 </modules>

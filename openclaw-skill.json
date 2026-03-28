@@ -1,0 +1,26 @@
+{
+  "name": "Mikk Context Engine",
+  "id": "getmikk-context-engine",
+  "version": "2.0.0",
+  "description": "Deterministic AST-based architecture engine for eliminating context hallucination. Provides 22 tools for codebase navigation, dead-code detection, and impact analysis.",
+  "author": "Ansh Dhanani",
+  "type": "mcp-server",
+  "mcp": {
+    "command": "npx",
+    "args": [
+      "-y",
+      "@getmikk/mcp-server",
+      "${workspaceRoot}"
+    ]
+  },
+  "capabilities": [
+    "codebase-navigation",
+    "blast-radius-analysis",
+    "dead-code-detection",
+    "architecture-validation"
+  ],
+  "permissions": {
+    "filesystem_read": true,
+    "shell_execute": false
+  }
+}

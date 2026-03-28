@@ -166,7 +166,7 @@ export function registerInitCommand(program: Command) {
                 // 10. Generate claude.md / AGENTS.md
                 const aiSpinner = ora('Generating AI context files...').start()
                 try {
-                    const { ClaudeMdGenerator } = await import('@getmikk/ai-context')
+                    const { ClaudeMdGenerator, OpenClawRulesGenerator } = await import('@getmikk/ai-context')
                     const meta = {
                         description: pkgJson.description,
                         scripts: pkgJson.scripts,
@@ -177,6 +177,11 @@ export function registerInitCommand(program: Command) {
                     const claudeMd = mdGenerator.generate()
                     await fs.writeFile(path.join(projectRoot, 'claude.md'), claudeMd, 'utf-8')
                     await fs.writeFile(path.join(projectRoot, 'AGENTS.md'), claudeMd, 'utf-8')
+
+                    const openclawGenerator = new OpenClawRulesGenerator(projectName)
+                    const clinerules = openclawGenerator.generate()
+                    await fs.writeFile(path.join(projectRoot, '.clinerules'), clinerules, 'utf-8')
+
                     aiSpinner.succeed('AI context files generated')
                 } catch {
                     aiSpinner.warn('AI context generation skipped (package not available)')
@@ -189,6 +194,7 @@ export function registerInitCommand(program: Command) {
                 console.log(`  ${chalk.dim('.mikk/diagrams/')}    — Mermaid diagrams of your codebase`)
                 console.log(`  ${chalk.dim('claude.md')}          — AI context derived from lock file`)
                 console.log(`  ${chalk.dim('AGENTS.md')}          — same, for Codex/Copilot agents`)
+                console.log(`  ${chalk.dim('.clinerules')}        — auto-imported system instructions for Cline/OpenClaw agents`)
                 console.log(`\n  ${chalk.dim('Stats:')} ${files.length} files, ${functionCount} functions, ${clusters.length} modules`)
                 console.log(`\n  ${chalk.dim('Next:')} Review mikk.json and refine module descriptions`)
                 console.log(`  ${chalk.dim('Run:')}  mikk contract validate to check for drift`)
