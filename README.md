@@ -211,9 +211,9 @@ Constraint types: `no-import` · `must-use` · `no-call` · `layer` · `naming` 
 
 Mikk is natively built to function as an architecture engine for autonomous agents like OpenClaw, Cline, and Claude Dev.
 
-When you run `mikk init`, Mikk automatically generates a `.clinerules` file in your repository. This file serves as a root-level system prompt that teaches autonomous agents exactly how to use the Mikk CLI to map constraints and impact rather than burning tokens blindly reading your codebase.
-
-For OpenClaw users, you can also install Mikk directly as a persistent skill. See the `openclaw-skill.json` manifest for the exact MCP configuration.
+When you run `mikk init`, Mikk automatically integrates itself into your workflow:
+- **`.clinerules` & `AGENTS.md`**: Mikk safely injects its context fetching constraints using non-destructive block patching. It will append or identify its own `<!-- MIKK-START -->` tags, ensuring that any other existing agent configuration you have is 100% preserved. 
+- **Persistent Skill**: For OpenClaw users, you can also install Mikk directly as a persistent skill. See the `openclaw-skill.json` manifest for the exact MCP configuration.
 
 ---
 
