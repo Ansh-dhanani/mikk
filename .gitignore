@@ -11,3 +11,6 @@ mikk.json
 mikk.lock.json
 
 .gitnexus
+
+# Mikk internal
+.mikk/
