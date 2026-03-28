@@ -5,14 +5,19 @@ import { rm } from 'node:fs/promises'
 import { join } from 'node:path'
 import * as readline from 'node:readline'
 import { cleanupGitIgnore } from '@getmikk/core'
+import { stripMikkBlock } from '../utils.js'
 
-const artifacts = [
+const pureArtifacts = [
     'mikk.json',
     'mikk.lock.json',
     '.mikk',
     '.mikkignore',
-    'CLAUDE.md',
-    'AGENTS.md'
+    'claude.md'
+]
+
+const patchedArtifacts = [
+    'AGENTS.md',
+    '.clinerules'
 ]
 
 async function confirm(message: string): Promise<boolean> {
@@ -38,8 +43,11 @@ export function registerRemoveCommand(program: Command) {
             console.log(chalk.bold.red('\nDestructive Operation: Removing Mikk'))
             console.log(chalk.dim('This command will permanently delete the following files/directories from your project:'))
             
-            for (const item of artifacts) {
-                console.log(`  - ${item}`)
+            for (const item of pureArtifacts) {
+                console.log(`  - Delete: ${item}`)
+            }
+            for (const item of patchedArtifacts) {
+                console.log(`  - Strip:  ${item} (preserve existing content)`)
             }
             console.log('') // Newline
 
@@ -57,16 +65,25 @@ export function registerRemoveCommand(program: Command) {
             let removedCount = 0
             const errors: string[] = []
 
-            for (const item of artifacts) {
+            for (const item of pureArtifacts) {
                 const targetPath = join(cwd, item)
                 try {
                     await rm(targetPath, { recursive: true, force: true })
                     removedCount++
                 } catch (e: any) {
-                    // Only push an error if it wasn't a standard 'ENOENT' (file not found)
                     if (e.code !== 'ENOENT') {
                         errors.push(`Failed to remove ${item}: ${e.message}`)
                     }
+                }
+            }
+
+            for (const item of patchedArtifacts) {
+                const targetPath = join(cwd, item)
+                try {
+                    const stripped = await stripMikkBlock(targetPath)
+                    if (stripped) removedCount++
+                } catch (e: any) {
+                    errors.push(`Failed to strip ${item}: ${e.message}`)
                 }
             }
 

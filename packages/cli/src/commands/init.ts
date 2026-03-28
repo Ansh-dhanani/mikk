@@ -11,6 +11,7 @@ import {
     type MikkContract
 } from '@getmikk/core'
 import { panel, kv, cols, gap, line, sq } from '../ui.js'
+import { patchFileContent } from '../utils.js'
 
 export function registerInitCommand(program: Command) {
     program
@@ -176,13 +177,13 @@ export function registerInitCommand(program: Command) {
                     const mdGenerator = new ClaudeMdGenerator(contract, lock, undefined, meta, projectRoot)
                     const claudeMd = mdGenerator.generate()
                     await fs.writeFile(path.join(projectRoot, 'claude.md'), claudeMd, 'utf-8')
-                    await fs.writeFile(path.join(projectRoot, 'AGENTS.md'), claudeMd, 'utf-8')
+                    await patchFileContent(path.join(projectRoot, 'AGENTS.md'), claudeMd)
 
                     const openclawGenerator = new OpenClawRulesGenerator(projectName)
                     const clinerules = openclawGenerator.generate()
-                    await fs.writeFile(path.join(projectRoot, '.clinerules'), clinerules, 'utf-8')
+                    await patchFileContent(path.join(projectRoot, '.clinerules'), clinerules)
 
-                    aiSpinner.succeed('AI context files generated')
+                    aiSpinner.succeed('AI context files patched successfully')
                 } catch {
                     aiSpinner.warn('AI context generation skipped (package not available)')
                 }

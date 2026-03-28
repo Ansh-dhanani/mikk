@@ -1,0 +1,14 @@
+%%{init: {"theme": "base", "themeVariables": {"primaryColor": "#1e293b", "primaryTextColor": "#e2e8f0", "lineColor": "#64748b", "secondaryColor": "#334155", "tertiaryColor": "#475569", "background": "#0f172a", "mainBkg": "#1e293b", "nodeBorder": "#475569"}}}%%
+graph TD
+
+    packages_vscode_extension_webview["📦 Dashboard<br/>3 files, 11 functions"]
+    packages_vscode_extension_providers["📦 Providers<br/>2 files, 4 functions"]
+    mesh_packages_vscode_extension["📦 Providers & Dashboard<br/>1 files, 20 functions"]
+
+    mesh_packages_vscode_extension -->|1 calls| packages_vscode_extension_webview
+    mesh_packages_vscode_extension -->|2 calls| packages_vscode_extension_providers
+
+    classDef module fill:#3b82f6,stroke:#60a5fa,color:#f8fafc,stroke-width:2px
+    class packages_vscode_extension_webview module
+    class packages_vscode_extension_providers module
+    class mesh_packages_vscode_extension module

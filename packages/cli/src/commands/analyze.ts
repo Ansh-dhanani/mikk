@@ -4,6 +4,7 @@ import { pathToFileURL } from 'node:url'
 import type { Command } from 'commander'
 import ora from 'ora'
 import chalk from 'chalk'
+import { patchFileContent } from '../utils.js'
 
 type CoreModule = typeof import('@getmikk/core')
 
@@ -137,12 +138,12 @@ export function registerAnalyzeCommand(program: Command) {
                     const mdGenerator = new ClaudeMdGenerator(contract, lock, undefined, meta, projectRoot)
                     const claudeMd = mdGenerator.generate()
                     await fs.writeFile(path.join(projectRoot, 'claude.md'), claudeMd, 'utf-8')
-                    await fs.writeFile(path.join(projectRoot, 'AGENTS.md'), claudeMd, 'utf-8')
+                    await patchFileContent(path.join(projectRoot, 'AGENTS.md'), claudeMd)
 
                     const projectName = pkgJson.name || path.basename(projectRoot)
                     const openclawGenerator = new OpenClawRulesGenerator(projectName)
                     const clinerules = openclawGenerator.generate()
-                    await fs.writeFile(path.join(projectRoot, '.clinerules'), clinerules, 'utf-8')
+                    await patchFileContent(path.join(projectRoot, '.clinerules'), clinerules)
 
                 } catch {
                     // ai-context package not available — skip silently

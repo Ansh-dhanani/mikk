@@ -1,0 +1,16 @@
+%%{init: {"theme": "base", "themeVariables": {"primaryColor": "#1e293b", "primaryTextColor": "#e2e8f0", "lineColor": "#64748b", "secondaryColor": "#334155", "tertiaryColor": "#475569", "background": "#0f172a", "mainBkg": "#1e293b", "nodeBorder": "#475569"}}}%%
+graph TD
+
+    packages_vscode_extension_webview["🟢 Dashboard<br/>Cohesion: 100%<br/>Coupling: 0<br/>Functions: 11"]
+    packages_vscode_extension_providers["🟡 Providers<br/>Cohesion: 50%<br/>Coupling: 0<br/>Functions: 4"]
+    mesh_packages_vscode_extension["🔴 Providers & Dashboard<br/>Cohesion: 0%<br/>Coupling: 3<br/>Functions: 20"]
+    mesh_packages_vscode_extension -.-> packages_vscode_extension_webview
+    mesh_packages_vscode_extension -.-> packages_vscode_extension_providers
+
+    classDef healthy fill:#22c55e,stroke:#4ade80,color:#f0fdf4
+    classDef warning fill:#f59e0b,stroke:#fbbf24,color:#1e293b
+    classDef critical fill:#ef4444,stroke:#f87171,color:#fef2f2
+
+    class packages_vscode_extension_webview healthy
+    class packages_vscode_extension_providers warning
+    class mesh_packages_vscode_extension critical

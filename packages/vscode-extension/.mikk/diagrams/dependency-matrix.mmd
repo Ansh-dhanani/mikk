@@ -1,0 +1,11 @@
+%%{init: {"theme": "base", "themeVariables": {"primaryColor": "#1e293b", "primaryTextColor": "#e2e8f0", "lineColor": "#64748b", "secondaryColor": "#334155", "tertiaryColor": "#475569", "background": "#0f172a", "mainBkg": "#1e293b", "nodeBorder": "#475569"}}}%%
+graph LR
+
+    packages_vscode_extension_webview["Dashboard<br/>11 fn"]
+    packages_vscode_extension_providers["Providers<br/>4 fn"]
+    mesh_packages_vscode_extension["Providers & Dashboard<br/>20 fn"]
+
+    mesh_packages_vscode_extension -.->|1| packages_vscode_extension_webview
+    mesh_packages_vscode_extension -.->|2| packages_vscode_extension_providers
+
+    classDef default fill:#334155,stroke:#64748b,color:#e2e8f0
