@@ -53,7 +53,7 @@ jobs:
           restore-keys: ${{ runner.os }}-bun-
 
       - name: Install dependencies
-        run: bun install --frozen-lockfile
+        run: bun install
 
       - name: Ensure clean git state
         run: |
