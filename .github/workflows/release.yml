@@ -38,8 +38,7 @@ jobs:
 
       - name: Setup npm registry for @getmikk
         run: |
-          echo "@getmikk:registry=https://registry.npmjs.org/" > .npmrc
-          echo "//registry.npmjs.org/:_authToken=\${NPM_TOKEN}" >> .npmrc
+          echo "//registry.npmjs.org/:_authToken=\${NPM_TOKEN}" > .npmrc
         env:
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
 
