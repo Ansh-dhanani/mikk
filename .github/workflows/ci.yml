@@ -13,22 +13,8 @@ concurrency:
 jobs:
   build-and-test:
     runs-on: ubuntu-latest
-    permissions:
-      contents: read
-      pull-requests: write
     steps:
-      - name: Create Mikk Bot Token
-        uses: actions/create-github-app-token@v1
-        id: bot-token
-        with:
-          app-id: ${{ secrets.APP_ID }}
-          private-key: ${{ secrets.APP_PRIVATE_KEY }}
-
       - uses: actions/checkout@v4
-        with:
-          # Required for changesets to compare against main
-          fetch-depth: 0
-          token: ${{ steps.bot-token.outputs.token }}
 
       - uses: oven-sh/setup-bun@v2
         with:
@@ -43,59 +29,6 @@ jobs:
 
       - name: Install dependencies
         run: bun install
-
-      - name: Fetch base branch
-        if: github.event_name == 'pull_request'
-        # Changesets needs a local 'main' branch to compare against
-        run: git fetch origin main:main
-
-      - name: Check for Changesets
-        id: changeset-check
-        if: github.event_name == 'pull_request'
-        # This will fail the CI if the PR contributor forgets to add a changeset file
-        run: bun changeset status
-
-      - name: "Mikk Bot: Find Existing Comment"
-        if: failure() && steps.changeset-check.outcome == 'failure'
-        id: fc
-        uses: peter-evans/find-comment@v3
-        with:
-          issue-number: ${{ github.event.pull_request.number }}
-          comment-author: 'mikk-bot[bot]'
-          body-includes: "Changeset Missing: Action Required"
-
-      - name: "Mikk Bot: Post or Update Changeset Instruction"
-        if: failure() && steps.changeset-check.outcome == 'failure'
-        uses: peter-evans/create-or-update-comment@v4
-        with:
-          token: ${{ steps.bot-token.outputs.token }}
-          comment-id: ${{ steps.fc.outputs.comment-id }}
-          issue-number: ${{ github.event.pull_request.number }}
-          edit-mode: replace
-          body: |
-            ### 🦋 Changeset Missing: Action Required
-            This Pull Request modifies packages but no **Changeset** was detected. Without a changeset, the automated release pipeline cannot address these changes.
-
-            ---
-
-            ### How to Fix:
-            Please run the following commands in your local terminal and commit the result:
-
-            1. **Initialize Changeset**:
-               ```bash
-               bun changeset
-               ```
-            2. **Select Packages**: Use the arrow keys and spacebar to select the packages you've modified.
-            3. **Select Bump Type**: Choose **`patch`** (for bug fixes) or **`minor`** (for new features).
-            4. **Add Summary**: Enter a brief description of what you changed.
-            5. **Commit & Push**:
-               ```bash
-               git add .changeset/*.md
-               git commit -m "chore: add changeset for release"
-               git push
-               ```
-
-            *Once the changeset is pushed, the CI will automatically re-run and pass!* 🟢
 
       - name: Build all packages
         run: bun run build
