@@ -1,6 +1,7 @@
 {
   "name": "mikk",
   "devDependencies": {
+    "@changesets/cli": "^2.30.0",
     "@eslint/js": "^9.0.0",
     "@types/bun": "^1.3.9",
     "@types/node": "^22.0.0",
@@ -21,7 +22,9 @@
     "build": "turbo run build",
     "test": "turbo run test",
     "dev": "turbo run dev",
-    "lint": "turbo run lint"
+    "lint": "turbo run lint",
+    "release": "bun run build && changeset publish",
+    "version-packages": "changeset version"
   },
   "workspaces": [
     "packages/*",
