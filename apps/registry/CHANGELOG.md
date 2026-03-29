@@ -1,5 +1,21 @@
 # @getmikk/registry
 
+## 2.0.2
+
+### Patch Changes
+
+- 5dfe317: test
+- 9118944: test
+- 36bbb2f: test
+- fe8ac06: chore: synchronize all packages to v2.0.1 and finalize release infrastructure.
+- b00faed: test
+- Updated dependencies [5dfe317]
+- Updated dependencies [9118944]
+- Updated dependencies [36bbb2f]
+- Updated dependencies [fe8ac06]
+- Updated dependencies [b00faed]
+  - @getmikk/core@2.0.2
+
 ## 2.0.1
 
 ### Patch Changes
