@@ -1,5 +1,11 @@
 # @getmikk/core
 
+## 2.0.4
+
+### Patch Changes
+
+- 1217e39: chore: synchronize all packages to v2.0.1 and finalize release infrastructure.
+
 ## 2.0.3
 
 ### Patch Changes

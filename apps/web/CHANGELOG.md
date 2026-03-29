@@ -1,5 +1,11 @@
 # web
 
+## 0.0.5
+
+### Patch Changes
+
+- 1217e39: chore: synchronize all packages to v2.0.1 and finalize release infrastructure.
+
 ## 0.0.4
 
 ### Patch Changes
