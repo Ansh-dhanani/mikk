@@ -1,3 +1,5 @@
+"use client";
+
 // Stub events module — satisfies imports from legacy components
 // that reference this module but aren't used in the docs site.
 export type Event = {
@@ -6,6 +8,6 @@ export type Event = {
 };
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
-export function trackEvent(..._args: unknown[]): void {
+export function trackEvent(event: string | Event, properties?: Record<string, unknown>): void {
   // no-op in docs context
 }

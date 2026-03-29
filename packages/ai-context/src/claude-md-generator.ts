@@ -322,7 +322,11 @@ export class ClaudeMdGenerator {
             // Read content from disk on-demand
             let content = ''
             if (this.projectRoot) {
-                try { content = fs.readFileSync(path.resolve(this.projectRoot, cf.path), 'utf-8') } catch { }
+                try {
+                    content = fs.readFileSync(path.resolve(this.projectRoot, cf.path), 'utf-8')
+                } catch {
+                    // Ignore missing files or read errors to prevent crash
+                }
             }
             // Trim content to avoid blowing up the token budget
             const maxChars = 8000 // ~2000 tokens per file
@@ -576,7 +580,7 @@ export class ClaudeMdGenerator {
                     .replace(/\([\w-]+\)\/?/g, '')           // strip route groups (marketing)/
                     .replace(/\[\.\.\.(\w+)\]/g, ':$1*')     // [...slug] → :slug*
                     .replace(/\[(\w+)\]/g, ':$1')            // [id] → :id
-                const urlPath = `/${urlSegments}` || '/'
+                const urlPath = urlSegments ? `/${urlSegments}` : '/'
 
                 // Detect exported HTTP methods from functions AND generics
                 // (Next.js handlers can be `export async function GET` → fn: or `export const GET =` → const:)
@@ -610,7 +614,7 @@ export class ClaudeMdGenerator {
                     .replace(/\([\w-]+\)\/?/g, '')           // strip route groups
                     .replace(/\[\.\.\.(\w+)\]/g, ':$1*')
                     .replace(/\[(\w+)\]/g, ':$1')
-                const urlPath = `/${urlSegments}` || '/'
+                const urlPath = urlSegments ? `/${urlSegments}` : '/'
                 routes.push({ urlPath, methods: ['PAGE'], file: filePath })
             }
         }

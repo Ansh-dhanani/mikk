@@ -56,8 +56,12 @@ export function GraphView({ graph, className }: { graph: GraphData; className?: 
 
     const g = svg.append("g");
 
-    const simulation = d3.forceSimulation<GraphNode>(graph.nodes as GraphNode[])
-      .force("link", d3.forceLink<GraphNode, GraphLink>(graph.links as GraphLink[]).id((d) => d.id).distance(140).strength(0.1))
+    // Clone nodes and links before passing to simulation to prevent D3 from polluting props/state
+    const nodes = [...graph.nodes].map(d => ({ ...d }));
+    const links = [...graph.links].map(d => ({ ...d }));
+
+    const simulation = d3.forceSimulation<GraphNode>(nodes)
+      .force("link", d3.forceLink<GraphNode, GraphLink>(links).id((d) => d.id).distance(140).strength(0.1))
       .force("charge", d3.forceManyBody().strength(-250))
       .force("center", d3.forceCenter(width / 2, height / 2))
       .force("collision", d3.forceCollide().radius(50))
@@ -80,12 +84,12 @@ export function GraphView({ graph, className }: { graph: GraphData; className?: 
       .attr("stroke-opacity", 0.15)
       .attr("stroke-width", 1.5)
       .selectAll("line")
-      .data(graph.links)
+      .data(links)
       .join("line");
 
     const node = g.append("g")
       .selectAll("g")
-      .data(graph.nodes)
+      .data(nodes)
       .join("g")
       .attr("cursor", "pointer")
       .on("click", (event, d: GraphNode) => {

@@ -523,7 +523,7 @@ function parseImportLine(line: string): ParsedImport | null {
  * Statefully track brace depth through content, handling:
  *  - string literals ("...", `...`), rune literals ('.')
  *  - line comments (//)
- *  - block comments (/* ... *​/)
+ *  - block comments (/* ... * /)
  */
 function findBodyBounds(lines: string[], startLine: number): { bodyStart: number; bodyEnd: number } {
     let braceDepth = 0
