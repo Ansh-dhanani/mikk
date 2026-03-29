@@ -1,4 +1,4 @@
-# @getmikk/cli
+# @getmikk/mcp-server
 
 ## 3.0.0
 
@@ -9,15 +9,6 @@
 ### Patch Changes
 
 - Updated dependencies [568a3d5]
-  - @getmikk/diagram-generator@3.0.0
   - @getmikk/intent-engine@3.0.0
   - @getmikk/ai-context@3.0.0
-  - @getmikk/mcp-server@3.0.0
-  - @getmikk/watcher@3.0.0
   - @getmikk/core@3.0.0
-
-## 1.9.2
-
-### Patch Changes
-
-- 6e5cff9: test
