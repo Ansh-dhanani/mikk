@@ -193,9 +193,9 @@ function AskVisual() {
       {/* Tool call */}
       <motion.div initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4 }}
         className="bg-muted/40 border border-border/60 rounded-lg px-4 py-3 font-mono text-[11px] text-muted-foreground/70 space-y-1">
-        <div className="text-primary/70">{"->"} mikk_check_intent("Add rate limiting to auth")</div>
-        <div className="text-muted-foreground/50">{"->"} mikk_get_module_detail("auth")</div>
-        <div className="text-muted-foreground/50">{"->"} mikk_get_impact("src/auth/login.ts")</div>
+        <div className="text-primary/70">-&gt; mikk_check_intent(&quot;Add rate limiting to auth&quot;)</div>
+        <div className="text-muted-foreground/50">-&gt; mikk_get_module_detail(&quot;auth&quot;)</div>
+        <div className="text-muted-foreground/50">-&gt; mikk_get_impact(&quot;src/auth/login.ts&quot;)</div>
       </motion.div>
 
       {/* Claude answer */}

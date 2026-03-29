@@ -6,6 +6,17 @@ import { useRouter } from "next/navigation";
 import { type GraphData } from "@/lib/build-graph";
 import { cn } from "@/lib/utils";
 
+interface GraphNode extends d3.SimulationNodeDatum {
+  id: string;
+  title: string;
+  url: string;
+}
+
+interface GraphLink extends d3.SimulationLinkDatum<GraphNode> {
+  source: string | GraphNode;
+  target: string | GraphNode;
+}
+
 export function GraphView({ graph, className }: { graph: GraphData; className?: string }) {
   const svgRef = useRef<SVGSVGElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -45,8 +56,8 @@ export function GraphView({ graph, className }: { graph: GraphData; className?: 
 
     const g = svg.append("g");
 
-    const simulation = d3.forceSimulation(graph.nodes as any)
-      .force("link", d3.forceLink(graph.links).id((d: any) => d.id).distance(140).strength(0.1))
+    const simulation = d3.forceSimulation<GraphNode>(graph.nodes as GraphNode[])
+      .force("link", d3.forceLink<GraphNode, GraphLink>(graph.links as GraphLink[]).id((d) => d.id).distance(140).strength(0.1))
       .force("charge", d3.forceManyBody().strength(-250))
       .force("center", d3.forceCenter(width / 2, height / 2))
       .force("collision", d3.forceCollide().radius(50))
@@ -61,7 +72,8 @@ export function GraphView({ graph, className }: { graph: GraphData; className?: 
         setIsZoomed(event.transform.k !== 1);
       });
 
-    svg.call(zoom as any);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    svg.call(zoom as any); // Zoom event zoomer types can be complex, any is safer here for the call wrapper
 
     const link = g.append("g")
       .attr("stroke", "var(--color-primary)")
@@ -76,10 +88,10 @@ export function GraphView({ graph, className }: { graph: GraphData; className?: 
       .data(graph.nodes)
       .join("g")
       .attr("cursor", "pointer")
-      .on("click", (event, d: any) => {
+      .on("click", (event, d: GraphNode) => {
         router.push(d.url);
       })
-      .call(d3.drag<any, any>()
+      .call(d3.drag<SVGGElement, GraphNode>()
         .on("start", (event, d) => {
           if (!event.active) simulation.alphaTarget(0.3).restart();
           d.fx = d.x;
@@ -93,6 +105,7 @@ export function GraphView({ graph, className }: { graph: GraphData; className?: 
           if (!event.active) simulation.alphaTarget(0);
           d.fx = null;
           d.fy = null;
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         }) as any);
 
     // Node Backdrop Glow
@@ -115,7 +128,7 @@ export function GraphView({ graph, className }: { graph: GraphData; className?: 
     node.append("text")
       .attr("x", 12)
       .attr("y", 4)
-      .text((d: any) => d.title)
+      .text((d: GraphNode) => d.title)
       .attr("font-size", "11px")
       .attr("font-family", "var(--font-mono)")
       .attr("font-weight", "500")
@@ -137,12 +150,12 @@ export function GraphView({ graph, className }: { graph: GraphData; className?: 
 
     simulation.on("tick", () => {
       link
-        .attr("x1", (d: any) => d.source.x)
-        .attr("y1", (d: any) => d.source.y)
-        .attr("x2", (d: any) => d.target.x)
-        .attr("y2", (d: any) => d.target.y);
+        .attr("x1", (d: GraphLink) => (d.source as GraphNode).x!)
+        .attr("y1", (d: GraphLink) => (d.source as GraphNode).y!)
+        .attr("x2", (d: GraphLink) => (d.target as GraphNode).x!)
+        .attr("y2", (d: GraphLink) => (d.target as GraphNode).y!);
 
-      node.attr("transform", (d: any) => `translate(${d.x},${d.y})`);
+      node.attr("transform", (d: GraphNode) => `translate(${d.x},${d.y})`);
     });
 
     return () => simulation.stop();

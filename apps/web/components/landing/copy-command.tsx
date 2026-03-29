@@ -2,7 +2,6 @@
 
 import { useState } from "react";
 import { Copy, Check } from "lucide-react";
-import { cn } from "@/lib/utils";
 
 export function CopyCommand({ value }: { value: string }) {
   const [copied, setCopied] = useState(false);
@@ -15,7 +14,7 @@ export function CopyCommand({ value }: { value: string }) {
           // trackEvent('copy_success', { value });
           setCopied(true);
           setTimeout(() => setCopied(false), 1800);
-        } catch (err) {
+        } catch {
           // trackEvent('copy_failure', { value, error: err });
           // Optionally log error
         }

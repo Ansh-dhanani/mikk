@@ -27,6 +27,7 @@ const buttonVariants = cva(
         lg: "h-11 px-8 rounded-[calc(var(--radius)+2px)] text-base",
         icon: "size-9 rounded-[var(--radius)]",
         "icon-sm": "size-8 rounded-[calc(var(--radius)-2px)]",
+        "icon-xs": "size-6 rounded-md",
         "icon-lg": "size-11 rounded-[calc(var(--radius)+2px)]",
       },
       animation: {

@@ -5,6 +5,7 @@ export type Event = {
   properties?: Record<string, unknown>;
 };
 
-export function trackEvent(_event: Event): void {
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+export function trackEvent(..._args: unknown[]): void {
   // no-op in docs context
 }
