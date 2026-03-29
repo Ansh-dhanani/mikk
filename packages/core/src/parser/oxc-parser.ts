@@ -389,8 +389,8 @@ export class OxcParser extends BaseParser {
                             const key = member.key;
                             if (!key) continue;
                             const mName = key.type === 'Identifier' ? key.name :
-                                          key.type === 'PrivateIdentifier' ? `#${key.name}` :
-                                          null;
+                                key.type === 'PrivateIdentifier' ? `#${key.name}` :
+                                    null;
                             if (!mName) continue;
 
                             if (member.type === 'MethodDefinition') {
@@ -613,7 +613,7 @@ export class OxcParser extends BaseParser {
                         const callExpr = node.expression;
                         const calls = extractCalls(callExpr, lineIndex);
                         moduleCalls.push(...calls);
-                        
+
                         // Route detection
                         const callee = callExpr.callee;
                         if (callee && (callee.type === 'StaticMemberExpression' || callee.type === 'MemberExpression')) {
@@ -624,14 +624,14 @@ export class OxcParser extends BaseParser {
                                 const pathArg = args[0];
                                 if (pathArg && (pathArg.type === 'StringLiteral' || pathArg.type === 'Literal' || pathArg.type === 'TemplateLiteral')) {
                                     const pathVal = pathArg.value || (pathArg.quasis && pathArg.quasis[0]?.value?.raw) || '';
-                                    
+
                                     const handlerArg = args[args.length - 1];
                                     const handlerStr = handlerArg ? content.slice(getSpan(handlerArg).start, getSpan(handlerArg).end).replace(/\s+/g, ' ').trim() : 'unknown';
-                                    
-                                    const middlewares = args.slice(1, -1).map((a: any) => 
+
+                                    const middlewares = args.slice(1, -1).map((a: any) =>
                                         content.slice(getSpan(a).start, getSpan(a).end).replace(/\s+/g, ' ').trim()
                                     );
-                                    
+
                                     routes.push({
                                         method: propName.toUpperCase() as any,
                                         path: String(pathVal),

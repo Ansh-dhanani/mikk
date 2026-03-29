@@ -1,13 +1,13 @@
 {
     "name": "@getmikk/diagram-generator",
-    "version": "2.0.0",
+    "version": "2.0.1",
     "publishConfig": {
         "access": "public"
     },
     "license": "Apache-2.0",
     "repository": {
         "type": "git",
-        "url": "https://github.com/Ansh-dhanani/mikk"
+        "url": "git+https://github.com/Ansh-dhanani/mikk.git"
     },
     "type": "module",
     "main": "./dist/index.js",
