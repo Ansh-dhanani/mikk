@@ -1,9 +1,26 @@
-import { describe, test, expect, beforeAll } from 'bun:test'
+import { describe, test, expect, beforeAll, mock } from 'bun:test'
 import { SemanticSearcher } from '../src/semantic-searcher'
 import type { MikkLock } from '@getmikk/core'
 import * as path from 'node:path'
 import * as os from 'node:os'
 import * as fs from 'node:fs/promises'
+
+// Mock @xenova/transformers to prevent network downloads and native crashes in CI
+mock.module('@xenova/transformers', () => ({
+    pipeline: async () => {
+        // Simple mock returns a vector with high first element for "JWT" or "email"
+        // to keep the ranking tests passing without the real model.
+        return async (inputs: string[]) => {
+            return inputs.map(input => {
+                const vec = new Float32Array(384).fill(0.1)
+                if (input.toLowerCase().includes('jwt')) vec[0] = 0.9
+                if (input.toLowerCase().includes('email')) vec[1] = 0.9
+                if (input.toLowerCase().includes('save')) vec[2] = 0.9
+                return { data: vec }
+            })
+        }
+    }
+}))
 
 // ── Minimal mock lock ─────────────────────────────────────────────────────────
 const mockLock: MikkLock = {

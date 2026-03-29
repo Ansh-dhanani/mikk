@@ -2,13 +2,21 @@
  * Comprehensive test suite for @getmikk/mcp-server
  * Tests all 12 tools and 3 resources with happy paths, error paths, and edge cases.
  */
-import { describe, it, expect, beforeAll, afterAll } from 'bun:test'
+import { describe, it, expect, beforeAll, afterAll, mock } from 'bun:test'
 import * as path from 'node:path'
 import { createMikkMcpServer } from '../src/server'
 import { InMemoryTransport } from '@modelcontextprotocol/sdk/inMemory.js'
 import { Client } from '@modelcontextprotocol/sdk/client/index.js'
 import type { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js'
 import * as fs from 'node:fs/promises'
+
+// Mock @xenova/transformers to prevent native ONNX/WASM crashes in CI
+mock.module('@xenova/transformers', () => ({
+    pipeline: async () => {
+        const mockPipeline = async () => [{ data: new Float32Array(384).fill(0.1) }]
+        return mockPipeline
+    }
+}))
 
 // 
 // Test constants
