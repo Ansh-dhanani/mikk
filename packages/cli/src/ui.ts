@@ -1,6 +1,6 @@
 import chalk from 'chalk'
 
-// ─── MIKK Banner ─────────────────────────────────────────────────────────────
+// ─── MIKK Banner
 const BANNER = [
     '███╗   ███╗██╗██╗  ██╗██╗  ██╗',
     '████╗ ████║██║██║ ██╔╝██║ ██╔╝',
@@ -40,7 +40,7 @@ export const sq = {
     warn: chalk.yellow('█'),
     fail: chalk.red('█'),
     info: chalk.cyan('█'),
-    dim:  chalk.dim('░'),
+    dim: chalk.dim('░'),
 }
 
 // ─── Bars ─────────────────────────────────────────────────────────────────────
@@ -68,7 +68,7 @@ export function healthBar(value: number, max: number, width = 14): string {
 }
 
 // ─── Panel ───────────────────────────────────────────────────────────────────
-const B = { tl:'┌', tr:'┐', bl:'└', br:'┘', h:'─', v:'│', lm:'├', rm:'┤' }
+const B = { tl: '┌', tr: '┐', bl: '└', br: '┘', h: '─', v: '│', lm: '├', rm: '┤' }
 
 export function panel(title: string, rows: string[], width?: number): void {
     const W = width ?? tw()
