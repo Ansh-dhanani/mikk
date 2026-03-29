@@ -8,14 +8,19 @@ import * as fs from 'node:fs/promises'
 // Mock @xenova/transformers to prevent network downloads and native crashes in CI
 mock.module('@xenova/transformers', () => ({
     pipeline: async () => {
-        // Simple mock returns a vector with high first element for "JWT" or "email"
-        // to keep the ranking tests passing without the real model.
+        // Precise keyword mapping to ensure ranking tests pass deterministically
         return async (inputs: string[]) => {
             return inputs.map(input => {
-                const vec = new Float32Array(384).fill(0.1)
-                if (input.toLowerCase().includes('jwt')) vec[0] = 0.9
-                if (input.toLowerCase().includes('email')) vec[1] = 0.9
-                if (input.toLowerCase().includes('save')) vec[2] = 0.9
+                const vec = new Float32Array(384).fill(0)
+                const low = input.toLowerCase()
+                // Use distinct indices for distinct concepts
+                if (low.includes('jwt') || low.includes('token') || low.includes('authenticate')) vec[0] = 1.0
+                if (low.includes('email') || low.includes('welcome')) vec[1] = 1.0
+                if (low.includes('save') || low.includes('database') || low.includes('persist')) vec[2] = 1.0
+                if (low.includes('login') || low.includes('http')) vec[3] = 1.0
+                
+                // Ensure the vector is non-zero to avoid indexing issues
+                if (vec[0] === 0 && vec[1] === 0 && vec[2] === 0 && vec[3] === 0) vec[10] = 1.0
                 return { data: vec }
             })
         }
