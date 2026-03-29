@@ -1,0 +1,5 @@
+---
+"@getmikk/cli": patch
+---
+
+test

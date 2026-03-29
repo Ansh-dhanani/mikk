@@ -15,6 +15,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          # Required for changesets to compare against main
+          fetch-depth: 0
 
       - uses: oven-sh/setup-bun@v2
         with:
@@ -29,6 +32,16 @@ jobs:
 
       - name: Install dependencies
         run: bun install
+
+      - name: Fetch base branch
+        if: github.event_name == 'pull_request'
+        # Changesets needs a local 'main' branch to compare against
+        run: git fetch origin main:main
+
+      - name: Check for Changesets
+        if: github.event_name == 'pull_request'
+        # This will fail the CI if the PR contributor forgets to add a changeset file
+        run: bun changeset status
 
       - name: Build all packages
         run: bun run build
