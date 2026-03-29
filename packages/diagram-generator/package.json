@@ -22,7 +22,8 @@
     "scripts": {
         "build": "tsc",
         "test": "bun test",
-        "dev": "tsc --watch"
+        "dev": "tsc --watch",
+        "lint": "eslint ."
     },
     "dependencies": {
         "@getmikk/core": "workspace:*"

@@ -1,7 +1,32 @@
-import { describe, it, expect } from 'bun:test'
+import { describe, it, expect, mock } from 'bun:test'
 import { IncrementalAnalyzer } from '../src/incremental-analyzer.js'
-import type { MikkLock, DependencyGraph, MikkContract } from '@getmikk/core'
+import type { MikkLock, DependencyGraph, MikkContract, ParsedFile } from '@getmikk/core'
 import type { FileChangeEvent } from '../src/types.js'
+
+// Mock @getmikk/core to bypass native tree-sitter dependencies in unit tests
+mock.module('@getmikk/core', () => {
+    const original = require('@getmikk/core')
+    return {
+        ...original,
+        getParser: () => ({
+            parse: async (path: string, content: string): Promise<ParsedFile> => ({
+                path,
+                language: 'typescript',
+                hash: 'abc',
+                parsedAt: Date.now(),
+                functions: [],
+                classes: [],
+                imports: [],
+                exports: [],
+                routes: [],
+                variables: [],
+                generics: [],
+                calls: []
+            })
+        }),
+        hashFile: async () => 'abc'
+    }
+})
 
 describe('IncrementalAnalyzer', () => {
     const mockGraph = (): DependencyGraph => ({
