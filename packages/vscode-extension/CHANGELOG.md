@@ -1,5 +1,11 @@
 # @getmikk/vscode-extension
 
+## 3.0.4
+
+### Patch Changes
+
+- 1217e39: chore: synchronize all packages to v2.0.1 and finalize release infrastructure.
+
 ## 3.0.3
 
 ### Patch Changes
