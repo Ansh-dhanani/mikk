@@ -1,8 +1,9 @@
 {
-    "name": "mikk",
-    "displayName": "Mikk - Codebase Nervous System",
-    "description": "VS Code extension for Mikk — see your architecture, get AI context, detect impact",
-    "version": "1.2.0",
+    "name": "@getmikk/vscode-extension",
+    "private": true,
+    "displayName": "Mikk",
+    "description": "Deterministic AI context engine for your codebase. See your architecture, detect dead code, and get precise AI context.",
+    "version": "3.0.4",
     "license": "Apache-2.0",
     "publisher": "mikk-dev",
     "engines": {
