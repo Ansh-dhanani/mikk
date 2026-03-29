@@ -26,7 +26,7 @@ interface LockFunction {
     returnType?: string; purpose?: string
     calls: string[]; calledBy: string[]; hash: string
 }
-interface LockFile { path: string; moduleId?: string; hash?: string; imports?: string[]; lastModified?: string }
+interface LockFile { path: string; moduleId?: string; hash?: string; imports?: (string | { source: string; resolvedPath?: string; names?: string[] })[]; lastModified?: string }
 
 // ─── Data Provider ────────────────────────────────────────────────────────────
 
