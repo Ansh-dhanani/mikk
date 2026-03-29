@@ -7,7 +7,7 @@
     "license": "Apache-2.0",
     "repository": {
         "type": "git",
-        "url": "https://github.com/Ansh-dhanani/mikk"
+        "url": "git+https://github.com/Ansh-dhanani/mikk.git"
     },
     "main": "./dist/index.js",
     "bin": {
