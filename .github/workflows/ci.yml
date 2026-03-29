@@ -55,15 +55,26 @@ jobs:
         # This will fail the CI if the PR contributor forgets to add a changeset file
         run: bun changeset status
 
-      - name: "Mikk Bot: Post Changeset Instruction"
+      - name: "Mikk Bot: Find Existing Comment"
+        if: failure() && steps.changeset-check.outcome == 'failure'
+        id: fc
+        uses: peter-evans/find-comment@v3
+        with:
+          issue-number: ${{ github.event.pull_request.number }}
+          comment-author: 'mikk-bot[bot]'
+          body-includes: "Changeset Missing: Action Required"
+
+      - name: "Mikk Bot: Post or Update Changeset Instruction"
         if: failure() && steps.changeset-check.outcome == 'failure'
         uses: peter-evans/create-or-update-comment@v4
         with:
           token: ${{ steps.bot-token.outputs.token }}
+          comment-id: ${{ steps.fc.outputs.comment-id }}
           issue-number: ${{ github.event.pull_request.number }}
+          edit-mode: replace
           body: |
             ### 🦋 Changeset Missing: Action Required
-            This Pull Request modifies packages but no **Changeset** was detected. Without a changeset, the automated release pipeline cannot version or publish these updates.
+            This Pull Request modifies packages but no **Changeset** was detected. Without a changeset, the automated release pipeline cannot address these changes.
 
             ---
 
