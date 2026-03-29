@@ -1,5 +1,11 @@
 # @getmikk/core
 
+## 2.0.3
+
+### Patch Changes
+
+- 06a410b: chore: synchronize monorepo to v2.0.1 and finalize release infrastructure.
+
 ## 2.0.2
 
 ### Patch Changes

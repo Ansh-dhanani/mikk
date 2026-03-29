@@ -3,7 +3,7 @@
     "private": true,
     "displayName": "Mikk",
     "description": "Deterministic AI context engine for your codebase. See your architecture, detect dead code, and get precise AI context.",
-    "version": "3.0.2",
+    "version": "3.0.3",
     "license": "Apache-2.0",
     "publisher": "AnshDhanani",
     "icon": "resources/logo.png",

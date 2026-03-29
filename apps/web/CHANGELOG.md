@@ -1,5 +1,11 @@
 # web
 
+## 0.0.4
+
+### Patch Changes
+
+- 06a410b: chore: synchronize monorepo to v2.0.1 and finalize release infrastructure.
+
 ## 0.0.3
 
 ### Patch Changes
