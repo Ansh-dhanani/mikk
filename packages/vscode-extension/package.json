@@ -92,9 +92,9 @@
     },
     "dependencies": {},
     "devDependencies": {
-        "@getmikk/core": "^1.2.0",
-        "@getmikk/diagram-generator": "^1.2.0",
-        "@getmikk/ai-context": "^1.2.0",
+        "@getmikk/core": "workspace:*",
+        "@getmikk/diagram-generator": "workspace:*",
+        "@getmikk/ai-context": "workspace:*",
         "@types/vscode": "^1.85.0",
         "esbuild": "^0.27.3",
         "typescript": "^5.7.0"
