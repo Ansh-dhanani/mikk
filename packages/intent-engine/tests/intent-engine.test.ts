@@ -1,7 +1,16 @@
-import { describe, test, expect } from 'bun:test'
+import { describe, test, expect, mock } from 'bun:test'
 import { IntentInterpreter } from '../src/interpreter'
 import { ConflictDetector } from '../src/conflict-detector'
 import { PreflightPipeline } from '../src/preflight'
+
+// Mock @xenova/transformers to prevent native library crashes in CI
+mock.module('@xenova/transformers', () => ({
+    pipeline: async () => {
+        return async (inputs: string[]) => {
+            return inputs.map(() => ({ data: new Float32Array(384).fill(0.1) }))
+        }
+    }
+}))
 import type { MikkContract, MikkLock } from '@getmikk/core'
 
 const mockContract: MikkContract = {
