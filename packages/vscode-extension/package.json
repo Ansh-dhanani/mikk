@@ -1,5 +1,6 @@
 {
-    "name": "mikk",
+    "name": "@getmikk/vscode-extension",
+    "private": true,
     "displayName": "Mikk",
     "description": "Deterministic AI context engine for your codebase. See your architecture, detect dead code, and get precise AI context.",
     "version": "2.0.0",
