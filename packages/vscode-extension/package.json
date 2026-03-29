@@ -1,12 +1,10 @@
 {
-    "name": "@getmikk/vscode-extension",
-    "private": true,
-    "displayName": "Mikk",
-    "description": "Deterministic AI context engine for your codebase. See your architecture, detect dead code, and get precise AI context.",
-    "version": "3.0.0",
+    "name": "mikk",
+    "displayName": "Mikk - Codebase Nervous System",
+    "description": "VS Code extension for Mikk — see your architecture, get AI context, detect impact",
+    "version": "1.2.0",
     "license": "Apache-2.0",
-    "publisher": "AnshDhanani",
-    "icon": "resources/logo.png",
+    "publisher": "mikk-dev",
     "engines": {
         "vscode": "^1.85.0"
     },
@@ -15,35 +13,30 @@
         "Visualization"
     ],
     "activationEvents": [
-        "onStartupFinished"
+        "workspaceContains:mikk.json"
     ],
     "main": "./dist/extension.js",
     "contributes": {
         "commands": [
             {
                 "command": "mikk.init",
-                "title": "Mikk: Initialize",
-                "icon": "$(zap)"
+                "title": "Mikk: Initialize"
             },
             {
                 "command": "mikk.analyze",
-                "title": "Mikk: Analyze",
-                "icon": "$(sync)"
+                "title": "Mikk: Analyze"
             },
             {
-                "command": "mikk.showDashboard",
-                "title": "Mikk: Open Dashboard",
-                "icon": "$(graph)"
+                "command": "mikk.showDiagram",
+                "title": "Mikk: Show Architecture Diagram"
+            },
+            {
+                "command": "mikk.showImpact",
+                "title": "Mikk: Show Impact Analysis"
             },
             {
                 "command": "mikk.getContext",
-                "title": "Mikk: Get AI Context",
-                "icon": "$(hubot)"
-            },
-            {
-                "command": "mikk.refreshAll",
-                "title": "Mikk: Refresh",
-                "icon": "$(refresh)"
+                "title": "Mikk: Get AI Context"
             }
         ],
         "viewsContainers": {
@@ -51,30 +44,26 @@
                 {
                     "id": "mikk-explorer",
                     "title": "Mikk",
-                    "icon": "resources/logo.svg"
+                    "icon": "resources/icon.svg"
                 }
             ]
         },
         "views": {
             "mikk-explorer": [
                 {
-                    "id": "mikkExplorer",
-                    "name": "Mikk",
-                    "icon": "resources/logo.svg"
-                }
-            ]
-        },
-        "menus": {
-            "view/title": [
-                {
-                    "command": "mikk.showDashboard",
-                    "when": "view == mikkExplorer",
-                    "group": "navigation@1"
+                    "id": "mikkModules",
+                    "name": "Modules",
+                    "icon": "resources/icon.svg"
                 },
                 {
-                    "command": "mikk.refreshAll",
-                    "when": "view == mikkExplorer",
-                    "group": "navigation@2"
+                    "id": "mikkFunctions",
+                    "name": "Functions",
+                    "icon": "resources/icon.svg"
+                },
+                {
+                    "id": "mikkHealth",
+                    "name": "Health",
+                    "icon": "resources/icon.svg"
                 }
             ]
         }
@@ -87,14 +76,13 @@
         "build": "node esbuild.mjs",
         "watch": "node esbuild.mjs --watch",
         "package": "vsce package --no-dependencies",
-        "deploy": "vsce publish --no-dependencies",
-        "lint": "eslint ."
+        "deploy": "vsce publish --no-dependencies"
     },
     "dependencies": {},
     "devDependencies": {
-        "@getmikk/core": "workspace:*",
-        "@getmikk/diagram-generator": "workspace:*",
-        "@getmikk/ai-context": "workspace:*",
+        "@getmikk/core": "^1.2.0",
+        "@getmikk/diagram-generator": "^1.2.0",
+        "@getmikk/ai-context": "^1.2.0",
         "@types/vscode": "^1.85.0",
         "esbuild": "^0.27.3",
         "typescript": "^5.7.0"

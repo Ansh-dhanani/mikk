@@ -1,0 +1,24 @@
+%%{init: {"theme": "base", "themeVariables": {"primaryColor": "#1e293b", "primaryTextColor": "#e2e8f0", "lineColor": "#64748b", "secondaryColor": "#334155", "tertiaryColor": "#475569", "background": "#0f172a", "mainBkg": "#1e293b", "nodeBorder": "#475569"}}}%%
+graph LR
+
+    subgraph apps_web_app["📦 API"]
+        direction TB
+        subgraph internal["🔒 Internal"]
+            fn_c__users_ansh_desktop_web_mesh_apps_web_app_robots_ts_robots["robots"]
+            fn_c__users_ansh_desktop_web_mesh_apps_web_app_robots_ts_robots_2["robots"]
+            fn_c__users_ansh_desktop_web_mesh_apps_web_app_sitemap_ts_mdxfiletoroute["mdxFileToRoute"]
+            fn_c__users_ansh_desktop_web_mesh_apps_web_app_sitemap_ts_collectdocsroutes["collectDocsRoutes"]
+            fn_c__users_ansh_desktop_web_mesh_apps_web_app_sitemap_ts_sitemap["sitemap"]
+            fn_c__users_ansh_desktop_web_mesh_apps_web_app_sitemap_ts_sitemap_2["sitemap"]
+        end
+    end
+
+
+    classDef publicApi fill:#22c55e,stroke:#4ade80,color:#f0fdf4
+    classDef internalApi fill:#64748b,stroke:#94a3b8,color:#f1f5f9
+    class fn_c__users_ansh_desktop_web_mesh_apps_web_app_robots_ts_robots internalApi
+    class fn_c__users_ansh_desktop_web_mesh_apps_web_app_robots_ts_robots_2 internalApi
+    class fn_c__users_ansh_desktop_web_mesh_apps_web_app_sitemap_ts_mdxfiletoroute internalApi
+    class fn_c__users_ansh_desktop_web_mesh_apps_web_app_sitemap_ts_collectdocsroutes internalApi
+    class fn_c__users_ansh_desktop_web_mesh_apps_web_app_sitemap_ts_sitemap internalApi
+    class fn_c__users_ansh_desktop_web_mesh_apps_web_app_sitemap_ts_sitemap_2 internalApi

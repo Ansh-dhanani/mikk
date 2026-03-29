@@ -1,0 +1,54 @@
+%%{init: {"theme": "base", "themeVariables": {"primaryColor": "#1e293b", "primaryTextColor": "#e2e8f0", "lineColor": "#64748b", "secondaryColor": "#334155", "tertiaryColor": "#475569", "background": "#0f172a", "mainBkg": "#1e293b", "nodeBorder": "#475569"}}}%%
+graph TD
+    subgraph mod_packages_core_utils["📦 Module: Utils & Storage"]
+        subgraph file_c__users_ansh_desktop_web_mesh_packages_core_src_utils_errors_ts["📄 errors.ts"]
+            fn_c__users_ansh_desktop_web_mesh_packages_core_src_utils_errors_ts_mikkerror_constructor["⚡ MikkError.constructor"]
+            fn_c__users_ansh_desktop_web_mesh_packages_core_src_utils_errors_ts_parseerror_constructor["⚡ ParseError.constructor"]
+            fn_c__users_ansh_desktop_web_mesh_packages_core_src_utils_errors_ts_contractnotfounderror_constructor["⚡ ContractNotFoundError.constructor"]
+            fn_c__users_ansh_desktop_web_mesh_packages_core_src_utils_errors_ts_locknotfounderror_constructor["⚡ LockNotFoundError.constructor"]
+            fn_c__users_ansh_desktop_web_mesh_packages_core_src_utils_errors_ts_unsupportedlanguageerror_constructor["⚡ UnsupportedLanguageError.constructor"]
+            fn_c__users_ansh_desktop_web_mesh_packages_core_src_utils_errors_ts_overwritepermissionerror_constructor["⚡ OverwritePermissionError.constructor"]
+            fn_c__users_ansh_desktop_web_mesh_packages_core_src_utils_errors_ts_syncstateerror_constructor["⚡ SyncStateError.constructor"]
+        end
+        subgraph file_c__users_ansh_desktop_web_mesh_packages_core_src_utils_fs_ts["📄 fs.ts"]
+            fn_c__users_ansh_desktop_web_mesh_packages_core_src_utils_fs_ts_readmikkignore["⚡ readMikkIgnore"]
+            fn_c__users_ansh_desktop_web_mesh_packages_core_src_utils_fs_ts_parsemikkignore["⚡ parseMikkIgnore"]
+            fn_c__users_ansh_desktop_web_mesh_packages_core_src_utils_fs_ts_discovercontextfiles["⚡ discoverContextFiles"]
+            fn_c__users_ansh_desktop_web_mesh_packages_core_src_utils_fs_ts_infercontextfiletype["⚡ inferContextFileType"]
+            fn_c__users_ansh_desktop_web_mesh_packages_core_src_utils_fs_ts_detectprojectlanguage["⚡ detectProjectLanguage"]
+            fn_c__users_ansh_desktop_web_mesh_packages_core_src_utils_fs_ts_exists["⚡ exists"]
+            fn_c__users_ansh_desktop_web_mesh_packages_core_src_utils_fs_ts_hasglob["⚡ hasGlob"]
+            fn_c__users_ansh_desktop_web_mesh_packages_core_src_utils_fs_ts_getdiscoverypatterns["⚡ getDiscoveryPatterns"]
+            fn_c__users_ansh_desktop_web_mesh_packages_core_src_utils_fs_ts_discoverfiles["⚡ discoverFiles"]
+            fn_c__users_ansh_desktop_web_mesh_packages_core_src_utils_fs_ts_readfilecontent["⚡ readFileContent"]
+            fn_c__users_ansh_desktop_web_mesh_packages_core_src_utils_fs_ts_writefilecontent["⚡ writeFileContent"]
+            fn_c__users_ansh_desktop_web_mesh_packages_core_src_utils_fs_ts_fileexists["⚡ fileExists"]
+            fn_c__users_ansh_desktop_web_mesh_packages_core_src_utils_fs_ts_setupmikkdirectory["⚡ setupMikkDirectory"]
+            fn_c__users_ansh_desktop_web_mesh_packages_core_src_utils_fs_ts_generatemikkignore["⚡ generateMikkIgnore"]
+            fn_c__users_ansh_desktop_web_mesh_packages_core_src_utils_fs_ts_updategitignore["⚡ updateGitIgnore"]
+            fn_c__users_ansh_desktop_web_mesh_packages_core_src_utils_fs_ts_cleanupgitignore["⚡ cleanupGitIgnore"]
+        end
+        subgraph file_c__users_ansh_desktop_web_mesh_packages_core_src_utils_fuzzy_match_ts["📄 fuzzy-match.ts"]
+            fn_c__users_ansh_desktop_web_mesh_packages_core_src_utils_fuzzy_match_ts_scorefunctions["⚡ scoreFunctions"]
+            fn_c__users_ansh_desktop_web_mesh_packages_core_src_utils_fuzzy_match_ts_findfuzzymatches["⚡ findFuzzyMatches"]
+            fn_c__users_ansh_desktop_web_mesh_packages_core_src_utils_fuzzy_match_ts_scoresinglefunction["⚡ scoreSingleFunction"]
+            fn_c__users_ansh_desktop_web_mesh_packages_core_src_utils_fuzzy_match_ts_levenshtein["⚡ levenshtein"]
+            fn_c__users_ansh_desktop_web_mesh_packages_core_src_utils_fuzzy_match_ts_splitcamelcase["⚡ splitCamelCase"]
+            fn_c__users_ansh_desktop_web_mesh_packages_core_src_utils_fuzzy_match_ts_extractkeywords["⚡ extractKeywords"]
+        end
+        subgraph file_c__users_ansh_desktop_web_mesh_packages_core_src_utils_json_ts["📄 json.ts"]
+            fn_c__users_ansh_desktop_web_mesh_packages_core_src_utils_json_ts_readjsonsafe["⚡ readJsonSafe"]
+        end
+        subgraph file_c__users_ansh_desktop_web_mesh_packages_core_src_utils_logger_ts["📄 logger.ts"]
+            fn_c__users_ansh_desktop_web_mesh_packages_core_src_utils_logger_ts_setloglevel["⚡ setLogLevel"]
+            fn_c__users_ansh_desktop_web_mesh_packages_core_src_utils_logger_ts_shouldlog["⚡ shouldLog"]
+            fn_c__users_ansh_desktop_web_mesh_packages_core_src_utils_logger_ts_log["⚡ log"]
+        end
+        subgraph file_c__users_ansh_desktop_web_mesh_packages_core_src_utils_minimatch_ts["📄 minimatch.ts"]
+            fn_c__users_ansh_desktop_web_mesh_packages_core_src_utils_minimatch_ts_minimatch["⚡ minimatch"]
+        end
+    end
+
+
+    classDef default fill:#334155,stroke:#64748b,color:#e2e8f0,stroke-width:1px
+    classDef external fill:#1e293b,stroke:#475569,color:#94a3b8,stroke-dasharray: 5 5

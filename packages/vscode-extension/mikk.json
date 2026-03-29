@@ -1,0 +1,62 @@
+{
+  "version": "1.0.0",
+  "project": {
+    "name": "mikk",
+    "description": "Deterministic AI context engine for your codebase. See your architecture, detect dead code, and get precise AI context.",
+    "language": "typescript",
+    "entryPoints": [
+      "C:/Users/Ansh/Desktop/web/Mesh/packages/vscode-extension/src/extension.ts"
+    ]
+  },
+  "declared": {
+    "modules": [
+      {
+        "id": "packages-vscode-extension-webview",
+        "name": "Dashboard",
+        "description": "3 files, 0 functions",
+        "intent": "",
+        "paths": [
+          "c:/users/ansh/desktop/web/mesh/packages/vscode-extension/src/webview/**"
+        ],
+        "entryFunctions": []
+      },
+      {
+        "id": "packages-vscode-extension-providers",
+        "name": "Providers",
+        "description": "2 files, 0 functions",
+        "intent": "",
+        "paths": [
+          "c:/users/ansh/desktop/web/mesh/packages/vscode-extension/src/providers/**"
+        ],
+        "entryFunctions": []
+      },
+      {
+        "id": "mesh-packages-vscode-extension",
+        "name": "Providers & Dashboard",
+        "description": "1 files, 0 functions",
+        "intent": "",
+        "paths": [
+          "c:/users/ansh/desktop/web/mesh/packages/vscode-extension/src/**"
+        ],
+        "entryFunctions": []
+      }
+    ],
+    "constraints": [],
+    "decisions": []
+  },
+  "overwrite": {
+    "mode": "never",
+    "requireConfirmation": true
+  },
+  "policies": {
+    "maxRiskScore": 70,
+    "maxImpactNodes": 10,
+    "protectedModules": [
+      "auth",
+      "security",
+      "billing"
+    ],
+    "enforceStrictBoundaries": true,
+    "requireReasoningForCritical": true
+  }
+}

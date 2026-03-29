@@ -1,0 +1,70 @@
+%%{init: {"theme": "base", "themeVariables": {"primaryColor": "#1e293b", "primaryTextColor": "#e2e8f0", "lineColor": "#64748b", "secondaryColor": "#334155", "tertiaryColor": "#475569", "background": "#0f172a", "mainBkg": "#1e293b", "nodeBorder": "#475569"}}}%%
+graph TD
+    subgraph mod_packages_cli_commands["📦 Module: CLI & Storage"]
+        subgraph file_c__users_ansh_desktop_web_mesh_packages_cli_src_commands_adr_ts["📄 adr.ts"]
+            fn_c__users_ansh_desktop_web_mesh_packages_cli_src_commands_adr_ts_registeradrcommand["⚡ registerAdrCommand"]
+            fn_c__users_ansh_desktop_web_mesh_packages_cli_src_commands_adr_ts_getmanager["⚡ getManager"]
+        end
+        subgraph file_c__users_ansh_desktop_web_mesh_packages_cli_src_commands_analyze_ts["📄 analyze.ts"]
+            fn_c__users_ansh_desktop_web_mesh_packages_cli_src_commands_analyze_ts_findworkspaceroot["⚡ findWorkspaceRoot"]
+            fn_c__users_ansh_desktop_web_mesh_packages_cli_src_commands_analyze_ts_resolvecoremodule["⚡ resolveCoreModule"]
+            fn_c__users_ansh_desktop_web_mesh_packages_cli_src_commands_analyze_ts_registeranalyzecommand["⚡ registerAnalyzeCommand"]
+        end
+        subgraph file_c__users_ansh_desktop_web_mesh_packages_cli_src_commands_ci_ts["📄 ci.ts"]
+            fn_c__users_ansh_desktop_web_mesh_packages_cli_src_commands_ci_ts_registercicommand["⚡ registerCiCommand"]
+            fn_c__users_ansh_desktop_web_mesh_packages_cli_src_commands_ci_ts_buildgraphfromlock["⚡ buildGraphFromLock"]
+        end
+        subgraph file_c__users_ansh_desktop_web_mesh_packages_cli_src_commands_context_ts["📄 context.ts"]
+            fn_c__users_ansh_desktop_web_mesh_packages_cli_src_commands_context_ts_parseintoption["⚡ parseIntOption"]
+            fn_c__users_ansh_desktop_web_mesh_packages_cli_src_commands_context_ts_registercontextcommands["⚡ registerContextCommands"]
+            fn_c__users_ansh_desktop_web_mesh_packages_cli_src_commands_context_ts_loadcontractandlock["⚡ loadContractAndLock"]
+            fn_c__users_ansh_desktop_web_mesh_packages_cli_src_commands_context_ts_printmeta["⚡ printMeta"]
+            fn_c__users_ansh_desktop_web_mesh_packages_cli_src_commands_context_ts_parsecsvoption["⚡ parseCsvOption"]
+            fn_c__users_ansh_desktop_web_mesh_packages_cli_src_commands_context_ts_buildcontextwithoptionalfallback["⚡ buildContextWithOptionalFallback"]
+        end
+        subgraph file_c__users_ansh_desktop_web_mesh_packages_cli_src_commands_dead_code_ts["📄 dead-code.ts"]
+            fn_c__users_ansh_desktop_web_mesh_packages_cli_src_commands_dead_code_ts_registerdeadcodecommand["⚡ registerDeadCodeCommand"]
+            fn_c__users_ansh_desktop_web_mesh_packages_cli_src_commands_dead_code_ts_buildgraphfromlock["⚡ buildGraphFromLock"]
+        end
+        subgraph file_c__users_ansh_desktop_web_mesh_packages_cli_src_commands_diff_ts["📄 diff.ts"]
+            fn_c__users_ansh_desktop_web_mesh_packages_cli_src_commands_diff_ts_registerdiffcommand["⚡ registerDiffCommand"]
+        end
+        subgraph file_c__users_ansh_desktop_web_mesh_packages_cli_src_commands_doctor_ts["📄 doctor.ts"]
+            fn_c__users_ansh_desktop_web_mesh_packages_cli_src_commands_doctor_ts_registerdoctorcommand["⚡ registerDoctorCommand"]
+        end
+        subgraph file_c__users_ansh_desktop_web_mesh_packages_cli_src_commands_init_ts["📄 init.ts"]
+            fn_c__users_ansh_desktop_web_mesh_packages_cli_src_commands_init_ts_registerinitcommand["⚡ registerInitCommand"]
+        end
+        subgraph file_c__users_ansh_desktop_web_mesh_packages_cli_src_commands_intent_ts["📄 intent.ts"]
+            fn_c__users_ansh_desktop_web_mesh_packages_cli_src_commands_intent_ts_registerintentcommand["⚡ registerIntentCommand"]
+        end
+        subgraph file_c__users_ansh_desktop_web_mesh_packages_cli_src_commands_mcp_ts["📄 mcp.ts"]
+            fn_c__users_ansh_desktop_web_mesh_packages_cli_src_commands_mcp_ts_registermcpcommand["⚡ registerMcpCommand"]
+            fn_c__users_ansh_desktop_web_mesh_packages_cli_src_commands_mcp_ts_installmcpconfig["⚡ installMcpConfig"]
+            fn_c__users_ansh_desktop_web_mesh_packages_cli_src_commands_mcp_ts_buildtargets["⚡ buildTargets"]
+            fn_c__users_ansh_desktop_web_mesh_packages_cli_src_commands_mcp_ts_buildmcpentry["⚡ buildMcpEntry"]
+            fn_c__users_ansh_desktop_web_mesh_packages_cli_src_commands_mcp_ts_parsejsonsafe["⚡ parseJsonSafe"]
+            fn_c__users_ansh_desktop_web_mesh_packages_cli_src_commands_mcp_ts_patchclaudeconfig["⚡ patchClaudeConfig"]
+            fn_c__users_ansh_desktop_web_mesh_packages_cli_src_commands_mcp_ts_patchcursorconfig["⚡ patchCursorConfig"]
+            fn_c__users_ansh_desktop_web_mesh_packages_cli_src_commands_mcp_ts_patchvscodeconfig["⚡ patchVSCodeConfig"]
+        end
+        subgraph file_c__users_ansh_desktop_web_mesh_packages_cli_src_commands_remove_ts["📄 remove.ts"]
+            fn_c__users_ansh_desktop_web_mesh_packages_cli_src_commands_remove_ts_confirm["⚡ confirm"]
+            fn_c__users_ansh_desktop_web_mesh_packages_cli_src_commands_remove_ts_registerremovecommand["⚡ registerRemoveCommand"]
+        end
+        subgraph file_c__users_ansh_desktop_web_mesh_packages_cli_src_commands_stats_ts["📄 stats.ts"]
+            fn_c__users_ansh_desktop_web_mesh_packages_cli_src_commands_stats_ts_registerstatscommand["⚡ registerStatsCommand"]
+            fn_c__users_ansh_desktop_web_mesh_packages_cli_src_commands_stats_ts_buildgraphfromlock["⚡ buildGraphFromLock"]
+        end
+        subgraph file_c__users_ansh_desktop_web_mesh_packages_cli_src_commands_visualize_ts["📄 visualize.ts"]
+            fn_c__users_ansh_desktop_web_mesh_packages_cli_src_commands_visualize_ts_loadprojectcontext["⚡ loadProjectContext"]
+            fn_c__users_ansh_desktop_web_mesh_packages_cli_src_commands_visualize_ts_registervisualizecommands["⚡ registerVisualizeCommands"]
+        end
+        subgraph file_c__users_ansh_desktop_web_mesh_packages_cli_src_commands_watch_ts["📄 watch.ts"]
+            fn_c__users_ansh_desktop_web_mesh_packages_cli_src_commands_watch_ts_registerwatchcommand["⚡ registerWatchCommand"]
+        end
+    end
+
+
+    classDef default fill:#334155,stroke:#64748b,color:#e2e8f0,stroke-width:1px
+    classDef external fill:#1e293b,stroke:#475569,color:#94a3b8,stroke-dasharray: 5 5
