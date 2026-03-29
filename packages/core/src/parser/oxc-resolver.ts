@@ -1,7 +1,8 @@
-import { ResolverFactory } from 'oxc-resolver';
+
 import path from 'node:path';
 import fs from 'node:fs';
 import type { ParsedFile } from './types.js';
+
 
 /**
  * OxcResolver — Rust-backed compiler-grade module resolution.
@@ -21,10 +22,15 @@ export class OxcResolver {
     private resolver: any;
     private readonly normalizedRoot: string;
 
+
     constructor(private readonly projectRoot: string) {
         this.normalizedRoot = path.resolve(projectRoot).replace(/\\/g, '/');
+    }
 
-        const tsconfigPath = path.resolve(projectRoot, 'tsconfig.json');
+    private async ensureResolver() {
+        if (this.resolver) return;
+        const { ResolverFactory } = await import('oxc-resolver');
+        const tsconfigPath = path.resolve(this.projectRoot, 'tsconfig.json');
         const hasTsConfig = fs.existsSync(tsconfigPath);
 
         this.resolver = new ResolverFactory({
@@ -46,14 +52,16 @@ export class OxcResolver {
      * fromFile MUST be an absolute path (as produced by parseFiles).
      * Returns an absolute posix path, or '' if unresolvable/external.
      */
-    public resolve(source: string, fromFile: string): string {
+    public async resolve(source: string, fromFile: string): Promise<string> {
         try {
+            await this.ensureResolver();
             const absFrom = path.isAbsolute(fromFile)
                 ? fromFile
                 : path.resolve(this.projectRoot, fromFile);
             const dir = path.dirname(absFrom);
 
             const result = this.resolver.sync(dir, source);
+
             if (!result?.path) return '';
 
             const resolved = result.path.replace(/\\/g, '/');
@@ -70,14 +78,16 @@ export class OxcResolver {
         }
     }
 
+
     /** Resolve all imports for a batch of files in one pass */
-    public resolveBatch(files: ParsedFile[]): ParsedFile[] {
-        return files.map(file => ({
+    public async resolveBatch(files: ParsedFile[]): Promise<ParsedFile[]> {
+        return Promise.all(files.map(async file => ({
             ...file,
-            imports: file.imports.map(imp => ({
+            imports: await Promise.all(file.imports.map(async imp => ({
                 ...imp,
-                resolvedPath: this.resolve(imp.source, file.path),
-            })),
-        }));
+                resolvedPath: await this.resolve(imp.source, file.path),
+            }))),
+        })));
     }
 }
+
