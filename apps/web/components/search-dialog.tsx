@@ -1,13 +1,12 @@
 "use client";
 
-import { ChevronRight, FileText, Hash, Search as SearchIcon, CornerDownRight } from "lucide-react";
+import { ChevronRight, Search as SearchIcon } from "lucide-react";
 import { Fragment, type ReactNode } from "react";
 import { useDocsSearch } from "fumadocs-core/search/client";
 import {
   SearchDialog as SearchDialogPrimitive,
   SearchDialogContent,
   SearchDialogHeader,
-  SearchDialogIcon,
   SearchDialogInput,
   SearchDialogList,
   SearchDialogOverlay,

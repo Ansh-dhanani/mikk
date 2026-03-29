@@ -17,7 +17,8 @@
     "scripts": {
         "build": "node esbuild.mjs",
         "test": "bun test",
-        "dev": "tsc --watch"
+        "dev": "tsc --watch",
+        "lint": "eslint ."
     },
     "dependencies": {
         "better-sqlite3": "^12.6.2",

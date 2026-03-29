@@ -27,7 +27,8 @@
     "scripts": {
         "build": "node esbuild.mjs",
         "test": "bun test",
-        "dev": "tsc --watch"
+        "dev": "tsc --watch",
+        "lint": "eslint ."
     },
     "dependencies": {
         "@modelcontextprotocol/sdk": "^1.12.1",

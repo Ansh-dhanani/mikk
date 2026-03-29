@@ -18,7 +18,8 @@
     "scripts": {
         "build": "tsc",
         "test": "bun test",
-        "dev": "tsc --watch"
+        "dev": "tsc --watch",
+        "lint": "eslint ."
     },
     "dependencies": {
         "@types/better-sqlite3": "^7.6.13",

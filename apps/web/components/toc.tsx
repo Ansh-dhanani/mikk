@@ -5,6 +5,7 @@ import {
   createContext,
   type ReactNode,
   type RefObject,
+  useCallback,
   useContext,
   useEffect,
   useLayoutEffect,
@@ -180,12 +181,14 @@ function ActiveIndicator({ items, activeIds }: { items: TOCItemType[]; activeIds
       }
     });
 
-    setFullPath(d);
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setFullPath(prev => prev === d ? prev : d);
   }, [items]);
 
   useEffect(() => {
     if (!pathRef.current || items.length === 0 || !fullPath || activeIds.length === 0) {
-      setDashState({ array: "0 10000", offset: 0 });
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setDashState(prev => (prev.array === "0 10000" && prev.offset === 0 ? prev : { array: "0 10000", offset: 0 }));
       return;
     }
 
@@ -222,9 +225,11 @@ function ActiveIndicator({ items, activeIds }: { items: TOCItemType[]; activeIds
     const startLen = getPathLenAtIdx(firstIdx);
     const endLen = getPathLenAtIdx(lastIdx);
 
-    setDashState({
-      array: `${Math.max(1, endLen - startLen)} ${totalLength}`,
-      offset: -startLen
+    setDashState(prev => {
+      const array = `${Math.max(1, endLen - startLen)} ${totalLength}`;
+      const offset = -startLen;
+      if (prev.array === array && prev.offset === offset) return prev;
+      return { array, offset };
     });
 
   }, [activeIds, fullPath, items]);
@@ -262,8 +267,9 @@ function useAnchorObserver(watch: string[], single: boolean): string[] {
   const observerRef = useRef<IntersectionObserver | null>(null);
   const [activeAnchors, setActiveAnchors] = useState<string[]>([]);
   const stateRef = useRef<{ visible: Set<string> }>({ visible: new Set() });
+  const [mounted, setMounted] = useState(false);
 
-  const onChange = (entries: IntersectionObserverEntry[]) => {
+  const onChange = useCallback((entries: IntersectionObserverEntry[]) => {
     const state = stateRef.current;
 
     for (const entry of entries) {
@@ -294,7 +300,7 @@ function useAnchorObserver(watch: string[], single: boolean): string[] {
       const items = watch.filter((id) => state.visible.has(id));
       setActiveAnchors(single ? items.slice(0, 1) : items);
     }
-  };
+  }, [watch, single]);
 
   useEffect(() => {
     observerRef.current = new IntersectionObserver(onChange, {
@@ -306,9 +312,15 @@ function useAnchorObserver(watch: string[], single: boolean): string[] {
       observerRef.current?.disconnect();
       observerRef.current = null;
     };
+  }, [onChange]);
+
+  useLayoutEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setMounted(true);
   }, []);
 
   useEffect(() => {
+    if (!mounted) return;
     const observer = observerRef.current;
     if (!observer) return;
     const elements = watch.flatMap((id) => document.getElementById(id) ?? []);
@@ -317,7 +329,7 @@ function useAnchorObserver(watch: string[], single: boolean): string[] {
     return () => {
       for (const el of elements) observer.unobserve(el);
     };
-  }, [watch]);
+  }, [watch, mounted]);
 
   return activeAnchors;
 }

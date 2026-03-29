@@ -86,7 +86,8 @@
         "build": "node esbuild.mjs",
         "watch": "node esbuild.mjs --watch",
         "package": "vsce package --no-dependencies",
-        "deploy": "vsce publish --no-dependencies"
+        "deploy": "vsce publish --no-dependencies",
+        "lint": "eslint ."
     },
     "dependencies": {},
     "devDependencies": {

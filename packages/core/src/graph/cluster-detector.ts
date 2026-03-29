@@ -600,7 +600,7 @@ export class ClusterDetector {
             const split = id
                 .replace(/([a-z0-9])([A-Z])/g, '$1 $2')
                 .replace(/([A-Z]+)([A-Z][a-z])/g, '$1 $2')
-                .split(/[\s_\-\.]+/)
+                .split(/[\s_\-.]+/)
                 .map(w => w.toLowerCase())
                 .filter(w => w.length > 1)
             words.push(...split)

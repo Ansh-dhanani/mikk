@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useLayoutEffect, useMemo, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { createPortal } from "react-dom";
 import { useTheme } from "next-themes";
@@ -19,7 +19,6 @@ import {
   Shield,
   X,
   Minus,
-  Sparkles,
   Moon,
   Sun,
   ArrowDown,
@@ -81,13 +80,18 @@ function DeckNav({
   const NEXT_HINT_KEY = "mikk_next_hint_seen_v1";
 
   // Rendering via portal avoids "fixed inside transformed ancestor" issues.
-  useEffect(() => setMounted(true), []);
+  useLayoutEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setMounted(true);
+  }, []);
 
   useEffect(() => {
     if (!mounted) return;
     try {
-      const seen = localStorage.getItem(NEXT_HINT_KEY) === "1";
-      if (!seen) setShowNextHint(true);
+      if (!localStorage.getItem(NEXT_HINT_KEY)) {
+        // eslint-disable-next-line react-hooks/set-state-in-effect
+        setShowNextHint(true);
+      }
     } catch {
       // Ignore storage failures (private mode, etc).
       setShowNextHint(true);
@@ -95,14 +99,13 @@ function DeckNav({
   }, [mounted]);
 
   useEffect(() => {
-    if (!mounted) return;
-    if (index > 0) {
-      setShowNextHint(false);
-      try {
-        localStorage.setItem(NEXT_HINT_KEY, "1");
-      } catch {
-        // ignore
-      }
+    if (!mounted || index === 0) return;
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setShowNextHint(false);
+    try {
+      localStorage.setItem(NEXT_HINT_KEY, "1");
+    } catch {
+      // ignore
     }
   }, [index, mounted]);
 
@@ -442,9 +445,9 @@ export default function Page() {
                 <div>Change src/auth/login.ts to add rate limiting.</div>
                 <div className="pt-2 text-foreground/80">Assistant:</div>
                 <div className="text-foreground/80">Calls:</div>
-                <div className="text-muted-foreground/70">mikk_before_edit(["src/auth/login.ts"]) {"->"} risks + constraints</div>
-                <div className="text-muted-foreground/70">mikk_impact_analysis({"{"} file: "src/auth/login.ts" {"}"}) {"->"} blast radius</div>
-                <div className="text-muted-foreground/70">mikk_get_changes() {"->"} what changed since analysis</div>
+                <div className="text-muted-foreground/70">mikk_before_edit([&quot;src/auth/login.ts&quot;]) -&gt; risks + constraints</div>
+                <div className="text-muted-foreground/70">mikk_impact_analysis(&#123; file: &quot;src/auth/login.ts&quot; &#125;) -&gt; blast radius</div>
+                <div className="text-muted-foreground/70">mikk_get_changes() -&gt; what changed since analysis</div>
                 <div className="text-green-600 dark:text-green-400">Result: correct scope, correct dependencies, safer edits.</div>
               </div>
             </div>

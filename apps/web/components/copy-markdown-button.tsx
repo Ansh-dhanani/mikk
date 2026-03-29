@@ -1,6 +1,5 @@
 "use client";
 
-import { FileTextIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { CopyButton } from "@/components/copy-button";
 

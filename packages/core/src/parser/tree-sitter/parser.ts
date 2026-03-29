@@ -224,7 +224,7 @@ export class TreeSitterParser extends BaseParser {
                     this.nameCounter.set(fnName, count)
 
                     // Unique ID: use stable format with counter for collisions
-                    let fnId = count === 1 ? `fn:${filePath}:${fnName}` : `fn:${filePath}:${fnName}#${count}`
+                    const fnId = count === 1 ? `fn:${filePath}:${fnName}` : `fn:${filePath}:${fnName}#${count}`
                     if (seenFnIds.has(fnId)) {
                         continue
                     }
@@ -472,9 +472,8 @@ function extractDocComment(content: string, startLine: number): string {
         // Walk back to find the first meaningful JSDoc line
         for (let i = targetIdx - 1; i >= 0; i--) {
             const line = lines[i].trim()
-            if (line.startsWith('/*') || line.startsWith('/**')) break
             const cleaned = line.replace(/^\*+\s?/, '')
-            if (cleaned && !/^[\-_=*]{3,}$/.test(cleaned)) return cleaned
+            if (cleaned && !/^[ \-_=*]{3,}$/.test(cleaned)) return cleaned
         }
     }
     return ''

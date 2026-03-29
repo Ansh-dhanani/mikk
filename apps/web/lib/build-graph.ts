@@ -18,9 +18,10 @@ export function buildGraph(): GraphData {
   pages.forEach((page) => {
     // Fumadocs-mdx with extractLinkReferences adds this to structuredData
     // We can also check page.data for links if structuredData isn't populated yet
-    const structuredData = (page.data as any).structuredData;
+    const data = page.data as { structuredData?: { linkReferences?: { url: string }[] } };
+    const structuredData = data.structuredData;
     if (structuredData?.linkReferences) {
-      structuredData.linkReferences.forEach((ref: any) => {
+      structuredData.linkReferences.forEach((ref) => {
         // Find if the reference URL exists in our pages
         const target = pages.find((p) => p.url === ref.url || p.url === ref.url.split("#")[0]);
         if (target && target.url !== page.url) {

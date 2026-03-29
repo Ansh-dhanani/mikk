@@ -8,7 +8,8 @@ import type { Event } from "@/lib/events";
 import { trackEvent } from "@/lib/events";
 import { cn } from "@/lib/utils";
 
-import { Button } from "./ui/button";
+import { Button, type buttonVariants } from "./ui/button";
+import { type VariantProps } from "class-variance-authority";
 
 export function copyToClipboardWithEvent(value: string, event?: Event) {
   if (event) {
@@ -45,8 +46,8 @@ export function CopyButton({
   getValue?: () => string;
   event?: Event["name"];
   className?: string;
-  variant?: any;
-  size?: any;
+  variant?: VariantProps<typeof buttonVariants>["variant"];
+  size?: VariantProps<typeof buttonVariants>["size"];
   label?: string;
   children?: React.ReactNode;
 }) {
