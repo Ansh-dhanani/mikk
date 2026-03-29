@@ -646,7 +646,7 @@ export class ClaudeMdGenerator {
             const name = mod?.name || moduleId
             lines.push(`### ${name}`)
             for (const f of files) {
-                const imports = f.imports!.map(imp => `\`${imp}\``).join(', ')
+                const imports = f.imports!.map(imp => `\`${typeof imp === 'string' ? imp : imp.source}\``).join(', ')
                 lines.push(`- \`${f.path}\` → ${imports}`)
             }
             lines.push('')
