@@ -19,6 +19,10 @@ permissions:
 jobs:
   publish:
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: packages/vscode-extension   # ← fixes all the `cd` repetition
+
     steps:
       - uses: actions/checkout@v4
 
@@ -26,11 +30,17 @@ jobs:
         with:
           bun-version: latest
 
+      # Node is needed for npm version + vsce/ovsx
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
       - name: Install dependencies
+        working-directory: .                            # install from repo root
         run: bun install --frozen-lockfile
 
       - name: Build extension
-        run: cd packages/vscode-extension && bun run build
+        run: bun run build
 
       - name: Install tools
         run: npm install -g @vscode/vsce ovsx
@@ -38,21 +48,64 @@ jobs:
       - name: Bump version
         id: bump
         run: |
-          cd packages/vscode-extension
           npm version ${{ inputs.version_bump }} --no-git-tag-version
           VERSION=$(node -p "require('./package.json').version")
           echo "version=$VERSION" >> $GITHUB_OUTPUT
 
       - name: Package extension
-        run: cd packages/vscode-extension && vsce package --no-dependencies
+        run: vsce package --no-dependencies
 
+      # ── Publish to VS Code Marketplace ──────────────────────────────────────
+      - name: Publish to VS Code Marketplace
+        id: publish_vsce
+        run: vsce publish --no-dependencies -p ${{ secrets.VSCE_TOKEN }} --packagePath *.vsix
+        continue-on-error: true
+
+      - name: Rollback Marketplace — re-tag previous version
+        if: steps.publish_vsce.outcome == 'failure'
+        run: |
+          echo "::warning::Marketplace publish failed — attempting rollback"
+          PREV=$(node -p "
+            const v = '${{ steps.bump.outputs.version }}'.split('.').map(Number);
+            if ('${{ inputs.version_bump }}' === 'major') { v[0]--; v[1]=0; v[2]=0; }
+            else if ('${{ inputs.version_bump }}' === 'minor') { v[1]--; v[2]=0; }
+            else { v[2]--; }
+            v.join('.')
+          ")
+          echo "Previous version would be: $PREV"
+          echo "ROLLBACK_VERSION=$PREV" >> $GITHUB_ENV
+          # Revert the package.json bump so git commit reflects the rollback
+          npm version "$PREV" --no-git-tag-version
+          echo "version=$PREV" >> $GITHUB_OUTPUT
+        continue-on-error: true
+
+      # ── Publish to Open VSX ─────────────────────────────────────────────────
       - name: Publish to Open VSX
-        run: cd packages/vscode-extension && ovsx publish *.vsix -p ${{ secrets.OVSX_TOKEN }}
+        id: publish_ovsx
+        run: ovsx publish *.vsix -p ${{ secrets.OVSX_TOKEN }}
+        continue-on-error: true
 
+      - name: Rollback Open VSX — warn (ovsx has no re-tag API)
+        if: steps.publish_ovsx.outcome == 'failure'
+        run: |
+          echo "::warning::Open VSX publish failed. Previous version remains latest on Open VSX automatically."
+
+      # ── Fail the job if BOTH publishes failed ───────────────────────────────
+      - name: Assert at least one publish succeeded
+        if: steps.publish_vsce.outcome == 'failure' && steps.publish_ovsx.outcome == 'failure'
+        run: |
+          echo "::error::Both Marketplace and Open VSX publishes failed. No version committed."
+          exit 1
+
+      # ── Commit only if something actually published ──────────────────────────
       - name: Commit version bump
+        if: steps.publish_vsce.outcome == 'success' || steps.publish_ovsx.outcome == 'success'
+        working-directory: .
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git add packages/vscode-extension/package.json
-          git commit -m "chore: bump vscode-extension to v${{ steps.bump.outputs.version }}"
+          # Use whichever version ended up in package.json (may be rolled back)
+          FINAL=$(node -p "require('./packages/vscode-extension/package.json').version")
+          git commit -m "chore: bump vscode-extension to v$FINAL"
           git push
