@@ -32,7 +32,6 @@ concurrency:
 
 permissions:
   contents: write
-  id-token: write   # required for OIDC trusted publisher
 
 jobs:
   publish:
@@ -40,8 +39,10 @@ jobs:
     environment: npm
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
-      # MUST be first — wires OIDC token into .npmrc before any npm calls
+      # MUST be first — wires NODE_AUTH_TOKEN into .npmrc before any npm calls
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
@@ -57,3 +58,276 @@ jobs:
           path: ~/.bun/install/cache
           key: ${{ runner.os }}-bun-${{ hashFiles('bun.lock') }}
           restore-keys: ${{ runner.os }}-bun-
+
+      - name: Install dependencies
+        run: bun install --frozen-lockfile
+
+      - name: Ensure clean git state
+        run: git diff --quiet || (echo "Uncommitted changes detected" && exit 1)
+
+      # Save previous versions for rollback
+      - name: Save previous versions
+        id: prev
+        run: |
+          echo "core=$(node -p "require('./packages/core/package.json').version")" >> $GITHUB_OUTPUT
+          echo "intent_engine=$(node -p "require('./packages/intent-engine/package.json').version")" >> $GITHUB_OUTPUT
+          echo "diagram_generator=$(node -p "require('./packages/diagram-generator/package.json').version")" >> $GITHUB_OUTPUT
+          echo "watcher=$(node -p "require('./packages/watcher/package.json').version")" >> $GITHUB_OUTPUT
+          echo "ai_context=$(node -p "require('./packages/ai-context/package.json').version")" >> $GITHUB_OUTPUT
+          echo "cli=$(node -p "require('./packages/cli/package.json').version")" >> $GITHUB_OUTPUT
+
+      - name: Bump versions
+        id: versions
+        run: |
+          bump() {
+            local name=$1
+            local dir=$2
+            if [ "${{ inputs.package }}" = "all" ] || [ "${{ inputs.package }}" = "$name" ]; then
+              cd $dir
+              node -e "
+                const fs = require('fs');
+                const pkg = JSON.parse(fs.readFileSync('package.json', 'utf8'));
+                const v = pkg.version.split('.').map(n => parseInt(n, 10));
+                if ('${{ inputs.version_bump }}' === 'major') { v[0]++; v[1] = 0; v[2] = 0; }
+                else if ('${{ inputs.version_bump }}' === 'minor') { v[1]++; v[2] = 0; }
+                else { v[2]++; }
+                pkg.version = v.join('.');
+                fs.writeFileSync('package.json', JSON.stringify(pkg, null, 2) + '\n');
+                console.log(pkg.name + ' bumped to ' + pkg.version);
+              "
+              cd -
+            fi
+          }
+          bump core              packages/core
+          bump intent-engine     packages/intent-engine
+          bump diagram-generator packages/diagram-generator
+          bump watcher           packages/watcher
+          bump ai-context        packages/ai-context
+          bump cli               packages/cli
+          VERSION=$(node -p "require('./packages/core/package.json').version")
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+
+      - name: Check for duplicate versions
+        run: |
+          check() {
+            local pkg=$1
+            local dir=$2
+            local name=$3
+            if [ "${{ inputs.package }}" = "all" ] || [ "${{ inputs.package }}" = "$pkg" ]; then
+              local v=$(node -p "require('./$dir/package.json').version")
+              if npm view "$name@$v" version 2>/dev/null | grep -q "$v"; then
+                echo "❌ $name@$v already published. Aborting."
+                exit 1
+              fi
+              echo "✅ $name@$v is safe to publish"
+            fi
+          }
+          check core              packages/core              @getmikk/core
+          check intent-engine     packages/intent-engine     @getmikk/intent-engine
+          check diagram-generator packages/diagram-generator @getmikk/diagram-generator
+          check watcher           packages/watcher           @getmikk/watcher
+          check ai-context        packages/ai-context        @getmikk/ai-context
+          check cli               packages/cli               @getmikk/cli
+
+      - name: Build all packages
+        run: bun run build
+
+      - name: Run tests
+        run: bun run test
+
+      # Replace workspace:* with real versions before publishing
+      - name: Resolve workspace dependencies
+        run: |
+          CORE_V=$(node -p "require('./packages/core/package.json').version")
+          IE_V=$(node -p "require('./packages/intent-engine/package.json').version")
+          DG_V=$(node -p "require('./packages/diagram-generator/package.json').version")
+          W_V=$(node -p "require('./packages/watcher/package.json').version")
+          AC_V=$(node -p "require('./packages/ai-context/package.json').version")
+          fix_workspace() {
+            local file="$1/package.json"
+            sed -i \
+              -e "s|\"@getmikk/core\": \"workspace:\*\"|\"@getmikk/core\": \"^$CORE_V\"|g" \
+              -e "s|\"@getmikk/intent-engine\": \"workspace:\*\"|\"@getmikk/intent-engine\": \"^$IE_V\"|g" \
+              -e "s|\"@getmikk/diagram-generator\": \"workspace:\*\"|\"@getmikk/diagram-generator\": \"^$DG_V\"|g" \
+              -e "s|\"@getmikk/watcher\": \"workspace:\*\"|\"@getmikk/watcher\": \"^$W_V\"|g" \
+              -e "s|\"@getmikk/ai-context\": \"workspace:\*\"|\"@getmikk/ai-context\": \"^$AC_V\"|g" \
+              "$file"
+          }
+          fix_workspace packages/intent-engine
+          fix_workspace packages/diagram-generator
+          fix_workspace packages/watcher
+          fix_workspace packages/ai-context
+          fix_workspace packages/cli
+
+      - name: Dry-run publish
+        run: |
+          dry() {
+            local pkg=$1; local dir=$2
+            if [ "${{ inputs.package }}" = "all" ] || [ "${{ inputs.package }}" = "$pkg" ]; then
+              echo "--- Dry run: $dir ---"
+              cd $dir && npm publish --access public --dry-run && cd -
+            fi
+          }
+          dry core              packages/core
+          dry intent-engine     packages/intent-engine
+          dry diagram-generator packages/diagram-generator
+          dry watcher           packages/watcher
+          dry ai-context        packages/ai-context
+          dry cli               packages/cli
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+      - name: Commit version bumps
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add packages/*/package.json
+          git diff --staged --quiet || git commit -m "chore: release v${{ steps.versions.outputs.version }} (${{ inputs.version_bump }})"
+          git push
+
+      - name: Tag release
+        run: |
+          git tag "v${{ steps.versions.outputs.version }}"
+          git push origin "v${{ steps.versions.outputs.version }}"
+
+      # ── Publish each package (track success individually) ───────────────────
+      - name: Publish @getmikk/core
+        id: pub_core
+        if: ${{ inputs.package == 'all' || inputs.package == 'core' }}
+        run: cd packages/core && npm publish --access public
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+      - name: Publish @getmikk/intent-engine
+        id: pub_intent_engine
+        if: ${{ inputs.package == 'all' || inputs.package == 'intent-engine' }}
+        run: cd packages/intent-engine && npm publish --access public
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+      - name: Publish @getmikk/diagram-generator
+        id: pub_diagram_generator
+        if: ${{ inputs.package == 'all' || inputs.package == 'diagram-generator' }}
+        run: cd packages/diagram-generator && npm publish --access public
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+      - name: Publish @getmikk/watcher
+        id: pub_watcher
+        if: ${{ inputs.package == 'all' || inputs.package == 'watcher' }}
+        run: cd packages/watcher && npm publish --access public
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+      - name: Publish @getmikk/ai-context
+        id: pub_ai_context
+        if: ${{ inputs.package == 'all' || inputs.package == 'ai-context' }}
+        run: cd packages/ai-context && npm publish --access public
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+      - name: Publish @getmikk/cli
+        id: pub_cli
+        if: ${{ inputs.package == 'all' || inputs.package == 'cli' }}
+        run: cd packages/cli && npm publish --access public
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+      # ── Rollback if ALL publishes failed ────────────────────────────────────
+      - name: Rollback on total failure
+        if: |
+          always() &&
+          (steps.pub_core.outcome == 'failure'           || steps.pub_core.outcome == 'skipped') &&
+          (steps.pub_intent_engine.outcome == 'failure'  || steps.pub_intent_engine.outcome == 'skipped') &&
+          (steps.pub_diagram_generator.outcome == 'failure' || steps.pub_diagram_generator.outcome == 'skipped') &&
+          (steps.pub_watcher.outcome == 'failure'        || steps.pub_watcher.outcome == 'skipped') &&
+          (steps.pub_ai_context.outcome == 'failure'     || steps.pub_ai_context.outcome == 'skipped') &&
+          (steps.pub_cli.outcome == 'failure'            || steps.pub_cli.outcome == 'skipped')
+        run: |
+          echo "::error::All publishes failed — rolling back version bumps and git tag"
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+          # Restore previous versions in package.json files
+          restore() {
+            local dir=$1
+            local prev_ver=$2
+            if [ -f "$dir/package.json" ]; then
+              node -e "
+                const fs = require('fs');
+                const pkg = JSON.parse(fs.readFileSync('$dir/package.json', 'utf8'));
+                pkg.version = '$prev_ver';
+                fs.writeFileSync('$dir/package.json', JSON.stringify(pkg, null, 2) + '\n');
+                console.log('Restored ' + pkg.name + ' to $prev_ver');
+              "
+            fi
+          }
+          restore packages/core              "${{ steps.prev.outputs.core }}"
+          restore packages/intent-engine     "${{ steps.prev.outputs.intent_engine }}"
+          restore packages/diagram-generator "${{ steps.prev.outputs.diagram_generator }}"
+          restore packages/watcher           "${{ steps.prev.outputs.watcher }}"
+          restore packages/ai-context        "${{ steps.prev.outputs.ai_context }}"
+          restore packages/cli               "${{ steps.prev.outputs.cli }}"
+
+          # Revert the version bump commit
+          git add packages/*/package.json
+          git diff --staged --quiet || git commit -m "chore: revert failed release v${{ steps.versions.outputs.version }}"
+          git push
+
+          # Delete the tag locally and remotely
+          git tag -d "v${{ steps.versions.outputs.version }}" 2>/dev/null || true
+          git push origin --delete "v${{ steps.versions.outputs.version }}" 2>/dev/null || true
+          echo "✅ Rollback complete — versions and tag reverted"
+
+      # ── Warn on partial failure (some succeeded, some failed) ───────────────
+      - name: Warn on partial failure
+        if: |
+          always() &&
+          (
+            steps.pub_core.outcome == 'failure' ||
+            steps.pub_intent_engine.outcome == 'failure' ||
+            steps.pub_diagram_generator.outcome == 'failure' ||
+            steps.pub_watcher.outcome == 'failure' ||
+            steps.pub_ai_context.outcome == 'failure' ||
+            steps.pub_cli.outcome == 'failure'
+          ) &&
+          (
+            steps.pub_core.outcome == 'success' ||
+            steps.pub_intent_engine.outcome == 'success' ||
+            steps.pub_diagram_generator.outcome == 'success' ||
+            steps.pub_watcher.outcome == 'success' ||
+            steps.pub_ai_context.outcome == 'success' ||
+            steps.pub_cli.outcome == 'success'
+          )
+        run: |
+          echo "::warning::Partial publish — some packages succeeded, some failed."
+          echo "::warning::Already-published packages cannot be rolled back from npm."
+          echo "::warning::Fix the failures and re-run only the failed package(s) manually."
+
+      # ── Release summary ──────────────────────────────────────────────────────
+      - name: Release summary
+        if: always()
+        run: |
+          echo "## 🚀 Release v${{ steps.versions.outputs.version }}" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "| Package | Version | Status |" >> $GITHUB_STEP_SUMMARY
+          echo "|---------|---------|--------|" >> $GITHUB_STEP_SUMMARY
+
+          status() {
+            local outcome=$1
+            case $outcome in
+              success) echo "✅ Published" ;;
+              failure) echo "❌ Failed" ;;
+              skipped) echo "⏭️ Skipped" ;;
+              *) echo "⚠️ Unknown" ;;
+            esac
+          }
+
+          echo "| \`@getmikk/core\`              | \`$(node -p "require('./packages/core/package.json').version")\` | $(status ${{ steps.pub_core.outcome }}) |" >> $GITHUB_STEP_SUMMARY
+          echo "| \`@getmikk/intent-engine\`     | \`$(node -p "require('./packages/intent-engine/package.json').version")\` | $(status ${{ steps.pub_intent_engine.outcome }}) |" >> $GITHUB_STEP_SUMMARY
+          echo "| \`@getmikk/diagram-generator\` | \`$(node -p "require('./packages/diagram-generator/package.json').version")\` | $(status ${{ steps.pub_diagram_generator.outcome }}) |" >> $GITHUB_STEP_SUMMARY
+          echo "| \`@getmikk/watcher\`           | \`$(node -p "require('./packages/watcher/package.json').version")\` | $(status ${{ steps.pub_watcher.outcome }}) |" >> $GITHUB_STEP_SUMMARY
+          echo "| \`@getmikk/ai-context\`        | \`$(node -p "require('./packages/ai-context/package.json').version")\` | $(status ${{ steps.pub_ai_context.outcome }}) |" >> $GITHUB_STEP_SUMMARY
+          echo "| \`@getmikk/cli\`               | \`$(node -p "require('./packages/cli/package.json').version")\` | $(status ${{ steps.pub_cli.outcome }}) |" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "🏷️ Git tag: \`v${{ steps.versions.outputs.version }}\`" >> $GITHUB_STEP_SUMMARY
