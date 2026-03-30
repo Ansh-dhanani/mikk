@@ -137,12 +137,12 @@ export async function parseFiles(
     let resolvedTreeFiles: ParsedFile[] = treeFiles
     if (treeFiles.length > 0) {
         const treeParser = treeSitterParser ?? await getTreeSitter()
-        resolvedTreeFiles = treeParser.resolveImports(treeFiles, normalizedRoot)
+        resolvedTreeFiles = await treeParser.resolveImports(treeFiles, normalizedRoot)
     }
 
     const resolved: ParsedFile[] = [
-        ...oxcParser.resolveImports(oxcFiles, normalizedRoot),
-        ...goParser.resolveImports(goFiles, normalizedRoot),
+        ...await oxcParser.resolveImports(oxcFiles, normalizedRoot),
+        ...await goParser.resolveImports(goFiles, normalizedRoot),
         ...resolvedTreeFiles,
     ]
 

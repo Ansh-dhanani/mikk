@@ -57,7 +57,7 @@ describe('ts-parser config resolution', () => {
 
         // Parse and resolve imports
         const parsed = await parser.parse(filePath, await fs.readFile(filePath, 'utf-8'))
-        const resolved = parser.resolveImports([parsed], FIXTURE_DIR)[0]
+        const resolved = (await parser.resolveImports([parsed], FIXTURE_DIR))[0]
 
         const impApp = resolved.imports.find(i => i.source === '@app/local')
         expect(impApp?.resolvedPath).toBe(path.join(FIXTURE_DIR, 'src/app/local.ts').replace(/\\/g, '/'))

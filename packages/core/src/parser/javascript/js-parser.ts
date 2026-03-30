@@ -55,7 +55,7 @@ export class JavaScriptParser extends BaseParser {
         }
     }
 
-    resolveImports(files: ParsedFile[], projectRoot: string): ParsedFile[] {
+    async resolveImports(files: ParsedFile[], projectRoot: string): Promise<ParsedFile[]> {
         const aliases = loadAliases(projectRoot)
         // Only pass the file list when it represents a reasonably complete scan.
         // A sparse list (< MIN_FILES_FOR_COMPLETE_SCAN files) causes valid alias-resolved

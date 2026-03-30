@@ -360,7 +360,7 @@ describe('GoParser', () => {
         const parser = new GoParser()
         const files = [await parser.parse('utils/format.go', TOPLEVEL_GO)]
         // Should not throw even without go.mod
-        const resolved = parser.resolveImports(files, '/tmp/no-gomod-' + Date.now())
+        const resolved = await parser.resolveImports(files, '/tmp/no-gomod-' + Date.now())
         expect(resolved.length).toBe(1)
     })
 })

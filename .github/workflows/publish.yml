@@ -64,7 +64,19 @@ jobs:
             local name=$1
             local dir=$2
             if [ "${{ inputs.package }}" = "all" ] || [ "${{ inputs.package }}" = "$name" ]; then
-              cd $dir && npm version ${{ inputs.version_bump }} --no-git-tag-version && cd -
+              cd $dir
+              node -e "
+                const fs = require('fs');
+                const pkg = JSON.parse(fs.readFileSync('package.json', 'utf8'));
+                const v = pkg.version.split('.').map(n => parseInt(n, 10));
+                if ('${{ inputs.version_bump }}' === 'major') { v[0]++; v[1] = 0; v[2] = 0; }
+                else if ('${{ inputs.version_bump }}' === 'minor') { v[1]++; v[2] = 0; }
+                else { v[2]++; }
+                pkg.version = v.join('.');
+                fs.writeFileSync('package.json', JSON.stringify(pkg, null, 2) + '\n');
+                console.log(pkg.name + ' version bumped to ' + pkg.version);
+              "
+              cd -
             fi
           }
           bump core              packages/core

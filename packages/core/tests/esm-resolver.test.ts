@@ -1,3 +1,4 @@
+
 import { describe, it, expect, beforeAll, afterAll } from 'bun:test'
 import * as path from 'node:path'
 import * as fs from 'node:fs/promises'
@@ -49,19 +50,19 @@ describe('OxcResolver - ESM and CJS Resolution', () => {
         await fs.rm(FIXTURE_DIR, { recursive: true, force: true })
     })
 
-    it('resolves ESM exports correctly', () => {
+    it('resolves ESM exports correctly', async () => {
         const resolver = new OxcResolver(FIXTURE_DIR)
         
         // Resolve 'some-pkg' (should hit exports['.'].import)
-        const res = resolver.resolve('some-pkg', path.join(FIXTURE_DIR, 'index.ts'))
+        const res = await resolver.resolve('some-pkg', path.join(FIXTURE_DIR, 'index.ts'))
         expect(res).toContain('node_modules/some-pkg/dist/esm/index.js')
     })
 
-    it('resolves subpath exports correctly', () => {
+    it('resolves subpath exports correctly', async () => {
         const resolver = new OxcResolver(FIXTURE_DIR)
         
         // Resolve 'some-pkg/subpath'
-        const res = resolver.resolve('some-pkg/subpath', path.join(FIXTURE_DIR, 'index.ts'))
+        const res = await resolver.resolve('some-pkg/subpath', path.join(FIXTURE_DIR, 'index.ts'))
         expect(res).toContain('node_modules/some-pkg/dist/sub.js')
     })
 
@@ -69,7 +70,7 @@ describe('OxcResolver - ESM and CJS Resolution', () => {
         const resolver = new OxcResolver(FIXTURE_DIR)
         await fs.writeFile(path.join(FIXTURE_DIR, 'local.ts'), 'export const x = 1')
         
-        const res = resolver.resolve('./local', path.join(FIXTURE_DIR, 'index.ts'))
+        const res = await resolver.resolve('./local', path.join(FIXTURE_DIR, 'index.ts'))
         expect(res).toContain('.test-fixture-esm/local.ts')
     })
 })

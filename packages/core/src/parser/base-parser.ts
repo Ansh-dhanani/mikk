@@ -9,7 +9,7 @@ export abstract class BaseParser {
     abstract parse(filePath: string, content: string): Promise<ParsedFile>
 
     /** Given a list of parsed files, resolve all import paths to absolute project paths */
-    abstract resolveImports(files: ParsedFile[], projectRoot: string): ParsedFile[]
+    abstract resolveImports(files: ParsedFile[], projectRoot: string): Promise<ParsedFile[]>
 
     /** Returns which file extensions this parser handles */
     abstract getSupportedExtensions(): string[]

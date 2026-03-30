@@ -345,7 +345,7 @@ export class TreeSitterParser extends BaseParser {
         }
     }
 
-    resolveImports(files: ParsedFile[], _projectRoot: string): ParsedFile[] {
+    async resolveImports(files: ParsedFile[], _projectRoot: string): Promise<ParsedFile[]> {
         // Tree-sitter resolver: no cross-file resolution implemented.
         // Imports are left with resolvedPath = '' which signals unresolved to the graph builder.
         // A future pass can resolve Go/Python/Java imports using language-specific rules.

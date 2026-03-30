@@ -24,7 +24,7 @@ export class TypeScriptParser extends BaseParser {
         }
     }
 
-    public resolveImports(files: ParsedFile[], projectRoot: string): ParsedFile[] {
+    public async resolveImports(files: ParsedFile[], projectRoot: string): Promise<ParsedFile[]> {
         const resolver = new TypeScriptResolver(projectRoot)
         return resolver.resolveBatch(files)
     }

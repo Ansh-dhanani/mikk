@@ -29,7 +29,7 @@ export class GoParser extends BaseParser {
         }
     }
 
-    resolveImports(files: ParsedFile[], projectRoot: string): ParsedFile[] {
+    async resolveImports(files: ParsedFile[], projectRoot: string): Promise<ParsedFile[]> {
         const resolver = new GoResolver(projectRoot)
         return files.map(file => ({
             ...file,

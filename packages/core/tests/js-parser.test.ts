@@ -550,7 +550,7 @@ describe('JavaScriptParser', () => {
 
     test('resolveImports leaves external packages unresolved (empty resolvedPath)', async () => {
         const files = [await parser.parse('src/auth.js', CJS_MODULE)]
-        const resolved = parser.resolveImports(files, '/project')
+        const resolved = await parser.resolveImports(files, '/project')
         const file = resolved[0]
         const cryptoImp = file.imports.find((i: any) => i.source === 'crypto')
         expect(cryptoImp!.resolvedPath).toBe('')
