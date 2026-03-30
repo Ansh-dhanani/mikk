@@ -5,13 +5,20 @@ import { BaseParser } from '../base-parser.js'
 import type { ParsedFile, ParsedFunction, ParsedClass, ParsedParam, ParsedImport } from '../types.js'
 import * as Queries from './queries.js'
 
-// Safely require web-tree-sitter via CJS — lazy loaded inside init() to
-// avoid top-level import failures when the package is not installed.
+// Safely require web-tree-sitter via CJS.
+// Wrapped in try/catch so that importing this module never throws when the
+// package is absent — callers receive an empty ParsedFile instead.
 const getRequire = () => {
     if (typeof require !== 'undefined') return require
     return createRequire(import.meta.url)
 }
 const _require = getRequire()
+
+let Parser: any = null
+try {
+    const ParserModule = _require('web-tree-sitter')
+    Parser = ParserModule.Parser ?? ParserModule
+} catch { /* web-tree-sitter not installed — Parser stays null */ }
 
 // ---------------------------------------------------------------------------
 // Language-specific export visibility rules
@@ -140,7 +147,6 @@ function assignCallsToFunctions(
 
 export class TreeSitterParser extends BaseParser {
     private parser: any = null
-    private Parser: any = null
     private languages = new Map<string, any>()
     private nameCounter = new Map<string, number>()
 
@@ -150,10 +156,9 @@ export class TreeSitterParser extends BaseParser {
 
     private async init() {
         if (!this.parser) {
-            const ParserModule = _require('web-tree-sitter')
-            this.Parser = ParserModule.Parser || ParserModule
-            await this.Parser.init()
-            this.parser = new this.Parser()
+            if (!Parser) return // web-tree-sitter not available
+            await Parser.init()
+            this.parser = new Parser()
         }
     }
 
@@ -161,6 +166,12 @@ export class TreeSitterParser extends BaseParser {
         this.nameCounter.clear()
         await this.init()
         const ext = path.extname(filePath).toLowerCase()
+
+        if (!this.parser) {
+            // web-tree-sitter unavailable — return structurally valid empty file
+            return this.buildEmptyFile(filePath, content, ext)
+        }
+
         const config = await this.getLanguageConfig(ext)
 
         if (!config || !config.lang) {
@@ -376,7 +387,7 @@ export class TreeSitterParser extends BaseParser {
         try {
             const tcPath = _require.resolve('tree-sitter-wasms/package.json')
             const wasmPath = path.join(path.dirname(tcPath), 'out', `tree-sitter-${name}.wasm`)
-            const lang = await this.Parser.Language.load(wasmPath)
+            const lang = await Parser.Language.load(wasmPath)
             this.languages.set(name, lang)
             return lang
         } catch (err) {
