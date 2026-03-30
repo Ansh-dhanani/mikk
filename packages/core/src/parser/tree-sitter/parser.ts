@@ -5,14 +5,13 @@ import { BaseParser } from '../base-parser.js'
 import type { ParsedFile, ParsedFunction, ParsedClass, ParsedParam, ParsedImport } from '../types.js'
 import * as Queries from './queries.js'
 
-// Safely require web-tree-sitter via CJS
+// Safely require web-tree-sitter via CJS — lazy loaded inside init() to
+// avoid top-level import failures when the package is not installed.
 const getRequire = () => {
     if (typeof require !== 'undefined') return require
     return createRequire(import.meta.url)
 }
 const _require = getRequire()
-const ParserModule = _require('web-tree-sitter')
-const Parser = ParserModule.Parser || ParserModule
 
 // ---------------------------------------------------------------------------
 // Language-specific export visibility rules
@@ -141,6 +140,7 @@ function assignCallsToFunctions(
 
 export class TreeSitterParser extends BaseParser {
     private parser: any = null
+    private Parser: any = null
     private languages = new Map<string, any>()
     private nameCounter = new Map<string, number>()
 
@@ -150,8 +150,10 @@ export class TreeSitterParser extends BaseParser {
 
     private async init() {
         if (!this.parser) {
-            await Parser.init()
-            this.parser = new Parser()
+            const ParserModule = _require('web-tree-sitter')
+            this.Parser = ParserModule.Parser || ParserModule
+            await this.Parser.init()
+            this.parser = new this.Parser()
         }
     }
 
@@ -374,7 +376,7 @@ export class TreeSitterParser extends BaseParser {
         try {
             const tcPath = _require.resolve('tree-sitter-wasms/package.json')
             const wasmPath = path.join(path.dirname(tcPath), 'out', `tree-sitter-${name}.wasm`)
-            const lang = await Parser.Language.load(wasmPath)
+            const lang = await this.Parser.Language.load(wasmPath)
             this.languages.set(name, lang)
             return lang
         } catch (err) {

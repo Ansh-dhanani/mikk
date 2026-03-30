@@ -130,6 +130,8 @@
         "@types/better-sqlite3": "^7.6.13",
         "better-sqlite3": "^12.6.2",
         "fast-glob": "^3.3.0",
+        "tree-sitter-wasms": "^0.1.13",
+        "web-tree-sitter": "^0.20.8",
         "zod": "^3.22.0",
       },
       "devDependencies": {
@@ -2536,7 +2538,7 @@
 
     "web-streams-polyfill": ["web-streams-polyfill@3.3.3", "", {}, "sha512-d2JWLCivmZYTSIoge9MsgFCZrt571BikcWGYkjC1khllbTeDlGqZ2D8vD8E/lJa8WGWbb7Plm8/XJYV7IJHZZw=="],
 
-    "web-tree-sitter": ["web-tree-sitter@0.22.6", "", {}, "sha512-hS87TH71Zd6mGAmYCvlgxeGDjqd9GTeqXNqTT+u0Gs51uIozNIaaq/kUAbV/Zf56jb2ZOyG8BxZs2GG9wbLi6Q=="],
+    "web-tree-sitter": ["web-tree-sitter@0.20.8", "", {}, "sha512-weOVgZ3aAARgdnb220GqYuh7+rZU0Ka9k9yfKtGAzEYMa6GgiCzW9JjQRJyCJakvibQW+dfjJdihjInKuuCAUQ=="],
 
     "which": ["which@2.0.2", "", { "dependencies": { "isexe": "^2.0.0" }, "bin": { "node-which": "./bin/node-which" } }, "sha512-BLI3Tl1TW3Pvl70l3yq3Y64i+awpwXqsGBYWkkqMtnbXgrMD+yj7rhW0kuEDxzJaYXGjEW5ogapKNMEKNMjibA=="],
 
@@ -2593,6 +2595,8 @@
     "@eslint-community/eslint-utils/eslint-visitor-keys": ["eslint-visitor-keys@3.4.3", "", {}, "sha512-wpc+LXeiyiisxPlEkUzU6svyS1frIO3Mgxj1fdy7Pm8Ygzguax2N3Fa/D/ag1WqbOprdI+uY6wMUl8/a2G+iag=="],
 
     "@eslint/eslintrc/globals": ["globals@14.0.0", "", {}, "sha512-oahGvuMGQlPw/ivIYBjVSrWAfWLBeku5tpPE2fOPLi+WHffIWbuh2tCjhyQhTBPMf5E9jDEH4FOmTYgYwbKwtQ=="],
+
+    "@getmikk/mcp-server/web-tree-sitter": ["web-tree-sitter@0.22.6", "", {}, "sha512-hS87TH71Zd6mGAmYCvlgxeGDjqd9GTeqXNqTT+u0Gs51uIozNIaaq/kUAbV/Zf56jb2ZOyG8BxZs2GG9wbLi6Q=="],
 
     "@getmikk/vscode-extension/@getmikk/ai-context": ["@getmikk/ai-context@1.9.1", "", { "dependencies": { "@getmikk/core": "^1.9.1", "@getmikk/intent-engine": "^1.9.2" } }, "sha512-U53sr05Q0UTgjkOIikFfcDdDqsyGSBIA/PCFY2J4QrMkMtnttnvcELas+mIPjn3Uj288Qf/O1Er4xbay5hG/9g=="],
 
@@ -2859,8 +2863,6 @@
     "@dotenvx/dotenvx/which/isexe": ["isexe@3.1.5", "", {}, "sha512-6B3tLtFqtQS4ekarvLVMZ+X+VlvQekbe4taUkf/rhVO3d/h0M2rfARm/pXLcPEsjjMsFgrFgSrhQIxcSVrBz8w=="],
 
     "@getmikk/vscode-extension/@getmikk/ai-context/@getmikk/intent-engine": ["@getmikk/intent-engine@1.9.2", "", { "dependencies": { "@getmikk/core": "^1.9.1", "@xenova/transformers": "^2.17.2", "zod": "^3.22.0" } }, "sha512-MPwGAEi6/TJVJ5U4/oc2CAyaIjUmUcDmQEHaDsL+DN0uAxA2Bn7fQlVzeotvFpK1ZsT+bfK2gsrKkdGeM8t4PA=="],
-
-    "@getmikk/vscode-extension/@getmikk/core/web-tree-sitter": ["web-tree-sitter@0.20.8", "", {}, "sha512-weOVgZ3aAARgdnb220GqYuh7+rZU0Ka9k9yfKtGAzEYMa6GgiCzW9JjQRJyCJakvibQW+dfjJdihjInKuuCAUQ=="],
 
     "@getmikk/vscode-extension/esbuild/@esbuild/aix-ppc64": ["@esbuild/aix-ppc64@0.27.4", "", { "os": "aix", "cpu": "ppc64" }, "sha512-cQPwL2mp2nSmHHJlCyoXgHGhbEPMrEEU5xhkcy3Hs/O7nGZqEpZ2sUtLaL9MORLtDfRvVl2/3PAuEkYZH0Ty8Q=="],
 
