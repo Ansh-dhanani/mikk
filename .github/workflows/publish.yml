@@ -40,6 +40,12 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      # ── MUST be first — wires NODE_AUTH_TOKEN into .npmrc before any npm calls
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          registry-url: 'https://registry.npmjs.org'
+
       - uses: oven-sh/setup-bun@v2
         with:
           bun-version: latest
@@ -116,6 +122,32 @@ jobs:
       - name: Run tests
         run: bun run test
 
+      # ── Replace workspace:* with real versions before publishing ─────────────
+      - name: Resolve workspace dependencies
+        run: |
+          CORE_V=$(node -p "require('./packages/core/package.json').version")
+          IE_V=$(node -p "require('./packages/intent-engine/package.json').version")
+          DG_V=$(node -p "require('./packages/diagram-generator/package.json').version")
+          W_V=$(node -p "require('./packages/watcher/package.json').version")
+          AC_V=$(node -p "require('./packages/ai-context/package.json').version")
+
+          fix_workspace() {
+            local file="$1/package.json"
+            sed -i \
+              -e "s|\"@getmikk/core\": \"workspace:\*\"|\"@getmikk/core\": \"^$CORE_V\"|g" \
+              -e "s|\"@getmikk/intent-engine\": \"workspace:\*\"|\"@getmikk/intent-engine\": \"^$IE_V\"|g" \
+              -e "s|\"@getmikk/diagram-generator\": \"workspace:\*\"|\"@getmikk/diagram-generator\": \"^$DG_V\"|g" \
+              -e "s|\"@getmikk/watcher\": \"workspace:\*\"|\"@getmikk/watcher\": \"^$W_V\"|g" \
+              -e "s|\"@getmikk/ai-context\": \"workspace:\*\"|\"@getmikk/ai-context\": \"^$AC_V\"|g" \
+              "$file"
+            echo "✅ Resolved workspace deps in $file"
+          }
+          fix_workspace packages/intent-engine
+          fix_workspace packages/diagram-generator
+          fix_workspace packages/watcher
+          fix_workspace packages/ai-context
+          fix_workspace packages/cli
+
       - name: Dry-run publish (verify package contents)
         run: |
           dry() {
@@ -132,6 +164,8 @@ jobs:
           dry watcher           packages/watcher
           dry ai-context        packages/ai-context
           dry cli               packages/cli
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
       - name: Commit version bumps
         run: |
@@ -146,12 +180,7 @@ jobs:
           git tag "v${{ steps.versions.outputs.version }}"
           git push origin "v${{ steps.versions.outputs.version }}"
 
-      - name: Setup Node.js for npm publish
-        uses: actions/setup-node@v4
-        with:
-          node-version: '22'
-          registry-url: 'https://registry.npmjs.org'
-
+      # ── Publish each package ─────────────────────────────────────────────────
       - name: Publish @getmikk/core
         if: ${{ inputs.package == 'all' || inputs.package == 'core' }}
         run: cd packages/core && npm publish --access public
@@ -188,6 +217,7 @@ jobs:
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
+      # ── Summary ──────────────────────────────────────────────────────────────
       - name: Release summary
         if: always()
         run: |
