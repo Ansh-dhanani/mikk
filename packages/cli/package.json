@@ -1,42 +1,42 @@
 {
-    "name": "@getmikk/cli",
-    "version": "2.0.5",
-    "publishConfig": {
-        "access": "public",
-        "registry": "https://registry.npmjs.org/"
-    },
-    "license": "Apache-2.0",
-    "repository": {
-        "type": "git",
-        "url": "https://github.com/Ansh-dhanani/mikk"
-    },
-    "main": "./dist/index.js",
-    "bin": {
-        "mikk": "bin/mikk.js"
-    },
-    "files": [
-        "dist",
-        "bin"
-    ],
-    "scripts": {
-        "build": "esbuild src/index.ts --bundle --platform=node --format=cjs --packages=external --sourcemap --outfile=dist/index.js --banner:js=\"#!/usr/bin/env node\"",
-        "test": "bun test",
-        "dev": "tsc --watch",
-        "lint": "eslint ."
-    },
-    "dependencies": {
-        "@getmikk/ai-context": "workspace:*",
-        "@getmikk/core": "workspace:*",
-        "@getmikk/diagram-generator": "workspace:*",
-        "@getmikk/intent-engine": "workspace:*",
-        "@getmikk/watcher": "workspace:*",
-        "chalk": "^5.4.0",
-        "commander": "^13.0.0",
-        "ora": "^8.0.0"
-    },
-    "devDependencies": {
-        "@types/node": "^22.0.0",
-        "esbuild": "^0.21.4",
-        "typescript": "^5.7.0"
-    }
+  "name": "@getmikk/cli",
+  "version": "2.0.6",
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://registry.npmjs.org/"
+  },
+  "license": "Apache-2.0",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Ansh-dhanani/mikk"
+  },
+  "main": "./dist/index.js",
+  "bin": {
+    "mikk": "bin/mikk.js"
+  },
+  "files": [
+    "dist",
+    "bin"
+  ],
+  "scripts": {
+    "build": "esbuild src/index.ts --bundle --platform=node --format=cjs --packages=external --sourcemap --outfile=dist/index.js --banner:js=\"#!/usr/bin/env node\"",
+    "test": "bun test",
+    "dev": "tsc --watch",
+    "lint": "eslint ."
+  },
+  "dependencies": {
+    "@getmikk/ai-context": "workspace:*",
+    "@getmikk/core": "workspace:*",
+    "@getmikk/diagram-generator": "workspace:*",
+    "@getmikk/intent-engine": "workspace:*",
+    "@getmikk/watcher": "workspace:*",
+    "chalk": "^5.4.0",
+    "commander": "^13.0.0",
+    "ora": "^8.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "esbuild": "^0.21.4",
+    "typescript": "^5.7.0"
+  }
 }
