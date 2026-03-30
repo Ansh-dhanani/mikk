@@ -104,8 +104,16 @@ jobs:
           bump watcher           packages/watcher
           bump ai-context        packages/ai-context
           bump cli               packages/cli
-          VERSION=$(node -p "require('./packages/core/package.json').version")
+          # Always read from core for the unified version tag; if only one
+          # package was bumped, the core version stays the same (used in tag)
+          PKG="${{ inputs.package }}"
+          if [ "$PKG" != "all" ] && [ "$PKG" != "core" ]; then
+            VERSION=$(node -p "require('./packages/${PKG//-/_}/package.json').version" 2>/dev/null || node -p "require('./packages/$PKG/package.json').version")
+          else
+            VERSION=$(node -p "require('./packages/core/package.json').version")
+          fi
           echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "pkg_label=$PKG" >> $GITHUB_OUTPUT
 
       - name: Check for duplicate versions
         run: |
@@ -187,8 +195,11 @@ jobs:
 
       - name: Tag release
         run: |
-          git tag "v${{ steps.versions.outputs.version }}"
-          git push origin "v${{ steps.versions.outputs.version }}"
+          PKG="${{ inputs.package }}"
+          TAG="${PKG}/v${{ steps.versions.outputs.version }}"
+          if [ "$PKG" = "all" ]; then TAG="v${{ steps.versions.outputs.version }}"; fi
+          git tag "$TAG"
+          git push origin "$TAG"
 
       # ── Publish each package (track success individually) ───────────────────
       - name: Publish @getmikk/core
@@ -275,8 +286,11 @@ jobs:
           git push
 
           # Delete the tag locally and remotely
-          git tag -d "v${{ steps.versions.outputs.version }}" 2>/dev/null || true
-          git push origin --delete "v${{ steps.versions.outputs.version }}" 2>/dev/null || true
+          PKG="${{ inputs.package }}"
+          TAG="${PKG}/v${{ steps.versions.outputs.version }}"
+          if [ "$PKG" = "all" ]; then TAG="v${{ steps.versions.outputs.version }}"; fi
+          git tag -d "$TAG" 2>/dev/null || true
+          git push origin --delete "$TAG" 2>/dev/null || true
           echo "✅ Rollback complete — versions and tag reverted"
 
       # ── Warn on partial failure (some succeeded, some failed) ───────────────
