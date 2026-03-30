@@ -1,6 +1,6 @@
 {
   "name": "@getmikk/ai-context",
-  "version": "2.0.7",
+  "version": "2.0.9",
   "publishConfig": {
     "access": "public",
     "registry": "https://registry.npmjs.org/"
@@ -26,8 +26,8 @@
     "lint": "eslint ."
   },
   "dependencies": {
-    "@getmikk/core": "workspace:*",
-    "@getmikk/intent-engine": "workspace:*"
+    "@getmikk/core": "^2.0.8",
+    "@getmikk/intent-engine": "^2.0.8"
   },
   "devDependencies": {
     "typescript": "^5.7.0",
