@@ -24,7 +24,7 @@
     "build": "tsc",
     "test": "bun test",
     "dev": "tsc --watch",
-    "lint": "eslint ."
+    "lint": "bunx eslint --config ../../eslint.config.mjs ."
   },
   "dependencies": {
     "@getmikk/core": "workspace:*",

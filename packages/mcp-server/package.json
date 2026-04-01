@@ -32,7 +32,7 @@
         "build": "node esbuild.mjs",
         "test": "bun test",
         "dev": "tsc --watch",
-        "lint": "eslint ."
+        "lint": "bunx eslint --config ../../eslint.config.mjs ."
     },
     "dependencies": {
         "@modelcontextprotocol/sdk": "^1.12.1",

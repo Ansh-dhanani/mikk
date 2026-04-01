@@ -78,7 +78,7 @@
         "watch": "node esbuild.mjs --watch",
         "package": "vsce package --no-dependencies",
         "deploy": "vsce publish --no-dependencies",
-        "lint": "eslint ."
+        "lint": "bunx eslint --config ../../eslint.config.mjs ."
     },
     "dependencies": {},
     "devDependencies": {
