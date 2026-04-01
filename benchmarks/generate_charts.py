@@ -1,838 +1,752 @@
+#!/usr/bin/env python3
 """
-Mikk Benchmark Chart Generator
-================================
-Generates a full suite of professional benchmark images comparing Mikk vs
-manual file-reading agent performance.
+Mikk Ground Truth Benchmark Visualization
+==========================================
+Generates charts from ground-truth benchmark JSON results.
 
 Usage:
-    # Sample data (demo/README):
-    python benchmarks/generate_charts.py --sample
+    python benchmarks/generate_charts.py [path/to/ground-truth-report.json]
 
-    # From a real benchmark run:
-    python benchmarks/generate_charts.py --input benchmarks/results/20260325_raw.json
-
-    # Custom output dir:
-    python benchmarks/generate_charts.py --sample --output assets/
-
-Output:
-    - Results are written to a timestamped folder, e.g.
-        benchmarks/results/run_2026-03-26_18-42-11/
-    - A 'latest' folder is also created for convenience:
-        benchmarks/results/latest/
-
-Charts produced:
-    tokens.png        -- Context tokens loaded per task (bar comparison)
-    latency.png       -- Wall-clock time per task
-    accuracy.png      -- Accuracy per task (grouped bar + delta)
-    overview.png      -- Headline 4-panel summary card
-    radar.png         -- Multi-axis spider chart
-    detail_strip.png  -- Per-task horizontal bar strip (all 3 metrics)
-    roi.png           -- Big-number ROI callout card
+Requires: matplotlib, numpy
+    pip install matplotlib numpy
 """
 
-from __future__ import annotations
-
-import argparse
 import json
-import os
 import sys
-from dataclasses import dataclass, field
-from datetime import datetime
+import os
+import re
+import argparse
 from pathlib import Path
-from typing import Any
+from datetime import datetime
 
-# ---- Set UTF-8 output on Windows so arrow/tick glyphs don't crash --------
-if sys.platform == "win32":
-    sys.stdout.reconfigure(encoding="utf-8", errors="replace")
-
-# ---- Dependency guard -------------------------------------------------------
 try:
     import matplotlib
+
     matplotlib.use("Agg")
     import matplotlib.pyplot as plt
     import matplotlib.patches as mpatches
-    from matplotlib.gridspec import GridSpec
-    from matplotlib.ticker import FuncFormatter
     import numpy as np
 except ImportError:
-    print("ERROR: matplotlib and numpy are required.\n  pip install matplotlib numpy")
+    print("Error: matplotlib not installed. Run: pip install matplotlib numpy")
     sys.exit(1)
 
-# =============================================================================
-# Design tokens
-# =============================================================================
+# Set style - dark theme for modern look
+plt.style.use("dark_background")
+
 PALETTE = {
-    "bg":           "#f5f5f5",   # light gray background
-    "surface":      "#ffffff",   # chart card background
-    "border":       "#dddddd",
-    
-    "text_primary": "#111111",   # dark text
-    "text_muted":   "#555555",
-    "text_dim":     "#888888",
-
-    "mikk":         "#59a89c",   # teal (matches your image)
-    "mikk_light":   "#76b7b2",
-
-    "manual":       "#e45756",   # soft red
-    "manual_light": "#f28e8c",
-
-    "gold":         "#f2cf5b",
-    "blue":         "#4c78a8",
-    "purple":       "#b279a2",
-
-    "grid":         "#e0e0e0",
+    "excellent": "#22c55e",  # green
+    "good": "#3b82f6",  # blue
+    "warning": "#f59e0b",  # orange
+    "poor": "#ef4444",  # red
+    "bg": "#1a1a2e",
+    "surface": "#16213e",
+    "text": "#e5e5e5",
+    "mikk": "#0ea5e9",  # cyan
+    "mikk_light": "#38bdf8",
 }
 
 DPI = 150
-FIGSIZE = {
-    "tokens":       (14, 7),
-    "latency":      (14, 7),
-    "accuracy":     (14, 7),
-    "overview":     (18, 10),
-    "radar":        (12, 10),
-    "detail_strip": (16, 7),
-    "roi":          (10, 5),
-}
-
-# =============================================================================
-# Data model
-# =============================================================================
-@dataclass
-class TaskResult:
-    label: str
-    task_id: str
-    mikk_tokens: int
-    manual_tokens: int
-    gitnexus_tokens: int
-    mikk_latency: float
-    manual_latency: float
-    gitnexus_latency: float
-    mikk_accuracy: float
-    manual_accuracy: float
-    gitnexus_accuracy: float
-
-    @property
-    def token_reduction(self) -> float:
-        return (1 - self.mikk_tokens / max(self.manual_tokens, 1)) * 100
-
-    @property
-    def latency_reduction(self) -> float:
-        return (1 - self.mikk_latency / max(self.manual_latency, 0.001)) * 100
-
-    @property
-    def accuracy_gain(self) -> float:
-        return self.mikk_accuracy - self.manual_accuracy
 
 
-@dataclass
-class BenchmarkData:
-    project_name: str = "ts-express-api"
-    function_count: int = 47
-    file_count: int = 17
-    module_count: int = 7
-    run_date: str = ""
-    tasks: list[TaskResult] = field(default_factory=list)
-
-    @property
-    def avg_token_reduction(self) -> float:
-        return float(np.mean([t.token_reduction for t in self.tasks]))
-
-    @property
-    def avg_accuracy_gain(self) -> float:
-        return float(np.mean([t.accuracy_gain for t in self.tasks]))
-
-    @property
-    def avg_latency_reduction(self) -> float:
-        return float(np.mean([t.latency_reduction for t in self.tasks]))
-
-    @property
-    def avg_tokens(self) -> float:
-        return float(np.mean([t.mikk_tokens for t in self.tasks]))
-
-    @property
-    def avg_latency(self) -> float:
-        return float(np.mean([t.mikk_latency for t in self.tasks]))
+def get_color(accuracy):
+    if accuracy >= 80:
+        return PALETTE["excellent"]
+    elif accuracy >= 60:
+        return PALETTE["good"]
+    elif accuracy >= 40:
+        return PALETTE["warning"]
+    return PALETTE["poor"]
 
 
+def load_data(json_path):
+    with open(json_path, "r") as f:
+        return json.load(f)
 
-# =============================================================================
-# Load from real benchmark JSON
-# =============================================================================
-def load_from_json(path: str) -> BenchmarkData:
-    with open(path) as f:
-        raw: dict[str, Any] = json.load(f)
 
-    meta = raw.get("meta", raw.get("meta", {}))
-    fn_count  = meta.get("functions", meta.get("function_count", 0))
-    file_count = meta.get("files",    meta.get("file_count",     0))
-    mod_count  = meta.get("modules",  meta.get("module_count",   0))
-    tasks = []
-    for t in raw.get("tasks", []):
-        tid = t.get("task_id", "unknown")
-        mk  = t.get("mikk", {})
-        gn  = t.get("gitnexus", t.get("manual", {}))
-        mn  = t.get("manual", {})
-        # Use the label from JSON if available (pipeline.ts sets it), else fall back
-        lbl = t.get("label", tid).replace("\\n", "\n")
-        tasks.append(TaskResult(
-            label=lbl,
-            task_id=tid,
-            mikk_tokens=int(mk.get("tokens", 0)),
-            manual_tokens=int(mn.get("tokens", 0)),
-            gitnexus_tokens=int(gn.get("tokens", 0)),
-            mikk_latency=float(mk.get("latency_s", 0)),
-            manual_latency=float(mn.get("latency_s", 0)),
-            gitnexus_latency=float(gn.get("latency_s", 0)),
-            mikk_accuracy=float(mk.get("accuracy_pct", 0)),
-            manual_accuracy=float(mn.get("accuracy_pct", 0)),
-            gitnexus_accuracy=float(gn.get("accuracy_pct", 0)),
-        ))
+def create_overall_gauge(data, output_dir):
+    """Create overall accuracy gauge chart"""
+    accuracy = data.get("overallAccuracy", 0)
 
-    return BenchmarkData(
-        project_name=meta.get("project", "project"),
-        function_count=fn_count,
-        file_count=file_count,
-        module_count=mod_count,
-        run_date=meta.get("date", ""),
-        tasks=tasks,
+    fig, ax = plt.subplots(figsize=(10, 8), facecolor=PALETTE["bg"])
+    ax.set_facecolor(PALETTE["bg"])
+    ax.set_xlim(-1.2, 1.2)
+    ax.set_ylim(-0.3, 1.2)
+    ax.axis("off")
+
+    # Background arc
+    angles = np.linspace(0, np.pi, 100)
+    for i in range(len(angles) - 1):
+        a1, a2 = angles[i], angles[i + 1]
+        acc = (i / len(angles)) * 100
+        color = get_color(acc)
+        ax.fill_between(
+            [np.cos(a2), np.cos(a1)],
+            [0, 0],
+            [np.sin(a2), np.sin(a1)],
+            color=color,
+            alpha=0.3,
+            zorder=1,
+        )
+
+    # Needle
+    needle_angle = np.pi - (accuracy / 100) * np.pi
+    needle_length = 0.7
+    ax.plot(
+        [0, needle_length * np.cos(needle_angle)],
+        [0, needle_length * np.sin(needle_angle)],
+        color="white",
+        linewidth=5,
+        zorder=10,
+        solid_capstyle="round",
+    )
+    ax.plot(0, 0, "o", color=PALETTE["mikk"], markersize=20, zorder=11)
+
+    # Value display
+    color = get_color(accuracy)
+    ax.text(
+        0,
+        0.15,
+        f"{accuracy}%",
+        fontsize=56,
+        ha="center",
+        color=color,
+        fontweight="bold",
+    )
+    ax.text(
+        0,
+        -0.1,
+        "OVERALL ACCURACY",
+        fontsize=14,
+        ha="center",
+        color=PALETTE["text"],
     )
 
+    # Grade
+    if accuracy >= 80:
+        grade, grade_color = "EXCELLENT", PALETTE["excellent"]
+    elif accuracy >= 60:
+        grade, grade_color = "GOOD", PALETTE["good"]
+    elif accuracy >= 40:
+        grade, grade_color = "FAIR", PALETTE["warning"]
+    else:
+        grade, grade_color = "NEEDS WORK", PALETTE["poor"]
 
-# =============================================================================
-# Shared style helpers
-# =============================================================================
-def apply_light_style(fig: plt.Figure, axes: list) -> None:
-    fig.patch.set_facecolor(PALETTE["bg"])
-    for ax in axes:
-        ax.set_facecolor(PALETTE["surface"])
-        ax.tick_params(colors=PALETTE["text_muted"], labelsize=9)
-
-        ax.spines["bottom"].set_color(PALETTE["border"])
-        ax.spines["left"].set_color(PALETTE["border"])
-        ax.spines["top"].set_visible(False)
-        ax.spines["right"].set_visible(False)
-
-        ax.yaxis.grid(True, color=PALETTE["grid"], linewidth=1, linestyle="--")
-        ax.set_axisbelow(True)
-
-        for lbl in ax.get_xticklabels() + ax.get_yticklabels():
-            lbl.set_color(PALETTE["text_primary"])
-
-def subtitle(data: BenchmarkData) -> str:
-    return (f"Real measurement on {data.project_name}  |  "
-            f"{data.function_count} functions  |  "
-            f"{data.file_count} files  |  "
-            f"{data.module_count} modules")
-
-
-def draw_connector(ax, x1, y1, x2, y2, color):
-    ax.annotate(
-        "", xy=(x2, y2), xytext=(x1, y1),
-        arrowprops=dict(arrowstyle="-", color=color, lw=1.5),
+    ax.text(
+        0,
+        0.85,
+        grade,
+        fontsize=24,
+        ha="center",
+        color=grade_color,
+        fontweight="bold",
     )
 
-
-def save(fig, out_dir, name):
-    path = out_dir / name
-    fig.savefig(path, dpi=DPI, bbox_inches="tight",
-                facecolor=fig.get_facecolor())
-    plt.close(fig)
-    print(f"  OK  {path}")
-    return path
-
-
-# =============================================================================
-# Chart 1 -- Tokens
-# =============================================================================
-def chart_tokens(data: BenchmarkData, out_dir: Path) -> Path:
-    fig, ax = plt.subplots(figsize=FIGSIZE["tokens"])
-    apply_light_style(fig, [ax])
-
-    tasks = data.tasks
-    x = np.arange(len(tasks))
-    w = 0.25  # Three bars now, so make them narrower
-
-    bm = ax.bar(x - w, [t.manual_tokens for t in tasks], width=w,
-                color=PALETTE["manual"], alpha=0.92, zorder=3,
-                label="Without Mikk (manual file reading)")
-    bg = ax.bar(x, [t.gitnexus_tokens for t in tasks], width=w,
-               color=PALETTE["blue"], alpha=0.92, zorder=3,
-               label="GitNexus (knowledge graph)")
-    bk = ax.bar(x + w, [t.mikk_tokens   for t in tasks], width=w,
-                color=PALETTE["mikk"],   alpha=0.92, zorder=3,
-                label="With Mikk (MCP tool structured response)")
-
-    y_max = max(max(t.manual_tokens for t in tasks), max(t.mikk_tokens for t in tasks), max(t.gitnexus_tokens for t in tasks))
-    for i, t in enumerate(tasks):
-        # Value labels
-        ax.text(x[i] - w, t.manual_tokens + y_max*0.01,
-                f"{t.manual_tokens:,}", ha="center", va="bottom",
-                fontsize=7, fontweight="bold", color=PALETTE["text_primary"])
-        ax.text(x[i], t.gitnexus_tokens + y_max*0.01,
-                f"{t.gitnexus_tokens:,}", ha="center", va="bottom",
-                fontsize=7, fontweight="bold", color=PALETTE["text_primary"])
-        ax.text(x[i] + w, t.mikk_tokens + y_max*0.01,
-                f"{t.mikk_tokens:,}", ha="center", va="bottom",
-                fontsize=7, fontweight="bold", color=PALETTE["text_primary"])
-        
-        # Reduction labels (compare Mikk vs best of others)
-        best_other = min(t.manual_tokens, t.gitnexus_tokens)
-        if t.mikk_tokens < best_other:
-            reduction_pct = (1 - t.mikk_tokens / best_other) * 100
-            ax.text(x[i] + w, t.mikk_tokens + y_max*0.02,
-                    f"-{reduction_pct:.0f}%",
-                    va="center", ha="center", fontsize=8.5, fontweight="bold",
-                    color=PALETTE["mikk_light"])
-
-    ax.set_xticks(x)
-    ax.set_xticklabels([t.label for t in tasks], fontsize=9,
-                       color=PALETTE["text_muted"])
-    ax.set_ylabel("Context Tokens Loaded", color=PALETTE["text_muted"], fontsize=10)
-    ax.tick_params(axis="x", length=0)
-    ax.legend(fontsize=9, framealpha=0.9, facecolor=PALETTE["surface"],
-              edgecolor=PALETTE["border"], labelcolor=PALETTE["text_muted"],
-              loc="upper right")
     ax.set_title(
-        "Token Usage: Mikk vs GitNexus vs Manual\n" + subtitle(data),
-        pad=12, fontsize=12, fontweight="bold", color=PALETTE["text_primary"],
+        "MIKK BENCHMARK RESULTS",
+        fontsize=18,
+        pad=30,
+        color="white",
+        fontweight="bold",
     )
 
-    fig.tight_layout()
-    return save(fig, out_dir, "tokens.png")
+    output_path = output_dir / "overall_accuracy.png"
+    plt.tight_layout()
+    plt.savefig(output_path, dpi=DPI, facecolor=PALETTE["bg"], bbox_inches="tight")
+    plt.close()
+    print(f"[OK] Created: {output_path.name}")
+    return output_path
 
 
-# =============================================================================
-# Chart 2 -- Latency
-# =============================================================================
-def chart_latency(data: BenchmarkData, out_dir: Path) -> Path:
-    fig, ax = plt.subplots(figsize=FIGSIZE["latency"])
-    apply_light_style(fig, [ax])
+def create_feature_chart(data, output_dir):
+    """Create accuracy by feature horizontal bar chart"""
+    results = data.get("results", [])
 
-    tasks = data.tasks
-    x = np.arange(len(tasks))
-    w = 0.25  # Three bars now
+    # Group by test type
+    test_types = {}
+    for r in results:
+        test = r.get("test", "unknown")
+        if test not in test_types:
+            test_types[test] = []
+        test_types[test].append(r.get("accuracy", 0))
 
-    ax.bar(x - w, [t.manual_latency for t in tasks], width=w,
-           color=PALETTE["manual"], alpha=0.92, zorder=3,
-           label="Without Mikk (manual file reading)")
-    ax.bar(x, [t.gitnexus_latency for t in tasks], width=w,
-           color=PALETTE["blue"], alpha=0.92, zorder=3,
-           label="GitNexus (knowledge graph)")
-    ax.bar(x + w, [t.mikk_latency   for t in tasks], width=w,
-           color=PALETTE["mikk"],   alpha=0.92, zorder=3,
-           label="With Mikk (MCP tool structured response)")
+    # Calculate average per feature
+    features = []
+    accuracies = []
+    for test, accs in test_types.items():
+        features.append(test.replace("-", " ").title())
+        accuracies.append(sum(accs) / len(accs))
 
-    y_max = max(max(t.manual_latency for t in tasks), max(t.mikk_latency for t in tasks), max(t.gitnexus_latency for t in tasks))
-    for i, t in enumerate(tasks):
-        ax.text(x[i] - w, t.manual_latency + y_max*0.01,
-                f"{t.manual_latency:.1f}s", ha="center", va="bottom",
-                fontsize=7, fontweight="bold", color=PALETTE["text_primary"])
-        ax.text(x[i], t.gitnexus_latency + y_max*0.01,
-                f"{t.gitnexus_latency:.1f}s", ha="center", va="bottom",
-                fontsize=7, fontweight="bold", color=PALETTE["text_primary"])
-        ax.text(x[i] + w, t.mikk_latency + y_max*0.01,
-                f"{t.mikk_latency:.1f}s", ha="center", va="bottom",
-                fontsize=7, fontweight="bold", color=PALETTE["text_primary"])
-        draw_connector(ax,
-                       x[i] - w/2 + w/2, t.manual_latency,
-                       x[i] + w/2 + w/2, t.mikk_latency,
-                       PALETTE["mikk_light"])
-        mid_y = (t.manual_latency + t.mikk_latency) / 2
-        ax.text(x[i] + w/2 + 0.05, mid_y,
-                f"-{t.latency_reduction:.0f}%",
-                va="center", ha="left", fontsize=9.5, fontweight="bold",
-                color=PALETTE["mikk_light"])
+    # Sort by accuracy
+    sorted_data = sorted(zip(features, accuracies), key=lambda x: x[1], reverse=True)
+    features, accuracies = zip(*sorted_data)
 
-    ax.set_xticks(x)
-    ax.set_xticklabels([t.label for t in tasks], fontsize=9,
-                       color=PALETTE["text_muted"])
-    ax.set_ylabel("Wall-clock Time (seconds)", color=PALETTE["text_muted"], fontsize=10)
-    ax.tick_params(axis="x", length=0)
-    ax.legend(fontsize=9, framealpha=0.9, facecolor=PALETTE["surface"],
-              edgecolor=PALETTE["border"], labelcolor=PALETTE["text_muted"],
-              loc="upper right")
+    fig, ax = plt.subplots(figsize=(12, 6), facecolor=PALETTE["bg"])
+    ax.set_facecolor(PALETTE["bg"])
+
+    y = np.arange(len(features))
+    h = 0.65
+
+    for i, (f, a) in enumerate(zip(features, accuracies)):
+        color = get_color(a)
+
+        # Background bar
+        ax.barh(i, 100, h, color="white", alpha=0.1, zorder=1)
+        # Actual bar
+        ax.barh(i, a, h, color=color, alpha=0.85, zorder=2)
+
+        # Value label
+        ax.text(
+            a + 2,
+            i,
+            f"{a:.0f}%",
+            va="center",
+            fontsize=12,
+            color=color,
+            fontweight="bold",
+        )
+
+        # Feature name
+        ax.text(-2, i, f, va="center", ha="right", fontsize=11, color=PALETTE["text"])
+
+    ax.set_xlim(0, 115)
+    ax.set_yticks([])
+    ax.set_xlabel("Accuracy (%)", fontsize=12, color=PALETTE["text"])
     ax.set_title(
-        "Response Latency: Mikk vs GitNexus vs Manual\n" + subtitle(data),
-        pad=12, fontsize=12, fontweight="bold", color=PALETTE["text_primary"],
+        "ACCURACY BY FEATURE", fontsize=16, pad=15, color="white", fontweight="bold"
     )
 
-    fig.tight_layout()
-    return save(fig, out_dir, "latency.png")
+    # Target line
+    ax.axvline(
+        x=80,
+        color=PALETTE["excellent"],
+        linestyle="--",
+        alpha=0.7,
+        linewidth=1.5,
+        label="Target (80%)",
+    )
+    ax.legend(loc="lower right", facecolor=PALETTE["bg"], labelcolor=PALETTE["text"])
+
+    for spine in ax.spines.values():
+        spine.set_color("white")
+        spine.set_alpha(0.3)
+
+    output_path = output_dir / "feature_accuracy.png"
+    plt.tight_layout()
+    plt.savefig(output_path, dpi=DPI, facecolor=PALETTE["bg"], bbox_inches="tight")
+    plt.close()
+    print(f"[OK] Created: {output_path.name}")
+    return output_path
 
 
-# =============================================================================
-# Chart 3 -- Accuracy
-# =============================================================================
-def chart_accuracy(data: BenchmarkData, out_dir: Path) -> Path:
-    fig, ax = plt.subplots(figsize=FIGSIZE["accuracy"])
-    apply_light_style(fig, [ax])
+def create_project_chart(data, output_dir):
+    """Create accuracy by project bar chart"""
+    results = data.get("results", [])
 
-    tasks = data.tasks
-    x = np.arange(len(tasks))
-    w = 0.25  # Three bars now
+    # Group by project
+    projects = {}
+    for r in results:
+        proj = r.get("project", "unknown")
+        if proj not in projects:
+            projects[proj] = []
+        projects[proj].append(r.get("accuracy", 0))
 
-    ax.bar(x - w, [t.manual_accuracy for t in tasks], width=w,
-           color=PALETTE["manual"], alpha=0.92, zorder=3, 
-           label="Without Mikk (manual file reading)")
-    ax.bar(x, [t.gitnexus_accuracy for t in tasks], width=w,
-           color=PALETTE["blue"], alpha=0.92, zorder=3,
-           label="GitNexus (knowledge graph)")
-    ax.bar(x + w, [t.mikk_accuracy   for t in tasks], width=w,
-           color=PALETTE["mikk"],   alpha=0.92, zorder=3, 
-           label="With Mikk (MCP tool structured response)")
+    # Calculate average per project
+    proj_names = []
+    proj_accs = []
+    for proj, accs in projects.items():
+        proj_names.append(proj)
+        proj_accs.append(sum(accs) / len(accs))
 
-    for i, t in enumerate(tasks):
-        ax.text(x[i] - w, t.manual_accuracy + 1.5,
-                f"{t.manual_accuracy:.0f}%", ha="center", va="bottom",
-                fontsize=7, fontweight="bold", color=PALETTE["text_primary"])
-        ax.text(x[i], t.gitnexus_accuracy + 1.5,
-                f"{t.gitnexus_accuracy:.0f}%", ha="center", va="bottom",
-                fontsize=7, fontweight="bold", color=PALETTE["text_primary"])
-        ax.text(x[i] + w, t.mikk_accuracy + 1.5,
-                f"{t.mikk_accuracy:.0f}%", ha="center", va="bottom",
-                fontsize=7, fontweight="bold", color=PALETTE["text_primary"])
-        
-        # Show improvement over best alternative
-        best_other = max(t.manual_accuracy, t.gitnexus_accuracy)
-        if t.mikk_accuracy > best_other:
-            gain_pp = t.mikk_accuracy - best_other
-            ax.text(x[i] + w, max(t.mikk_accuracy, best_other) + 5,
-                    f"+{gain_pp:.0f}pp",
-                    ha="center", va="bottom", fontsize=8.5, fontweight="bold",
-                    color=PALETTE["gold"])
+    # Sort by accuracy
+    sorted_data = sorted(zip(proj_names, proj_accs), key=lambda x: x[1], reverse=True)
+    proj_names, proj_accs = zip(*sorted_data)
+
+    fig, ax = plt.subplots(figsize=(10, 5), facecolor=PALETTE["bg"])
+    ax.set_facecolor(PALETTE["bg"])
+
+    x = np.arange(len(proj_names))
+    colors = [get_color(a) for a in proj_accs]
+    bars = ax.bar(x, proj_accs, color=colors, width=0.6, alpha=0.85, zorder=2)
+
+    # Background
+    ax.bar(x, 100, width=0.6, color="white", alpha=0.1, zorder=1)
+
+    for bar, acc in zip(bars, proj_accs):
+        ax.text(
+            bar.get_x() + bar.get_width() / 2,
+            acc + 3,
+            f"{acc:.0f}%",
+            ha="center",
+            fontsize=12,
+            color=get_color(acc),
+            fontweight="bold",
+        )
 
     ax.set_ylim(0, 120)
-    ax.yaxis.set_major_formatter(FuncFormatter(lambda v, _: f"{v:.0f}%"))
     ax.set_xticks(x)
-    ax.set_xticklabels([t.label for t in tasks], fontsize=9,
-                       color=PALETTE["text_muted"])
-    ax.set_ylabel("Answer Accuracy (% ground-truth keywords found)",
-                  color=PALETTE["text_muted"], fontsize=10)
-    ax.tick_params(axis="x", length=0)
-    ax.legend(fontsize=9, framealpha=0.9, facecolor=PALETTE["surface"],
-              edgecolor=PALETTE["border"], labelcolor=PALETTE["text_muted"],
-              loc="upper right")
+    ax.set_xticklabels(
+        proj_names, rotation=15, ha="right", fontsize=11, color=PALETTE["text"]
+    )
+    ax.set_ylabel("Accuracy (%)", fontsize=12, color=PALETTE["text"])
     ax.set_title(
-        "Task Accuracy: Mikk vs GitNexus vs Manual\n" + subtitle(data),
-        pad=12, fontsize=12, fontweight="bold", color=PALETTE["text_primary"],
+        "ACCURACY BY PROJECT", fontsize=16, pad=15, color="white", fontweight="bold"
     )
 
-    fig.tight_layout()
-    return save(fig, out_dir, "accuracy.png")
-
-
-# =============================================================================
-# Chart 4 -- Radar
-# =============================================================================
-def chart_radar(data: BenchmarkData, out_dir: Path) -> Path:
-    categories = [t.label.replace("\n", " ") for t in data.tasks]
-    n = len(categories)
-    angles = np.linspace(0, 2 * np.pi, n, endpoint=False).tolist()
-    angles += angles[:1]
-
-    mikk_vals   = [t.mikk_accuracy   / 100 for t in data.tasks] + \
-                  [data.tasks[0].mikk_accuracy   / 100]
-    manual_vals = [t.manual_accuracy / 100 for t in data.tasks] + \
-                  [data.tasks[0].manual_accuracy / 100]
-    gitnexus_vals = [t.gitnexus_accuracy / 100 for t in data.tasks] + \
-                    [data.tasks[0].gitnexus_accuracy / 100]
-
-    fig, ax = plt.subplots(figsize=FIGSIZE["radar"],
-                           subplot_kw=dict(polar=True))
-    fig.patch.set_facecolor(PALETTE["bg"])
-    ax.set_facecolor(PALETTE["surface"])
-
-    ax.plot(angles, mikk_vals,   color=PALETTE["mikk"],   lw=2.5, zorder=3)
-    ax.fill(angles, mikk_vals,   color=PALETTE["mikk"],   alpha=0.25, zorder=2)
-    ax.plot(angles, manual_vals, color=PALETTE["manual"], lw=2.5, zorder=3,
-            linestyle="--")
-    ax.fill(angles, manual_vals, color=PALETTE["manual"], alpha=0.12, zorder=2)
-    ax.plot(angles, gitnexus_vals, color=PALETTE["blue"], lw=2.5, zorder=3,
-            linestyle=":")
-    ax.fill(angles, gitnexus_vals, color=PALETTE["blue"], alpha=0.12, zorder=2)
-
-    ax.set_xticks(angles[:-1])
-    ax.set_xticklabels(categories, size=9, color=PALETTE["text_muted"])
-    ax.yaxis.set_tick_params(labelsize=7, colors=PALETTE["text_dim"])
-    ax.spines["polar"].set_color(PALETTE["border"])
-    ax.grid(color=PALETTE["grid"], linewidth=0.6)
-    ax.set_ylim(0, 1)
-    ax.yaxis.set_major_formatter(FuncFormatter(lambda v, _: f"{v*100:.0f}%"))
-
-    ax.legend(
-        handles=[
-            mpatches.Patch(color=PALETTE["mikk"],   label="Mikk"),
-            mpatches.Patch(color=PALETTE["manual"], label="Manual (no Mikk)"),
-            mpatches.Patch(color=PALETTE["blue"], label="GitNexus (knowledge graph)"),
-        ],
-        loc="lower right", fontsize=9, framealpha=0.9,
-        facecolor=PALETTE["surface"], edgecolor=PALETTE["border"],
-        labelcolor=PALETTE["text_muted"],
-        bbox_to_anchor=(1.3, -0.08),
+    ax.axhline(
+        y=80, color=PALETTE["excellent"], linestyle="--", alpha=0.7, linewidth=1.5
     )
 
-    fig.suptitle(
-        "Accuracy by Task: Mikk vs GitNexus vs Manual\n" + subtitle(data),
-        x=0.5, y=1.01, fontsize=12, fontweight="bold",
-        color=PALETTE["text_primary"],
-    )
-    fig.tight_layout()
-    return save(fig, out_dir, "radar.png")
+    for spine in ax.spines.values():
+        spine.set_color("white")
+        spine.set_alpha(0.3)
+
+    output_path = output_dir / "project_comparison.png"
+    plt.tight_layout()
+    plt.savefig(output_path, dpi=DPI, facecolor=PALETTE["bg"], bbox_inches="tight")
+    plt.close()
+    print(f"[OK] Created: {output_path.name}")
+    return output_path
 
 
-# =============================================================================
-# Chart 5 -- Overview (4-panel)
-# =============================================================================
-def chart_overview(data: BenchmarkData, out_dir: Path) -> Path:
-    fig = plt.figure(figsize=FIGSIZE["overview"])
-    fig.patch.set_facecolor(PALETTE["bg"])
+def create_performance_chart(data, output_dir):
+    """Create latency chart"""
+    results = data.get("results", [])
 
-    gs = GridSpec(2, 3, figure=fig,
-                  hspace=0.50, wspace=0.38,
-                  left=0.06, right=0.97,
-                  top=0.88, bottom=0.08)
+    # Extract context-generation results for latency
+    latencies = {}
+    for r in results:
+        if r.get("test") == "context-generation":
+            proj = r.get("project", "unknown")
+            details = r.get("details", "")
+            match = re.search(r"Latency: (\d+)ms", details)
+            if match:
+                latencies[proj] = int(match.group(1))
 
-    tasks = data.tasks
-    n = len(tasks)
-    x = np.arange(n)
-    w = 0.35
+    if not latencies:
+        return None
 
-    # ---- Panel A: tokens (top-left, wide) ------------------------------------
-    ax_tok = fig.add_subplot(gs[0, :2])
-    apply_light_style(fig, [ax_tok])
-    y_max = max(t.manual_tokens for t in tasks)
-    ax_tok.bar(x - w/2, [t.manual_tokens for t in tasks], width=w,
-               color=PALETTE["manual"], alpha=0.9, zorder=3)
-    ax_tok.bar(x + w/2, [t.mikk_tokens   for t in tasks], width=w,
-               color=PALETTE["mikk"],   alpha=0.9, zorder=3)
-    for i, t in enumerate(tasks):
-        ax_tok.text(x[i] - w/2, t.manual_tokens + y_max*0.01,
-                    f"{t.manual_tokens:,}", ha="center", va="bottom",
-                    fontsize=7, color=PALETTE["text_primary"])
-        ax_tok.text(x[i] + w/2, t.mikk_tokens + y_max*0.01,
-                    f"{t.mikk_tokens:,}", ha="center", va="bottom",
-                    fontsize=7, color=PALETTE["text_primary"])
-        ax_tok.text(x[i], max(t.manual_tokens, t.mikk_tokens) * 1.09,
-                    f"-{t.token_reduction:.0f}%",
-                    ha="center", fontsize=8.5, fontweight="bold",
-                    color=PALETTE["mikk_light"])
-    ax_tok.set_xticks(x)
-    ax_tok.set_xticklabels([t.label for t in tasks], fontsize=8)
-    ax_tok.set_ylabel("Tokens", fontsize=9, color=PALETTE["text_muted"])
-    ax_tok.tick_params(axis="x", length=0)
-    ax_tok.set_title("Context Tokens Loaded", fontsize=10,
-                     color=PALETTE["text_primary"], pad=6)
+    projects = list(latencies.keys())
+    times = list(latencies.values())
 
-    # ---- Panel B: accuracy (top-right) ----------------------------------------
-    ax_acc = fig.add_subplot(gs[0, 2])
-    apply_light_style(fig, [ax_acc])
-    y = np.arange(n)
-    h = 0.35
-    ax_acc.barh(y + h/2, [t.mikk_accuracy   for t in tasks], height=h,
-                color=PALETTE["mikk"],   alpha=0.9, zorder=3)
-    ax_acc.barh(y - h/2, [t.manual_accuracy for t in tasks], height=h,
-                color=PALETTE["manual"], alpha=0.9, zorder=3)
-    for i, t in enumerate(tasks):
-        ax_acc.text(t.mikk_accuracy + 1,   y[i] + h/2, f"{t.mikk_accuracy:.0f}%",
-                    va="center", fontsize=7, color=PALETTE["text_primary"])
-        ax_acc.text(t.manual_accuracy + 1, y[i] - h/2, f"{t.manual_accuracy:.0f}%",
-                    va="center", fontsize=7, color=PALETTE["text_muted"])
-    ax_acc.set_yticks(y)
-    ax_acc.set_yticklabels([t.label for t in tasks], fontsize=7.5)
-    ax_acc.set_xlim(0, 115)
-    ax_acc.xaxis.set_major_formatter(FuncFormatter(lambda v, _: f"{v:.0f}%"))
-    ax_acc.set_title("Answer Accuracy", fontsize=10,
-                     color=PALETTE["text_primary"], pad=6)
-
-    # ---- Panel C: latency (bottom-left, wide) ---------------------------------
-    ax_lat = fig.add_subplot(gs[1, :2])
-    apply_light_style(fig, [ax_lat])
-    lat_max = max(t.manual_latency for t in tasks)
-    ax_lat.bar(x - w/2, [t.manual_latency for t in tasks], width=w,
-               color=PALETTE["manual"], alpha=0.9, zorder=3)
-    ax_lat.bar(x + w/2, [t.mikk_latency   for t in tasks], width=w,
-               color=PALETTE["mikk"],   alpha=0.9, zorder=3)
-    for i, t in enumerate(tasks):
-        ax_lat.text(x[i] - w/2, t.manual_latency + lat_max*0.01,
-                    f"{t.manual_latency:.1f}s", ha="center", va="bottom",
-                    fontsize=7, color=PALETTE["text_primary"])
-        ax_lat.text(x[i] + w/2, t.mikk_latency + lat_max*0.01,
-                    f"{t.mikk_latency:.1f}s", ha="center", va="bottom",
-                    fontsize=7, color=PALETTE["text_primary"])
-        ax_lat.text(x[i], max(t.manual_latency, t.mikk_latency) * 1.12,
-                    f"-{t.latency_reduction:.0f}%",
-                    ha="center", fontsize=8.5, fontweight="bold",
-                    color=PALETTE["mikk_light"])
-    ax_lat.set_xticks(x)
-    ax_lat.set_xticklabels([t.label for t in tasks], fontsize=8)
-    ax_lat.set_ylabel("Seconds", fontsize=9, color=PALETTE["text_muted"])
-    ax_lat.tick_params(axis="x", length=0)
-    ax_lat.set_title("Response Latency", fontsize=10,
-                     color=PALETTE["text_primary"], pad=6)
-
-    # ---- Panel D: summary stats card (bottom-right) ---------------------------
-    ax_sum = fig.add_subplot(gs[1, 2])
-    ax_sum.set_facecolor(PALETTE["surface"])
-    ax_sum.set_xticks([]); ax_sum.set_yticks([])
-    for sp in ax_sum.spines.values():
-        sp.set_color(PALETTE["border"])
-
-    stats = [
-        ("Avg Token Reduction",   f"-{data.avg_token_reduction:.0f}%",    PALETTE["mikk_light"]),
-        ("Avg Latency Reduction", f"-{data.avg_latency_reduction:.0f}%",  PALETTE["mikk_light"]),
-        ("Avg Accuracy Gain",     f"+{data.avg_accuracy_gain:.0f}pp",     PALETTE["gold"]),
-        ("Tasks Tested",          str(len(data.tasks)),                   PALETTE["blue"]),
-        ("Functions Tracked",     str(data.function_count),               PALETTE["blue"]),
-        ("Files Analysed",        str(data.file_count),                   PALETTE["blue"]),
-    ]
-    for j, (lbl, val, color) in enumerate(stats):
-        yp = 0.88 - j * 0.155
-        ax_sum.text(0.08, yp, lbl, transform=ax_sum.transAxes,
-                    fontsize=8.5, color=PALETTE["text_muted"], va="center")
-        ax_sum.text(0.92, yp, val, transform=ax_sum.transAxes,
-                    fontsize=11, fontweight="bold", color=color,
-                    va="center", ha="right")
-    ax_sum.set_title("Summary", fontsize=10,
-                     color=PALETTE["text_primary"], pad=6)
-
-    # ---- Shared legend --------------------------------------------------------
-    fig.legend(
-        handles=[
-            mpatches.Patch(color=PALETTE["manual"],
-                           label="Without Mikk (manual file reading)"),
-            mpatches.Patch(color=PALETTE["mikk"],
-                           label="With Mikk (MCP graph-based context)"),
-        ],
-        loc="upper center", ncol=2, fontsize=9, framealpha=0.9,
-        facecolor=PALETTE["surface"], edgecolor=PALETTE["border"],
-        labelcolor=PALETTE["text_muted"],
-        bbox_to_anchor=(0.5, 0.965),
-    )
-    fig.suptitle(
-        f"Mikk Benchmark  --  {subtitle(data)}",
-        y=0.998, fontsize=13, fontweight="bold",
-        color=PALETTE["text_primary"],
-    )
-
-    return save(fig, out_dir, "overview.png")
-
-
-# =============================================================================
-# Chart 6 -- Detail strip  (horizontal bars, 3 metrics)
-# =============================================================================
-def chart_detail_strip(data: BenchmarkData, out_dir: Path) -> Path:
-    tasks = data.tasks
-    n = len(tasks)
-    fig, axes = plt.subplots(1, 3, figsize=FIGSIZE["detail_strip"])
-    apply_light_style(fig, list(axes))
-    fig.patch.set_facecolor(PALETTE["bg"])
-
-    y = np.arange(n)
-    h = 0.38
-    labels = [t.label for t in tasks]
-
-    metrics = [
-        ("Tokens Loaded",
-         [t.manual_tokens for t in tasks],
-         [t.mikk_tokens   for t in tasks],
-         lambda t: f"-{t.token_reduction:.0f}%",
-         lambda v: f"{v:,.0f}"),
-        ("Latency (s)",
-         [t.manual_latency for t in tasks],
-         [t.mikk_latency   for t in tasks],
-         lambda t: f"-{t.latency_reduction:.0f}%",
-         lambda v: f"{v:.1f}s"),
-        ("Accuracy (%)",
-         [t.manual_accuracy for t in tasks],
-         [t.mikk_accuracy   for t in tasks],
-         lambda t: f"+{t.accuracy_gain:.0f}pp",
-         lambda v: f"{v:.0f}%"),
-    ]
-
-    for ax, (title, manual_vals, mikk_vals, delta_fn, val_fmt) in \
-            zip(axes, metrics):
-        ax.barh(y + h/2, manual_vals, height=h, color=PALETTE["manual"],
-                alpha=0.9, zorder=3, label="Without Mikk")
-        ax.barh(y - h/2, mikk_vals,   height=h, color=PALETTE["mikk"],
-                alpha=0.9, zorder=3, label="With Mikk")
-
-        x_max = max(max(manual_vals), max(mikk_vals))
-        for i, t in enumerate(tasks):
-            ax.text(manual_vals[i] + x_max*0.01, y[i] + h/2,
-                    val_fmt(manual_vals[i]),
-                    va="center", fontsize=7.5, color=PALETTE["text_primary"])
-            ax.text(mikk_vals[i] + x_max*0.01, y[i] - h/2,
-                    val_fmt(mikk_vals[i]),
-                    va="center", fontsize=7.5, color=PALETTE["text_primary"])
-            ax.text(x_max*1.01, y[i], delta_fn(t),
-                    va="center", ha="left", fontsize=8, fontweight="bold",
-                    color=PALETTE["mikk_light"])
-
-        ax.set_xlim(0, x_max * 1.18)
-        ax.set_yticks(y)
-        ax.set_yticklabels(labels if ax is axes[0] else [], fontsize=8.5)
-        ax.set_title(title, fontsize=10, color=PALETTE["text_primary"], pad=6)
-        ax.legend(fontsize=8, framealpha=0.9, facecolor=PALETTE["surface"],
-                  edgecolor=PALETTE["border"], labelcolor=PALETTE["text_muted"],
-                  loc="lower right")
-
-    fig.suptitle(
-        f"Per-task Breakdown  --  {subtitle(data)}",
-        y=1.01, fontsize=11, fontweight="bold",
-        color=PALETTE["text_primary"],
-    )
-    fig.tight_layout()
-    return save(fig, out_dir, "detail_strip.png")
-
-
-# =============================================================================
-# Chart 7 -- ROI big-number card
-# =============================================================================
-def chart_roi(data: BenchmarkData, out_dir: Path) -> Path:
-    fig, ax = plt.subplots(figsize=FIGSIZE["roi"])
-    fig.patch.set_facecolor(PALETTE["bg"])
+    fig, ax = plt.subplots(figsize=(10, 4), facecolor=PALETTE["bg"])
     ax.set_facecolor(PALETTE["bg"])
-    ax.set_xticks([]); ax.set_yticks([])
-    for sp in ax.spines.values():
-        sp.set_visible(False)
 
-    cards = [
-        (f"{data.avg_accuracy_gain:.0f}pp",     "Average accuracy\nimprovement", PALETTE["gold"]),
-        (f"{data.avg_tokens/1000:.1f}k",         "Mikk avg\ncontext tokens", PALETTE["mikk"]),
-        (f"{data.avg_latency:.1f}s",            "Mikk avg\nlatency", PALETTE["mikk_light"]),
-        (str(len(data.tasks)),                   "Tasks\nbenchmarked", PALETTE["blue"]),
-    ]
+    x = np.arange(len(projects))
+    colors = [PALETTE["good"] if t < 600 else PALETTE["warning"] for t in times]
+    bars = ax.bar(x, times, color=colors, width=0.6, alpha=0.85, zorder=2)
 
-    xs = np.linspace(0.1, 0.9, len(cards))
-    for xp, (big, small, color) in zip(xs, cards):
-        rect = mpatches.FancyBboxPatch(
-            (xp - 0.11, 0.15), 0.20, 0.70,
-            boxstyle="round,pad=0.02",
-            facecolor=PALETTE["surface"],
-            edgecolor=color, linewidth=1.8,
-            transform=ax.transAxes, zorder=2,
+    for bar, t in zip(bars, times):
+        ax.text(
+            bar.get_x() + bar.get_width() / 2,
+            t + 15,
+            f"{t}ms",
+            ha="center",
+            fontsize=11,
+            color=PALETTE["text"],
         )
-        ax.add_patch(rect)
-        ax.text(xp, 0.62, big, transform=ax.transAxes,
-                ha="center", va="center", fontsize=30, fontweight="bold",
-                color=color, zorder=3)
-        ax.text(xp, 0.33, small, transform=ax.transAxes,
-                ha="center", va="center", fontsize=9,
-                color=PALETTE["text_muted"], zorder=3)
 
-    ax.set_xlim(0, 1); ax.set_ylim(0, 1)
-    fig.suptitle(
-        f"Mikk -- Benchmark Summary\n{subtitle(data)}",
-        y=0.97, fontsize=12, fontweight="bold",
-        color=PALETTE["text_primary"],
+    ax.set_ylim(0, max(times) * 1.25)
+    ax.set_xticks(x)
+    ax.set_xticklabels(
+        projects, rotation=15, ha="right", fontsize=10, color=PALETTE["text"]
     )
-    return save(fig, out_dir, "roi.png")
+    ax.set_ylabel("Latency (ms)", fontsize=11, color=PALETTE["text"])
+    ax.set_title(
+        "CONTEXT GENERATION LATENCY",
+        fontsize=14,
+        pad=15,
+        color="white",
+        fontweight="bold",
+    )
+
+    for spine in ax.spines.values():
+        spine.set_color("white")
+        spine.set_alpha(0.3)
+
+    output_path = output_dir / "performance.png"
+    plt.tight_layout()
+    plt.savefig(output_path, dpi=DPI, facecolor=PALETTE["bg"], bbox_inches="tight")
+    plt.close()
+    print(f"[OK] Created: {output_path.name}")
+    return output_path
 
 
-# =============================================================================
-# Chart 8 -- Metrics Glossary
-# =============================================================================
-def chart_glossary(data: BenchmarkData, out_dir: Path) -> Path:
-    fig, ax = plt.subplots(figsize=(10, 8))
-    fig.patch.set_facecolor(PALETTE["bg"])
+def create_summary_card(data, output_dir):
+    """Create summary card with key metrics"""
+    summary = data.get("summary", {})
+    overall = data.get("overallAccuracy", 0)
+
+    fig, ax = plt.subplots(figsize=(12, 8), facecolor=PALETTE["bg"])
     ax.set_facecolor(PALETTE["bg"])
-    ax.set_xticks([]); ax.set_yticks([])
-    for sp in ax.spines.values():
-        sp.set_visible(False)
+    ax.set_xlim(0, 1)
+    ax.set_ylim(0, 1)
+    ax.axis("off")
 
     # Title
-    ax.text(0.5, 0.95, "Benchmark Metrics Glossary", 
-            transform=ax.transAxes, ha="center", va="top",
-            fontsize=16, fontweight="bold", color=PALETTE["text_primary"])
+    ax.text(
+        0.5,
+        0.95,
+        "MIKK BENCHMARK SUMMARY",
+        fontsize=22,
+        ha="center",
+        color="white",
+        fontweight="bold",
+        transform=ax.transAxes,
+    )
 
-    # Metrics explanations
-    glossary_items = [
-        ("Tokens", "Amount of context information (1 token ≈ 4 characters)\nMore tokens = richer context for AI agents"),
-        ("Latency", "Time taken to complete the task\nMeasured in seconds, lower is better"),
-        ("Accuracy", "Percentage of correct/relevant results\nHigher accuracy = better performance"),
-        ("pp", "Percentage points - absolute difference in percentages\n53pp = 53% improvement (not relative)"),
-        ("Context Query", "Finding architectural information about a concept\nTests graph traversal and context building"),
-        ("Impact Analysis", "Determining what breaks when code changes\nTests dependency graph analysis"),
-        ("Dead Code Detection", "Finding unused functions and code\nTests graph analysis capabilities"),
-        ("Constraint Validation", "Checking architectural rule compliance\nTests contract enforcement"),
-        ("Session Context", "Providing project overview for AI sessions\nTests holistic understanding"),
-        ("Function Search", "Locating specific functions in codebase\nTests search and indexing"),
-        ("Mikk", "Architectural intelligence with full dependency graph\nComprehensive context analysis"),
-        ("Manual", "Basic file search without architectural context\nLimited to grep/find operations"),
-        ("GitNexus", "Symbol lookup without architectural relationships\nLimited to metadata search")
+    # Date
+    timestamp = data.get("timestamp", "")
+    if timestamp:
+        date = datetime.fromisoformat(timestamp.replace("Z", "+00:00")).strftime(
+            "%Y-%m-%d %H:%M"
+        )
+        ax.text(
+            0.5,
+            0.90,
+            date,
+            fontsize=11,
+            ha="center",
+            color=PALETTE["text"],
+            alpha=0.7,
+            transform=ax.transAxes,
+        )
+
+    # Key metrics boxes
+    metrics = [
+        ("OVERALL\nACCURACY", f"{overall}%", get_color(overall)),
+        ("TESTS\nRUN", str(summary.get("totalTests", 0)), PALETTE["mikk"]),
+        ("PROJECTS\nTESTED", str(summary.get("projects", 0)), PALETTE["mikk"]),
+        ("DURATION", f"{summary.get('duration', 0) / 1000:.1f}s", PALETTE["text"]),
     ]
 
-    y_pos = 0.85
-    for term, explanation in glossary_items:
-        # Term
-        ax.text(0.1, y_pos, term, transform=ax.transAxes, 
-                ha="left", va="top", fontsize=11, fontweight="bold",
-                color=PALETTE["mikk"])
-        # Explanation
-        ax.text(0.15, y_pos - 0.025, explanation, transform=ax.transAxes,
-                ha="left", va="top", fontsize=9,
-                color=PALETTE["text_muted"])
-        y_pos -= 0.065
+    box_width = 0.2
+    box_height = 0.18
+    start_x = 0.1
+    spacing = 0.24
 
-    # Footer note
-    ax.text(0.5, 0.02, "Benchmark measures real architectural intelligence capabilities\nHigher accuracy and richer context enable better AI assistance",
-            transform=ax.transAxes, ha="center", va="bottom",
-            fontsize=8, style="italic", color=PALETTE["text_muted"])
+    for i, (label, value, color) in enumerate(metrics):
+        x = start_x + (i % 4) * spacing
+        y = 0.65
 
-    return save(fig, out_dir, "glossary.png")
+        # Box
+        rect = mpatches.FancyBboxPatch(
+            (x, y - box_height / 2),
+            box_width,
+            box_height,
+            boxstyle="round,pad=0.02",
+            facecolor=color,
+            alpha=0.15,
+            edgecolor=color,
+            linewidth=2,
+            transform=ax.transAxes,
+        )
+        ax.add_patch(rect)
 
+        # Value
+        ax.text(
+            x + box_width / 2,
+            y + 0.02,
+            value,
+            fontsize=20,
+            ha="center",
+            color=color,
+            fontweight="bold",
+            transform=ax.transAxes,
+        )
+        # Label
+        ax.text(
+            x + box_width / 2,
+            y - 0.07,
+            label,
+            fontsize=9,
+            ha="center",
+            color=PALETTE["text"],
+            transform=ax.transAxes,
+        )
 
-# =============================================================================
-# Entry point
-# =============================================================================
-def main() -> None:
-    parser = argparse.ArgumentParser(
-        description="Generate Mikk benchmark charts.",
+    # Feature breakdown
+    results = data.get("results", [])
+    test_types = {}
+    for r in results:
+        test = r.get("test", "unknown")
+        if test not in test_types:
+            test_types[test] = []
+        test_types[test].append(r.get("accuracy", 0))
+
+    features = [t.replace("-", " ").title() for t in test_types.keys()]
+    accs = [sum(a) / len(a) for a in test_types.values()]
+
+    # Sort by accuracy
+    sorted_data = sorted(zip(features, accs), key=lambda x: x[1], reverse=True)
+    features, accs = zip(*sorted_data)
+
+    ax.text(
+        0.5,
+        0.48,
+        "FEATURE BREAKDOWN",
+        fontsize=14,
+        ha="center",
+        color="white",
+        fontweight="bold",
+        transform=ax.transAxes,
     )
-    grp = parser.add_mutually_exclusive_group()
-    grp.add_argument("--sample", action="store_true",
-                     help="Use built-in sample data")
-    grp.add_argument("--input", metavar="JSON",
-                     help="Path to *_raw.json from a real run")
-    parser.add_argument("--output", metavar="DIR",
-                        default="benchmarks/results",
-                        help="Output directory (default: benchmarks/results)")
+
+    y_start = 0.40
+    for i, (f, a) in enumerate(zip(features, accs)):
+        color = get_color(a)
+        x_pos = 0.15 + (i % 2) * 0.42
+        y = y_start - (i // 2) * 0.08
+
+        ax.text(x_pos, y, f, fontsize=10, color=PALETTE["text"], transform=ax.transAxes)
+
+        bar_width = a / 100 * 0.35
+        rect = mpatches.FancyBboxPatch(
+            (x_pos + 0.18, y - 0.015),
+            bar_width,
+            0.025,
+            boxstyle="round,pad=0.003",
+            facecolor=color,
+            alpha=0.8,
+            transform=ax.transAxes,
+        )
+        ax.add_patch(rect)
+
+        ax.text(
+            x_pos + 0.55,
+            y,
+            f"{a:.0f}%",
+            fontsize=10,
+            ha="right",
+            color=color,
+            fontweight="bold",
+            transform=ax.transAxes,
+        )
+
+    output_path = output_dir / "summary_card.png"
+    plt.savefig(output_path, dpi=DPI, facecolor=PALETTE["bg"], bbox_inches="tight")
+    plt.close()
+    print(f"[OK] Created: {output_path.name}")
+    return output_path
+
+
+def create_radar_chart(data, output_dir):
+    """Create radar chart for features"""
+    results = data.get("results", [])
+
+    test_types = {}
+    for r in results:
+        test = r.get("test", "unknown")
+        if test not in test_types:
+            test_types[test] = []
+        test_types[test].append(r.get("accuracy", 0))
+
+    features = [t.replace("-", " ").title() for t in test_types.keys()]
+    accuracies = [sum(a) / len(a) for a in test_types.values()]
+
+    # Radar
+    n = len(features)
+    angles = np.linspace(0, 2 * np.pi, n, endpoint=False).tolist()
+    accuracies_plot = accuracies + [accuracies[0]]
+    angles_plot = angles + [angles[0]]
+
+    fig, ax = plt.subplots(
+        figsize=(10, 10), subplot_kw=dict(polar=True), facecolor=PALETTE["bg"]
+    )
+    ax.set_facecolor(PALETTE["bg"])
+
+    # Background circles
+    for r in [25, 50, 75, 100]:
+        ax.plot(
+            angles_plot,
+            [r] * len(angles_plot),
+            "-",
+            color="white",
+            alpha=0.1,
+            linewidth=0.5,
+        )
+
+    # Data
+    ax.plot(
+        angles_plot,
+        accuracies_plot,
+        "o-",
+        linewidth=3,
+        color=PALETTE["mikk"],
+        markersize=8,
+    )
+    ax.fill(angles_plot, accuracies_plot, color=PALETTE["mikk"], alpha=0.25)
+
+    # Labels
+    ax.set_xticks(angles)
+    ax.set_xticklabels(features, size=10, color=PALETTE["text"])
+    ax.set_ylim(0, 100)
+    ax.set_yticks([25, 50, 75, 100])
+    ax.set_yticklabels(["25%", "50%", "75%", "100%"], size=8, color=PALETTE["text"])
+    ax.tick_params(colors=PALETTE["text"])
+    ax.grid(color="white", alpha=0.1)
+
+    ax.set_title("FEATURE RADAR", fontsize=18, pad=30, color="white", fontweight="bold")
+
+    output_path = output_dir / "radar_chart.png"
+    plt.tight_layout()
+    plt.savefig(output_path, dpi=DPI, facecolor=PALETTE["bg"], bbox_inches="tight")
+    plt.close()
+    print(f"[OK] Created: {output_path.name}")
+    return output_path
+
+
+def create_detailed_table(data, output_dir):
+    """Create detailed results table"""
+    results = data.get("results", [])
+
+    fig, ax = plt.subplots(figsize=(14, 10), facecolor=PALETTE["bg"])
+    ax.set_facecolor(PALETTE["bg"])
+    ax.axis("off")
+
+    ax.text(
+        0.5,
+        0.98,
+        "DETAILED BENCHMARK RESULTS",
+        fontsize=18,
+        ha="center",
+        color="white",
+        fontweight="bold",
+        transform=ax.transAxes,
+    )
+
+    # Headers
+    headers = ["Project", "Feature", "Value", "Expected", "Accuracy"]
+    col_widths = [0.2, 0.25, 0.12, 0.12, 0.12]
+    x_positions = [0.02, 0.24, 0.50, 0.64, 0.78]
+
+    y = 0.92
+    for x, h, w in zip(x_positions, headers, col_widths):
+        ax.text(
+            x,
+            y,
+            h,
+            fontsize=11,
+            fontweight="bold",
+            color=PALETTE["mikk"],
+            transform=ax.transAxes,
+        )
+
+    # Data rows
+    y -= 0.04
+    for r in results:
+        proj = r.get("project", "")
+        test = r.get("test", "").replace("-", " ").title()
+        value = r.get("value", 0)
+        expected = r.get("expected", 0)
+        acc = r.get("accuracy", 0)
+
+        color = get_color(acc)
+
+        ax.text(
+            x_positions[0],
+            y,
+            proj[:20],
+            fontsize=9,
+            color=PALETTE["text"],
+            transform=ax.transAxes,
+        )
+        ax.text(
+            x_positions[1],
+            y,
+            test[:25],
+            fontsize=9,
+            color=PALETTE["text"],
+            transform=ax.transAxes,
+        )
+        ax.text(
+            x_positions[2],
+            y,
+            str(int(value)),
+            fontsize=9,
+            color=PALETTE["text"],
+            transform=ax.transAxes,
+        )
+        ax.text(
+            x_positions[3],
+            y,
+            str(int(expected)),
+            fontsize=9,
+            color=PALETTE["text"],
+            transform=ax.transAxes,
+        )
+        ax.text(
+            x_positions[4],
+            y,
+            f"{acc:.0f}%",
+            fontsize=9,
+            fontweight="bold",
+            color=color,
+            transform=ax.transAxes,
+        )
+
+        y -= 0.035
+
+        if y < 0.1:
+            break
+
+    output_path = output_dir / "detailed_results.png"
+    plt.savefig(output_path, dpi=DPI, facecolor=PALETTE["bg"], bbox_inches="tight")
+    plt.close()
+    print(f"[OK] Created: {output_path.name}")
+    return output_path
+
+
+def main():
+    parser = argparse.ArgumentParser(description="Generate Mikk benchmark charts")
+    parser.add_argument(
+        "--input",
+        "-i",
+        metavar="JSON",
+        default="benchmarks/ground-truth-report.json",
+        help="Input JSON file path",
+    )
+    parser.add_argument(
+        "--output",
+        "-o",
+        metavar="DIR",
+        default="benchmarks/charts",
+        help="Output directory",
+    )
     args = parser.parse_args()
 
-    if args.input:
-        bdata = load_from_json(args.input)
-        print(f"Loaded {len(bdata.tasks)} tasks from {args.input}")
-    else:
-        bdata = sample_data()
-        print(f"Using built-in sample data ({len(bdata.tasks)} tasks)")
-
-    import shutil
-    # Always resolve output relative to project root (parent of 'benchmarks')
+    # Find input file
     project_root = Path(__file__).parent.parent.resolve()
-    default_output = project_root / "benchmarks" / "results"
-    output_base = Path(args.output)
-    if not output_base.is_absolute():
-        # If user did not specify --output, or used a relative path, always use Mesh/benchmarks/results
-        if args.output == parser.get_default('output'):
-            output_base = default_output
-        else:
-            output_base = project_root / output_base
-    timestamp = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
-    out_dir = output_base / f"run_{timestamp}"
-    out_dir.mkdir(parents=True, exist_ok=True)
-    print(f"\nGenerating charts => {out_dir.resolve()}\n")
+    input_path = project_root / args.input
 
-    chart_tokens(bdata,       out_dir)
-    chart_latency(bdata,      out_dir)
-    chart_accuracy(bdata,     out_dir)
-    chart_radar(bdata,        out_dir)
-    chart_overview(bdata,     out_dir)
-    chart_detail_strip(bdata, out_dir)
-    chart_roi(bdata,          out_dir)
-    chart_glossary(bdata,     out_dir)
+    if not input_path.exists():
+        print(f"Error: File not found: {input_path}")
+        sys.exit(1)
 
+    print(f"Loading data from: {input_path}")
+    data = load_data(input_path)
 
-    print(f"\nDone -- 8 charts in {out_dir.resolve()}")
+    # Output directory
+    output_dir = project_root / args.output
+    output_dir.mkdir(parents=True, exist_ok=True)
+    print(f"Output directory: {output_dir}\n")
+
+    print("Generating charts...")
+    print("-" * 40)
+
+    create_overall_gauge(data, output_dir)
+    create_feature_chart(data, output_dir)
+    create_project_chart(data, output_dir)
+    create_performance_chart(data, output_dir)
+    create_summary_card(data, output_dir)
+    create_radar_chart(data, output_dir)
+    create_detailed_table(data, output_dir)
+
+    print("-" * 40)
+    print(f"\n[OK] All charts generated in: {output_dir}")
+    print("\nChart files:")
+    for f in sorted(output_dir.glob("*.png")):
+        size_kb = f.stat().st_size / 1024
+        print(f"  - {f.name} ({size_kb:.1f} KB)")
 
 
 if __name__ == "__main__":

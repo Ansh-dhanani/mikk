@@ -128,7 +128,10 @@ export function registerContextCommands(program: Command) {
                     return
                 }
 
-                const result = analyzer.analyze(fileNodes.map(n => n.id))
+                // Only pass the FILE node to impact analyzer (not all functions/classes inside)
+                const fileNode = fileNodes.find(n => n.id === n.file || !n.id.includes(':'))
+                const changedNodeId = fileNode ? fileNode.id : fileNodes[0].id
+                const result = analyzer.analyze([changedNodeId])
 
                 // Print impact summary
                 console.log(chalk.bold(`\n💥 Impact Analysis: ${file}\n`))
@@ -141,7 +144,7 @@ export function registerContextCommands(program: Command) {
                     console.log(`\n  ${chalk.bold('Impacted functions:')}`)
                     for (const id of result.impacted.slice(0, 25)) {
                         const node = graph.nodes.get(id)
-                        console.log(`    ${chalk.yellow('→')} ${node?.label ?? id} ${chalk.dim(`(${node?.file ?? ''})`)}`)
+                        console.log(`    ${chalk.yellow('→')} ${node?.name ?? id} ${chalk.dim(`(${node?.file ?? ''})`)}`)
                     }
                     if (result.impacted.length > 25) {
                         console.log(chalk.dim(`    ... and ${result.impacted.length - 25} more`))

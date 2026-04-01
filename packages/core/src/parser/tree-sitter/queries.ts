@@ -1,15 +1,8 @@
-/**
- * Tree-sitter queries for extracting code definitions across 13 languages.
- * Ported from GitNexus.
- *
- * NOTE: Some grammars (like Python and Ruby) use slightly different AST node
- * types for equivalent structures. These queries are written against
- * the standard tree-sitter grammars.
- */
-
 export const TYPESCRIPT_QUERIES = `
 (class_declaration name: (type_identifier) @name) @definition.class
 (interface_declaration name: (type_identifier) @name) @definition.interface
+(class_declaration name: (type_identifier) @heritage.class (class_heritage (extends_clause value: (identifier) @heritage.extends))) @heritage
+(class_declaration name: (type_identifier) @heritage.class (class_heritage (implements_clause (type_identifier) @heritage.implements))) @heritage.impl
 (function_declaration name: (identifier) @name) @definition.function
 (method_definition name: (property_identifier) @name) @definition.method
 (lexical_declaration (variable_declarator name: (identifier) @name value: (arrow_function))) @definition.function
@@ -21,15 +14,16 @@ export const TYPESCRIPT_QUERIES = `
 (call_expression function: (identifier) @call.name) @call
 (call_expression function: (member_expression property: (property_identifier) @call.name)) @call
 (new_expression constructor: (identifier) @call.name) @call
+(new_expression constructor: (member_expression property: (property_identifier) @call.name)) @call
 (public_field_definition name: (property_identifier) @name) @definition.property
 (public_field_definition name: (private_property_identifier) @name) @definition.property
 (required_parameter (accessibility_modifier) pattern: (identifier) @name) @definition.property
-(class_declaration name: (type_identifier) @heritage.class (class_heritage (extends_clause value: (identifier) @heritage.extends))) @heritage
-(class_declaration name: (type_identifier) @heritage.class (class_heritage (implements_clause (type_identifier) @heritage.implements))) @heritage.impl
+(field_declaration name: (property_identifier) @name) @definition.property
 `;
 
 export const JAVASCRIPT_QUERIES = `
 (class_declaration name: (identifier) @name) @definition.class
+(class_declaration name: (identifier) @heritage.class (class_heritage (identifier) @heritage.extends)) @heritage
 (function_declaration name: (identifier) @name) @definition.function
 (method_definition name: (property_identifier) @name) @definition.method
 (lexical_declaration (variable_declarator name: (identifier) @name value: (arrow_function))) @definition.function
@@ -42,11 +36,11 @@ export const JAVASCRIPT_QUERIES = `
 (call_expression function: (member_expression property: (property_identifier) @call.name)) @call
 (new_expression constructor: (identifier) @call.name) @call
 (field_definition property: (property_identifier) @name) @definition.property
-(class_declaration name: (identifier) @heritage.class (class_heritage (identifier) @heritage.extends)) @heritage
 `;
 
 export const PYTHON_QUERIES = `
 (class_definition name: (identifier) @name) @definition.class
+(class_definition name: (identifier) @heritage.class superclasses: (argument_list (identifier) @heritage.extends)) @heritage
 (function_definition name: (identifier) @name) @definition.function
 (import_statement name: (dotted_name) @import.source) @import
 (import_from_statement module_name: (dotted_name) @import.source) @import
@@ -54,7 +48,6 @@ export const PYTHON_QUERIES = `
 (call function: (identifier) @call.name) @call
 (call function: (attribute attribute: (identifier) @call.name)) @call
 (expression_statement (assignment left: (identifier) @name type: (type))) @definition.property
-(class_definition name: (identifier) @heritage.class superclasses: (argument_list (identifier) @heritage.extends)) @heritage
 `;
 
 export const JAVA_QUERIES = `
@@ -111,8 +104,6 @@ export const CPP_QUERIES = `
 (function_definition declarator: (function_declarator declarator: (identifier) @name)) @definition.function
 (function_definition declarator: (function_declarator declarator: (qualified_identifier name: (identifier) @name))) @definition.method
 (declaration declarator: (function_declarator declarator: (identifier) @name)) @definition.function
-(field_declaration declarator: (field_identifier) @name) @definition.property
-(field_declaration declarator: (function_declarator declarator: (identifier) @name)) @definition.method
 (preproc_include path: (_) @import.source) @import
 (call_expression function: (identifier) @call.name) @call
 (call_expression function: (field_expression field: (field_identifier) @call.name)) @call
@@ -153,7 +144,6 @@ export const RUST_QUERIES = `
 (call_expression function: (field_expression field: (field_identifier) @call.name)) @call
 (call_expression function: (scoped_identifier name: (identifier) @call.name)) @call
 (struct_expression name: (type_identifier) @call.name) @call
-(field_declaration_list (field_declaration name: (field_identifier) @name)) @definition.property
 `;
 
 export const PHP_QUERIES = `
@@ -175,7 +165,103 @@ export const PHP_QUERIES = `
 export const RUBY_QUERIES = `
 (module name: (constant) @name) @definition.module
 (class name: (constant) @name) @definition.class
+(singleton_class value: (class name: (constant) @name)) @definition.class
 (method name: (identifier) @name) @definition.method
 (singleton_method name: (identifier) @name) @definition.method
 (call method: (identifier) @call.name) @call
+(call method: (call method: (identifier) @call.name)) @call
+`;
+
+// Route detection queries - Express.js style (JS/TS)
+export const EXPRESS_ROUTE_QUERIES = `
+(call_expression 
+  function: (member_expression 
+    object: (call_expression 
+      function: (identifier) @route.app)
+    property: (property_identifier) @route.method)
+  arguments: (argument_list 
+    (string (string_content) @route.path)?)
+) @route.def
+(call_expression 
+  function: (member_expression 
+    object: (identifier) @route.app
+    property: (property_identifier) @route.method)
+  arguments: (argument_list 
+    (string (string_content) @route.path)?)
+) @route.def
+`;
+
+// Route detection queries - Flask/FastAPI style (Python)
+export const FLASK_ROUTE_QUERIES = `
+(decorated_definition 
+  decorator: (call 
+    function: (attribute 
+      object: (identifier) @route.decorator)
+    arguments: (argument_list (string (string_content) @route.path)))
+  definition: (function_definition name: (identifier) @route.name))
+) @route.def
+
+(decorated_definition 
+  decorator: (call 
+    function: (identifier) @route.method
+    arguments: (argument_list (string (string_content) @route.path)))
+  definition: (function_definition name: (identifier) @route.name))
+) @route.def
+`;
+
+// Route detection queries - Spring style (Java)
+export const SPRING_ROUTE_QUERIES = `
+(method_declaration 
+  name: (identifier) @route.name
+  (annotation (name (identifier) @route.anno))
+) @route.def
+
+(class_declaration 
+  name: (identifier) @route.name
+  (annotation (name (identifier) @route.anno))
+) @route.def
+`;
+
+// Route detection queries - Gin style (Go)
+export const GIN_ROUTE_QUERIES = `
+(call_expression 
+  function: (identifier) @route.method
+  arguments: (argument_list (string (string_content) @route.path)))
+) @route.def
+
+(call_expression 
+  function: (call_expression 
+    function: (identifier) @route.method)
+  arguments: (argument_list 
+    (string (string_content) @route.path)?)
+) @route.def
+
+(call_expression 
+  function: (selector_expression 
+    field: (identifier) @route.method
+    object: (call_expression function: (identifier)))
+  arguments: (argument_list (string (string_content) @route.path)))
+) @route.def
+`;
+
+// Route detection queries - Laravel style (PHP)
+export const LARAVEL_ROUTE_QUERIES = `
+(call_expression 
+  function: (call_expression 
+    function: (identifier) @route.method)
+  arguments: (argument_list (string (string_content) @route.path)))
+) @route.def
+
+(call_expression 
+  function: (identifier) @route.method
+  arguments: (argument_list (string (string_content) @route.path)))
+) @route.def
+`;
+
+// Route detection queries - Rails style (Ruby)
+export const RAILS_ROUTE_QUERIES = `
+(call 
+  method: (identifier) @route.method
+  arguments: (argument_list (string (string_content) @route.path)))
+) @route.def
 `;

@@ -54,9 +54,79 @@ export function getParser(filePath: string): BaseParser {
         case '.rs':
         case '.php':
         case '.rb':
-            throw new UnsupportedLanguageError(ext)
+            // Tree-sitter parser - dynamically imported to handle missing web-tree-sitter
+            return createTreeSitterParser()
         default:
             throw new UnsupportedLanguageError(ext)
+    }
+}
+
+const _treeSitterParserInstance: BaseParser | null = null
+
+const createTreeSitterParser = (): BaseParser => {
+    // Return a lazy-loading wrapper that handles missing tree-sitter gracefully
+    return new LazyTreeSitterParser()
+}
+
+class LazyTreeSitterParser extends BaseParser {
+    private parser: any = null
+
+    async init(): Promise<void> {
+        if (this.parser) return
+        try {
+            const { TreeSitterParser } = await import('./tree-sitter/parser.js')
+            this.parser = new TreeSitterParser()
+        } catch {
+            // web-tree-sitter not available
+        }
+    }
+
+    async parse(filePath: string, content: string): Promise<ParsedFile> {
+        await this.init()
+        if (!this.parser) {
+            return this.buildEmptyFile(filePath, content)
+        }
+        return this.parser.parse(filePath, content)
+    }
+
+    async resolveImports(files: ParsedFile[], projectRoot: string): Promise<ParsedFile[]> {
+        await this.init()
+        if (!this.parser) return files
+        return this.parser.resolveImports(files, projectRoot)
+    }
+
+    getSupportedExtensions(): string[] {
+        return ['.py', '.java', '.c', '.h', '.cpp', '.cc', '.hpp', '.cs', '.rs', '.php', '.rb']
+    }
+
+    private buildEmptyFile(filePath: string, content: string): ParsedFile {
+        const ext = nodePath.extname(filePath).toLowerCase()
+        let lang: ParsedFile['language'] = 'unknown'
+        switch (ext) {
+            case '.py': lang = 'python'; break
+            case '.java': lang = 'java'; break
+            case '.c': case '.h': lang = 'c'; break
+            case '.cpp': case '.cc': case '.hpp': lang = 'cpp'; break
+            case '.cs': lang = 'csharp'; break
+            case '.go': lang = 'go'; break
+            case '.rs': lang = 'rust'; break
+            case '.php': lang = 'php'; break
+            case '.rb': lang = 'ruby'; break
+        }
+        return {
+            path: filePath,
+            language: lang,
+            functions: [],
+            classes: [],
+            generics: [],
+            imports: [],
+            exports: [],
+            routes: [],
+            variables: [],
+            calls: [],
+            hash: '',
+            parsedAt: Date.now(),
+        }
     }
 }
 

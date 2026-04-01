@@ -1,6 +1,6 @@
 %%{init: {"theme": "base", "themeVariables": {"primaryColor": "#1e293b", "primaryTextColor": "#e2e8f0", "lineColor": "#64748b", "secondaryColor": "#334155", "tertiaryColor": "#475569", "background": "#0f172a", "mainBkg": "#1e293b", "nodeBorder": "#475569"}}}%%
 graph TD
-    subgraph mod_packages_core_parser["📦 Module: Storage & Logging"]
+    subgraph mod_packages_core_parser["📦 Module: Storage & Logging (7 internal functions collapsed)"]
         subgraph file_c__users_ansh_desktop_web_mesh_packages_core_src_parser_boundary_checker_ts["📄 boundary-checker.ts"]
             fn_c__users_ansh_desktop_web_mesh_packages_core_src_parser_boundary_checker_ts_stripprefix["⚡ stripPrefix"]
             fn_c__users_ansh_desktop_web_mesh_packages_core_src_parser_boundary_checker_ts_parselist["⚡ parseList"]
@@ -17,8 +17,14 @@ graph TD
         end
         subgraph file_c__users_ansh_desktop_web_mesh_packages_core_src_parser_index_ts["📄 index.ts"]
             fn_c__users_ansh_desktop_web_mesh_packages_core_src_parser_index_ts_getparser["⚡ getParser"]
+            fn_c__users_ansh_desktop_web_mesh_packages_core_src_parser_index_ts_createtreesitterparser["⚡ createTreeSitterParser"]
             fn_c__users_ansh_desktop_web_mesh_packages_core_src_parser_index_ts_parsefiles["⚡ parseFiles"]
             fn_c__users_ansh_desktop_web_mesh_packages_core_src_parser_index_ts_gettreesitter["⚡ getTreeSitter"]
+            fn_c__users_ansh_desktop_web_mesh_packages_core_src_parser_index_ts_lazytreesitterparser_init["⚡ LazyTreeSitterParser.init"]
+            fn_c__users_ansh_desktop_web_mesh_packages_core_src_parser_index_ts_lazytreesitterparser_parse["⚡ LazyTreeSitterParser.parse"]
+            fn_c__users_ansh_desktop_web_mesh_packages_core_src_parser_index_ts_lazytreesitterparser_resolveimports["⚡ LazyTreeSitterParser.resolveImports"]
+            fn_c__users_ansh_desktop_web_mesh_packages_core_src_parser_index_ts_lazytreesitterparser_getsupportedextensions["⚡ LazyTreeSitterParser.getSupportedExtensions"]
+            fn_c__users_ansh_desktop_web_mesh_packages_core_src_parser_index_ts_lazytreesitterparser_buildemptyfile["⚡ LazyTreeSitterParser.buildEmptyFile"]
         end
         subgraph file_c__users_ansh_desktop_web_mesh_packages_core_src_parser_oxc_parser_ts["📄 oxc-parser.ts"]
             fn_c__users_ansh_desktop_web_mesh_packages_core_src_parser_oxc_parser_ts_makeallocator["⚡ makeAllocator"]
@@ -42,15 +48,6 @@ graph TD
             fn_c__users_ansh_desktop_web_mesh_packages_core_src_parser_oxc_parser_ts_oxcparser_resolveimports["⚡ OxcParser.resolveImports"]
             fn_c__users_ansh_desktop_web_mesh_packages_core_src_parser_oxc_parser_ts_oxcparser_getsupportedextensions["⚡ OxcParser.getSupportedExtensions"]
             fn_c__users_ansh_desktop_web_mesh_packages_core_src_parser_oxc_parser_ts_oxcparser_emptyfile["⚡ OxcParser.emptyFile"]
-        end
-        subgraph file_c__users_ansh_desktop_web_mesh_packages_core_src_parser_oxc_resolver_ts["📄 oxc-resolver.ts"]
-            fn_c__users_ansh_desktop_web_mesh_packages_core_src_parser_oxc_resolver_ts_oxcresolver_constructor["⚡ OxcResolver.constructor"]
-            fn_c__users_ansh_desktop_web_mesh_packages_core_src_parser_oxc_resolver_ts_oxcresolver_resolve["⚡ OxcResolver.resolve"]
-            fn_c__users_ansh_desktop_web_mesh_packages_core_src_parser_oxc_resolver_ts_oxcresolver_resolvebatch["⚡ OxcResolver.resolveBatch"]
-        end
-        subgraph file_c__users_ansh_desktop_web_mesh_packages_core_src_parser_parser_constants_ts["📄 parser-constants.ts"]
-            fn_c__users_ansh_desktop_web_mesh_packages_core_src_parser_parser_constants_ts_stripjsoncomments["⚡ stripJsonComments"]
-            fn_c__users_ansh_desktop_web_mesh_packages_core_src_parser_parser_constants_ts_parsejsonwithcomments["⚡ parseJsonWithComments"]
         end
     end
 

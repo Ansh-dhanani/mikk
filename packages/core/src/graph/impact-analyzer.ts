@@ -50,8 +50,6 @@ export class ImpactAnalyzer {
 
             const dependents = this.graph.inEdges.get(current) || [];
             for (const edge of dependents) {
-                // Allow 'contains' edges so if a function is changed, the file it belongs to is impacted, 
-                // which then allows traversing 'imports' edges from other files.
                 if (!pathSet.has(edge.from)) {
                     const newPathSet = new Set(pathSet);
                     newPathSet.add(edge.from);
@@ -63,10 +61,27 @@ export class ImpactAnalyzer {
                     });
                 }
             }
+            
+            // Also traverse to contained nodes (functions, classes, variables) inside the current node.
+            // This ensures that if a file is impacted, we also check what's inside it for further impact.
+            const contained = this.graph.outEdges.get(current) || [];
+            for (const edge of contained) {
+                if (edge.type === 'contains' && !pathSet.has(edge.to)) {
+                    const newPathSet = new Set(pathSet);
+                    newPathSet.add(edge.to);
+                    queue.push({
+                        id: edge.to,
+                        depth: depth + 1,
+                        path: [...path, edge.to],
+                        pathSet: newPathSet,
+                    });
+                }
+            }
         }
 
         const impactedIds = Array.from(visited.keys()).filter(id => 
-            !changedNodeIds.includes(id) && id.startsWith('fn:')
+            !changedNodeIds.includes(id) && 
+            (id.startsWith('fn:') || id.startsWith('class:') || id.startsWith('var:') || id.startsWith('type:') || id.startsWith('prop:'))
         );
         
         let totalRisk = 0;

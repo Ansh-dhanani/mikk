@@ -275,7 +275,7 @@ function inferContextFileType(filePath: string): ContextFileType {
 }
 
 /** Recognised project language */
-export type ProjectLanguage = 'typescript' | 'javascript' | 'python' | 'go' | 'rust' | 'java' | 'ruby' | 'php' | 'csharp' | 'unknown'
+export type ProjectLanguage = 'typescript' | 'javascript' | 'python' | 'go' | 'rust' | 'java' | 'ruby' | 'php' | 'csharp' | 'c' | 'cpp' | 'unknown'
 
 /** Auto-detect the project's primary language from manifest files */
 export async function detectProjectLanguage(projectRoot: string): Promise<ProjectLanguage> {
@@ -295,6 +295,8 @@ export async function detectProjectLanguage(projectRoot: string): Promise<Projec
     if (await exists('pom.xml') || await exists('build.gradle') || await exists('build.gradle.kts')) return 'java'
     if (await exists('composer.json')) return 'php'
     if (await hasGlob('*.csproj') || await hasGlob('*.sln')) return 'csharp'
+    if (await hasGlob('CMakeLists.txt') || await hasGlob('**/*.cmake') || await hasGlob('*.cpp')) return 'cpp'
+    if (await hasGlob('*.c') || await hasGlob('*.h')) return 'c'
     if (await exists('package.json')) return 'javascript'
     return 'unknown'
 }
@@ -349,6 +351,16 @@ export function getDiscoveryPatterns(language: ProjectLanguage): { patterns: str
             return {
                 patterns: ['**/*.cs'],
                 ignore: [...commonIgnore, '**/bin/**', '**/obj/**'],
+            }
+        case 'cpp':
+            return {
+                patterns: ['**/*.cpp', '**/*.cc', '**/*.cxx', '**/*.hpp', '**/*.hxx', '**/*.h'],
+                ignore: [...commonIgnore, '**/build/**', '**/cmake-build-*/**'],
+            }
+        case 'c':
+            return {
+                patterns: ['**/*.c', '**/*.h'],
+                ignore: [...commonIgnore, '**/build/**'],
             }
         default:
             // Fallback: discover JS/TS (most common)
@@ -566,6 +578,24 @@ const LANGUAGE_IGNORE_TEMPLATES: Record<ProjectLanguage, string[]> = {
         '# Build artifacts',
         'bin/',
         'obj/',
+        '',
+    ],
+    c: [
+        '# Build artifacts',
+        'build/',
+        'obj/',
+        '*.o',
+        '*.a',
+        '',
+    ],
+    cpp: [
+        '# Build artifacts',
+        'build/',
+        'cmake-build-*/',
+        '*.o',
+        '*.a',
+        '*.so',
+        '*.dll',
         '',
     ],
     unknown: [

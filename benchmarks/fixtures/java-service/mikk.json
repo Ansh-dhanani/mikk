@@ -1,0 +1,42 @@
+{
+  "version": "1.0.0",
+  "project": {
+    "name": "java-service",
+    "description": "",
+    "language": "java",
+    "entryPoints": [
+      "C:/Users/Ansh/Desktop/web/mikk-test/java-service/src/main/java/com/example/App.java"
+    ]
+  },
+  "declared": {
+    "modules": [
+      {
+        "id": "java-com-example",
+        "name": "Authentication & Database",
+        "description": "1 files, 0 functions",
+        "intent": "",
+        "paths": [
+          "c:/users/ansh/desktop/web/mikk-test/java-service/src/main/java/com/example/**"
+        ],
+        "entryFunctions": []
+      }
+    ],
+    "constraints": [],
+    "decisions": []
+  },
+  "overwrite": {
+    "mode": "never",
+    "requireConfirmation": true
+  },
+  "policies": {
+    "maxRiskScore": 70,
+    "maxImpactNodes": 10,
+    "protectedModules": [
+      "auth",
+      "security",
+      "billing"
+    ],
+    "enforceStrictBoundaries": true,
+    "requireReasoningForCritical": true
+  }
+}

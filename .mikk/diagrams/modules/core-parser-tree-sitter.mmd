@@ -1,12 +1,14 @@
 %%{init: {"theme": "base", "themeVariables": {"primaryColor": "#1e293b", "primaryTextColor": "#e2e8f0", "lineColor": "#64748b", "secondaryColor": "#334155", "tertiaryColor": "#475569", "background": "#0f172a", "mainBkg": "#1e293b", "nodeBorder": "#475569"}}}%%
 graph TD
-    subgraph mod_core_parser_tree_sitter["📦 Module: Database"]
+    subgraph mod_core_parser_tree_sitter["📦 Module: Database & API"]
         subgraph file_c__users_ansh_desktop_web_mesh_packages_core_src_parser_tree_sitter_parser_ts["📄 parser.ts"]
             fn_c__users_ansh_desktop_web_mesh_packages_core_src_parser_tree_sitter_parser_ts_getrequire["⚡ getRequire"]
             fn_c__users_ansh_desktop_web_mesh_packages_core_src_parser_tree_sitter_parser_ts_isexportedbylanguage["⚡ isExportedByLanguage"]
             fn_c__users_ansh_desktop_web_mesh_packages_core_src_parser_tree_sitter_parser_ts_extractparamsfromnode["⚡ extractParamsFromNode"]
             fn_c__users_ansh_desktop_web_mesh_packages_core_src_parser_tree_sitter_parser_ts_walk["⚡ walk"]
             fn_c__users_ansh_desktop_web_mesh_packages_core_src_parser_tree_sitter_parser_ts_findfirstchild["⚡ findFirstChild"]
+            fn_c__users_ansh_desktop_web_mesh_packages_core_src_parser_tree_sitter_parser_ts_findallchildren["⚡ findAllChildren"]
+            fn_c__users_ansh_desktop_web_mesh_packages_core_src_parser_tree_sitter_parser_ts_extractgenericsfromnode["⚡ extractGenericsFromNode"]
             fn_c__users_ansh_desktop_web_mesh_packages_core_src_parser_tree_sitter_parser_ts_assigncallstofunctions["⚡ assignCallsToFunctions"]
             fn_c__users_ansh_desktop_web_mesh_packages_core_src_parser_tree_sitter_parser_ts_extensiontolanguage["⚡ extensionToLanguage"]
             fn_c__users_ansh_desktop_web_mesh_packages_core_src_parser_tree_sitter_parser_ts_extractreturntype["⚡ extractReturnType"]
@@ -15,10 +17,22 @@ graph TD
             fn_c__users_ansh_desktop_web_mesh_packages_core_src_parser_tree_sitter_parser_ts_treesitterparser_getsupportedextensions["⚡ TreeSitterParser.getSupportedExtensions"]
             fn_c__users_ansh_desktop_web_mesh_packages_core_src_parser_tree_sitter_parser_ts_treesitterparser_init["⚡ TreeSitterParser.init"]
             fn_c__users_ansh_desktop_web_mesh_packages_core_src_parser_tree_sitter_parser_ts_treesitterparser_parse["⚡ TreeSitterParser.parse"]
+            fn_c__users_ansh_desktop_web_mesh_packages_core_src_parser_tree_sitter_parser_ts_treesitterparser_parsewithconfig["⚡ TreeSitterParser.parseWithConfig"]
             fn_c__users_ansh_desktop_web_mesh_packages_core_src_parser_tree_sitter_parser_ts_treesitterparser_resolveimports["⚡ TreeSitterParser.resolveImports"]
             fn_c__users_ansh_desktop_web_mesh_packages_core_src_parser_tree_sitter_parser_ts_treesitterparser_buildemptyfile["⚡ TreeSitterParser.buildEmptyFile"]
             fn_c__users_ansh_desktop_web_mesh_packages_core_src_parser_tree_sitter_parser_ts_treesitterparser_loadlang["⚡ TreeSitterParser.loadLang"]
             fn_c__users_ansh_desktop_web_mesh_packages_core_src_parser_tree_sitter_parser_ts_treesitterparser_getlanguageconfig["⚡ TreeSitterParser.getLanguageConfig"]
+        end
+        subgraph file_c__users_ansh_desktop_web_mesh_packages_core_src_parser_tree_sitter_resolver_ts["📄 resolver.ts"]
+            fn_c__users_ansh_desktop_web_mesh_packages_core_src_parser_tree_sitter_resolver_ts_treesitterresolver_constructor["⚡ TreeSitterResolver.constructor"]
+            fn_c__users_ansh_desktop_web_mesh_packages_core_src_parser_tree_sitter_resolver_ts_treesitterresolver_resolve["⚡ TreeSitterResolver.resolve"]
+            fn_c__users_ansh_desktop_web_mesh_packages_core_src_parser_tree_sitter_resolver_ts_treesitterresolver_resolveall["⚡ TreeSitterResolver.resolveAll"]
+            fn_c__users_ansh_desktop_web_mesh_packages_core_src_parser_tree_sitter_resolver_ts_treesitterresolver_isrelativeimport["⚡ TreeSitterResolver.isRelativeImport"]
+            fn_c__users_ansh_desktop_web_mesh_packages_core_src_parser_tree_sitter_resolver_ts_treesitterresolver_resolvepath["⚡ TreeSitterResolver.resolvePath"]
+            fn_c__users_ansh_desktop_web_mesh_packages_core_src_parser_tree_sitter_resolver_ts_treesitterresolver_normalizesource["⚡ TreeSitterResolver.normalizeSource"]
+            fn_c__users_ansh_desktop_web_mesh_packages_core_src_parser_tree_sitter_resolver_ts_treesitterresolver_handlelanguagespecificimports["⚡ TreeSitterResolver.handleLanguageSpecificImports"]
+            fn_c__users_ansh_desktop_web_mesh_packages_core_src_parser_tree_sitter_resolver_ts_treesitterresolver_probeextensions["⚡ TreeSitterResolver.probeExtensions"]
+            fn_c__users_ansh_desktop_web_mesh_packages_core_src_parser_tree_sitter_resolver_ts_treesitterresolver_getprobeextensions["⚡ TreeSitterResolver.getProbeExtensions"]
         end
     end
 

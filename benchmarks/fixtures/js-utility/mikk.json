@@ -1,0 +1,5 @@
+{
+  "version": "1.0.0",
+  "project": { "name": "js-utility", "description": "Reusable JavaScript utility library", "language": "javascript" },
+  "declared": { "modules": [], "constraints": [], "decisions": [] }
+}

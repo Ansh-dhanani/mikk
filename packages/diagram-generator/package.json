@@ -16,6 +16,7 @@
   "exports": {
     ".": {
       "import": "./dist/index.js",
+      "require": "./dist/index.js",
       "types": "./dist/index.d.ts"
     }
   },
@@ -26,7 +27,7 @@
     "lint": "eslint ."
   },
   "dependencies": {
-    "@getmikk/core": "^2.0.8"
+    "@getmikk/core": "workspace:*"
   },
   "devDependencies": {
     "typescript": "^5.7.0",

@@ -25,11 +25,11 @@
     "lint": "eslint ."
   },
   "dependencies": {
-    "@getmikk/ai-context": "^2.0.8",
-    "@getmikk/core": "^2.0.8",
-    "@getmikk/diagram-generator": "^2.0.8",
-    "@getmikk/intent-engine": "^2.0.8",
-    "@getmikk/watcher": "^2.0.8",
+    "@getmikk/ai-context": "workspace:*",
+    "@getmikk/core": "workspace:*",
+    "@getmikk/diagram-generator": "workspace:*",
+    "@getmikk/intent-engine": "workspace:*",
+    "@getmikk/watcher": "workspace:*",
     "chalk": "^5.4.0",
     "commander": "^13.0.0",
     "ora": "^8.0.0"

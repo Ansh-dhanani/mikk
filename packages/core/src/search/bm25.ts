@@ -97,8 +97,22 @@ export class BM25Index {
                 const tfNorm = (tf * (K1 + 1)) / (tf + K1 * (1 - B + B * (doc.length / this.avgDocLength)))
                 let termScore = idf * tfNorm
 
-                // Bonus for direct name match in the ID
-                if (doc.id.toLowerCase().includes(term.toLowerCase())) {
+                // Extract function name from ID for better matching
+                // ID format: fn:path:functionName
+                const fnNameInId = doc.id.includes(':') 
+                    ? doc.id.split(':').pop()?.toLowerCase() ?? doc.id.toLowerCase()
+                    : doc.id.toLowerCase()
+                
+                // Strong bonus for name prefix match (login matches loginUser)
+                if (fnNameInId.startsWith(term.toLowerCase())) {
+                    termScore += 2.0
+                }
+                // Bonus for name contains match
+                else if (fnNameInId.includes(term.toLowerCase())) {
+                    termScore += 1.0
+                }
+                // Fallback: any ID match
+                else if (doc.id.toLowerCase().includes(term.toLowerCase())) {
                     termScore += 0.5
                 }
 

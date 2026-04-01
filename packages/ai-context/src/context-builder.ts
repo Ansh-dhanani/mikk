@@ -15,6 +15,8 @@ const WEIGHT = {
     // Name/keyword match
     KEYWORD_EXACT: 0.90,   // function name exactly matches a task keyword
     KEYWORD_PARTIAL: 0.45,   // function name contains a task keyword
+    KEYWORD_PURPOSE: 0.30,   // purpose contains a task keyword
+    KEYWORD_FILE: 0.20,   // file path contains a task keyword
     // Entry-point bonus — functions nothing calls deserve attention
     ENTRY_POINT: 0.20,
     // Exported function bonus
@@ -160,35 +162,63 @@ function extractKeywords(task: string, requiredKeywords: string[] = []): string[
 
 /**
  * Keyword score for a function: exact match > partial match
+ * 
+ * FIX: Improved keyword matching for better relevance:
+ * - Added camelCase component matching (e.g., "login" matches "loginUser")
+ * - Added purpose/signature token matching
+ * - Added file path component matching
  */
 function keywordScore(
     fn: MikkLockFunction,
     keywords: string[]
 ): { score: number; matchedKeywords: string[] } {
     if (keywords.length === 0) return { score: 0, matchedKeywords: [] }
+    
     const nameLower = fn.name.toLowerCase()
     const fileLower = fn.file.toLowerCase()
     const fileNoExt = fileLower.replace(/\.(d\.ts|ts|tsx|js|jsx|mjs|cjs|mts|cts)\b/g, ' ')
     const purposeLower = (fn.purpose ?? '').toLowerCase()
-    const tokenSet = new Set<string>([
-        ...(nameLower.match(/[a-z0-9]+/g) ?? []),
-        ...(fileNoExt.match(/[a-z0-9]+/g) ?? []),
-        ...(purposeLower.match(/[a-z0-9]+/g) ?? []),
-    ])
+    
+    // Get name tokens including camelCase components
+    const nameTokens = new Set<string>()
+    for (const part of nameLower.split(/[-_.]/)) {
+        nameTokens.add(part)
+        // Split camelCase
+        const camelParts = part.replace(/([a-z])([A-Z])/g, '$1 $2').split(' ')
+        for (const cp of camelParts) {
+            if (cp.length >= 2) nameTokens.add(cp)
+        }
+    }
+    
+    const fileTokens = new Set<string>(
+        fileNoExt.match(/[a-z0-9]+/g) ?? []
+    )
+    const purposeTokens = new Set<string>(
+        purposeLower.match(/[a-z0-9]+/g) ?? []
+    )
+    
     let score = 0
     const matched: string[] = []
 
     for (const kw of keywords) {
         const shortKw = kw.length <= 2
         const exactName = nameLower === kw
-        const partial = shortKw
-            ? tokenSet.has(kw)
-            : (nameLower.includes(kw) || fileLower.includes(kw) || purposeLower.includes(kw))
+        const partialName = nameLower.includes(kw)
+        const tokenMatch = nameTokens.has(kw) || [...nameTokens].some(t => t.includes(kw))
+        const fileMatch = fileLower.includes(kw) || fileTokens.has(kw)
+        const purposeMatch = purposeLower.includes(kw) || purposeTokens.has(kw)
+        
         if (exactName) {
             score = Math.max(score, WEIGHT.KEYWORD_EXACT)
             matched.push(kw)
-        } else if (partial) {
+        } else if (tokenMatch || partialName) {
             score = Math.max(score, WEIGHT.KEYWORD_PARTIAL)
+            matched.push(kw)
+        } else if (purposeMatch) {
+            score = Math.max(score, WEIGHT.KEYWORD_PURPOSE)
+            matched.push(kw)
+        } else if (fileMatch && !shortKw) {
+            score = Math.max(score, WEIGHT.KEYWORD_FILE)
             matched.push(kw)
         }
     }
@@ -202,6 +232,13 @@ function keywordScore(
 /**
  * Find seed function IDs from focusFiles, focusModules, or task keywords.
  * Seeds are the "center of gravity" for the BFS walk.
+ * 
+ * FIX: For large codebases (700+ functions), keyword-only matching is too strict.
+ * Now uses a multi-stage fallback:
+ * 1. Exact keyword match
+ * 2. Partial keyword match (fuzzy)
+ * 3. Module name match (for large codebases)
+ * 4. File path match
  */
 function resolveSeeds(
     query: ContextQuery,
@@ -211,6 +248,8 @@ function resolveSeeds(
 ): string[] {
     const strictMode = query.relevanceMode === 'strict'
     const seeds = new Set<string>()
+    const functionCount = Object.keys(lock.functions).length
+    const isLargeCodebase = functionCount > 100
 
     // 1. Explicit focus files → all functions in those files
     if (query.focusFiles && query.focusFiles.length > 0) {
@@ -241,18 +280,70 @@ function resolveSeeds(
         }
     }
 
-    // 4. Module name match against task
+    // 4. For large codebases: also match module names and file paths with lower threshold
+    if (isLargeCodebase && seeds.size === 0) {
+        const taskLower = query.task.toLowerCase()
+        
+        // Match against module names
+        for (const mod of contract.declared.modules) {
+            const modNameLower = mod.name.toLowerCase()
+            if (taskLower.includes(modNameLower) || modNameLower.split(' ').some(w => taskLower.includes(w))) {
+                for (const fn of Object.values(lock.functions)) {
+                    if (fn.moduleId === mod.id) seeds.add(fn.id)
+                }
+            }
+        }
+        
+        // Match against file path components
+        if (seeds.size === 0) {
+            for (const fn of Object.values(lock.functions)) {
+                const pathParts = fn.file.toLowerCase().split(/[-_.]+/)
+                for (const kw of keywords) {
+                    if (pathParts.includes(kw) || pathParts.some(p => p.includes(kw))) {
+                        seeds.add(fn.id)
+                        break
+                    }
+                }
+            }
+        }
+    }
+
+    // 5. Module name match against task (relaxed for large codebases)
     if (!strictMode && seeds.size === 0) {
         const taskLower = query.task.toLowerCase()
         for (const mod of contract.declared.modules) {
             if (
                 taskLower.includes(mod.id.toLowerCase()) ||
-                taskLower.includes(mod.name.toLowerCase())
+                taskLower.includes(mod.name.toLowerCase()) ||
+                mod.name.split(' ').some(w => w.length > 2 && taskLower.includes(w.toLowerCase()))
             ) {
                 for (const fn of Object.values(lock.functions)) {
                     if (fn.moduleId === mod.id) seeds.add(fn.id)
                 }
             }
+        }
+    }
+
+    // 6. Ultimate fallback for large codebases: return most recently modified or first N functions
+    if (seeds.size === 0 && isLargeCodebase) {
+        const allFns = Object.values(lock.functions)
+        // Return functions from most relevant modules (by name match) or first 50
+        const relevantModules = contract.declared.modules
+            .filter(m => {
+                const taskLower = query.task.toLowerCase()
+                return taskLower.includes(m.name.toLowerCase().split(' ')[0].toLowerCase())
+            })
+            .slice(0, 3)
+        
+        for (const fn of allFns) {
+            if (relevantModules.some(m => m.id === fn.moduleId)) {
+                seeds.add(fn.id)
+            }
+        }
+        
+        // If still empty, just take first 20 functions as seeds
+        if (seeds.size === 0) {
+            Object.keys(lock.functions).slice(0, 20).forEach(id => seeds.add(id))
         }
     }
 

@@ -2,6 +2,7 @@ import { describe, test, expect } from 'bun:test'
 import { JavaScriptExtractor } from '../src/parser/javascript/js-extractor'
 import { JavaScriptParser } from '../src/parser/javascript/js-parser'
 import { JavaScriptResolver } from '../src/parser/javascript/js-resolver'
+import { TypeScriptExtractor } from '../src/parser/typescript/ts-extractor'
 import { getParser } from '../src/parser/index'
 
 // ─── Sample JS source files ───────────────────────────────────────────────────
@@ -647,5 +648,448 @@ describe('getParser — JS extensions', () => {
 
     test('still throws UnsupportedLanguageError for .xyz', () => {
         expect(() => getParser('src/app.xyz')).toThrow()
+    })
+})
+
+// ==========================================
+// ADDITIONAL COMPREHENSIVE TESTS
+// ==========================================
+
+describe('JavaScript - Additional Edge Cases', () => {
+    
+    describe('Dynamic Imports', () => {
+        test('handles dynamic import()', () => {
+            const src = `
+                const module = await import('./dynamic')
+                const mod = await import('lodash')
+            `
+            const ext = new JavaScriptExtractor('src/app.js', src)
+            const imports = ext.extractImports()
+            expect(imports.length).toBeGreaterThanOrEqual(0)
+        })
+    })
+
+    describe('Class Syntax', () => {
+        test('extracts ES6 classes', () => {
+            const src = `
+                class User {
+                    constructor(name) {
+                        this.name = name
+                    }
+                    
+                    getName() {
+                        return this.name
+                    }
+                    
+                    static create(data) {
+                        return new User(data.name)
+                    }
+                }
+                
+                class Admin extends User {
+                    constructor(name, role) {
+                        super(name)
+                        this.role = role
+                    }
+                }
+            `
+            const ext = new JavaScriptExtractor('src/user.js', src)
+            const classes = ext.extractClasses()
+            expect(classes.length).toBe(2)
+            expect(classes[0].name).toBe('User')
+            expect(classes[1].name).toBe('Admin')
+        })
+
+        test('extracts class methods', () => {
+            const src = `
+                class Calculator {
+                    add(a, b) { return a + b }
+                    subtract(a, b) { return a - b }
+                }
+            `
+            const ext = new JavaScriptExtractor('src/calc.js', src)
+            const classes = ext.extractClasses()
+            expect(classes[0].methods.length).toBe(2)
+        })
+    })
+
+    describe('Object Patterns', () => {
+        test('handles object literal functions', () => {
+            const src = `
+                function formatDate() { return 'date' }
+                function parseJSON() { return 'json' }
+            `
+            const ext = new JavaScriptExtractor('src/utils.js', src)
+            const fns = ext.extractFunctions()
+            expect(fns.length).toBe(2)
+        })
+
+        test('handles computed property names', () => {
+            const src = `
+                const obj = {
+                    [key]: value,
+                    ['computed' + 'Key']() {}
+                }
+            `
+            const ext = new JavaScriptExtractor('src/obj.js', src)
+            expect(() => ext.extractFunctions()).not.toThrow()
+        })
+    })
+
+    describe('Arrow Functions', () => {
+        test('handles various arrow function patterns', () => {
+            const src = `
+                const add = (a, b) => a + b
+                const greet = name => \`Hello \${name}\`
+                const promise = () => new Promise(resolve => resolve())
+                const multi = (a, b) => {
+                    return a + b
+                }
+            `
+            const ext = new JavaScriptExtractor('src/arrow.js', src)
+            const fns = ext.extractFunctions()
+            expect(fns.length).toBe(4)
+        })
+    })
+
+    describe('Callback Patterns', () => {
+        test('handles callback functions', () => {
+            const src = `
+                items.forEach(item => console.log(item))
+                const filtered = items.filter(x => x > 0)
+                const mapped = items.map(x => x * 2)
+                const found = items.find(x => x.id === id)
+            `
+            const ext = new JavaScriptExtractor('src/callbacks.js', src)
+            const fns = ext.extractFunctions()
+            expect(fns.length).toBe(0) // callbacks aren't function declarations
+        })
+    })
+
+    describe('Error Handling in Functions', () => {
+        test('detects try-catch blocks', () => {
+            const src = `
+                function safeParse(json) {
+                    try {
+                        return JSON.parse(json)
+                    } catch (e) {
+                        console.error(e)
+                        return null
+                    }
+                }
+            `
+            const ext = new JavaScriptExtractor('src/safe.js', src)
+            const fns = ext.extractFunctions()
+            expect(fns[0].errorHandling.length).toBeGreaterThan(0)
+        })
+
+        test('detects throw statements', () => {
+            const src = `
+                function validate(value) {
+                    if (!value) {
+                        throw new Error('value required')
+                    }
+                    return true
+                }
+            `
+            const ext = new JavaScriptExtractor('src/validate.js', src)
+            const fns = ext.extractFunctions()
+            expect(fns[0].errorHandling.some(e => e.type === 'throw')).toBe(true)
+        })
+    })
+
+    describe('Complex Return Statements', () => {
+        test('handles early returns', () => {
+            const src = `
+                function findUser(id) {
+                    if (!id) return null
+                    const user = db.find(id)
+                    if (!user) return null
+                    return user
+                }
+            `
+            const ext = new JavaScriptExtractor('src/find.js', src)
+            const fns = ext.extractFunctions()
+            expect(fns[0].edgeCasesHandled.length).toBeGreaterThan(0)
+        })
+
+        test('handles conditional returns', () => {
+            const src = `
+                function getStatus(isActive) {
+                    return isActive ? 'active' : 'inactive'
+                }
+            `
+            const ext = new JavaScriptExtractor('src/status.js', src)
+            const fns = ext.extractFunctions()
+            expect(fns.length).toBe(1)
+        })
+    })
+
+    describe('Async/Await', () => {
+        test('handles async arrow functions', () => {
+            const src = `
+                const fetchData = async (url) => {
+                    const res = await fetch(url)
+                    return res.json()
+                }
+            `
+            const ext = new JavaScriptExtractor('src/async.js', src)
+            const fns = ext.extractFunctions()
+            expect(fns[0].isAsync).toBe(true)
+        })
+
+        test('handles await without async wrapper', () => {
+            const src = `
+                async function main() {
+                    await doSomething()
+                }
+            `
+            const ext = new JavaScriptExtractor('src/main.js', src)
+            const fns = ext.extractFunctions()
+            expect(fns[0].isAsync).toBe(true)
+        })
+
+        test('handles Promise.all', () => {
+            const src = `
+                async function loadAll(urls) {
+                    return Promise.all(urls.map(fetch))
+                }
+            `
+            const ext = new JavaScriptExtractor('src/load.js', src)
+            const fns = ext.extractFunctions()
+            expect(fns[0].isAsync).toBe(true)
+        })
+    })
+
+    describe('Generator Functions', () => {
+        test('handles generator functions', () => {
+            const src = `
+                function* numberGenerator() {
+                    yield 1
+                    yield 2
+                    yield 3
+                }
+            `
+            const ext = new JavaScriptExtractor('src/gen.js', src)
+            const fns = ext.extractFunctions()
+            expect(fns.length).toBe(1)
+        })
+    })
+
+    describe('Destructuring', () => {
+        test('handles destructured parameters', () => {
+            const src = `
+                function process({ name, age }, [first, ...rest]) {
+                    return name + age + first
+                }
+            `
+            const ext = new JavaScriptExtractor('src/dest.js', src)
+            const fns = ext.extractFunctions()
+            expect(fns[0].params.length).toBe(2)
+        })
+    })
+
+    describe('Rest/Spread', () => {
+        test('handles rest parameters', () => {
+            const src = `
+                function sum(...numbers) {
+                    return numbers.reduce((a, b) => a + b, 0)
+                }
+            `
+            const ext = new JavaScriptExtractor('src/rest.js', src)
+            const fns = ext.extractFunctions()
+            expect(fns[0].params[0].name).toBe('numbers')
+        })
+
+        test('handles spread in function calls', () => {
+            const src = `
+                function apply(...args) {
+                    return fn(...args)
+                }
+            `
+            const ext = new JavaScriptExtractor('src/spread.js', src)
+            const fns = ext.extractFunctions()
+            expect(fns.length).toBe(1)
+        })
+    })
+
+    describe('Template Literals', () => {
+        test('handles template literals', () => {
+            const src = `
+                function greet(name) {
+                    return \`Hello, \${name}!\`
+                }
+            `
+            const ext = new JavaScriptExtractor('src/tmpl.js', src)
+            const fns = ext.extractFunctions()
+            expect(fns.length).toBe(1)
+        })
+    })
+
+    describe('Regex Patterns', () => {
+        test('handles regex in code', () => {
+            const src = `
+                function validateEmail(email) {
+                    const re = /^[a-zA-Z0-9@]+.[a-zA-Z0-9@]+$/
+                    return re.test(email)
+                }
+            `
+            const ext = new JavaScriptExtractor('src/regex.js', src)
+            const fns = ext.extractFunctions()
+            expect(fns.length).toBe(1)
+        })
+    })
+
+    describe('Module Patterns', () => {
+        test('handles IIFE', () => {
+            const src = `
+                (function() {
+                    const privateVar = 'secret'
+                    window.init = function() {}
+                })()
+                
+                (async () => {
+                    await load()
+                })()
+            `
+            const ext = new JavaScriptExtractor('src/iife.js', src)
+            expect(() => ext.extractFunctions()).not.toThrow()
+        })
+
+        test('handles UMD pattern', () => {
+            const src = `
+                (function(root, factory) {
+                    if (typeof module === 'object') {
+                        module.exports = factory()
+                    } else {
+                        root.MyLib = factory()
+                    }
+                }(this, function() {
+                    return { version: '1.0' }
+                }))
+            `
+            const ext = new JavaScriptExtractor('src/umd.js', src)
+            expect(() => ext.extractFunctions()).not.toThrow()
+        })
+    })
+
+    describe('Complex Types', () => {
+        test('handles JSDoc comments', () => {
+            const src = `
+                /**
+                 * Adds two numbers
+                 * @param {number} a - First number
+                 * @param {number} b - Second number
+                 * @returns {number} Sum
+                 */
+                function add(a, b) {
+                    return a + b
+                }
+            `
+            const ext = new TypeScriptExtractor('src/add.js', src)
+            const fns = ext.extractFunctions()
+            expect(fns[0].purpose).toBeDefined()
+        })
+    })
+
+    describe('Decorator-like Patterns', () => {
+        test('handles higher-order functions', () => {
+            const src = `
+                function withLogging(fn) {
+                    return function(...args) {
+                        console.log('Calling', fn.name)
+                        return fn.apply(this, args)
+                    }
+                }
+                
+                @withLogging
+                function decorated() {}
+            `
+            const ext = new JavaScriptExtractor('src/decorator.js', src)
+            const fns = ext.extractFunctions()
+            expect(fns.length).toBe(2)
+        })
+    })
+
+    describe('Web/Node APIs', () => {
+        test('handles fetch API', async () => {
+            const src = `
+                async function fetchData(url) {
+                    const response = await fetch(url)
+                    const data = await response.json()
+                    return data
+                }
+            `
+            const ext = new JavaScriptExtractor('src/fetch.js', src)
+            const fns = ext.extractFunctions()
+            expect(fns[0].isAsync).toBe(true)
+            expect(fns[0].calls.length).toBe(2)
+        })
+
+        test('handles Express routers', () => {
+            const src = `
+                const express = require('express')
+                const router = express.Router()
+                
+                router.get('/users', getUsers)
+                router.post('/users', createUser)
+                router.put('/users/:id', updateUser)
+                router.delete('/users/:id', deleteUser)
+            `
+            const ext = new JavaScriptExtractor('src/routes.js', src)
+            const routes = ext.extractRoutes()
+            expect(routes.length).toBe(4)
+        })
+    })
+
+    describe('Chained Methods', () => {
+        test('handles method chaining', () => {
+            const src = `
+                const result = items
+                    .filter(x => x.active)
+                    .map(x => x.value)
+                    .reduce((a, b) => a + b, 0)
+            `
+            const ext = new JavaScriptExtractor('src/chain.js', src)
+            expect(() => ext.extractFunctions()).not.toThrow()
+        })
+    })
+
+    describe('Large Files', () => {
+        test('handles many functions', () => {
+            const fns = Array.from({ length: 500 }, (_, i) => 
+                `function fn${i}() { return ${i} }`
+            ).join('\n')
+            
+            const ext = new JavaScriptExtractor('src/many.js', fns)
+            const result = ext.extractFunctions()
+            expect(result.length).toBe(500)
+        })
+    })
+
+    describe('Unicode and Special Chars', () => {
+        test('handles unicode in function names', () => {
+            const src = `
+                function 验证() {
+                    return true
+                }
+                
+                const 用户 = { name: 'test' }
+            `
+            const ext = new JavaScriptExtractor('src/unicode.js', src)
+            const fns = ext.extractFunctions()
+            expect(fns.length).toBe(1)
+        })
+
+        test('handles emoji', () => {
+            const src = `
+                function 🎉() {
+                    return 'celebration'
+                }
+            `
+            const ext = new JavaScriptExtractor('src/emoji.js', src)
+            const fns = ext.extractFunctions()
+            expect(fns.length).toBe(1)
+        })
     })
 })

@@ -62,20 +62,48 @@ export class OxcResolver {
 
             const result = this.resolver.sync(dir, source);
 
-            if (!result?.path) return '';
+            if (!result?.path) {
+                return this.fallbackResolve(source, absFrom);
+            }
 
             const resolved = result.path.replace(/\\/g, '/');
 
-            // Only include files within our project root in the graph.
-            // node_modules, hoisted workspace deps, etc. are external.
             if (!resolved.startsWith(this.normalizedRoot + '/') && resolved !== this.normalizedRoot) {
                 return '';
             }
 
             return resolved;
         } catch {
+            return this.fallbackResolve(source, fromFile);
+        }
+    }
+
+    /**
+     * Fallback resolution when oxc-resolver fails.
+     * Tries common patterns: ./file, ../file, index files, etc.
+     */
+    private fallbackResolve(source: string, fromFile: string): string {
+        if (!source || source.startsWith('node:') || source.startsWith('@')) {
             return '';
         }
+
+        const absFrom = path.isAbsolute(fromFile) ? fromFile : path.resolve(this.projectRoot, fromFile);
+        const baseDir = path.dirname(absFrom);
+        
+        const extensions = ['.ts', '.tsx', '.js', '.jsx', '/index.ts', '/index.tsx', '/index.js', '/index.jsx'];
+        
+        for (const ext of extensions) {
+            const candidate = source.endsWith(ext) ? source : source + ext;
+            const resolved = path.resolve(baseDir, candidate).replace(/\\/g, '/');
+            
+            if (fs.existsSync(resolved)) {
+                if (resolved.startsWith(this.normalizedRoot + '/') || resolved === this.normalizedRoot) {
+                    return resolved;
+                }
+            }
+        }
+        
+        return '';
     }
 
 

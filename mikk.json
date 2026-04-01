@@ -6,23 +6,23 @@
     "language": "typescript",
     "entryPoints": [
       "C:/Users/Ansh/Desktop/web/Mesh/apps/registry/src/index.ts",
-      "C:/Users/Ansh/Desktop/web/Mesh/packages/ai-context/src/index.ts",
       "C:/Users/Ansh/Desktop/web/Mesh/packages/cli/src/index.ts",
+      "C:/Users/Ansh/Desktop/web/Mesh/packages/ai-context/src/index.ts",
       "C:/Users/Ansh/Desktop/web/Mesh/packages/core/src/index.ts",
       "C:/Users/Ansh/Desktop/web/Mesh/packages/diagram-generator/src/index.ts",
-      "C:/Users/Ansh/Desktop/web/Mesh/packages/intent-engine/src/index.ts",
       "C:/Users/Ansh/Desktop/web/Mesh/packages/mcp-server/src/index.ts",
       "C:/Users/Ansh/Desktop/web/Mesh/packages/mcp-server/src/server.ts",
+      "C:/Users/Ansh/Desktop/web/Mesh/packages/intent-engine/src/index.ts",
       "C:/Users/Ansh/Desktop/web/Mesh/packages/watcher/src/index.ts",
       "C:/Users/Ansh/Desktop/web/Mesh/packages/core/src/contract/index.ts",
       "C:/Users/Ansh/Desktop/web/Mesh/packages/core/src/graph/index.ts",
       "C:/Users/Ansh/Desktop/web/Mesh/packages/core/src/hash/index.ts",
-      "C:/Users/Ansh/Desktop/web/Mesh/packages/core/src/parser/index.ts",
       "C:/Users/Ansh/Desktop/web/Mesh/packages/core/src/search/index.ts",
+      "C:/Users/Ansh/Desktop/web/Mesh/packages/core/src/parser/index.ts",
+      "C:/Users/Ansh/Desktop/web/Mesh/packages/cli/src/commands/contract/index.ts",
       "C:/Users/Ansh/Desktop/web/Mesh/apps/web/components/kibo-ui/contribution-graph/index.tsx",
       "C:/Users/Ansh/Desktop/web/Mesh/apps/web/components/kibo-ui/image-zoom/index.tsx",
-      "C:/Users/Ansh/Desktop/web/Mesh/apps/web/components/kibo-ui/marquee/index.tsx",
-      "C:/Users/Ansh/Desktop/web/Mesh/packages/cli/src/commands/contract/index.ts"
+      "C:/Users/Ansh/Desktop/web/Mesh/apps/web/components/kibo-ui/marquee/index.tsx"
     ]
   },
   "declared": {
@@ -39,8 +39,8 @@
       },
       {
         "id": "web-mesh-benchmarks",
-        "name": "Storage & Dashboard",
-        "description": "4 files, 0 functions",
+        "name": "Testing & Search",
+        "description": "17 files, 0 functions",
         "intent": "",
         "paths": [
           "c:/users/ansh/desktop/web/mesh/benchmarks/**"
@@ -64,6 +64,46 @@
         "intent": "",
         "paths": [
           "c:/users/ansh/desktop/web/mesh/apps/registry/src/**"
+        ],
+        "entryFunctions": []
+      },
+      {
+        "id": "packages-cli-bin",
+        "name": "CLI",
+        "description": "1 files, 0 functions",
+        "intent": "",
+        "paths": [
+          "c:/users/ansh/desktop/web/mesh/packages/cli/bin/**"
+        ],
+        "entryFunctions": []
+      },
+      {
+        "id": "mesh-packages-cli",
+        "name": "CLI & Utils",
+        "description": "3 files, 0 functions",
+        "intent": "",
+        "paths": [
+          "c:/users/ansh/desktop/web/mesh/packages/cli/src/**"
+        ],
+        "entryFunctions": []
+      },
+      {
+        "id": "mesh-packages-ai-context",
+        "name": "Authentication & Providers",
+        "description": "7 files, 0 functions",
+        "intent": "",
+        "paths": [
+          "c:/users/ansh/desktop/web/mesh/packages/ai-context/src/**"
+        ],
+        "entryFunctions": []
+      },
+      {
+        "id": "mesh-packages-core",
+        "name": "Config & API",
+        "description": "3 files, 0 functions",
+        "intent": "",
+        "paths": [
+          "c:/users/ansh/desktop/web/mesh/packages/core/src/**"
         ],
         "entryFunctions": []
       },
@@ -108,62 +148,12 @@
         "entryFunctions": []
       },
       {
-        "id": "mesh-packages-ai-context",
-        "name": "Providers & Authentication",
-        "description": "7 files, 0 functions",
-        "intent": "",
-        "paths": [
-          "c:/users/ansh/desktop/web/mesh/packages/ai-context/src/**"
-        ],
-        "entryFunctions": []
-      },
-      {
-        "id": "packages-cli-bin",
-        "name": "CLI",
-        "description": "1 files, 0 functions",
-        "intent": "",
-        "paths": [
-          "c:/users/ansh/desktop/web/mesh/packages/cli/bin/**"
-        ],
-        "entryFunctions": []
-      },
-      {
-        "id": "mesh-packages-cli",
-        "name": "CLI & Utils",
-        "description": "3 files, 0 functions",
-        "intent": "",
-        "paths": [
-          "c:/users/ansh/desktop/web/mesh/packages/cli/src/**"
-        ],
-        "entryFunctions": []
-      },
-      {
-        "id": "mesh-packages-core",
-        "name": "Config & API",
-        "description": "3 files, 0 functions",
-        "intent": "",
-        "paths": [
-          "c:/users/ansh/desktop/web/mesh/packages/core/src/**"
-        ],
-        "entryFunctions": []
-      },
-      {
         "id": "mesh-packages-diagram-generator",
         "name": "Search",
         "description": "2 files, 0 functions",
         "intent": "",
         "paths": [
           "c:/users/ansh/desktop/web/mesh/packages/diagram-generator/src/**"
-        ],
-        "entryFunctions": []
-      },
-      {
-        "id": "mesh-packages-intent-engine",
-        "name": "Storage & AI & ML",
-        "description": "13 files, 0 functions",
-        "intent": "",
-        "paths": [
-          "c:/users/ansh/desktop/web/mesh/packages/intent-engine/src/**"
         ],
         "entryFunctions": []
       },
@@ -188,6 +178,16 @@
         "entryFunctions": []
       },
       {
+        "id": "mesh-packages-intent-engine",
+        "name": "Storage & AI & ML",
+        "description": "13 files, 0 functions",
+        "intent": "",
+        "paths": [
+          "c:/users/ansh/desktop/web/mesh/packages/intent-engine/src/**"
+        ],
+        "entryFunctions": []
+      },
+      {
         "id": "mesh-packages-watcher",
         "name": "Storage & Messaging",
         "description": "5 files, 0 functions",
@@ -198,52 +198,12 @@
         "entryFunctions": []
       },
       {
-        "id": "web-app--marketing-",
-        "name": "Layout",
-        "description": "2 files, 0 functions",
+        "id": "packages-core-contract",
+        "name": "Storage & Validation",
+        "description": "8 files, 0 functions",
         "intent": "",
         "paths": [
-          "c:/users/ansh/desktop/web/mesh/apps/web/app/(marketing)/**"
-        ],
-        "entryFunctions": []
-      },
-      {
-        "id": "web-components-animated-icons",
-        "name": "Components",
-        "description": "3 files, 0 functions",
-        "intent": "",
-        "paths": [
-          "c:/users/ansh/desktop/web/mesh/apps/web/components/animated-icons/**"
-        ],
-        "entryFunctions": []
-      },
-      {
-        "id": "web-app-docs",
-        "name": "Layout",
-        "description": "1 files, 0 functions",
-        "intent": "",
-        "paths": [
-          "c:/users/ansh/desktop/web/mesh/apps/web/app/docs/**"
-        ],
-        "entryFunctions": []
-      },
-      {
-        "id": "web-components-landing",
-        "name": "Components",
-        "description": "2 files, 0 functions",
-        "intent": "",
-        "paths": [
-          "c:/users/ansh/desktop/web/mesh/apps/web/components/landing/**"
-        ],
-        "entryFunctions": []
-      },
-      {
-        "id": "web-components-ui",
-        "name": "Components",
-        "description": "25 files, 0 functions",
-        "intent": "",
-        "paths": [
-          "c:/users/ansh/desktop/web/mesh/apps/web/components/ui/**"
+          "c:/users/ansh/desktop/web/mesh/packages/core/src/contract/**"
         ],
         "entryFunctions": []
       },
@@ -254,16 +214,6 @@
         "intent": "",
         "paths": [
           "c:/users/ansh/desktop/web/mesh/packages/cli/src/commands/**"
-        ],
-        "entryFunctions": []
-      },
-      {
-        "id": "packages-core-contract",
-        "name": "Storage & Validation",
-        "description": "8 files, 0 functions",
-        "intent": "",
-        "paths": [
-          "c:/users/ansh/desktop/web/mesh/packages/core/src/contract/**"
         ],
         "entryFunctions": []
       },
@@ -288,16 +238,6 @@
         "entryFunctions": []
       },
       {
-        "id": "packages-core-parser",
-        "name": "Storage & Logging",
-        "description": "8 files, 0 functions",
-        "intent": "",
-        "paths": [
-          "c:/users/ansh/desktop/web/mesh/packages/core/src/parser/**"
-        ],
-        "entryFunctions": []
-      },
-      {
         "id": "packages-core-search",
         "name": "Search & Authentication",
         "description": "2 files, 0 functions",
@@ -308,12 +248,72 @@
         "entryFunctions": []
       },
       {
+        "id": "packages-core-parser",
+        "name": "Storage & Logging",
+        "description": "8 files, 0 functions",
+        "intent": "",
+        "paths": [
+          "c:/users/ansh/desktop/web/mesh/packages/core/src/parser/**"
+        ],
+        "entryFunctions": []
+      },
+      {
         "id": "packages-core-utils",
         "name": "Utils & Storage",
         "description": "6 files, 0 functions",
         "intent": "",
         "paths": [
           "c:/users/ansh/desktop/web/mesh/packages/core/src/utils/**"
+        ],
+        "entryFunctions": []
+      },
+      {
+        "id": "web-app--marketing-",
+        "name": "Layout",
+        "description": "2 files, 0 functions",
+        "intent": "",
+        "paths": [
+          "c:/users/ansh/desktop/web/mesh/apps/web/app/(marketing)/**"
+        ],
+        "entryFunctions": []
+      },
+      {
+        "id": "web-app-docs",
+        "name": "Layout",
+        "description": "1 files, 0 functions",
+        "intent": "",
+        "paths": [
+          "c:/users/ansh/desktop/web/mesh/apps/web/app/docs/**"
+        ],
+        "entryFunctions": []
+      },
+      {
+        "id": "web-components-animated-icons",
+        "name": "Components",
+        "description": "3 files, 0 functions",
+        "intent": "",
+        "paths": [
+          "c:/users/ansh/desktop/web/mesh/apps/web/components/animated-icons/**"
+        ],
+        "entryFunctions": []
+      },
+      {
+        "id": "web-components-landing",
+        "name": "Components",
+        "description": "2 files, 0 functions",
+        "intent": "",
+        "paths": [
+          "c:/users/ansh/desktop/web/mesh/apps/web/components/landing/**"
+        ],
+        "entryFunctions": []
+      },
+      {
+        "id": "web-components-ui",
+        "name": "Components",
+        "description": "25 files, 0 functions",
+        "intent": "",
+        "paths": [
+          "c:/users/ansh/desktop/web/mesh/apps/web/components/ui/**"
         ],
         "entryFunctions": []
       },
@@ -334,6 +334,56 @@
         "intent": "",
         "paths": [
           "c:/users/ansh/desktop/web/mesh/packages/vscode-extension/src/providers/**"
+        ],
+        "entryFunctions": []
+      },
+      {
+        "id": "cli-commands-contract",
+        "name": "CLI & Storage",
+        "description": "1 files, 0 functions",
+        "intent": "",
+        "paths": [
+          "c:/users/ansh/desktop/web/mesh/packages/cli/src/commands/contract/**"
+        ],
+        "entryFunctions": []
+      },
+      {
+        "id": "core-parser-go",
+        "name": "Blog & API",
+        "description": "3 files, 0 functions",
+        "intent": "",
+        "paths": [
+          "c:/users/ansh/desktop/web/mesh/packages/core/src/parser/go/**"
+        ],
+        "entryFunctions": []
+      },
+      {
+        "id": "core-parser-javascript",
+        "name": "Config & CLI",
+        "description": "3 files, 0 functions",
+        "intent": "",
+        "paths": [
+          "c:/users/ansh/desktop/web/mesh/packages/core/src/parser/javascript/**"
+        ],
+        "entryFunctions": []
+      },
+      {
+        "id": "core-parser-tree-sitter",
+        "name": "Database & API",
+        "description": "3 files, 0 functions",
+        "intent": "",
+        "paths": [
+          "c:/users/ansh/desktop/web/mesh/packages/core/src/parser/tree-sitter/**"
+        ],
+        "entryFunctions": []
+      },
+      {
+        "id": "core-parser-typescript",
+        "name": "Storage & GraphQL",
+        "description": "3 files, 0 functions",
+        "intent": "",
+        "paths": [
+          "c:/users/ansh/desktop/web/mesh/packages/core/src/parser/typescript/**"
         ],
         "entryFunctions": []
       },
@@ -404,56 +454,6 @@
         "intent": "",
         "paths": [
           "c:/users/ansh/desktop/web/mesh/apps/web/components/kibo-ui/marquee/**"
-        ],
-        "entryFunctions": []
-      },
-      {
-        "id": "cli-commands-contract",
-        "name": "CLI & Storage",
-        "description": "1 files, 0 functions",
-        "intent": "",
-        "paths": [
-          "c:/users/ansh/desktop/web/mesh/packages/cli/src/commands/contract/**"
-        ],
-        "entryFunctions": []
-      },
-      {
-        "id": "core-parser-go",
-        "name": "Blog & API",
-        "description": "3 files, 0 functions",
-        "intent": "",
-        "paths": [
-          "c:/users/ansh/desktop/web/mesh/packages/core/src/parser/go/**"
-        ],
-        "entryFunctions": []
-      },
-      {
-        "id": "core-parser-javascript",
-        "name": "Config & CLI",
-        "description": "3 files, 0 functions",
-        "intent": "",
-        "paths": [
-          "c:/users/ansh/desktop/web/mesh/packages/core/src/parser/javascript/**"
-        ],
-        "entryFunctions": []
-      },
-      {
-        "id": "core-parser-tree-sitter",
-        "name": "Database",
-        "description": "2 files, 0 functions",
-        "intent": "",
-        "paths": [
-          "c:/users/ansh/desktop/web/mesh/packages/core/src/parser/tree-sitter/**"
-        ],
-        "entryFunctions": []
-      },
-      {
-        "id": "core-parser-typescript",
-        "name": "Storage & GraphQL",
-        "description": "3 files, 0 functions",
-        "intent": "",
-        "paths": [
-          "c:/users/ansh/desktop/web/mesh/packages/core/src/parser/typescript/**"
         ],
         "entryFunctions": []
       },

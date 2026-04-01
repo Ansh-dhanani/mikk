@@ -2,36 +2,41 @@
 graph TD
 
     packages_vscode_extension_webview["📦 Dashboard<br/>3 files, 11 functions"]
-    web_mesh_benchmarks["📦 Storage & Dashboard<br/>4 files, 47 functions"]
+    web_mesh_benchmarks["📦 Testing & Search<br/>17 files, 155 functions"]
     mesh_apps_web["📦 API & Config<br/>2 files, 2 functions"]
     mesh_apps_registry["📦 Search<br/>1 files, 1 functions"]
+    packages_cli_bin["📦 CLI<br/>1 files, 0 functions"]
+    mesh_packages_cli["📦 CLI & Utils<br/>3 files, 15 functions"]
+    mesh_packages_ai_context["📦 Authentication & Providers<br/>7 files, 54 functions"]
+    mesh_packages_core["📦 Config & API<br/>3 files, 40 functions"]
     apps_web_app["📦 API<br/>3 files, 6 functions"]
     apps_web_components["📦 Components<br/>19 files, 1 functions"]
     apps_web_lib["📦 Utils<br/>7 files, 5 functions"]
     apps_web_providers["📦 Providers<br/>3 files, 0 functions"]
-    mesh_packages_ai_context["📦 Providers & Authentication<br/>7 files, 54 functions"]
-    packages_cli_bin["📦 CLI<br/>1 files, 0 functions"]
-    mesh_packages_cli["📦 CLI & Utils<br/>3 files, 15 functions"]
-    mesh_packages_core["📦 Config & API<br/>3 files, 40 functions"]
     mesh_packages_diagram_generator["📦 Search<br/>2 files, 4 functions"]
-    mesh_packages_intent_engine["📦 Storage & AI & ML<br/>13 files, 83 functions"]
     packages_mcp_server_bin["📦 Project Management<br/>1 files, 0 functions"]
     mesh_packages_mcp_server["📦 Storage<br/>5 files, 20 functions"]
+    mesh_packages_intent_engine["📦 Storage & AI & ML<br/>13 files, 83 functions"]
     mesh_packages_watcher["📦 Storage & Messaging<br/>5 files, 26 functions"]
-    web_app__marketing_["📦 Layout<br/>0 files, 0 functions"]
-    web_components_animated_icons["📦 Components<br/>3 files, 0 functions"]
-    web_app_docs["📦 Layout<br/>1 files, 0 functions"]
-    web_components_landing["📦 Components<br/>2 files, 0 functions"]
-    web_components_ui["📦 Components<br/>25 files, 0 functions"]
-    packages_cli_commands["📦 CLI & Storage<br/>14 files, 34 functions"]
     packages_core_contract["📦 Storage & Validation<br/>8 files, 40 functions"]
+    packages_cli_commands["📦 CLI & Storage<br/>14 files, 34 functions"]
     packages_core_graph["📦 Storage<br/>10 files, 73 functions"]
     packages_core_hash["📦 Database & Providers<br/>4 files, 14 functions"]
-    packages_core_parser["📦 Storage & Logging<br/>8 files, 39 functions"]
     packages_core_search["📦 Search & Authentication<br/>2 files, 6 functions"]
+    packages_core_parser["📦 Storage & Logging<br/>8 files, 47 functions"]
     packages_core_utils["📦 Utils & Storage<br/>6 files, 34 functions"]
+    web_app__marketing_["📦 Layout<br/>0 files, 0 functions"]
+    web_app_docs["📦 Layout<br/>1 files, 0 functions"]
+    web_components_animated_icons["📦 Components<br/>3 files, 0 functions"]
+    web_components_landing["📦 Components<br/>2 files, 0 functions"]
+    web_components_ui["📦 Components<br/>25 files, 0 functions"]
     packages_diagram_generator_generators["📦 Storage & CLI<br/>8 files, 31 functions"]
     packages_vscode_extension_providers["📦 Providers<br/>2 files, 4 functions"]
+    cli_commands_contract["📦 CLI & Storage<br/>1 files, 1 functions"]
+    core_parser_go["📦 Blog & API<br/>3 files, 31 functions"]
+    core_parser_javascript["📦 Config & CLI<br/>3 files, 24 functions"]
+    core_parser_tree_sitter["📦 Database & API<br/>3 files, 29 functions"]
+    core_parser_typescript["📦 Storage & GraphQL<br/>3 files, 44 functions"]
     app_api_feedback["📦 Blog & Database<br/>1 files, 4 functions"]
     app_api_search["📦 API<br/>1 files, 0 functions"]
     app_docs__slug_["📦 Layout<br/>0 files, 0 functions"]
@@ -39,11 +44,6 @@ graph TD
     components_kibo_ui_contribution_graph["📦 Components<br/>1 files, 0 functions"]
     components_kibo_ui_image_zoom["📦 Media<br/>1 files, 0 functions"]
     components_kibo_ui_marquee["📦 Components<br/>1 files, 0 functions"]
-    cli_commands_contract["📦 CLI & Storage<br/>1 files, 1 functions"]
-    core_parser_go["📦 Blog & API<br/>3 files, 31 functions"]
-    core_parser_javascript["📦 Config & CLI<br/>3 files, 24 functions"]
-    core_parser_tree_sitter["📦 Database<br/>2 files, 17 functions"]
-    core_parser_typescript["📦 Storage & GraphQL<br/>3 files, 44 functions"]
     mesh_packages_vscode_extension["📦 Providers & Dashboard<br/>1 files, 20 functions"]
 
     mesh_packages_vscode_extension -->|1 calls| packages_vscode_extension_webview
@@ -54,33 +54,38 @@ graph TD
     class web_mesh_benchmarks module
     class mesh_apps_web module
     class mesh_apps_registry module
+    class packages_cli_bin module
+    class mesh_packages_cli module
+    class mesh_packages_ai_context module
+    class mesh_packages_core module
     class apps_web_app module
     class apps_web_components module
     class apps_web_lib module
     class apps_web_providers module
-    class mesh_packages_ai_context module
-    class packages_cli_bin module
-    class mesh_packages_cli module
-    class mesh_packages_core module
     class mesh_packages_diagram_generator module
-    class mesh_packages_intent_engine module
     class packages_mcp_server_bin module
     class mesh_packages_mcp_server module
+    class mesh_packages_intent_engine module
     class mesh_packages_watcher module
-    class web_app__marketing_ module
-    class web_components_animated_icons module
-    class web_app_docs module
-    class web_components_landing module
-    class web_components_ui module
-    class packages_cli_commands module
     class packages_core_contract module
+    class packages_cli_commands module
     class packages_core_graph module
     class packages_core_hash module
-    class packages_core_parser module
     class packages_core_search module
+    class packages_core_parser module
     class packages_core_utils module
+    class web_app__marketing_ module
+    class web_app_docs module
+    class web_components_animated_icons module
+    class web_components_landing module
+    class web_components_ui module
     class packages_diagram_generator_generators module
     class packages_vscode_extension_providers module
+    class cli_commands_contract module
+    class core_parser_go module
+    class core_parser_javascript module
+    class core_parser_tree_sitter module
+    class core_parser_typescript module
     class app_api_feedback module
     class app_api_search module
     class app_docs__slug_ module
@@ -88,9 +93,4 @@ graph TD
     class components_kibo_ui_contribution_graph module
     class components_kibo_ui_image_zoom module
     class components_kibo_ui_marquee module
-    class cli_commands_contract module
-    class core_parser_go module
-    class core_parser_javascript module
-    class core_parser_tree_sitter module
-    class core_parser_typescript module
     class mesh_packages_vscode_extension module
