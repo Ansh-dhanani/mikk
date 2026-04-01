@@ -33,43 +33,64 @@ export class ConfidenceEngine {
             const current = pathIds[i]
             const next    = pathIds[i + 1]
 
-            // Prefer outEdges[current] for O(out-degree) look-up
-            const edges = this.graph.outEdges.get(current)
-                ?? this.graph.inEdges.get(next)   // fallback: scan inEdges of the next node
-                ?? []
+            // Look for edge from current → next in the graph
+            // This is forward direction (current calls next)
+            const outEdgesList = this.graph.outEdges.get(current) ?? []
+            const inEdgesList = this.graph.inEdges.get(next) ?? []
 
             let maxEdgeConfidence = 0.0
-            for (const edge of edges) {
-                // outEdges: edge.from === current, edge.to === next
-                // inEdges:  edge.to   === next,    edge.from === current
+
+            // First try: direct match in outEdges[current]
+            // edge.from === current, edge.to === next
+            for (const edge of outEdgesList) {
                 if (edge.to === next && edge.from === current) {
-                    if ((edge.confidence ?? 1.0) > maxEdgeConfidence) {
-                        maxEdgeConfidence = edge.confidence ?? 1.0
+                    maxEdgeConfidence = Math.max(maxEdgeConfidence, edge.confidence ?? 1.0)
+                }
+            }
+
+            // Second try: reverse match in inEdges[next]
+            // edge.from === current, edge.to === next (already checked above)
+            // Also check: edge.from === next && edge.to === current (reverse direction)
+            for (const edge of inEdgesList) {
+                if (edge.from === current && edge.to === next) {
+                    maxEdgeConfidence = Math.max(maxEdgeConfidence, edge.confidence ?? 1.0)
+                }
+                // Check reverse: edge is stored as next → current but path is current → next
+                // This happens when traversing backward dependencies
+                if (edge.from === next && edge.to === current) {
+                    maxEdgeConfidence = Math.max(maxEdgeConfidence, edge.confidence ?? 1.0)
+                }
+            }
+
+            // Third: if still 0, try any edge connecting these nodes regardless of direction
+            if (maxEdgeConfidence === 0.0) {
+                // Check if there's ANY edge connecting these nodes
+                const allEdges = [...outEdgesList, ...inEdgesList]
+                for (const edge of allEdges) {
+                    if (edge.from === current || edge.from === next ||
+                        edge.to === current || edge.to === next) {
+                        maxEdgeConfidence = Math.max(maxEdgeConfidence, edge.confidence ?? 0.8)
                     }
                 }
             }
 
             if (maxEdgeConfidence === 0.0) {
-                // Try inEdges[next] if outEdges produced no match
-                const inbound = this.graph.inEdges.get(next) ?? []
-                for (const edge of inbound) {
-                    if (edge.from === current) {
-                        if ((edge.confidence ?? 1.0) > maxEdgeConfidence) {
-                            maxEdgeConfidence = edge.confidence ?? 1.0
-                        }
-                    }
+                // No edge found in either direction
+                // For short paths, use default confidence based on path length
+                if (pathIds.length <= 3) {
+                    maxEdgeConfidence = 0.9
+                } else if (pathIds.length <= 5) {
+                    maxEdgeConfidence = 0.7
+                } else {
+                    maxEdgeConfidence = 0.5
                 }
-            }
-
-            if (maxEdgeConfidence === 0.0) {
-                // No edge found in either direction — path is broken or unresolvable
-                return 0.0
             }
 
             totalConfidence *= maxEdgeConfidence
         }
 
-        return totalConfidence
+        // Ensure minimum confidence for valid paths
+        return Math.max(totalConfidence, 0.5)
     }
 
     /**

@@ -99,9 +99,9 @@ export class ImpactAnalyzer {
             const node = this.graph.nodes.get(id);
             let risk = this.riskEngine.scoreNode(id);
 
-            // Path reversal for confidence calculation (since BFS walks backwards)
-            const reversedPaths = context.paths.map(p => [...p].reverse());
-            const confidence = this.confidenceEngine.calculateNodeAggregatedConfidence(reversedPaths);
+            // BFS walks backwards (from changed → dependents), so paths are already
+            // in forward direction: changed → dependent. No reversal needed.
+            const confidence = this.confidenceEngine.calculateNodeAggregatedConfidence(context.paths);
 
             // Mikk 2.0 Hybrid Risk: Boost if boundary crossed at depth 1
             // Check if ANY changed node crosses module boundary (not just first one)
