@@ -1,7 +1,6 @@
 import * as fs from 'node:fs/promises'
 import * as path from 'node:path'
 import type { MikkContract } from './schema.js'
-import { hashContent } from '../hash/file-hasher.js'
 
 const VERSION = '@getmikk/cli@1.2.1'
 

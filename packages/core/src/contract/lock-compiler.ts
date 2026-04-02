@@ -1,5 +1,3 @@
-import * as path from 'node:path'
-import { createHash } from 'node:crypto'
 import type { MikkContract, MikkLock } from './schema.js'
 import type { DependencyGraph } from '../graph/types.js'
 import type { ParsedFile } from '../parser/types.js'
@@ -338,7 +336,7 @@ export class LockCompiler {
     private compileFiles(
         parsedFiles: ParsedFile[],
         contract: MikkContract,
-        graph: DependencyGraph
+        _graph: DependencyGraph
     ): Record<string, MikkLock['files'][string]> {
         const result: Record<string, MikkLock['files'][string]> = {}
 

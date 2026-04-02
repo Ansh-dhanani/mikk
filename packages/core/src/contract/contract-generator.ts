@@ -96,7 +96,6 @@ export class ContractGenerator {
         const clusterFileSet = new Set(cluster.files)
         const purposes: string[] = []
         const fnNames: string[] = []
-        let hasExported = 0
         let totalFunctions = 0
 
         for (const file of parsedFiles) {
@@ -104,7 +103,6 @@ export class ContractGenerator {
             for (const fn of file.functions) {
                 totalFunctions++
                 fnNames.push(fn.name)
-                if (fn.isExported) hasExported++
                 if (fn.purpose) purposes.push(fn.purpose)
             }
         }
