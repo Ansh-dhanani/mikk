@@ -1,6 +1,6 @@
 {
   "name": "@getmikk/diagram-generator",
-  "version": "2.0.10",
+  "version": "2.0.11",
   "publishConfig": {
     "access": "public",
     "registry": "https://registry.npmjs.org/"
@@ -27,7 +27,7 @@
     "lint": "bunx eslint --config ../../eslint.config.mjs ."
   },
   "dependencies": {
-    "@getmikk/core": "workspace:*"
+    "@getmikk/core": "^2.0.11"
   },
   "devDependencies": {
     "typescript": "^5.7.0",
