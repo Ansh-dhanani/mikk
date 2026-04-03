@@ -58,16 +58,59 @@ function getSemanticSearcher(projectRoot: string): SemanticSearcher {
     return s
 }
 const _CPT = 4; const _ALC = 42
+const MIN_TOKEN_BUDGET = 200
+const MAX_TOKEN_BUDGET = 10_000
 interface TokenTally { calls: number; used: number; raw: number; saved: number; start: number }
 const _tallies = new Map<string, TokenTally>()
 function _tally(r: string): TokenTally { let t = _tallies.get(r); if (!t) { t = { calls: 0, used: 0, raw: 0, saved: 0, start: Date.now() }; _tallies.set(r, t) } return t }
 function _tok(o: unknown): number { return Math.max(1, Math.round(JSON.stringify(o).length / _CPT)) }
 function _fileTok(lock: MikkLock, fp: string): number { const fs2 = Object.values(lock.functions).filter(f => f.file === fp); const ln = fs2.length > 0 ? Math.max(...fs2.map(f => f.endLine)) : 80; return Math.round((ln * _ALC) / _CPT) }
 function _filesTok(lock: MikkLock, fps: string[]): number { return fps.reduce((s, f) => s + _fileTok(lock, f), 0) }
+function _clampBudget(budget?: number): number {
+    const b = typeof budget === 'number' && Number.isFinite(budget) ? Math.round(budget) : 1200
+    return Math.min(MAX_TOKEN_BUDGET, Math.max(MIN_TOKEN_BUDGET, b))
+}
+function _compactImpacted<T>(items: T[], base: unknown, budget: number, floor = 5): { items: T[]; minimized: boolean; estimatedTokens: number } {
+    if (items.length === 0) return { items, minimized: false, estimatedTokens: _tok(base) }
+    let keep = items.length
+    let candidate = items.slice(0, keep)
+    let probe = { ...(base as any), impacted: candidate }
+    let est = _tok(probe)
+    if (est <= budget) return { items: candidate, minimized: false, estimatedTokens: est }
+    while (est > budget && keep > floor) {
+        keep = Math.max(floor, Math.floor(keep * 0.7))
+        candidate = items.slice(0, keep)
+        probe = { ...(base as any), impacted: candidate }
+        est = _tok(probe)
+        if (keep === floor) break
+    }
+    return { items: candidate, minimized: true, estimatedTokens: est }
+}
 function _track(root: string, raw: number, resp: unknown): Record<string, number> {
     const used = _tok(resp); const saved = Math.max(0, raw - used); const t = _tally(root)
     t.calls++; t.used += used; t.raw += raw; t.saved += saved
     return { used, raw, saved, sessionSaved: t.saved, sessionCalls: t.calls }
+}
+
+function isTrackedByLock(lock: MikkLock, projectRoot: string, resolvedPath: string): boolean {
+    const rootResolved = path.resolve(projectRoot)
+    const normalizedResolved = path.resolve(resolvedPath).replace(/\\/g, '/').toLowerCase()
+    const rel = path.relative(rootResolved, resolvedPath).replace(/\\/g, '/')
+    const normalizedRel = rel.toLowerCase()
+
+    if (normalizedRel in lock.files) return true
+
+    for (const key of Object.keys(lock.files)) {
+        const normalizedKey = key.replace(/\\/g, '/').toLowerCase()
+        if (normalizedKey === normalizedRel || normalizedKey === normalizedResolved) return true
+    }
+
+    for (const info of Object.values(lock.files)) {
+        const filePath = (info.path || '').replace(/\\/g, '/').toLowerCase()
+        if (filePath === normalizedResolved || filePath === normalizedRel) return true
+    }
+
+    return false
 }
 
 // Singleton per projectRoot — pipeline load is ~1-2s, must not repeat per request
@@ -132,6 +175,9 @@ export function registerTools(server: McpServer, projectRoot: string) {
 
             const overview = {
                 project: contract.project,
+                // Compatibility aliases for older clients/evaluators.
+                functions: Object.keys(lock.functions).length,
+                files: Object.keys(lock.files).length,
                 totalFunctions: Object.keys(lock.functions).length,
                 totalFiles: Object.keys(lock.files).length,
                 totalModules: modules.length,
@@ -252,8 +298,10 @@ export function registerTools(server: McpServer, projectRoot: string) {
         'Analyze the blast radius of changing a file. Returns impacted functions classified by severity (critical/high/medium/low). WHEN TO USE: Before refactoring, renaming, or modifying shared code. AFTER THIS: Use mikk_get_function_detail on critical/high items to review them.',
         {
             file: z.string().describe('The file path (relative to project root) to analyze impact for'),
+            tokenBudget: z.number().optional().describe('Token budget for response payload (default: 1200)'),
+            abortOnHighTokens: z.boolean().optional().default(false).describe('If true, fail fast instead of returning minimized payload when token budget is exceeded'),
         },
-        async ({ file }) => {
+        async ({ file, tokenBudget, abortOnHighTokens }) => {
             const { lock, staleness } = await loadContractAndLock(projectRoot)
             const graph = buildGraphFromLock(lock)
             const analyzer = new ImpactAnalyzer(graph)
@@ -278,12 +326,14 @@ export function registerTools(server: McpServer, projectRoot: string) {
 
             const result = analyzer.analyze(fileNodes.map(n => n.id))
 
-            const impactedDetails = result.impacted.slice(0, 30).map(id => {
+            const fullImpacted = result.impacted.map(id => {
                 const node = graph.nodes.get(id)
                 return { function: node?.name ?? id, file: node?.file ?? '', module: node?.moduleId ?? '' }
             })
 
-            const response = {
+            const budget = _clampBudget(tokenBudget)
+
+            const baseResponse = {
                 file,
                 changedNodes: result.changed.length,
                 impactedNodes: result.impacted.length,
@@ -297,10 +347,44 @@ export function registerTools(server: McpServer, projectRoot: string) {
                     criticalItems: result.classified.critical.slice(0, 10),
                     highItems: result.classified.high.slice(0, 10),
                 },
-                impacted: impactedDetails,
-                truncated: result.impacted.length > 30,
                 warning: staleness,
                 hint: 'Next: Use mikk_get_function_detail on critical/high items to review them. Then mikk_before_edit to validate your planned changes.',
+            }
+
+            const compact = _compactImpacted(fullImpacted, baseResponse, budget)
+            if (abortOnHighTokens && compact.minimized) {
+                return {
+                    content: [{
+                        type: 'text' as const,
+                        text: JSON.stringify({
+                            ...baseResponse,
+                            warning: `Token budget exceeded (${budget}). Aborting early to preserve agent efficiency.`,
+                            tokenGuard: {
+                                budget,
+                                estimatedTokens: compact.estimatedTokens,
+                                minimized: true,
+                                shouldAbort: true,
+                                originalImpactedNodes: fullImpacted.length,
+                                returnedImpactedNodes: 0,
+                            },
+                        }, null, 2),
+                    }],
+                    isError: true,
+                }
+            }
+
+            const response = {
+                ...baseResponse,
+                impacted: compact.items,
+                truncated: compact.minimized || compact.items.length < fullImpacted.length,
+                tokenGuard: {
+                    budget,
+                    estimatedTokens: compact.estimatedTokens,
+                    minimized: compact.minimized,
+                    shouldAbort: false,
+                    originalImpactedNodes: fullImpacted.length,
+                    returnedImpactedNodes: compact.items.length,
+                },
             }
 
             // Token savings: replaces reading the changed file + all its dependents manually
@@ -378,11 +462,14 @@ export function registerTools(server: McpServer, projectRoot: string) {
         'MANDATORY: Call BEFORE editing any file. Returns blast radius, exported functions at risk, constraint violations (6 rule types), and circular dependency warnings. WHEN TO USE: ALWAYS before modifying files. AFTER THIS: If constraintStatus is fail, redesign your approach. If pass, proceed with edits. TIP: Pass multiple files for combined blast radius.',
         {
             files: z.array(z.string()).min(1).max(20).describe('The file paths (relative to project root) you are about to edit'),
+            tokenBudget: z.number().optional().describe('Token budget for response payload (default: 1200)'),
+            abortOnHighTokens: z.boolean().optional().default(false).describe('If true, fail fast when payload exceeds token budget'),
         },
-        async ({ files: filesToEdit }) => {
+        async ({ files: filesToEdit, tokenBudget, abortOnHighTokens }) => {
             const { contract, lock, staleness } = await loadContractAndLock(projectRoot)
             const graph = buildGraphFromLock(lock)
             const analyzer = new ImpactAnalyzer(graph)
+            const budget = _clampBudget(tokenBudget)
 
             // Run boundary checker to detect actual constraint violations
             const checker = new BoundaryChecker(contract, lock)
@@ -405,7 +492,7 @@ export function registerTools(server: McpServer, projectRoot: string) {
                 }
 
                 const result = analyzer.analyze(fileFns.map(fn => fn.id))
-                const impactedDetails = result.impacted.slice(0, 20).map(id => {
+                const fullImpactedDetails = result.impacted.map(id => {
                     const node = graph.nodes.get(id)
                     return { function: node?.name ?? id, file: node?.file ?? '', module: node?.moduleId ?? '' }
                 })
@@ -430,14 +517,22 @@ export function registerTools(server: McpServer, projectRoot: string) {
                 // Detect circular dependencies for this file's functions
                 const circularWarnings = detectCircularDeps(fileFns, lock)
 
+                const perFileBase = {
+                    file,
+                    impactedNodes: result.impacted.length,
+                    depth: result.depth,
+                    confidence: result.confidence,
+                }
+                const compact = _compactImpacted(fullImpactedDetails, perFileBase, Math.max(120, Math.floor(budget / Math.max(1, filesToEdit.length))), 4)
+
                 fileReports[file] = {
                     functionsInFile: fileFns.map(fn => fn.name),
                     exportedAtRisk,
                     impactedNodes: result.impacted.length,
                     depth: result.depth,
                     confidence: result.confidence,
-                    impacted: impactedDetails,
-                    truncated: result.impacted.length > 20,
+                    impacted: compact.items,
+                    truncated: compact.minimized || compact.items.length < fullImpactedDetails.length,
                     constraints: contract.declared.constraints,
                     constraintStatus: fileViolations.length === 0 ? 'pass' : 'fail',
                     violations: fileViolations,
@@ -460,6 +555,34 @@ export function registerTools(server: McpServer, projectRoot: string) {
                 hint: totalViolations > 0
                     ? '⚠ Constraint violations detected! Review the violations before proceeding. Use mikk_get_constraints for full rule context.'
                     : 'All constraints satisfied. If safe, proceed with your edits.',
+            }
+
+            const estimated = _tok(response)
+            if (estimated > budget && abortOnHighTokens) {
+                return {
+                    content: [{
+                        type: 'text' as const,
+                        text: JSON.stringify({
+                            summary: response.summary,
+                            constraintStatus: response.constraintStatus,
+                            warning: `Token budget exceeded (${budget}). Aborting early to preserve agent efficiency.`,
+                            tokenGuard: {
+                                budget,
+                                estimatedTokens: estimated,
+                                minimized: true,
+                                shouldAbort: true,
+                            },
+                        }, null, 2),
+                    }],
+                    isError: true,
+                }
+            }
+
+            ; (response as any).tokenGuard = {
+                budget,
+                estimatedTokens: estimated,
+                minimized: estimated > budget,
+                shouldAbort: false,
             }
 
             // Token savings: replaces reading each edited file + tracing call graph manually
@@ -562,7 +685,7 @@ export function registerTools(server: McpServer, projectRoot: string) {
             const { lock, staleness } = await loadContractAndLock(projectRoot)
 
             const matches = Object.values(lock.functions).filter(
-                f => f.name === name || f.name.endsWith(`.${name}`) || f.id.includes(name),
+                f => f.name === name || f.name.endsWith(`.${name}`) || (f.id ?? '').includes(name),
             )
 
             if (matches.length === 0) {
@@ -586,7 +709,7 @@ export function registerTools(server: McpServer, projectRoot: string) {
 
                     const rel = path.relative(rootResolved, resolved).replace(/\\/g, '/')
                     const allowlisted = new Set(['mikk.json', 'mikk.lock.json', 'package.json', 'tsconfig.json'])
-                    if (!(rel in lock.files) && !allowlisted.has(rel)) {
+                    if (!isTrackedByLock(lock, projectRoot, resolved) && !allowlisted.has(rel)) {
                         throw new Error('Access denied')
                     }
 
@@ -823,7 +946,7 @@ export function registerTools(server: McpServer, projectRoot: string) {
                 const rel = path.relative(path.resolve(projectRoot), resolved).replace(/\\/g, '/')
                 const { lock } = await loadContractAndLock(projectRoot)
                 const allowlisted = new Set(['mikk.json', 'mikk.lock.json', 'package.json', 'tsconfig.json'])
-                const isTracked = rel in lock.files
+                const isTracked = isTrackedByLock(lock, projectRoot, resolved)
                 if (!isTracked && !allowlisted.has(rel)) {
                     return {
                         content: [{ type: 'text' as const, text: `Access denied: "${file}" is not tracked in mikk.lock.json.` }],
@@ -860,7 +983,7 @@ export function registerTools(server: McpServer, projectRoot: string) {
             const { lock, staleness } = await loadContractAndLock(projectRoot)
 
             const fn = Object.values(lock.functions).find(
-                f => f.name === name || f.name.endsWith(`.${name}`) || f.id.includes(name),
+                f => f.name === name || f.name.endsWith(`.${name}`) || (f.id ?? '').includes(name),
             )
 
             if (!fn) {
@@ -1358,7 +1481,7 @@ export function registerTools(server: McpServer, projectRoot: string) {
                 }))
 
             const filesImporting = Object.values(lock.files).filter(file =>
-                file.imports?.some(imp => imp.names.includes(functionName) || imp.source === targetFn.file)
+                file.imports?.some(imp => (imp.names ?? []).includes(functionName) || imp.source === targetFn.file)
             )
 
             const instructions = [
@@ -1502,6 +1625,14 @@ async function loadContractAndLock(projectRoot: string) {
 
     // Build graph and cache everything
     const graph = buildGraphFromLock(lock)
+
+    // If the lock has many functions but zero call edges, impact analysis can
+    // silently under-report. Surface this as an explicit degraded-state warning.
+    const callEdgeCount = graph.edges.filter(e => e.type === 'calls').length
+    const functionCount = Object.keys(lock.functions).length
+    if (!staleness && functionCount >= 50 && callEdgeCount === 0) {
+        staleness = '⚠ DEGRADED: lock has zero call edges. Blast radius may be underestimated. Run `mikk analyze` and verify parser extraction.'
+    }
     projectCache.set(projectRoot, {
         contract, lock, graph, staleness,
         cachedAt: Date.now(),

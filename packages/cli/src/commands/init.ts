@@ -5,9 +5,10 @@ import chalk from 'chalk'
 import {
     discoverFiles, discoverContextFiles, parseFiles, readFileContent,
     GraphBuilder, ClusterDetector, ContractGenerator,
-    LockCompiler, ContractWriter, LockReader,
+    LockCompiler, LockReader,
     setupMikkDirectory, fileExists, generateMikkIgnore, updateGitIgnore,
     detectProjectLanguage, getDiscoveryPatterns,
+    runArtifactWriteTransaction, recoverArtifactWriteTransactions,
     type MikkContract
 } from '@getmikk/core'
 import { panel, kv, cols, gap, line, sq } from '../ui.js'
@@ -23,6 +24,8 @@ export function registerInitCommand(program: Command) {
             const projectRoot = process.cwd()
 
             try {
+                await recoverArtifactWriteTransactions(projectRoot)
+
                 // Guard: warn if already initialized (unless --force)
                 const contractPath = path.join(projectRoot, 'mikk.json')
                 if (!options.force && await fileExists(contractPath)) {
@@ -74,7 +77,8 @@ export function registerInitCommand(program: Command) {
                     | ((
                         filePaths: string[],
                         root: string,
-                        reader: (fp: string) => Promise<string>
+                        reader: (fp: string) => Promise<string>,
+                        options?: { strictParserPreflight?: boolean }
                     ) => Promise<{
                         files: any[]
                         diagnostics: Array<{ reason: string }>
@@ -83,7 +87,9 @@ export function registerInitCommand(program: Command) {
                     | undefined
 
                 const parseResult = typeof parseWithDiagnostics === 'function'
-                    ? await parseWithDiagnostics(files, projectRoot, (fp) => readFileContent(fp))
+                    ? await parseWithDiagnostics(files, projectRoot, (fp) => readFileContent(fp), {
+                        strictParserPreflight: Boolean(options.strictParsing),
+                    })
                     : {
                         files: await parseFiles(files, projectRoot, (fp) => readFileContent(fp)),
                         diagnostics: [],
@@ -192,13 +198,45 @@ export function registerInitCommand(program: Command) {
                 // 8. Compile lock file
                 const compiler = new LockCompiler()
                 const lock = compiler.compile(graph, contract, parsedFiles, contextFiles, projectRoot)
+                lock.syncState.parseDiagnostics = {
+                    requestedFiles: files.length,
+                    parsedFiles: parsedFiles.length,
+                    fallbackFiles: parseResult.summary.fallbackFiles,
+                    diagnostics: parseResult.summary.diagnostics,
+                }
                 const functionCount = Object.keys(lock.functions).length
 
                 // 9. Write everything to disk
-                const contractWriter = new ContractWriter()
-                await contractWriter.writeNew(contract, contractPath)
                 const lockReader = new LockReader()
-                await lockReader.write(lock, path.join(projectRoot, 'mikk.lock.json'))
+                const lockPath = path.join(projectRoot, 'mikk.lock.json')
+                const preparedLock = await lockReader.prepareForWrite(lock, lockPath)
+                const callEdgeCount = Object.values(preparedLock.functions).reduce((sum, fn) => sum + fn.calls.length, 0)
+
+                // Robustness gate: detect edge-less locks that would break blast radius tools.
+                if (options.strictParsing && functionCount >= 50 && callEdgeCount === 0) {
+                    throw new Error(
+                        'Strict parsing failed: generated lock has zero call edges for a large codebase. ' +
+                        'Blast radius would be unreliable. Check parser extraction and retry.'
+                    )
+                }
+
+                if (!options.strictParsing && functionCount >= 50 && callEdgeCount === 0) {
+                    console.log(chalk.yellow(
+                        '\n⚠ Degraded analysis: generated lock has zero call edges. ' +
+                        'Blast radius may be underestimated. Use --strict-parsing to fail on this condition.'
+                    ))
+                }
+
+                const artifactWrites: Array<{ targetPath: string; content: string }> = [
+                    {
+                        targetPath: contractPath,
+                        content: JSON.stringify(contract, null, 2),
+                    },
+                    {
+                        targetPath: lockPath,
+                        content: lockReader.serialize(preparedLock),
+                    },
+                ]
 
                 const diagSpinner = ora('Generating Mermaid diagrams...').start()
                 try {
@@ -220,17 +258,23 @@ export function registerInitCommand(program: Command) {
                         dependencies: pkgJson.dependencies,
                         devDependencies: pkgJson.devDependencies,
                     }
-                    const mdGenerator = new ClaudeMdGenerator(contract, lock, undefined, meta, projectRoot)
+                    const mdGenerator = new ClaudeMdGenerator(contract, preparedLock, undefined, meta, projectRoot)
                     const claudeMd = mdGenerator.generate()
-                    await fs.writeFile(path.join(projectRoot, 'claude.md'), claudeMd, 'utf-8')
-                    await patchFileContent(path.join(projectRoot, 'AGENTS.md'), claudeMd)
+                    artifactWrites.push({
+                        targetPath: path.join(projectRoot, 'claude.md'),
+                        content: claudeMd,
+                    })
 
                     const openclawGenerator = new OpenClawRulesGenerator(projectName)
                     const clinerules = openclawGenerator.generate()
+
+                    await runArtifactWriteTransaction(projectRoot, 'init-artifacts', artifactWrites)
+                    await patchFileContent(path.join(projectRoot, 'AGENTS.md'), claudeMd)
                     await patchFileContent(path.join(projectRoot, '.clinerules'), clinerules)
 
                     aiSpinner.succeed('AI context files patched successfully')
                 } catch {
+                    await runArtifactWriteTransaction(projectRoot, 'init-artifacts', artifactWrites)
                     aiSpinner.warn('AI context generation skipped (package not available)')
                 }
 

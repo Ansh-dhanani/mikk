@@ -2,7 +2,7 @@ import * as path from 'node:path'
 import type { Command } from 'commander'
 import chalk from 'chalk'
 import { WatcherDaemon } from '@getmikk/watcher'
-import { ContractReader } from '@getmikk/core'
+import { ContractReader, detectProjectLanguage, getDiscoveryPatterns } from '@getmikk/core'
 
 export function registerWatchCommand(program: Command) {
     program
@@ -22,10 +22,13 @@ export function registerWatchCommand(program: Command) {
 
             console.log(chalk.bold('🔍 Starting Mikk watcher...\n'))
 
+            const language = await detectProjectLanguage(projectRoot)
+            const { patterns, ignore } = getDiscoveryPatterns(language)
+
             const daemon = new WatcherDaemon({
                 projectRoot,
-                include: ['**/*.ts', '**/*.tsx'],
-                exclude: ['**/node_modules/**', '**/dist/**', '**/.mikk/**', '**/coverage/**', '**/*.d.ts'],
+                include: patterns,
+                exclude: ignore,
                 debounceMs: 100,
             })
 

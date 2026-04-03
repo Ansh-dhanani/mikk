@@ -3,6 +3,7 @@ import * as fs from 'node:fs/promises'
 import type { Command } from 'commander'
 import chalk from 'chalk'
 import { panel, sq, gap, kv } from '../ui.js'
+import { detectProjectLanguage, parseFilesWithDiagnostics } from '@getmikk/core'
 
 interface CheckResult {
     name: string
@@ -78,6 +79,57 @@ export function registerDoctorCommand(program: Command) {
                 checks.push({ name: '.mikk directory', pass: true, message: 'Present' })
             } catch {
                 checks.push({ name: '.mikk directory', pass: false, message: 'Not found', fix: 'Run `mikk analyze`' })
+            }
+
+            // 8. parser runtime preflight (for tree-sitter-backed languages)
+            const language = await detectProjectLanguage(projectRoot)
+            const preflightExtensionByLanguage: Record<string, string> = {
+                python: '.py',
+                java: '.java',
+                swift: '.swift',
+                ruby: '.rb',
+                php: '.php',
+                csharp: '.cs',
+                rust: '.rs',
+                c: '.c',
+                cpp: '.cpp',
+            }
+            const preflightExt = preflightExtensionByLanguage[language]
+
+            if (preflightExt) {
+                try {
+                    const preflight = await parseFilesWithDiagnostics(
+                        [`__mikk_preflight__${preflightExt}`],
+                        projectRoot,
+                        async () => '',
+                        { strictParserPreflight: true },
+                    )
+
+                    const unavailable = preflight.diagnostics.some(d => d.reason === 'parser-unavailable')
+                    if (unavailable) {
+                        checks.push({
+                            name: 'Parser runtime',
+                            pass: false,
+                            message: `Tree-sitter runtime missing for ${language}`,
+                            fix: 'Install parser runtime dependencies or run with non-strict parsing',
+                        })
+                    } else {
+                        checks.push({ name: 'Parser runtime', pass: true, message: `Ready for ${language}` })
+                    }
+                } catch {
+                    checks.push({
+                        name: 'Parser runtime',
+                        pass: false,
+                        message: `Preflight failed for ${language}`,
+                        fix: 'Run `mikk analyze` and inspect parser diagnostics',
+                    })
+                }
+            } else {
+                checks.push({
+                    name: 'Parser runtime',
+                    pass: true,
+                    message: `Not required for ${language} (Oxc parser path)`,
+                })
             }
 
             // ── Retro output ──────────────────────────────────────────────────

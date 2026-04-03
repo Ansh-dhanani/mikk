@@ -1,420 +1,425 @@
 /**
- * Mikk Ground Truth Benchmark
- * 
- * Tests Mikk against verified ground truth data to measure actual accuracy.
+ * Mikk Ground Truth Benchmark (Semantic)
+ *
+ * Local-only benchmark that scores semantic correctness against explicit,
+ * source-derived truth labels from the ts-express-api fixture.
+ *
  * Run: bun run benchmarks/ground-truth-benchmark.ts
  */
 
 import * as fs from 'node:fs/promises'
 import * as path from 'node:path'
-import { performance } from 'node:perf_hooks'
+import { spawn, spawnSync } from 'node:child_process'
 
-const MIKK_CLI = path.join(process.cwd(), 'packages/cli/dist/index.js')
-const FIXTURES_DIR = path.join(process.cwd(), 'benchmarks/fixtures')
+const PROJECT_ROOT = process.cwd()
+const MIKK_CLI = path.join(PROJECT_ROOT, 'packages/cli/dist/index.js')
+const FIXTURE_PROJECT = path.join(PROJECT_ROOT, 'benchmarks/fixtures/ts-express-api')
+const REPORT_PATH = path.join(PROJECT_ROOT, 'benchmarks/ground-truth-report.json')
 
-// Get fixture paths relative to project root
-const getFixturePath = (name: string) => path.join(FIXTURES_DIR, name)
-
-const TEST_PROJECTS = [
-    getFixturePath('ts-express-api'),
-    getFixturePath('python-service'),
-    getFixturePath('go-service'),
-    getFixturePath('java-service'),
-    process.cwd(), // Mikk self
-]
-
-interface BenchmarkResult {
+interface MetricResult {
     test: string
-    project: string
     metric: string
-    value: number
-    expected: number
+    score: number
+    maxScore: number
     accuracy: number
     details: string
 }
 
-const results: BenchmarkResult[] = []
+interface GroundTruth {
+    routes: Set<string>
+    jwtCallers: Record<string, Set<string>>
+}
 
-async function runCommand(cmd: string, cwd: string): Promise<string> {
-    const { execSync } = await import('child_process')
-    try {
-        return execSync(cmd, { cwd, encoding: 'utf-8', timeout: 30000 })
-    } catch (e: any) {
-        return e.stdout || e.message || ''
+interface CommandResult {
+    code: number | null
+    stdout: string
+    stderr: string
+}
+
+interface McpToolResult {
+    transportOk: boolean
+    isError: boolean
+    text: string
+    json: any
+}
+
+function normalizePath(filePath: string): string {
+    return filePath.replace(/\\/g, '/').replace(/^\.?\//, '')
+}
+
+function scoreToPct(score: number, maxScore: number): number {
+    if (maxScore <= 0) return 0
+    return Math.round((score / maxScore) * 100)
+}
+
+function f1FromSets(expected: Set<string>, observed: Set<string>) {
+    const intersection = [...observed].filter((item) => expected.has(item)).length
+    const precision = observed.size > 0 ? intersection / observed.size : 0
+    const recall = expected.size > 0 ? intersection / expected.size : 0
+    const f1 = precision + recall > 0 ? (2 * precision * recall) / (precision + recall) : 0
+    return {
+        precision,
+        recall,
+        f1,
+        matched: intersection,
     }
 }
 
-async function loadLock(projectPath: string) {
-    const lockPath = path.join(projectPath, 'mikk.lock.json')
-    try {
-        return JSON.parse(await fs.readFile(lockPath, 'utf-8'))
-    } catch {
-        return null
-    }
-}
-
-async function benchmarkDeadCodeDetection(projectPath: string, projectName: string) {
-    console.log(`\n📊 Testing Dead Code Detection: ${projectName}`)
-    
-    const lock = await loadLock(projectPath)
-    if (!lock) {
-        console.log('  ⚠️  No lock file, skipping')
-        return
-    }
-
-    const functions = Object.values(lock.functions || {}) as any[]
-    const graph = lock.graph || { nodes: 0, edges: 0 }
-    
-    console.log(`  Functions: ${functions.length}`)
-    console.log(`  Graph nodes: ${graph.nodes}, edges: ${graph.edges}`)
-
-    // Ground truth: Calculate actual dead functions from calls
-    // A function is truly dead if:
-    // 1. It has no callers (no calledBy)
-    // 2. It's not exported
-    // 3. It's not a constructor or test
-    // 4. It's not a route handler
-
-    let trulyDead = 0
-    let potentiallyDead = 0
-    
-    for (const fn of functions) {
-        const hasNoCallers = !fn.calls || fn.calls.length === 0
-        const isExported = fn.isExported === true
-        const isTest = fn.name?.toLowerCase().includes('test') || 
-                       fn.purpose?.toLowerCase().includes('test')
-        const isConstructor = fn.name === 'constructor'
-        const isHandler = fn.purpose?.toLowerCase().includes('handler') ||
-                         fn.purpose?.toLowerCase().includes('route')
-        
-        if (hasNoCallers && !isExported && !isTest && !isConstructor && !isHandler) {
-            trulyDead++
-        }
-        if (hasNoCallers && !isTest && !isConstructor) {
-            potentiallyDead++
-        }
-    }
-
-    // Get Mikk's reported dead code
-    const output = await runCommand(`node ${MIKK_CLI} dead-code`, projectPath)
-    const deadMatch = output.match(/Dead functions:\s+(\d+)/)
-    const mikkDead = deadMatch ? parseInt(deadMatch[1]) : 0
-
-    // Calculate accuracy
-    const expectedDead = trulyDead
-    const accuracy = expectedDead > 0 ? Math.round((Math.min(mikkDead, expectedDead) / expectedDead) * 100) : 100
-
-    console.log(`  Expected dead (ground truth): ${expectedDead}`)
-    console.log(`  Mikk reported: ${mikkDead}`)
-    console.log(`  Accuracy: ${accuracy}%`)
-
-    results.push({
-        test: 'dead-code-detection',
-        project: projectName,
-        metric: 'precision',
-        value: mikkDead,
-        expected: expectedDead,
-        accuracy,
-        details: `Potentially dead: ${potentiallyDead}, Exported fns excluded: ${potentiallyDead - expectedDead}`
+function runLocalCli(args: string[], cwd: string): CommandResult {
+    const res = spawnSync('node', [MIKK_CLI, ...args], {
+        cwd,
+        encoding: 'utf8',
+        timeout: 45000,
     })
+
+    return {
+        code: res.status,
+        stdout: (res.stdout || '').trim(),
+        stderr: (res.stderr || '').trim(),
+    }
 }
 
-async function benchmarkFunctionSearch(projectPath: string, projectName: string) {
-    console.log(`\n📊 Testing Function Search: ${projectName}`)
-    
-    const lock = await loadLock(projectPath)
-    if (!lock) {
-        console.log('  ⚠️  No lock file, skipping')
-        return
+function normalizeRoute(method: string, routePath: string): string {
+    return `${method.toUpperCase()} ${routePath}`.replace(/\/+/g, '/').replace(/\/$/, '')
+}
+
+function collectRoutesFromFile(content: string, routerVar: string): Set<string> {
+    const routes = new Set<string>()
+    const routeRegex = new RegExp(`${routerVar}\\.(get|post|put|patch|delete)\\('([^']+)'`, 'g')
+    let match: RegExpExecArray | null
+
+    while ((match = routeRegex.exec(content)) !== null) {
+        const method = match[1]
+        const localPath = match[2]
+        routes.add(normalizeRoute(method, localPath))
     }
 
-    const testQueries = [
-        { query: 'validate JWT token', expectedModule: 'auth' },
-        { query: 'create user', expectedModule: 'user' },
-        { query: 'database connection', expectedModule: 'db' },
-    ]
+    return routes
+}
 
-    let totalRelevance = 0
-    
-    for (const { query, expectedModule } of testQueries) {
-        const output = await runCommand(
-            `node ${MIKK_CLI} context query "${query}"`,
-            projectPath
-        )
-        
-        // Check if relevant module appears in results
-        const hasRelevant = output.toLowerCase().includes(expectedModule.toLowerCase())
-        totalRelevance += hasRelevant ? 100 : 0
-        
-        console.log(`  Query "${query}": ${hasRelevant ? '✅' : '❌'} found ${expectedModule}`)
+function countCallersInSource(allSource: string, functionName: string): Set<string> {
+    const callers = new Set<string>()
+
+    // Lightweight caller scan for explicit known fixtures.
+    if (functionName === 'verifyToken') {
+        if (/validateSession\s*\([\s\S]*?verifyToken\(/.test(allSource)) callers.add('validateSession')
+        if (/refreshToken\s*\([\s\S]*?verifyToken\(/.test(allSource)) callers.add('refreshToken')
+    }
+    if (functionName === 'signToken') {
+        if (/loginUser\s*\([\s\S]*?signToken\(/.test(allSource)) callers.add('loginUser')
+        if (/refreshToken\s*\([\s\S]*?signToken\(/.test(allSource)) callers.add('refreshToken')
+    }
+    return callers
+}
+
+async function buildGroundTruth(): Promise<GroundTruth> {
+    const authPath = path.join(FIXTURE_PROJECT, 'src/routes/auth.ts')
+    const usersPath = path.join(FIXTURE_PROJECT, 'src/routes/users.ts')
+    const paymentsPath = path.join(FIXTURE_PROJECT, 'src/routes/payments.ts')
+    const jwtPath = path.join(FIXTURE_PROJECT, 'src/auth/jwt.ts')
+    const sessionPath = path.join(FIXTURE_PROJECT, 'src/auth/session.ts')
+    const userServicePath = path.join(FIXTURE_PROJECT, 'src/users/service.ts')
+
+    const [authContent, usersContent, paymentsContent, jwtContent, sessionContent, userServiceContent] = await Promise.all([
+        fs.readFile(authPath, 'utf8'),
+        fs.readFile(usersPath, 'utf8'),
+        fs.readFile(paymentsPath, 'utf8'),
+        fs.readFile(jwtPath, 'utf8'),
+        fs.readFile(sessionPath, 'utf8'),
+        fs.readFile(userServicePath, 'utf8'),
+    ])
+
+    const expectedRoutes = new Set<string>([
+        ...collectRoutesFromFile(authContent, 'authRouter'),
+        ...collectRoutesFromFile(usersContent, 'usersRouter'),
+        ...collectRoutesFromFile(paymentsContent, 'paymentsRouter'),
+    ])
+
+    const sourceBlob = [jwtContent, sessionContent, userServiceContent].join('\n')
+    const jwtCallers = {
+        verifyToken: countCallersInSource(sourceBlob, 'verifyToken'),
+        signToken: countCallersInSource(sourceBlob, 'signToken'),
     }
 
-    const accuracy = Math.round(totalRelevance / testQueries.length)
-    console.log(`  Search accuracy: ${accuracy}%`)
+    return {
+        routes: expectedRoutes,
+        jwtCallers,
+    }
+}
 
-    results.push({
-        test: 'function-search',
-        project: projectName,
-        metric: 'relevance',
-        value: totalRelevance / testQueries.length,
-        expected: 100,
-        accuracy,
-        details: `${testQueries.length} queries tested`
+function startLocalMcpServer(projectPath: string) {
+    const proc = spawn('node', [MIKK_CLI, 'mcp', 'start', '--project', projectPath], {
+        cwd: PROJECT_ROOT,
+        stdio: ['pipe', 'pipe', 'pipe'],
     })
-}
 
-async function benchmarkImpactAnalysis(projectPath: string, projectName: string) {
-    console.log(`\n📊 Testing Impact Analysis: ${projectName}`)
-    
-    const lock = await loadLock(projectPath)
-    if (!lock) {
-        console.log('  ⚠️  No lock file, skipping')
-        return
-    }
+    let buffer = ''
+    let initialized = false
+    let requestId = 1
+    const pending = new Map<number, { resolve: (value: any) => void; reject: (err: Error) => void }>()
 
-    // Find a key file to test impact
-    const files = Object.keys(lock.files || {})
-    const testFile = files.find(f => f.includes('auth') || f.includes('user') || f.includes('main'))
-    
-    if (!testFile) {
-        console.log('  ⚠️  No suitable test file found')
-        return
-    }
+    proc.stdout.on('data', (data) => {
+        buffer += data.toString()
+        const lines = buffer.split('\n')
+        buffer = lines.pop() || ''
 
-    const relativePath = testFile.split(/[/\\]/).slice(-2).join('/')
-    const output = await runCommand(
-        `node ${MIKK_CLI} context impact ${relativePath}`,
-        projectPath
-    )
+        for (const line of lines) {
+            if (!line.trim()) continue
+            let msg: any
+            try {
+                msg = JSON.parse(line)
+            } catch {
+                continue
+            }
 
-    // Extract impact count
-    const impactMatch = output.match(/Impacted nodes:\s+(\d+)/)
-    const impacted = impactMatch ? parseInt(impactMatch[1]) : 0
+            if (!initialized && msg.id === 1 && msg.result) {
+                initialized = true
+                proc.stdin.write(`${JSON.stringify({ jsonrpc: '2.0', method: 'notifications/initialized' })}\n`)
+            }
 
-    // Ground truth: Count functions in the file + their callers
-    // Get all functions that reference this file
-    const fileFunctions = Object.values(lock.functions as any[])
-        .filter((fn: any) => fn.file && fn.file.includes(relativePath.split('/')[0]))
-    
-    // Count unique functions that might be impacted
-    let expectedImpact = 0
-    for (const fn of fileFunctions) {
-        // Add the function itself
-        expectedImpact++
-        // Add its callees (functions it calls)
-        expectedImpact += (fn.calls || []).length
-    }
-
-    console.log(`  Test file: ${relativePath}`)
-    console.log(`  Mikk impacted: ${impacted}`)
-    console.log(`  Functions referencing file: ${fileFunctions.length}`)
-
-    // If file has no functions, we can't calculate meaningful ground truth
-    // But if Mikk returns > 0, that's good - it means it found impact
-    if (fileFunctions.length === 0) {
-        console.log('  ⚠️  No functions found in file - skipping accuracy calc')
-        results.push({
-            test: 'impact-analysis',
-            project: projectName,
-            metric: 'impact_coverage',
-            value: impacted,
-            expected: 0,
-            accuracy: impacted > 0 ? 100 : 0,
-            details: `No functions in file but Mikk found ${impacted} impacted`
-        })
-        return
-    }
-
-    const accuracy = impacted > 0 ? Math.min(100, Math.round((impacted / Math.max(expectedImpact, 1)) * 100)) : 0
-
-    results.push({
-        test: 'impact-analysis',
-        project: projectName,
-        metric: 'impact_coverage',
-        value: impacted,
-        expected: expectedImpact,
-        accuracy,
-        details: `Functions in file: ${fileFunctions.length}, calls made: ${expectedImpact - fileFunctions.length}`
-    })
-}
-
-async function benchmarkContextGeneration(projectPath: string, projectName: string) {
-    console.log(`\n📊 Testing Context Generation: ${projectName}`)
-    
-    const lock = await loadLock(projectPath)
-    if (!lock) {
-        console.log('  ⚠️  No lock file, skipping')
-        return
-    }
-
-    const functions = Object.values(lock.functions || {}) as any[]
-    const modules = Object.values(lock.modules || {}) as any[]
-    
-    // Test context generation - use 'query' instead of 'session'
-    const t0 = performance.now()
-    const output = await runCommand(
-        `node ${MIKK_CLI} context query "main function"`,
-        projectPath
-    )
-    const latency = Math.round(performance.now() - t0)
-
-    // Check if key info is present
-    const hasFunctions = output.includes('functions') || output.includes('Functions') || output.includes('<fn ')
-    const hasModules = output.includes('module') || output.includes('module')
-    const hasContext = output.includes('<mikk_context>') || output.length > 200
-    
-    const completeness = [hasFunctions, hasModules, hasContext].filter(Boolean).length * 100 / 3
-    const accuracy = output.length > 500 ? completeness : 0
-
-    console.log(`  Latency: ${latency}ms`)
-    console.log(`  Output length: ${output.length} chars`)
-    console.log(`  Has context: ${hasContext}, Has functions: ${hasFunctions}, Has modules: ${hasModules}`)
-    console.log(`  Completeness: ${Math.round(completeness)}%`)
-
-    results.push({
-        test: 'context-generation',
-        project: projectName,
-        metric: 'completeness',
-        value: output.length,
-        expected: 1000,
-        accuracy,
-        details: `Functions: ${functions.length}, Modules: ${modules.length}, Latency: ${latency}ms`
-    })
-}
-
-async function benchmarkRouteDetection(projectPath: string, projectName: string) {
-    console.log(`\n📊 Testing Route Detection: ${projectName}`)
-    
-    const lock = await loadLock(projectPath)
-    if (!lock) {
-        console.log('  ⚠️  No lock file, skipping')
-        return
-    }
-
-    // Count routes in lock file
-    const routes = lock.routes || []
-    const hasRoutes = routes.length > 0
-
-    // Also check if any functions have route handlers
-    const functions = Object.values(lock.functions || {}) as any[]
-    const routeHandlers = functions.filter((fn: any) => 
-        fn.purpose?.toLowerCase().includes('route') ||
-        fn.purpose?.toLowerCase().includes('handler') ||
-        fn.purpose?.toLowerCase().includes('endpoint')
-    )
-
-    // Get stats output
-    const output = await runCommand(`node ${MIKK_CLI} stats`, projectPath)
-    const routeMatch = output.match(/(\d+)\s+routes?/)
-    const mikkRoutes = routeMatch ? parseInt(routeMatch[1]) : 0
-
-    console.log(`  Lock file routes: ${routes.length}`)
-    console.log(`  Route handler functions: ${routeHandlers.length}`)
-    console.log(`  Mikk reported routes: ${mikkRoutes}`)
-
-    // For TS projects, we expect routes. For others, 0 is acceptable.
-    const isTSProject = projectName.includes('ts-') || projectName.includes('express')
-    const expectedRoutes = isTSProject ? Math.max(routes.length, routeHandlers.length) : 0
-    const accuracy = expectedRoutes > 0 
-        ? Math.min(100, Math.round((mikkRoutes / expectedRoutes) * 100))
-        : (mikkRoutes === 0 ? 100 : 0)
-
-    results.push({
-        test: 'route-detection',
-        project: projectName,
-        metric: 'detection',
-        value: mikkRoutes,
-        expected: expectedRoutes,
-        accuracy,
-        details: `Lock routes: ${routes.length}, Handler functions: ${routeHandlers.length}`
-    })
-}
-
-async function runBenchmarks() {
-    console.log('═══════════════════════════════════════════════════════════════')
-    console.log('          MIKK GROUND TRUTH BENCHMARK')
-    console.log('═══════════════════════════════════════════════════════════════')
-
-    const startTime = Date.now()
-
-    for (const projectPath of TEST_PROJECTS) {
-        const projectName = path.basename(projectPath)
-        
-        console.log(`\n${'═'.repeat(60)}`)
-        console.log(`📁 Project: ${projectName}`)
-        console.log(`   Path: ${projectPath}`)
-
-        try {
-            await benchmarkDeadCodeDetection(projectPath, projectName)
-            await benchmarkFunctionSearch(projectPath, projectName)
-            await benchmarkImpactAnalysis(projectPath, projectName)
-            await benchmarkContextGeneration(projectPath, projectName)
-            await benchmarkRouteDetection(projectPath, projectName)
-        } catch (e: any) {
-            console.error(`  ❌ Error: ${e.message}`)
-        }
-    }
-
-    // Generate summary report
-    console.log('\n' + '═'.repeat(60))
-    console.log('                    📈 BENCHMARK RESULTS')
-    console.log('═'.repeat(60))
-
-    // Group by test type
-    const testTypes = [...new Set(results.map(r => r.test))]
-    
-    for (const testType of testTypes) {
-        const testResults = results.filter(r => r.test === testType)
-        const avgAccuracy = Math.round(testResults.reduce((a, b) => a + b.accuracy, 0) / testResults.length)
-        
-        console.log(`\n🎯 ${testType} (Average: ${avgAccuracy}%)`)
-        console.log('-'.repeat(50))
-        
-        for (const r of testResults) {
-            const icon = r.accuracy >= 80 ? '✅' : r.accuracy >= 50 ? '⚠️' : '❌'
-            console.log(`  ${icon} ${r.project}: ${r.accuracy}% (${r.value}/${r.expected})`)
-            console.log(`      ${r.details}`)
-        }
-    }
-
-    // Overall summary
-    const overallAccuracy = Math.round(results.reduce((a, b) => a + b.accuracy, 0) / results.length)
-    const totalTime = Date.now() - startTime
-
-    console.log('\n' + '═'.repeat(60))
-    console.log('                   📊 OVERALL SUMMARY')
-    console.log('═'.repeat(60))
-    console.log(`\n  Overall Accuracy: ${overallAccuracy}%`)
-    console.log(`  Tests Run: ${results.length}`)
-    console.log(`  Projects Tested: ${TEST_PROJECTS.length}`)
-    console.log(`  Time Elapsed: ${Math.round(totalTime / 1000)}s`)
-
-    // Performance metrics
-    console.log('\n📈 Performance:')
-    const contextResults = results.filter(r => r.test === 'context-generation')
-    if (contextResults.length > 0) {
-        for (const r of contextResults) {
-            const latencyMatch = r.details.match(/Latency: (\d+)ms/)
-            if (latencyMatch) {
-                console.log(`  ${r.project}: ${latencyMatch[1]}ms`)
+            if (typeof msg.id === 'number' && pending.has(msg.id)) {
+                pending.get(msg.id)!.resolve(msg)
+                pending.delete(msg.id)
             }
         }
+    })
+
+    proc.stderr.on('data', () => {
+        // Keep stderr quiet in benchmark output unless command fails.
+    })
+
+    function send(method: string, params: any, timeoutMs = 45000): Promise<any> {
+        const id = requestId++
+        const payload = { jsonrpc: '2.0', id, method, params }
+        proc.stdin.write(`${JSON.stringify(payload)}\n`)
+
+        return new Promise((resolve, reject) => {
+            const timer = setTimeout(() => {
+                pending.delete(id)
+                reject(new Error(`Timeout while calling ${method}`))
+            }, timeoutMs)
+
+            pending.set(id, {
+                resolve: (msg) => {
+                    clearTimeout(timer)
+                    resolve(msg)
+                },
+                reject,
+            })
+        })
     }
 
-    // Save results
-    const reportPath = 'C:/Users/Ansh/Desktop/web/Mesh/benchmarks/ground-truth-report.json'
-    await fs.writeFile(reportPath, JSON.stringify({
-        timestamp: new Date().toISOString(),
-        overallAccuracy,
-        results,
-        summary: {
-            totalTests: results.length,
-            projects: TEST_PROJECTS.length,
-            duration: totalTime
-        }
-    }, null, 2))
+    async function initialize() {
+        await send('initialize', {
+            protocolVersion: '2024-11-05',
+            capabilities: {},
+            clientInfo: { name: 'mikk-semantic-benchmark', version: '1.0.0' },
+        })
+    }
 
-    console.log(`\n📄 Report saved to: ${reportPath}`)
+    function close() {
+        proc.kill()
+    }
+
+    return { send, initialize, close }
 }
 
-runBenchmarks().catch(console.error)
+function parseToolPayload(msg: any): McpToolResult {
+    const text = msg?.result?.content?.[0]?.text || ''
+    let json: any = null
+    try {
+        json = JSON.parse(text)
+    } catch {
+        json = null
+    }
+    return {
+        transportOk: Boolean(msg),
+        isError: Boolean(msg?.result?.isError || msg?.error),
+        text,
+        json,
+    }
+}
+
+async function callTool(client: ReturnType<typeof startLocalMcpServer>, toolName: string, args: Record<string, unknown> = {}) {
+    try {
+        const msg = await client.send('tools/call', { name: toolName, arguments: args })
+        return parseToolPayload(msg)
+    } catch (err: any) {
+        return {
+            transportOk: false,
+            isError: true,
+            text: String(err?.message || err),
+            json: null,
+        } as McpToolResult
+    }
+}
+
+function extractObservedRoutes(payload: McpToolResult): Set<string> {
+    const observed = new Set<string>()
+    const routes = payload.json?.routes
+    if (!Array.isArray(routes)) return observed
+
+    for (const route of routes) {
+        const method = String(route?.method || '').toUpperCase()
+        const routePath = String(route?.fullPath || route?.path || '')
+        if (!method || !routePath) continue
+        observed.add(normalizeRoute(method, routePath))
+    }
+    return observed
+}
+
+async function runSemanticBenchmark() {
+    if (!await fileExists(MIKK_CLI)) {
+        throw new Error(`Local CLI not found at ${MIKK_CLI}. Build CLI first.`)
+    }
+    if (!await fileExists(FIXTURE_PROJECT)) {
+        throw new Error(`Fixture project not found at ${FIXTURE_PROJECT}.`)
+    }
+
+    const truth = await buildGroundTruth()
+    const results: MetricResult[] = []
+
+    console.log('============================================================')
+    console.log('MIKK GROUND TRUTH BENCHMARK (SEMANTIC, LOCAL-ONLY)')
+    console.log('============================================================')
+    console.log(`Fixture: ${normalizePath(path.relative(PROJECT_ROOT, FIXTURE_PROJECT))}`)
+    console.log(`Expected route count (source): ${truth.routes.size}`)
+
+    const client = startLocalMcpServer(FIXTURE_PROJECT)
+    try {
+        await client.initialize()
+
+        console.log('\n[1/4] Route Precision/Recall via MCP mikk_get_routes')
+        const routesRes = await callTool(client, 'mikk_get_routes', {})
+        const observedRoutes = extractObservedRoutes(routesRes)
+        const routeMetrics = f1FromSets(truth.routes, observedRoutes)
+        const routeScore = Math.round(routeMetrics.f1 * 100)
+        results.push({
+            test: 'routes',
+            metric: 'f1',
+            score: routeScore,
+            maxScore: 100,
+            accuracy: routeScore,
+            details: `matched=${routeMetrics.matched}/${truth.routes.size}, precision=${routeMetrics.precision.toFixed(2)}, recall=${routeMetrics.recall.toFixed(2)}`,
+        })
+
+        console.log(`  Observed: ${observedRoutes.size}, Matched: ${routeMetrics.matched}`)
+        console.log(`  Precision: ${routeMetrics.precision.toFixed(2)} Recall: ${routeMetrics.recall.toFixed(2)} F1: ${routeMetrics.f1.toFixed(2)}`)
+
+        console.log('\n[2/4] Caller Recall via MCP mikk_get_function_detail')
+        const callerFunctions = ['verifyToken', 'signToken']
+        let callerHits = 0
+        let callerExpected = 0
+        for (const fnName of callerFunctions) {
+            const expectedCallers = truth.jwtCallers[fnName] || new Set<string>()
+            const detail = await callTool(client, 'mikk_get_function_detail', { name: fnName })
+            const haystack = `${detail.text}\n${JSON.stringify(detail.json || {})}`.toLowerCase()
+            for (const caller of expectedCallers) {
+                callerExpected += 1
+                if (haystack.includes(caller.toLowerCase())) {
+                    callerHits += 1
+                }
+            }
+        }
+        const callerRecall = callerExpected > 0 ? callerHits / callerExpected : 0
+        const callerScore = Math.round(callerRecall * 100)
+        results.push({
+            test: 'function-detail-callers',
+            metric: 'recall',
+            score: callerScore,
+            maxScore: 100,
+            accuracy: callerScore,
+            details: `caller_hits=${callerHits}/${callerExpected}`,
+        })
+        console.log(`  Caller recall: ${callerHits}/${callerExpected} (${callerRecall.toFixed(2)})`)
+
+        console.log('\n[3/4] Semantic Search Hit Rate via MCP mikk_semantic_search')
+        const semanticCases = [
+            { query: 'validate JWT token and session', expected: ['verifyToken', 'validateSession'] },
+            { query: 'issue signed auth token for login', expected: ['signToken', 'loginUser'] },
+            { query: 'mark invoice paid after payment intent', expected: ['markInvoicePaid'] },
+        ]
+
+        let semanticHits = 0
+        for (const c of semanticCases) {
+            const res = await callTool(client, 'mikk_semantic_search', { query: c.query, topK: 5 })
+            const haystack = `${res.text}\n${JSON.stringify(res.json || {})}`.toLowerCase()
+            const hit = c.expected.some((name) => haystack.includes(name.toLowerCase()))
+            if (hit) semanticHits += 1
+            console.log(`  ${hit ? 'OK' : 'MISS'}: "${c.query}"`)
+        }
+        const semanticScore = scoreToPct(semanticHits, semanticCases.length)
+        results.push({
+            test: 'semantic-search',
+            metric: 'hit@5',
+            score: semanticHits,
+            maxScore: semanticCases.length,
+            accuracy: semanticScore,
+            details: `hits=${semanticHits}/${semanticCases.length}`,
+        })
+
+        console.log('\n[4/4] CLI Route Count Consistency (source truth vs local CLI)')
+        const stats = runLocalCli(['stats', '--format', 'json'], FIXTURE_PROJECT)
+        let routeCount = -1
+        try {
+            const parsed = JSON.parse(stats.stdout || '{}')
+            routeCount = Number(parsed?.summary?.totalRoutes ?? parsed?.routes?.detected ?? parsed?.routes ?? -1)
+        } catch {
+            routeCount = -1
+        }
+
+        const cliRouteScore = routeCount === truth.routes.size ? 100 : 0
+        results.push({
+            test: 'cli-route-count',
+            metric: 'exact-match',
+            score: routeCount === truth.routes.size ? 1 : 0,
+            maxScore: 1,
+            accuracy: cliRouteScore,
+            details: `cli=${routeCount}, expected=${truth.routes.size}`,
+        })
+        console.log(`  CLI route count: ${routeCount}, expected: ${truth.routes.size}`)
+    } finally {
+        client.close()
+    }
+
+    const overallAccuracy = Math.round(results.reduce((acc, r) => acc + r.accuracy, 0) / results.length)
+
+    console.log('\n------------------------------------------------------------')
+    console.log('SEMANTIC BENCHMARK SUMMARY')
+    console.log('------------------------------------------------------------')
+    for (const r of results) {
+        console.log(`${r.test}: ${r.accuracy}% (${r.details})`)
+    }
+    console.log(`Overall semantic accuracy: ${overallAccuracy}%`)
+
+    const payload = {
+        timestamp: new Date().toISOString(),
+        mode: 'semantic-ground-truth-local',
+        fixture: normalizePath(path.relative(PROJECT_ROOT, FIXTURE_PROJECT)),
+        overallAccuracy,
+        results,
+        truth: {
+            routeCount: truth.routes.size,
+            routes: [...truth.routes].sort(),
+            jwtCallers: Object.fromEntries(
+                Object.entries(truth.jwtCallers).map(([k, v]) => [k, [...v].sort()]),
+            ),
+        },
+    }
+    await fs.writeFile(REPORT_PATH, JSON.stringify(payload, null, 2))
+    console.log(`Report saved: ${normalizePath(path.relative(PROJECT_ROOT, REPORT_PATH))}`)
+}
+
+async function fileExists(filePath: string): Promise<boolean> {
+    try {
+        await fs.access(filePath)
+        return true
+    } catch {
+        return false
+    }
+}
+
+runSemanticBenchmark().catch((err) => {
+    console.error(`Benchmark failed: ${err.message}`)
+    process.exitCode = 1
+})

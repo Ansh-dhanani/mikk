@@ -113,4 +113,10 @@ describe('TypeScriptParser Edge Cases & Fault Tolerance', () => {
         expect(result.functions).toHaveLength(0)
         expect(result.hash).toBeDefined()
     })
+
+    it('parses Windows line endings consistently', async () => {
+        const winCode = 'export function ping() {\r\n  return 1\r\n}\r\n'
+        const result = await parser.parse('src/win.ts', winCode)
+        expect(result.functions.some(f => f.name === 'ping')).toBe(true)
+    })
 })

@@ -66,6 +66,7 @@ describe('ClaudeMdGenerator', () => {
         const md = gen.generate()
         expect(md).toContain('<name>TestProject</name>')
         expect(md).toContain('<repository_context>')
+        expect(md).toContain('</repository_context>')
     })
 
     test('includes project description', () => {

@@ -46,4 +46,10 @@ describe('computeRootHash', () => {
         const hash2 = computeRootHash({ payments: 'def', auth: 'abc' })
         expect(hash1).toBe(hash2)
     })
+
+    it('changes when a module hash changes', () => {
+        const base = computeRootHash({ auth: 'abc', payments: 'def' })
+        const changed = computeRootHash({ auth: 'abc', payments: 'xyz' })
+        expect(base).not.toBe(changed)
+    })
 })

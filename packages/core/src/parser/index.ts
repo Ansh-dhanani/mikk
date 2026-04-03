@@ -5,6 +5,13 @@ import { GoParser } from './go/go-parser.js'
 import { UnsupportedLanguageError } from '../utils/errors.js'
 import type { ParsedFile } from './types.js'
 import { hashContent } from '../hash/file-hasher.js'
+import {
+    parserKindForExtension,
+    languageForExtension,
+    getParserExtensions,
+    isTreeSitterExtension,
+    type ParserKind,
+} from '../utils/language-registry.js'
 
 export type {
     ParsedFile,
@@ -30,14 +37,6 @@ export { JavaScriptExtractor } from './javascript/js-extractor.js'
 export { JavaScriptResolver } from './javascript/js-resolver.js'
 export { BoundaryChecker } from './boundary-checker.js'
 export { TreeSitterParser } from './tree-sitter/parser.js'
-
-type ParserKind = 'oxc' | 'go' | 'tree-sitter' | 'unknown'
-
-const OXC_EXTENSIONS = new Set(['.ts', '.tsx', '.js', '.jsx', '.mjs', '.cjs'])
-const GO_EXTENSIONS = new Set(['.go'])
-const TREE_SITTER_EXTENSIONS = new Set([
-    '.py', '.java', '.kt', '.kts', '.c', '.h', '.cpp', '.cc', '.cxx', '.hpp', '.hxx', '.hh', '.cs', '.rs', '.php', '.rb', '.swift',
-])
 
 export type ParseDiagnosticStage = 'read' | 'parse' | 'resolve-imports'
 export type ParseDiagnosticReason =
@@ -71,13 +70,6 @@ export interface ParseFilesResult {
     summary: ParseFilesSummary
 }
 
-const parserKindForExtension = (ext: string): ParserKind => {
-    if (OXC_EXTENSIONS.has(ext)) return 'oxc'
-    if (GO_EXTENSIONS.has(ext)) return 'go'
-    if (TREE_SITTER_EXTENSIONS.has(ext)) return 'tree-sitter'
-    return 'unknown'
-}
-
 const isLikelyParserUnavailable = (parser: ParserKind, message: string): boolean => {
     if (parser !== 'tree-sitter') return false
     const normalized = message.toLowerCase()
@@ -86,53 +78,10 @@ const isLikelyParserUnavailable = (parser: ParserKind, message: string): boolean
         normalized.includes('cannot find module')
 }
 
-const languageForExtension = (ext: string): ParsedFile['language'] => {
-    switch (ext) {
-        case '.ts':
-        case '.tsx':
-            return 'typescript'
-        case '.js':
-        case '.jsx':
-        case '.mjs':
-        case '.cjs':
-            return 'javascript'
-        case '.go':
-            return 'go'
-        case '.py':
-            return 'python'
-        case '.java':
-            return 'java'
-        case '.kt':
-        case '.kts':
-            return 'kotlin'
-        case '.swift':
-            return 'swift'
-        case '.c':
-        case '.h':
-            return 'c'
-        case '.cpp':
-        case '.cc':
-        case '.cxx':
-        case '.hpp':
-        case '.hxx':
-        case '.hh':
-            return 'cpp'
-        case '.cs':
-            return 'csharp'
-        case '.rs':
-            return 'rust'
-        case '.php':
-            return 'php'
-        case '.rb':
-            return 'ruby'
-        default:
-            return 'unknown'
-    }
-}
 
 const buildFallbackParsedFile = (filePath: string, content: string, ext: string): ParsedFile => ({
     path: filePath,
-    language: languageForExtension(ext),
+    language: languageForExtension(ext) as ParsedFile['language'],
     functions: [],
     classes: [],
     generics: [],
@@ -206,7 +155,7 @@ class LazyTreeSitterParser extends BaseParser {
     }
 
     getSupportedExtensions(): string[] {
-        return ['.py', '.java', '.kt', '.kts', '.c', '.h', '.cpp', '.cc', '.cxx', '.hpp', '.hxx', '.hh', '.cs', '.rs', '.php', '.rb', '.swift']
+        return [...getParserExtensions('tree-sitter')]
     }
 
     private buildEmptyFile(filePath: string, content: string): ParsedFile {
@@ -214,7 +163,7 @@ class LazyTreeSitterParser extends BaseParser {
         const lang = languageForExtension(ext)
         return {
             path: filePath,
-            language: lang,
+            language: lang as ParsedFile['language'],
             functions: [],
             classes: [],
             generics: [],
@@ -229,10 +178,29 @@ class LazyTreeSitterParser extends BaseParser {
     }
 }
 
+export interface ParseFilesOptions {
+    strictParserPreflight?: boolean
+    treeSitterRuntimeAvailable?: boolean
+}
+
+async function isTreeSitterRuntimeAvailable(): Promise<boolean> {
+    try {
+        const { TreeSitterParser } = await import('./tree-sitter/parser.js')
+        const parser = new TreeSitterParser()
+        if (typeof (parser as any).isRuntimeAvailable !== 'function') {
+            return true
+        }
+        return await (parser as any).isRuntimeAvailable()
+    } catch {
+        return false
+    }
+}
+
 export async function parseFilesWithDiagnostics(
     filePaths: string[],
     projectRoot: string,
-    readFile: (fp: string) => Promise<string>
+    readFile: (fp: string) => Promise<string>,
+    options: ParseFilesOptions = {},
 ): Promise<ParseFilesResult> {
     // Shared parser instances — avoid re-initialisation overhead per file.
     const oxcParser = new OxcParser()
@@ -250,6 +218,42 @@ export async function parseFilesWithDiagnostics(
 
     const diagnostics: ParseDiagnostic[] = []
     const addDiagnostic = (diagnostic: ParseDiagnostic) => diagnostics.push(diagnostic)
+
+    const treeSitterNeeded = filePaths.some(fp => {
+        const ext = nodePath.extname(fp).toLowerCase()
+        return isTreeSitterExtension(ext)
+    })
+
+    if (treeSitterNeeded) {
+        const treeSitterAvailable =
+            typeof options.treeSitterRuntimeAvailable === 'boolean'
+                ? options.treeSitterRuntimeAvailable
+                : await isTreeSitterRuntimeAvailable()
+        if (!treeSitterAvailable) {
+            addDiagnostic({
+                filePath: '*',
+                extension: '*',
+                parser: 'tree-sitter',
+                stage: 'parse',
+                reason: 'parser-unavailable',
+                message: 'Tree-sitter runtime unavailable. Install web-tree-sitter and language grammars.',
+            })
+            if (options.strictParserPreflight) {
+                return {
+                    files: [],
+                    diagnostics,
+                    summary: {
+                        requestedFiles: filePaths.length,
+                        parsedFiles: 0,
+                        fallbackFiles: 0,
+                        unreadableFiles: 0,
+                        unsupportedFiles: 0,
+                        diagnostics: diagnostics.length,
+                    },
+                }
+            }
+        }
+    }
 
     // Normalized project root for absolute path construction.
     const normalizedRoot = nodePath.resolve(projectRoot).replace(/\\/g, '/')

@@ -137,6 +137,12 @@ describe('SemanticSearcher', () => {
             }
         })
 
+        test('result IDs are unique in a single query response', async () => {
+            const results = await searcher.search('token', mockLock, 4)
+            const ids = results.map(r => r.id)
+            expect(new Set(ids).size).toBe(ids.length)
+        })
+
         test('topK limits the number of results', async () => {
             const results = await searcher.search('function', mockLock, 2)
             expect(results.length).toBeLessThanOrEqual(2)

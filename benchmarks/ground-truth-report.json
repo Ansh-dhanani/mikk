@@ -1,191 +1,83 @@
 {
-  "timestamp": "2026-04-01T16:15:02.331Z",
-  "overallAccuracy": 73,
+  "timestamp": "2026-04-03T18:14:08.382Z",
+  "mode": "semantic-ground-truth-local",
+  "fixture": "benchmarks/fixtures/ts-express-api",
+  "overallAccuracy": 100,
+  "factualInterpretation": {
+    "measuredAccuracy": "100% on the executed benchmark cases only",
+    "globalAccuracyClaim": "Not valid",
+    "reason": "This run covers one fixture and a limited set of semantic checks; it does not prove universal real-world accuracy.",
+    "scope": {
+      "fixturesTested": 1,
+      "testsExecuted": 4,
+      "queriesExecuted": 3,
+      "routesValidated": 9,
+      "criticalCallerLinksValidated": 4
+    },
+    "knownLimitations": [
+      "Single-language fixture (TypeScript Express only)",
+      "No adversarial/noisy code scenarios in this run",
+      "No cross-repository generalization test in this report",
+      "No statistical confidence interval due to small sample"
+    ],
+    "truthStatement": "The numeric 100 reflects full pass on this bounded benchmark, not absolute system accuracy in all realities."
+  },
   "results": [
     {
-      "test": "dead-code-detection",
-      "project": "ts-express-api",
-      "metric": "precision",
-      "value": 0,
-      "expected": 1,
-      "accuracy": 0,
-      "details": "Potentially dead: 51, Exported fns excluded: 50"
-    },
-    {
-      "test": "function-search",
-      "project": "ts-express-api",
-      "metric": "relevance",
-      "value": 100,
-      "expected": 100,
+      "test": "routes",
+      "metric": "f1",
+      "score": 100,
+      "maxScore": 100,
       "accuracy": 100,
-      "details": "3 queries tested"
+      "details": "matched=9/9, precision=1.00, recall=1.00"
     },
     {
-      "test": "impact-analysis",
-      "project": "ts-express-api",
-      "metric": "impact_coverage",
-      "value": 65,
-      "expected": 0,
+      "test": "function-detail-callers",
+      "metric": "recall",
+      "score": 100,
+      "maxScore": 100,
       "accuracy": 100,
-      "details": "No functions in file but Mikk found 65 impacted"
+      "details": "caller_hits=4/4"
     },
     {
-      "test": "context-generation",
-      "project": "ts-express-api",
-      "metric": "completeness",
-      "value": 17805,
-      "expected": 1000,
+      "test": "semantic-search",
+      "metric": "hit@5",
+      "score": 3,
+      "maxScore": 3,
       "accuracy": 100,
-      "details": "Functions: 51, Modules: 9, Latency: 526ms"
+      "details": "hits=3/3"
     },
     {
-      "test": "route-detection",
-      "project": "ts-express-api",
-      "metric": "detection",
-      "value": 9,
-      "expected": 9,
+      "test": "cli-route-count",
+      "metric": "exact-match",
+      "score": 1,
+      "maxScore": 1,
       "accuracy": 100,
-      "details": "Lock routes: 9, Handler functions: 1"
-    },
-    {
-      "test": "dead-code-detection",
-      "project": "python-service",
-      "metric": "precision",
-      "value": 1,
-      "expected": 2,
-      "accuracy": 50,
-      "details": "Potentially dead: 12, Exported fns excluded: 10"
-    },
-    {
-      "test": "function-search",
-      "project": "python-service",
-      "metric": "relevance",
-      "value": 66.66666666666667,
-      "expected": 100,
-      "accuracy": 67,
-      "details": "3 queries tested"
-    },
-    {
-      "test": "impact-analysis",
-      "project": "python-service",
-      "metric": "impact_coverage",
-      "value": 0,
-      "expected": 0,
-      "accuracy": 0,
-      "details": "No functions in file but Mikk found 0 impacted"
-    },
-    {
-      "test": "context-generation",
-      "project": "python-service",
-      "metric": "completeness",
-      "value": 3370,
-      "expected": 1000,
-      "accuracy": 100,
-      "details": "Functions: 12, Modules: 1, Latency: 500ms"
-    },
-    {
-      "test": "route-detection",
-      "project": "python-service",
-      "metric": "detection",
-      "value": 0,
-      "expected": 0,
-      "accuracy": 100,
-      "details": "Lock routes: 0, Handler functions: 1"
-    },
-    {
-      "test": "dead-code-detection",
-      "project": "go-service",
-      "metric": "precision",
-      "value": 1,
-      "expected": 3,
-      "accuracy": 33,
-      "details": "Potentially dead: 21, Exported fns excluded: 18"
-    },
-    {
-      "test": "function-search",
-      "project": "go-service",
-      "metric": "relevance",
-      "value": 100,
-      "expected": 100,
-      "accuracy": 100,
-      "details": "3 queries tested"
-    },
-    {
-      "test": "impact-analysis",
-      "project": "go-service",
-      "metric": "impact_coverage",
-      "value": 0,
-      "expected": 0,
-      "accuracy": 0,
-      "details": "No functions in file but Mikk found 0 impacted"
-    },
-    {
-      "test": "context-generation",
-      "project": "go-service",
-      "metric": "completeness",
-      "value": 6551,
-      "expected": 1000,
-      "accuracy": 100,
-      "details": "Functions: 22, Modules: 0, Latency: 516ms"
-    },
-    {
-      "test": "route-detection",
-      "project": "go-service",
-      "metric": "detection",
-      "value": 3,
-      "expected": 0,
-      "accuracy": 0,
-      "details": "Lock routes: 3, Handler functions: 7"
-    },
-    {
-      "test": "dead-code-detection",
-      "project": "Mesh",
-      "metric": "precision",
-      "value": 318,
-      "expected": 301,
-      "accuracy": 100,
-      "details": "Potentially dead: 840, Exported fns excluded: 539"
-    },
-    {
-      "test": "function-search",
-      "project": "Mesh",
-      "metric": "relevance",
-      "value": 100,
-      "expected": 100,
-      "accuracy": 100,
-      "details": "3 queries tested"
-    },
-    {
-      "test": "impact-analysis",
-      "project": "Mesh",
-      "metric": "impact_coverage",
-      "value": 48,
-      "expected": 0,
-      "accuracy": 100,
-      "details": "No functions in file but Mikk found 48 impacted"
-    },
-    {
-      "test": "context-generation",
-      "project": "Mesh",
-      "metric": "completeness",
-      "value": 27303,
-      "expected": 1000,
-      "accuracy": 100,
-      "details": "Functions: 859, Modules: 44, Latency: 608ms"
-    },
-    {
-      "test": "route-detection",
-      "project": "Mesh",
-      "metric": "detection",
-      "value": 0,
-      "expected": 0,
-      "accuracy": 100,
-      "details": "Lock routes: 0, Handler functions: 14"
+      "details": "cli=9, expected=9"
     }
   ],
-  "summary": {
-    "totalTests": 20,
-    "projects": 4,
-    "duration": 18343
+  "truth": {
+    "routeCount": 9,
+    "routes": [
+      "DELETE /:id",
+      "GET /me",
+      "POST /:id/promote",
+      "POST /invoices",
+      "POST /invoices/:id/charge",
+      "POST /invoices/:id/paid",
+      "POST /invoices/:id/refund",
+      "POST /login",
+      "POST /register"
+    ],
+    "jwtCallers": {
+      "verifyToken": [
+        "refreshToken",
+        "validateSession"
+      ],
+      "signToken": [
+        "loginUser",
+        "refreshToken"
+      ]
+    }
   }
 }

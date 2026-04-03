@@ -35,6 +35,13 @@ mikk analyze --strict-parsing
 ```
 *Description: Fails if any file had parser/read/import-resolution diagnostics and avoids silent fallback parsing.*
 
+Before strict mode in CI, run doctor preflight:
+
+```bash
+mikk doctor
+```
+*Description: Runs health checks including parser runtime preflight for Tree-sitter-backed languages.*
+
 ### 2. Live Watching
 Instead of constantly running `analyze`, you can run Mikk in watch mode to incrementally analyze changes as you save your files.
 
@@ -154,3 +161,70 @@ mikk intent "Extract the user validation logic into a shared module"
 1. **Keep Mikk Watched**: Run `mikk watch` in a separate terminal while developing so your diagrams and contexts are always real-time.
 2. **Commit `mikk.json` and `mikk.lock.json`**: Treat them like `package.json` and `package-lock.json`. These files serve as the source of truth for your codebase's architectural boundaries.
 3. **Use with VS Code**: Check out the `@mikk/vscode-extension` to get visual charts and context tools directly in your editor's sidebar!
+
+---
+
+## ✅ CI Profile (Strict + Preflight)
+
+Use this sequence for release pipelines:
+
+```bash
+mikk doctor
+mikk analyze --strict-parsing
+mikk ci --strict
+```
+
+If `mikk doctor` reports missing parser runtime on non-TS/JS projects, install parser runtime dependencies and rerun doctor before continuing.
+
+CI uses two lanes on purpose:
+
+- `quality-gates`: build/lint/tests plus MCP docs-registry consistency checks.
+- `strict-cli-preflight`: runs `mikk doctor` and `mikk analyze --strict-parsing` using built CLI output.
+
+This separation keeps MCP metadata integrity checks distinct from runtime parser readiness checks.
+
+---
+
+## 🔄 Updating Mikk CLI
+
+Mikk supports interactive and scripted self-update modes:
+
+```bash
+mikk update
+```
+
+Scripted modes:
+
+```bash
+mikk update --channel stable
+mikk update --channel latest
+mikk update --channel version --version 2.1.0
+```
+
+Use `--yes` to skip confirmation prompts in automation.
+
+---
+
+## 🧭 Standard Workflows
+
+### Developer Workflow
+
+Use this sequence for day-to-day development:
+
+```bash
+mikk analyze
+mikk context query "How does this module connect?"
+mikk ci --strict
+```
+
+### AI-Assisted Workflow
+
+Use this sequence before and during agent-assisted edits:
+
+```bash
+mikk analyze
+mikk context for "Describe the planned refactor"
+mikk intent "Validate safety and impact for this change"
+```
+
+For enterprise rollout, incidents, and upgrade process, see `ENTERPRISE_RUNBOOK.md`.

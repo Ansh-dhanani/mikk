@@ -61,6 +61,12 @@ describe('levenshtein', () => {
     test('insertion', () => {
         expect(levenshtein('test', 'tests')).toBe(1)
     })
+
+    test('distance is symmetric', () => {
+        expect(levenshtein('verifyToken', 'tokenVerify')).toBe(
+            levenshtein('tokenVerify', 'verifyToken'),
+        )
+    })
 })
 
 describe('splitCamelCase', () => {

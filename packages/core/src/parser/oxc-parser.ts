@@ -219,12 +219,13 @@ function extractCalls(node: any, lineIndex: LineIndex): CallExpression[] {
     const walk = (n: any): void => {
         if (!n || typeof n !== 'object') return;
 
-        if (n.type === 'CallExpression' && n.span) {
+        if (n.type === 'CallExpression') {
             const { name, type } = resolveCallIdentity(n.callee);
             if (name) {
+                const span = getSpan(n);
                 calls.push({
                     name,
-                    line: lineIndex.getLine(n.span.start),
+                    line: lineIndex.getLine(span.start),
                     type,
                 });
             }

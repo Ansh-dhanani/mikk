@@ -24,26 +24,31 @@ mock.module('@xenova/transformers', () => ({
 
 const FIXTURE_ROOT = path.join(import.meta.dir, 'fixtures', 'project')
 const MISSING_ROOT = path.join(import.meta.dir, 'fixtures', 'nonexistent-project')
+const CREATED_TEMP_ROOTS = new Set<string>()
+
+afterAll(async () => {
+    await Promise.all(
+        Array.from(CREATED_TEMP_ROOTS).map(async (root) => {
+            await fs.rm(root, { recursive: true, force: true })
+        }),
+    )
+})
 
 // 
 // Test helpers
 // 
 
 async function createTestClient(projectRoot = FIXTURE_ROOT): Promise<{ client: Client; server: McpServer }> {
-    // Touch lock file so active staleness detection doesn't trigger on fresh clones
-    const lockPath = path.join(projectRoot, 'mikk.lock.json')
-    try {
-        const lockStr = await fs.readFile(lockPath, 'utf-8')
-        const lock = JSON.parse(lockStr)
-        const futureDate = new Date(Date.now() + 10000).toISOString()
-        for (const file in lock.files) {
-            lock.files[file].lastModified = futureDate
-        }
-        await fs.writeFile(lockPath, JSON.stringify(lock, null, 2))
-    } catch { /* ignore if no lock */ }
+    let effectiveRoot = projectRoot
+    if (projectRoot === FIXTURE_ROOT) {
+        const tmpRoot = await fs.mkdtemp(path.join(import.meta.dir, 'tmp-fixture-'))
+        await fs.cp(FIXTURE_ROOT, tmpRoot, { recursive: true })
+        CREATED_TEMP_ROOTS.add(tmpRoot)
+        effectiveRoot = tmpRoot
+    }
 
     const [clientTransport, serverTransport] = InMemoryTransport.createLinkedPair()
-    const server = createMikkMcpServer(projectRoot)
+    const server = createMikkMcpServer(effectiveRoot)
     await server.connect(serverTransport)
     const client = new Client({ name: 'test-client', version: '1.0.0' })
     await client.connect(clientTransport)
@@ -1225,5 +1230,220 @@ describe('@getmikk/mcp-server - mikk_query_context empty guard', () => {
         // Either isError or an empty/unhelpful context - both are acceptable
         // The important thing is it does NOT throw/crash
         expect((result.content as any[]).length).toBeGreaterThan(0)
+    })
+})
+
+// 
+// SUITE: low-confidence MCP tools hardening
+// 
+
+describe('@getmikk/mcp-server - low-confidence MCP tools', () => {
+    let client: Client
+    let server: McpServer
+
+    beforeAll(async () => {
+        ; ({ client, server } = await createTestClient())
+    })
+
+    afterAll(async () => {
+        await server.close()
+    })
+
+    it('mikk_semantic_search returns structured results', async () => {
+        const result = await client.callTool({
+            name: 'mikk_semantic_search',
+            arguments: { query: 'login token', topK: 3 },
+        })
+
+        if (isError(result)) {
+            expect(getText(result)).toContain('Semantic search')
+            return
+        }
+
+        const data = parseJSON(result)
+        expect(data.query).toBe('login token')
+        expect(data.method).toContain('semantic')
+        expect(Array.isArray(data.matches)).toBe(true)
+        expect(data.matches.length).toBeLessThanOrEqual(3)
+    })
+
+    it('mikk_validate_edit returns gate/impact structure', async () => {
+        const result = await client.callTool({
+            name: 'mikk_validate_edit',
+            arguments: {
+                files: ['src/auth.ts'],
+                description: 'Rename login function to signIn and update usages',
+                autoFix: false,
+            },
+        })
+
+        const data = parseJSON(result)
+        expect(typeof data.allowed).toBe('boolean')
+        expect(typeof data.confidence).toBe('number')
+        expect(Array.isArray(data.gates)).toBe(true)
+        expect(typeof data.impact.totalFiles).toBe('number')
+        expect(result.isError).toBe(data.allowed === false)
+    })
+
+    it('mikk_validate_edit includes actionable next steps', async () => {
+        const result = await client.callTool({
+            name: 'mikk_validate_edit',
+            arguments: {
+                files: ['src/auth.ts'],
+                description: 'Change auth flow with potential boundary effects',
+                autoFix: false,
+            },
+        })
+
+        const data = parseJSON(result)
+        expect(Array.isArray(data.nextSteps)).toBe(true)
+        expect(data.nextSteps.length).toBeGreaterThan(0)
+    })
+
+    it('mikk_git_diff_impact validates git ref format', async () => {
+        const result = await client.callTool({
+            name: 'mikk_git_diff_impact',
+            arguments: { ref: 'bad ref with spaces', staged: false },
+        })
+        expect(isError(result)).toBe(true)
+        expect(getText(result)).toContain('Invalid git ref format')
+    })
+
+    it('mikk_git_diff_impact rejects unknown ref safely', async () => {
+        const result = await client.callTool({
+            name: 'mikk_git_diff_impact',
+            arguments: { ref: 'deadbeefdeadbeefdeadbeefdeadbeefdeadbeef', staged: false },
+        })
+        expect(isError(result)).toBe(true)
+        expect(getText(result).length).toBeGreaterThan(0)
+    })
+
+    it('mikk_rename returns coordinated rename plan', async () => {
+        const result = await client.callTool({
+            name: 'mikk_rename',
+            arguments: { functionName: 'login', newName: 'signIn' },
+        })
+        expect(isError(result)).toBe(false)
+        const data = parseJSON(result)
+        expect(data.target.currentName).toBe('login')
+        expect(data.target.newName).toBe('signIn')
+        expect(Array.isArray(data.instructions)).toBe(true)
+        expect(data.instructions.length).toBeGreaterThan(1)
+    })
+
+    it('mikk_rename returns error for unknown function', async () => {
+        const result = await client.callTool({
+            name: 'mikk_rename',
+            arguments: { functionName: 'totallyMissingFn', newName: 'renamedFn' },
+        })
+        expect(isError(result)).toBe(true)
+        expect(getText(result)).toContain('not found')
+    })
+
+    it('mikk_dead_code supports module filtering', async () => {
+        const result = await client.callTool({
+            name: 'mikk_dead_code',
+            arguments: { moduleId: 'auth' },
+        })
+        expect(isError(result)).toBe(false)
+        const data = parseJSON(result)
+        expect(data.byModule.auth).toBeDefined()
+        expect(typeof data.deadCount).toBe('number')
+    })
+
+    it('mikk_dead_code returns empty module bucket for unknown module filter', async () => {
+        const result = await client.callTool({
+            name: 'mikk_dead_code',
+            arguments: { moduleId: 'does-not-exist' },
+        })
+        expect(isError(result)).toBe(false)
+        const data = parseJSON(result)
+        expect(data.byModule['does-not-exist']).toBeDefined()
+        expect(data.deadCount).toBe(0)
+    })
+
+    it('mikk_manage_adr supports add/get/update/remove lifecycle', async () => {
+        const tmpRoot = await fs.mkdtemp(path.join(import.meta.dir, 'tmp-adr-'))
+        await fs.cp(FIXTURE_ROOT, tmpRoot, { recursive: true })
+        const isolated = await createTestClient(tmpRoot)
+        const isolatedClient = isolated.client
+        const isolatedServer = isolated.server
+
+        const adrId = 'test-adr-mcp'
+
+        const add = await isolatedClient.callTool({
+            name: 'mikk_manage_adr',
+            arguments: {
+                action: 'add',
+                id: adrId,
+                title: 'Test ADR',
+                reason: 'Coverage test for MCP ADR management',
+                date: '2026-04-03',
+            },
+        })
+        expect(isError(add)).toBe(false)
+        expect(getText(add)).toContain(`ADR "${adrId}" added`)
+
+        const get = await isolatedClient.callTool({
+            name: 'mikk_manage_adr',
+            arguments: { action: 'get', id: adrId },
+        })
+        expect(isError(get)).toBe(false)
+        const getData = parseJSON(get)
+        expect(getData.id).toBe(adrId)
+
+        const update = await isolatedClient.callTool({
+            name: 'mikk_manage_adr',
+            arguments: { action: 'update', id: adrId, reason: 'Updated reason' },
+        })
+        expect(isError(update)).toBe(false)
+        expect(getText(update)).toContain(`ADR "${adrId}" updated`)
+
+        const remove = await isolatedClient.callTool({
+            name: 'mikk_manage_adr',
+            arguments: { action: 'remove', id: adrId },
+        })
+        expect(isError(remove)).toBe(false)
+        expect(getText(remove)).toContain(`ADR "${adrId}" removed`)
+
+        await isolatedServer.close()
+        await fs.rm(tmpRoot, { recursive: true, force: true })
+    })
+
+    it('mikk_manage_adr enforces required fields for add', async () => {
+        const result = await client.callTool({
+            name: 'mikk_manage_adr',
+            arguments: {
+                action: 'add',
+                id: 'adr-missing-fields',
+            },
+        })
+        expect(isError(result)).toBe(true)
+        expect(getText(result)).toContain('"id", "title", and "reason" are required for add action')
+    })
+
+    it('mikk_token_stats returns stable stats shape', async () => {
+        const result = await client.callTool({ name: 'mikk_token_stats', arguments: {} })
+        expect(isError(result)).toBe(false)
+        const data = parseJSON(result)
+        expect(typeof data.session.calls).toBe('number')
+        expect(typeof data.tokens.used).toBe('number')
+        expect(typeof data.tokens.rawWouldHaveCost).toBe('number')
+        expect(typeof data.tokens.saved).toBe('number')
+    })
+
+    it('mikk_token_stats session calls are monotonic', async () => {
+        const before = await client.callTool({ name: 'mikk_token_stats', arguments: {} })
+        const beforeData = parseJSON(before)
+
+        await client.callTool({
+            name: 'mikk_get_project_overview',
+            arguments: {},
+        })
+
+        const after = await client.callTool({ name: 'mikk_token_stats', arguments: {} })
+        const afterData = parseJSON(after)
+
+        expect(afterData.session.calls).toBeGreaterThanOrEqual(beforeData.session.calls)
     })
 })

@@ -3,19 +3,20 @@ graph TD
     subgraph mod_core_parser_tree_sitter["📦 Module: Database & API"]
         subgraph file_c__users_ansh_desktop_web_mesh_packages_core_src_parser_tree_sitter_parser_ts["📄 parser.ts"]
             fn_c__users_ansh_desktop_web_mesh_packages_core_src_parser_tree_sitter_parser_ts_getrequire["⚡ getRequire"]
-            fn_c__users_ansh_desktop_web_mesh_packages_core_src_parser_tree_sitter_parser_ts_isexportedbylanguage["⚡ isExportedByLanguage"]
-            fn_c__users_ansh_desktop_web_mesh_packages_core_src_parser_tree_sitter_parser_ts_extractparamsfromnode["⚡ extractParamsFromNode"]
-            fn_c__users_ansh_desktop_web_mesh_packages_core_src_parser_tree_sitter_parser_ts_walk["⚡ walk"]
-            fn_c__users_ansh_desktop_web_mesh_packages_core_src_parser_tree_sitter_parser_ts_findfirstchild["⚡ findFirstChild"]
-            fn_c__users_ansh_desktop_web_mesh_packages_core_src_parser_tree_sitter_parser_ts_findallchildren["⚡ findAllChildren"]
+            fn_c__users_ansh_desktop_web_mesh_packages_core_src_parser_tree_sitter_parser_ts_isexportedbylanguage["λ isExportedByLanguage"]
+            fn_c__users_ansh_desktop_web_mesh_packages_core_src_parser_tree_sitter_parser_ts_extractparamsfromnode["λ extractParamsFromNode"]
+            fn_c__users_ansh_desktop_web_mesh_packages_core_src_parser_tree_sitter_parser_ts_walk["λ walk"]
+            fn_c__users_ansh_desktop_web_mesh_packages_core_src_parser_tree_sitter_parser_ts_findfirstchild["λ findFirstChild"]
+            fn_c__users_ansh_desktop_web_mesh_packages_core_src_parser_tree_sitter_parser_ts_findallchildren["λ findAllChildren"]
             fn_c__users_ansh_desktop_web_mesh_packages_core_src_parser_tree_sitter_parser_ts_extractgenericsfromnode["⚡ extractGenericsFromNode"]
-            fn_c__users_ansh_desktop_web_mesh_packages_core_src_parser_tree_sitter_parser_ts_assigncallstofunctions["⚡ assignCallsToFunctions"]
-            fn_c__users_ansh_desktop_web_mesh_packages_core_src_parser_tree_sitter_parser_ts_extensiontolanguage["⚡ extensionToLanguage"]
-            fn_c__users_ansh_desktop_web_mesh_packages_core_src_parser_tree_sitter_parser_ts_extractreturntype["⚡ extractReturnType"]
-            fn_c__users_ansh_desktop_web_mesh_packages_core_src_parser_tree_sitter_parser_ts_extractdoccomment["⚡ extractDocComment"]
-            fn_c__users_ansh_desktop_web_mesh_packages_core_src_parser_tree_sitter_parser_ts_linkmethodstoclasses["⚡ linkMethodsToClasses"]
+            fn_c__users_ansh_desktop_web_mesh_packages_core_src_parser_tree_sitter_parser_ts_assigncallstofunctions["λ assignCallsToFunctions"]
+            fn_c__users_ansh_desktop_web_mesh_packages_core_src_parser_tree_sitter_parser_ts_extensiontolanguage["λ extensionToLanguage"]
+            fn_c__users_ansh_desktop_web_mesh_packages_core_src_parser_tree_sitter_parser_ts_extractreturntype["λ extractReturnType"]
+            fn_c__users_ansh_desktop_web_mesh_packages_core_src_parser_tree_sitter_parser_ts_extractdoccomment["λ extractDocComment"]
+            fn_c__users_ansh_desktop_web_mesh_packages_core_src_parser_tree_sitter_parser_ts_linkmethodstoclasses["λ linkMethodsToClasses"]
             fn_c__users_ansh_desktop_web_mesh_packages_core_src_parser_tree_sitter_parser_ts_treesitterparser_getsupportedextensions["⚡ TreeSitterParser.getSupportedExtensions"]
             fn_c__users_ansh_desktop_web_mesh_packages_core_src_parser_tree_sitter_parser_ts_treesitterparser_init["⚡ TreeSitterParser.init"]
+            fn_c__users_ansh_desktop_web_mesh_packages_core_src_parser_tree_sitter_parser_ts_treesitterparser_isruntimeavailable["⚡ TreeSitterParser.isRuntimeAvailable"]
             fn_c__users_ansh_desktop_web_mesh_packages_core_src_parser_tree_sitter_parser_ts_treesitterparser_parse["⚡ TreeSitterParser.parse"]
             fn_c__users_ansh_desktop_web_mesh_packages_core_src_parser_tree_sitter_parser_ts_treesitterparser_parsewithconfig["⚡ TreeSitterParser.parseWithConfig"]
             fn_c__users_ansh_desktop_web_mesh_packages_core_src_parser_tree_sitter_parser_ts_treesitterparser_resolveimports["⚡ TreeSitterParser.resolveImports"]
@@ -36,6 +37,23 @@ graph TD
         end
     end
 
+    fn_c__users_ansh_desktop_web_mesh_packages_core_src_parser_tree_sitter_parser_ts_extractparamsfromnode --> fn_c__users_ansh_desktop_web_mesh_packages_core_src_parser_tree_sitter_parser_ts_findfirstchild
+    fn_c__users_ansh_desktop_web_mesh_packages_core_src_parser_tree_sitter_parser_ts_extractparamsfromnode --> fn_c__users_ansh_desktop_web_mesh_packages_core_src_parser_tree_sitter_parser_ts_walk
+    fn_c__users_ansh_desktop_web_mesh_packages_core_src_parser_tree_sitter_parser_ts_walk --> fn_c__users_ansh_desktop_web_mesh_packages_core_src_parser_tree_sitter_parser_ts_findfirstchild
+    fn_c__users_ansh_desktop_web_mesh_packages_core_src_parser_tree_sitter_parser_ts_extractgenericsfromnode --> fn_c__users_ansh_desktop_web_mesh_packages_core_src_parser_tree_sitter_parser_ts_findallchildren
+    fn_c__users_ansh_desktop_web_mesh_packages_core_src_parser_tree_sitter_parser_ts_extractgenericsfromnode --> fn_c__users_ansh_desktop_web_mesh_packages_core_src_parser_tree_sitter_parser_ts_findfirstchild
+    fn_c__users_ansh_desktop_web_mesh_packages_core_src_parser_tree_sitter_parser_ts_extractreturntype --> fn_c__users_ansh_desktop_web_mesh_packages_core_src_parser_tree_sitter_parser_ts_findfirstchild
+    fn_c__users_ansh_desktop_web_mesh_packages_core_src_parser_tree_sitter_parser_ts_treesitterparser_parsewithconfig --> fn_c__users_ansh_desktop_web_mesh_packages_core_src_parser_tree_sitter_parser_ts_findallchildren
+    fn_c__users_ansh_desktop_web_mesh_packages_core_src_parser_tree_sitter_parser_ts_treesitterparser_parsewithconfig --> fn_c__users_ansh_desktop_web_mesh_packages_core_src_parser_tree_sitter_parser_ts_findfirstchild
+    fn_c__users_ansh_desktop_web_mesh_packages_core_src_parser_tree_sitter_parser_ts_treesitterparser_parsewithconfig --> fn_c__users_ansh_desktop_web_mesh_packages_core_src_parser_tree_sitter_parser_ts_isexportedbylanguage
+    fn_c__users_ansh_desktop_web_mesh_packages_core_src_parser_tree_sitter_parser_ts_treesitterparser_parsewithconfig --> fn_c__users_ansh_desktop_web_mesh_packages_core_src_parser_tree_sitter_parser_ts_extractreturntype
+    fn_c__users_ansh_desktop_web_mesh_packages_core_src_parser_tree_sitter_parser_ts_treesitterparser_parsewithconfig --> fn_c__users_ansh_desktop_web_mesh_packages_core_src_parser_tree_sitter_parser_ts_extractparamsfromnode
+    fn_c__users_ansh_desktop_web_mesh_packages_core_src_parser_tree_sitter_parser_ts_treesitterparser_parsewithconfig --> fn_c__users_ansh_desktop_web_mesh_packages_core_src_parser_tree_sitter_parser_ts_extractdoccomment
+    fn_c__users_ansh_desktop_web_mesh_packages_core_src_parser_tree_sitter_parser_ts_treesitterparser_parsewithconfig --> fn_c__users_ansh_desktop_web_mesh_packages_core_src_parser_tree_sitter_parser_ts_assigncallstofunctions
+    fn_c__users_ansh_desktop_web_mesh_packages_core_src_parser_tree_sitter_parser_ts_treesitterparser_parsewithconfig --> fn_c__users_ansh_desktop_web_mesh_packages_core_src_parser_tree_sitter_parser_ts_extensiontolanguage
+    fn_c__users_ansh_desktop_web_mesh_packages_core_src_parser_tree_sitter_parser_ts_treesitterparser_parsewithconfig --> fn_c__users_ansh_desktop_web_mesh_packages_core_src_parser_tree_sitter_parser_ts_linkmethodstoclasses
+    fn_c__users_ansh_desktop_web_mesh_packages_core_src_parser_tree_sitter_parser_ts_treesitterparser_resolveimports --> fn_c__users_ansh_desktop_web_mesh_packages_core_src_parser_tree_sitter_parser_ts_extensiontolanguage
+    fn_c__users_ansh_desktop_web_mesh_packages_core_src_parser_tree_sitter_parser_ts_treesitterparser_buildemptyfile --> fn_c__users_ansh_desktop_web_mesh_packages_core_src_parser_tree_sitter_parser_ts_extensiontolanguage
 
     classDef default fill:#334155,stroke:#64748b,color:#e2e8f0,stroke-width:1px
     classDef external fill:#1e293b,stroke:#475569,color:#94a3b8,stroke-dasharray: 5 5

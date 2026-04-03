@@ -3,7 +3,7 @@ graph TD
     subgraph mod_packages_core_search["📦 Module: Search & Authentication"]
         subgraph file_c__users_ansh_desktop_web_mesh_packages_core_src_search_bm25_ts["📄 bm25.ts"]
             fn_c__users_ansh_desktop_web_mesh_packages_core_src_search_bm25_ts_reciprocalrankfusion["⚡ reciprocalRankFusion"]
-            fn_c__users_ansh_desktop_web_mesh_packages_core_src_search_bm25_ts_tokenize["⚡ tokenize"]
+            fn_c__users_ansh_desktop_web_mesh_packages_core_src_search_bm25_ts_tokenize["λ tokenize"]
             fn_c__users_ansh_desktop_web_mesh_packages_core_src_search_bm25_ts_buildfunctiontokens["⚡ buildFunctionTokens"]
             fn_c__users_ansh_desktop_web_mesh_packages_core_src_search_bm25_ts_bm25index_clear["⚡ BM25Index.clear"]
             fn_c__users_ansh_desktop_web_mesh_packages_core_src_search_bm25_ts_bm25index_adddocument["⚡ BM25Index.addDocument"]
@@ -11,6 +11,8 @@ graph TD
         end
     end
 
+    fn_c__users_ansh_desktop_web_mesh_packages_core_src_search_bm25_ts_buildfunctiontokens --> fn_c__users_ansh_desktop_web_mesh_packages_core_src_search_bm25_ts_tokenize
+    fn_c__users_ansh_desktop_web_mesh_packages_core_src_search_bm25_ts_bm25index_search --> fn_c__users_ansh_desktop_web_mesh_packages_core_src_search_bm25_ts_tokenize
 
     classDef default fill:#334155,stroke:#64748b,color:#e2e8f0,stroke-width:1px
     classDef external fill:#1e293b,stroke:#475569,color:#94a3b8,stroke-dasharray: 5 5

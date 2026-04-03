@@ -6,6 +6,7 @@ import * as nodePath from 'node:path'
 import { hashContent } from '../hash/file-hasher.js'
 import { computeModuleHash, computeRootHash } from '../hash/tree-hasher.js'
 import { minimatch } from '../utils/minimatch.js'
+import { randomUUID } from 'node:crypto'
 
 const VERSION = '@getmikk/cli@1.2.1'
 
@@ -153,6 +154,8 @@ export class LockCompiler {
                 lastSyncAt: new Date().toISOString(),
                 lockHash: '',
                 contractHash: hashContent(JSON.stringify(contract)),
+                generationId: randomUUID(),
+                writeVersion: 0,
             },
             modules,
             functions,

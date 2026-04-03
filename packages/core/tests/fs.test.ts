@@ -75,6 +75,12 @@ describe('detectProjectLanguage', () => {
         })
     })
 
+    it('detects Swift from Package.swift', async () => {
+        await withFile('Package.swift', async () => {
+            expect(await detectProjectLanguage(tmpDir)).toBe('swift')
+        })
+    })
+
     it('detects C# from .csproj file', async () => {
         await withFile('MyApp.csproj', async () => {
             expect(await detectProjectLanguage(tmpDir)).toBe('csharp')
@@ -116,7 +122,7 @@ describe('detectProjectLanguage', () => {
 describe('getDiscoveryPatterns', () => {
     const languages: ProjectLanguage[] = [
         'typescript', 'javascript', 'python', 'go', 'rust',
-        'java', 'ruby', 'php', 'csharp', 'unknown',
+        'java', 'swift', 'ruby', 'php', 'csharp', 'unknown',
     ]
 
     for (const lang of languages) {
@@ -143,9 +149,14 @@ describe('getDiscoveryPatterns', () => {
         expect(patterns).toContain('**/*.py')
     })
 
-    it('java patterns include Kotlin scripts', () => {
+    it('java discovery patterns include Kotlin scripts for mixed JVM codebases', () => {
         const { patterns } = getDiscoveryPatterns('java')
         expect(patterns).toContain('**/*.kts')
+    })
+
+    it('swift patterns include .swift', () => {
+        const { patterns } = getDiscoveryPatterns('swift')
+        expect(patterns).toContain('**/*.swift')
     })
 
     it('cpp patterns include .hh headers', () => {

@@ -216,4 +216,11 @@ describe('PreflightPipeline', () => {
         )
         expect(suggestion).toBeDefined()
     })
+
+    test('pipeline approval flag is consistent with conflict severity', async () => {
+        const pipeline = new PreflightPipeline(mockContract, mockLock)
+        const result = await pipeline.run('move verifyToken to api module')
+        const hasErrors = result.conflicts.conflicts.some(c => c.severity === 'error')
+        expect(result.approved).toBe(!hasErrors)
+    })
 })

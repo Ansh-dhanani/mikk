@@ -2,6 +2,12 @@ import { MikkLockSchema, type MikkLock } from './schema.js'
 import { LockNotFoundError } from '../utils/errors.js'
 import { readJsonSafe } from '../utils/json.js'
 import { writeFileAtomic } from '../utils/atomic-write.js'
+import { randomUUID } from 'node:crypto'
+
+export interface LockWriteOptions {
+    expectedGenerationId?: string
+    expectedWriteVersion?: number
+}
 
 /**
  * LockReader -- reads and validates mikk.lock.json from disk.
@@ -32,10 +38,61 @@ export class LockReader {
         return result.data
     }
 
-    /** Write lock file to disk in compact format */
-    async write(lock: MikkLock, lockPath: string): Promise<void> {
+    serialize(lock: MikkLock): string {
         const compact = compactifyLock(lock)
-        const json = JSON.stringify(compact)
+        return JSON.stringify(compact)
+    }
+
+    async prepareForWrite(lock: MikkLock, lockPath: string, options: LockWriteOptions = {}): Promise<MikkLock> {
+        let existing: MikkLock | null = null
+        try {
+            existing = await this.read(lockPath)
+        } catch (err: any) {
+            if (!(err instanceof LockNotFoundError)) {
+                throw err
+            }
+        }
+
+        const prepared: MikkLock = {
+            ...lock,
+            syncState: {
+                ...lock.syncState,
+            },
+        }
+
+        if (existing) {
+            const existingGeneration = existing.syncState.generationId
+            const existingWriteVersion = existing.syncState.writeVersion ?? 0
+
+            if (
+                options.expectedGenerationId &&
+                existingGeneration &&
+                options.expectedGenerationId !== existingGeneration
+            ) {
+                throw new Error('Lock write rejected: generation mismatch (stale writer).')
+            }
+
+            if (
+                typeof options.expectedWriteVersion === 'number' &&
+                options.expectedWriteVersion !== existingWriteVersion
+            ) {
+                throw new Error('Lock write rejected: writeVersion mismatch (stale writer).')
+            }
+
+            prepared.syncState.generationId = existingGeneration || prepared.syncState.generationId || randomUUID()
+            prepared.syncState.writeVersion = existingWriteVersion + 1
+        } else {
+            prepared.syncState.generationId = prepared.syncState.generationId || randomUUID()
+            prepared.syncState.writeVersion = prepared.syncState.writeVersion ?? 0
+        }
+
+        return prepared
+    }
+
+    /** Write lock file to disk in compact format */
+    async write(lock: MikkLock, lockPath: string, options: LockWriteOptions = {}): Promise<void> {
+        const prepared = await this.prepareForWrite(lock, lockPath, options)
+        const json = this.serialize(prepared)
         await writeFileAtomic(lockPath, json, { encoding: 'utf-8' })
     }
 }

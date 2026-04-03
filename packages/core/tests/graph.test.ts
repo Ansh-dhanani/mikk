@@ -167,4 +167,14 @@ describe('ClusterDetector', () => {
         expect(score).toBeGreaterThanOrEqual(0)
         expect(score).toBeLessThanOrEqual(1)
     })
+
+    it('keeps distinct function nodes for same function names in different files', () => {
+        const files = [
+            mockParsedFile('src/auth/a.ts', [mockFunction('shared', [], 'src/auth/a.ts')]),
+            mockParsedFile('src/db/b.ts', [mockFunction('shared', [], 'src/db/b.ts')]),
+        ]
+        const graph = new GraphBuilder().build(files)
+        expect(graph.nodes.has('fn:src/auth/a.ts:shared')).toBe(true)
+        expect(graph.nodes.has('fn:src/db/b.ts:shared')).toBe(true)
+    })
 })

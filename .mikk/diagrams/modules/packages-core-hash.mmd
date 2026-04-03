@@ -2,7 +2,7 @@
 graph TD
     subgraph mod_packages_core_hash["📦 Module: Database & Providers"]
         subgraph file_c__users_ansh_desktop_web_mesh_packages_core_src_hash_file_hasher_ts["📄 file-hasher.ts"]
-            fn_c__users_ansh_desktop_web_mesh_packages_core_src_hash_file_hasher_ts_hashcontent["⚡ hashContent"]
+            fn_c__users_ansh_desktop_web_mesh_packages_core_src_hash_file_hasher_ts_hashcontent["λ hashContent"]
             fn_c__users_ansh_desktop_web_mesh_packages_core_src_hash_file_hasher_ts_hashfile["⚡ hashFile"]
             fn_c__users_ansh_desktop_web_mesh_packages_core_src_hash_file_hasher_ts_hashfunctionbody["⚡ hashFunctionBody"]
         end
@@ -23,6 +23,8 @@ graph TD
         end
     end
 
+    fn_c__users_ansh_desktop_web_mesh_packages_core_src_hash_file_hasher_ts_hashfile --> fn_c__users_ansh_desktop_web_mesh_packages_core_src_hash_file_hasher_ts_hashcontent
+    fn_c__users_ansh_desktop_web_mesh_packages_core_src_hash_file_hasher_ts_hashfunctionbody --> fn_c__users_ansh_desktop_web_mesh_packages_core_src_hash_file_hasher_ts_hashcontent
 
     classDef default fill:#334155,stroke:#64748b,color:#e2e8f0,stroke-width:1px
     classDef external fill:#1e293b,stroke:#475569,color:#94a3b8,stroke-dasharray: 5 5

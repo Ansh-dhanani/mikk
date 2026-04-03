@@ -79,4 +79,65 @@ describe('@getmikk/cli subcommands edge cases', () => {
         expect(result.stderr).toContain('mikk.json') 
         await fsPromises.rm(tmpDir, { recursive: true, force: true })
     })
+
+    it('doctor reports missing baseline project artifacts in empty directory', async () => {
+        const tmpDir = await fsPromises.mkdtemp(path.join(os.tmpdir(), 'mikk-test-'))
+        const result = await runCli(['doctor'], tmpDir)
+
+        expect(result.code).toBe(1)
+        const output = result.stdout + result.stderr
+        expect(output).toContain('mikk doctor')
+        expect(output).toContain('mikk.json')
+        expect(output).toContain('mikk.lock.json')
+
+        await fsPromises.rm(tmpDir, { recursive: true, force: true })
+    })
+
+    it('doctor includes parser runtime check for tree-sitter language projects', async () => {
+        const tmpDir = await fsPromises.mkdtemp(path.join(os.tmpdir(), 'mikk-test-'))
+
+        // Mark as python project so doctor executes parser-runtime preflight.
+        await fsPromises.writeFile(path.join(tmpDir, 'requirements.txt'), 'pytest\n')
+        await fsPromises.writeFile(
+            path.join(tmpDir, 'mikk.json'),
+            JSON.stringify({
+                version: '1.0.0',
+                project: { name: 'tmp', language: 'python', entryPoints: [] },
+                declared: { modules: [], constraints: [], decisions: [] },
+                overwrite: { mode: 'never', requireConfirmation: true },
+            }),
+            'utf-8',
+        )
+        await fsPromises.writeFile(
+            path.join(tmpDir, 'mikk.lock.json'),
+            JSON.stringify({
+                version: '1.0.0',
+                syncState: { status: 'clean' },
+                functions: {},
+                files: {},
+            }),
+            'utf-8',
+        )
+        await fsPromises.mkdir(path.join(tmpDir, '.mikk'), { recursive: true })
+        await fsPromises.mkdir(path.join(tmpDir, 'node_modules'), { recursive: true })
+        await fsPromises.writeFile(path.join(tmpDir, '.mikkignore'), '# test\n', 'utf-8')
+
+        const result = await runCli(['doctor'], tmpDir)
+        const output = result.stdout + result.stderr
+        expect(output).toContain('Parser runtime')
+
+        await fsPromises.rm(tmpDir, { recursive: true, force: true })
+    })
+
+    it('suggest recommends init in uninitialized directories', async () => {
+        const tmpDir = await fsPromises.mkdtemp(path.join(os.tmpdir(), 'mikk-test-'))
+        const result = await runCli(['suggest'], tmpDir)
+
+        expect(result.code).toBe(0)
+        const output = result.stdout + result.stderr
+        expect(output).toContain('mikk suggest')
+        expect(output).toContain('mikk init')
+
+        await fsPromises.rm(tmpDir, { recursive: true, force: true })
+    })
 })
