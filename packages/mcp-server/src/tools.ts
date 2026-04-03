@@ -133,6 +133,72 @@ async function quickHashFile(filePath: string): Promise<string> {
     }
 }
 
+async function isGitWorktree(projectRoot: string): Promise<boolean> {
+    try {
+        const stdout = await new Promise<string>((resolve, reject) => {
+            execFile('git', ['rev-parse', '--is-inside-work-tree'], { cwd: projectRoot, encoding: 'utf-8' }, (err, out) => {
+                if (err) return reject(err)
+                resolve(out)
+            })
+        })
+        return stdout.trim() === 'true'
+    } catch {
+        return false
+    }
+}
+
+async function getGitTopLevel(projectRoot: string): Promise<string | null> {
+    try {
+        const stdout = await new Promise<string>((resolve, reject) => {
+            execFile('git', ['rev-parse', '--show-toplevel'], { cwd: projectRoot, encoding: 'utf-8' }, (err, out) => {
+                if (err) return reject(err)
+                resolve(out)
+            })
+        })
+        return path.resolve(stdout.trim())
+    } catch {
+        return null
+    }
+}
+
+async function getDirtySampleFiles(projectRoot: string, sampleFiles: string[]): Promise<string[] | null> {
+    if (sampleFiles.length === 0) return []
+    if (!(await isGitWorktree(projectRoot))) return null
+
+    const topLevel = await getGitTopLevel(projectRoot)
+    if (!topLevel || path.resolve(projectRoot) !== topLevel) {
+        return null
+    }
+
+    try {
+        const stdout = await new Promise<string>((resolve, reject) => {
+            execFile(
+                'git',
+                ['status', '--porcelain', '--', ...sampleFiles],
+                { cwd: projectRoot, encoding: 'utf-8', maxBuffer: 1024 * 1024 },
+                (err, out) => {
+                    if (err) return reject(err)
+                    resolve(out)
+                },
+            )
+        })
+
+        const dirty = stdout
+            .split('\n')
+            .map(line => line.trim())
+            .filter(Boolean)
+            .map(line => {
+                const m = line.match(/^[ MARCUD?!]{1,2}\s+(.+)$/)
+                return (m?.[1] || '').replace(/\\/g, '/')
+            })
+            .filter(Boolean)
+
+        return dirty
+    } catch {
+        return null
+    }
+}
+
 /**
  * Register all MCP tools — actions an AI assistant can invoke.
  */
@@ -1592,34 +1658,18 @@ async function loadContractAndLock(projectRoot: string) {
         staleness = `⚠ Lock file is ${syncStatus}. Run \`mikk analyze\` for accurate results.`
     }
 
-    // Active staleness detection: check mtime of a sample of tracked files
+    // Active staleness detection:
+    // 1) Prefer git-based dirty-file checks (truthful and stable across CI checkouts)
+    // 2) If git metadata is unavailable (e.g., temp fixture copies), skip active checks
+    //    to avoid false-positive warnings from filesystem mtime drift.
     if (!staleness) {
         const fileEntries = Object.entries(lock.files)
         const sampleSize = Math.min(fileEntries.length, 5)
-        let mismatched = 0
-        const mismatchedFiles: string[] = []
+        const sampleFiles = fileEntries.slice(0, sampleSize).map(([filePath]) => filePath.replace(/\\/g, '/'))
+        const dirtyFiles = await getDirtySampleFiles(projectRoot, sampleFiles)
 
-        for (let i = 0; i < sampleSize; i++) {
-            const [filePath, fileInfo] = fileEntries[i]
-            const absPath = path.isAbsolute(filePath)
-                ? filePath
-                : path.join(projectRoot, filePath)
-
-            try {
-                const stat = await fs.stat(absPath)
-                const lockDate = new Date(fileInfo.lastModified || 0)
-                if (stat.mtime > lockDate) {
-                    mismatched++
-                    mismatchedFiles.push(filePath)
-                }
-            } catch {
-                mismatched++ // file deleted
-                mismatchedFiles.push(filePath)
-            }
-        }
-
-        if (mismatched > 0) {
-            staleness = `⚠ STALE: ${mismatched} file(s) changed since last analysis (${mismatchedFiles.slice(0, 3).join(', ')}${mismatched > 3 ? '...' : ''}). Run \`mikk analyze\`.`
+        if (dirtyFiles && dirtyFiles.length > 0) {
+            staleness = `⚠ STALE: ${dirtyFiles.length} file(s) changed since last analysis (${dirtyFiles.slice(0, 3).join(', ')}${dirtyFiles.length > 3 ? '...' : ''}). Run \`mikk analyze\`.`
         }
     }
 

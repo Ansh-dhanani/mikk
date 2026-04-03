@@ -224,8 +224,9 @@ export async function parseFilesWithDiagnostics(
         return isTreeSitterExtension(ext)
     })
 
+    let treeSitterAvailable = true
     if (treeSitterNeeded) {
-        const treeSitterAvailable =
+        treeSitterAvailable =
             typeof options.treeSitterRuntimeAvailable === 'boolean'
                 ? options.treeSitterRuntimeAvailable
                 : await isTreeSitterRuntimeAvailable()
@@ -319,6 +320,19 @@ export async function parseFilesWithDiagnostics(
                 goFiles.push(parsed)
                 parsedFilesCount += 1
             } else {
+                if (!treeSitterAvailable) {
+                    fallbackFilesCount += 1
+                    fallbackFiles.push(buildFallbackParsedFile(absoluteFp, content, ext))
+                    addDiagnostic({
+                        filePath: absoluteFp,
+                        extension: ext,
+                        parser: 'tree-sitter',
+                        stage: 'parse',
+                        reason: 'parser-unavailable',
+                        message: 'Tree-sitter runtime unavailable. Falling back to empty parsed file.',
+                    })
+                    continue
+                }
                 const ts = await getTreeSitter()
                 const parsed = await ts.parse(absoluteFp, content)
                 treeFiles.push(parsed)
