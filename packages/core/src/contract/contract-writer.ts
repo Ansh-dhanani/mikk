@@ -1,6 +1,7 @@
 import * as fs from 'node:fs/promises'
 import * as path from 'node:path'
 import type { MikkContract } from './schema.js'
+import { writeFileAtomic } from '../utils/atomic-write.js'
 
 const VERSION = '@getmikk/cli@1.2.1'
 
@@ -20,7 +21,7 @@ export class ContractWriter {
     async writeNew(contract: MikkContract, outputPath: string): Promise<void> {
         await fs.mkdir(path.dirname(outputPath), { recursive: true })
         const json = JSON.stringify(contract, null, 2)
-        await fs.writeFile(outputPath, json, 'utf-8')
+        await writeFileAtomic(outputPath, json, { encoding: 'utf-8' })
     }
 
     /** Update an existing mikk.json respecting overwrite mode */
@@ -108,6 +109,6 @@ export class ContractWriter {
         })
 
         await fs.mkdir(path.dirname(historyPath), { recursive: true })
-        await fs.writeFile(historyPath, JSON.stringify(history, null, 2), 'utf-8')
+        await writeFileAtomic(historyPath, JSON.stringify(history, null, 2), { encoding: 'utf-8' })
     }
 }

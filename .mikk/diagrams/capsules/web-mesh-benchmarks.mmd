@@ -3,10 +3,28 @@ graph LR
 
     subgraph web_mesh_benchmarks["📦 Testing & Search"]
         direction TB
-        internal["🔒 155 internal functions"]
+        subgraph internal["🔒 Internal"]
+            fn_c__users_ansh_desktop_web_mesh_benchmarks_ground_truth_benchmark_ts_getfixturepath["getFixturePath"]
+            fn_c__users_ansh_desktop_web_mesh_benchmarks_ground_truth_benchmark_ts_runcommand["runCommand"]
+            fn_c__users_ansh_desktop_web_mesh_benchmarks_ground_truth_benchmark_ts_loadlock["loadLock"]
+            fn_c__users_ansh_desktop_web_mesh_benchmarks_ground_truth_benchmark_ts_benchmarkdeadcodedetection["benchmarkDeadCodeDetection"]
+            fn_c__users_ansh_desktop_web_mesh_benchmarks_ground_truth_benchmark_ts_benchmarkfunctionsearch["benchmarkFunctionSearch"]
+            fn_c__users_ansh_desktop_web_mesh_benchmarks_ground_truth_benchmark_ts_benchmarkimpactanalysis["benchmarkImpactAnalysis"]
+            fn_c__users_ansh_desktop_web_mesh_benchmarks_ground_truth_benchmark_ts_benchmarkcontextgeneration["benchmarkContextGeneration"]
+            fn_c__users_ansh_desktop_web_mesh_benchmarks_ground_truth_benchmark_ts_benchmarkroutedetection["benchmarkRouteDetection"]
+            fn_c__users_ansh_desktop_web_mesh_benchmarks_ground_truth_benchmark_ts_runbenchmarks["runBenchmarks"]
+        end
     end
 
 
     classDef publicApi fill:#22c55e,stroke:#4ade80,color:#f0fdf4
     classDef internalApi fill:#64748b,stroke:#94a3b8,color:#f1f5f9
-    class internal internalApi
+    class fn_c__users_ansh_desktop_web_mesh_benchmarks_ground_truth_benchmark_ts_getfixturepath internalApi
+    class fn_c__users_ansh_desktop_web_mesh_benchmarks_ground_truth_benchmark_ts_runcommand internalApi
+    class fn_c__users_ansh_desktop_web_mesh_benchmarks_ground_truth_benchmark_ts_loadlock internalApi
+    class fn_c__users_ansh_desktop_web_mesh_benchmarks_ground_truth_benchmark_ts_benchmarkdeadcodedetection internalApi
+    class fn_c__users_ansh_desktop_web_mesh_benchmarks_ground_truth_benchmark_ts_benchmarkfunctionsearch internalApi
+    class fn_c__users_ansh_desktop_web_mesh_benchmarks_ground_truth_benchmark_ts_benchmarkimpactanalysis internalApi
+    class fn_c__users_ansh_desktop_web_mesh_benchmarks_ground_truth_benchmark_ts_benchmarkcontextgeneration internalApi
+    class fn_c__users_ansh_desktop_web_mesh_benchmarks_ground_truth_benchmark_ts_benchmarkroutedetection internalApi
+    class fn_c__users_ansh_desktop_web_mesh_benchmarks_ground_truth_benchmark_ts_runbenchmarks internalApi

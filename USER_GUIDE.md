@@ -14,7 +14,7 @@ To get started with Mikk in your existing project, run:
 mikk init
 ```
 
-This will initialize Mikk in your project, generate a skeleton `mikk.json` contract file, and create an initial lockfile (`mikk.lock`) to track the current state of your codebase.
+This will initialize Mikk in your project, generate a skeleton `mikk.json` contract file, and create an initial lockfile (`mikk.lock.json`) to track the current state of your codebase.
 
 ---
 
@@ -27,6 +27,13 @@ When you make extensive additions or structural changes, you can re-analyze the 
 mikk analyze
 ```
 *Description: Parses your project, updates internal graphs, and regenerates the lockfile.*
+
+For CI-grade accuracy checks, use strict parse mode:
+
+```bash
+mikk analyze --strict-parsing
+```
+*Description: Fails if any file had parser/read/import-resolution diagnostics and avoids silent fallback parsing.*
 
 ### 2. Live Watching
 Instead of constantly running `analyze`, you can run Mikk in watch mode to incrementally analyze changes as you save your files.
@@ -145,5 +152,5 @@ mikk intent "Extract the user validation logic into a shared module"
 ## 📝 Tips for Best Results
 
 1. **Keep Mikk Watched**: Run `mikk watch` in a separate terminal while developing so your diagrams and contexts are always real-time.
-2. **Commit `mikk.json` and `mikk.lock`**: Treat them like `package.json` and `package-lock.json`. These files serve as the source of truth for your codebase's architectural boundaries.
+2. **Commit `mikk.json` and `mikk.lock.json`**: Treat them like `package.json` and `package-lock.json`. These files serve as the source of truth for your codebase's architectural boundaries.
 3. **Use with VS Code**: Check out the `@mikk/vscode-extension` to get visual charts and context tools directly in your editor's sidebar!

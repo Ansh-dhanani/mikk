@@ -170,7 +170,8 @@ export class WatcherDaemon {
 
             // Write updated lock
             const lockPath = path.join(this.config.projectRoot, 'mikk.lock.json')
-            await fs.writeFile(lockPath, JSON.stringify(this.lock, null, 2), 'utf-8')
+            const lockReader = new LockReader()
+            await lockReader.write(this.lock, lockPath)
 
             // Log batch info
             if (result.mode === 'full') {

@@ -1,7 +1,7 @@
-import * as fs from 'node:fs/promises'
 import { MikkLockSchema, type MikkLock } from './schema.js'
 import { LockNotFoundError } from '../utils/errors.js'
 import { readJsonSafe } from '../utils/json.js'
+import { writeFileAtomic } from '../utils/atomic-write.js'
 
 /**
  * LockReader -- reads and validates mikk.lock.json from disk.
@@ -36,7 +36,7 @@ export class LockReader {
     async write(lock: MikkLock, lockPath: string): Promise<void> {
         const compact = compactifyLock(lock)
         const json = JSON.stringify(compact)
-        await fs.writeFile(lockPath, json, 'utf-8')
+        await writeFileAtomic(lockPath, json, { encoding: 'utf-8' })
     }
 }
 

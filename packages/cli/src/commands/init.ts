@@ -18,6 +18,7 @@ export function registerInitCommand(program: Command) {
         .command('init')
         .description('Initialize Mikk in this project')
         .option('--force', 'Overwrite existing mikk.json and lock file')
+        .option('--strict-parsing', 'Fail if any files could not be parsed cleanly')
         .action(async (options) => {
             const projectRoot = process.cwd()
 
@@ -68,9 +69,54 @@ export function registerInitCommand(program: Command) {
                 spinner.text = `Found ${files.length} files (${language}). Parsing...`
 
                 // 2. Parse all files
-                const parsedFiles = await parseFiles(files, projectRoot, (fp) =>
-                    readFileContent(fp)
-                )
+                const maybeCore = await import('@getmikk/core') as any
+                const parseWithDiagnostics = maybeCore.parseFilesWithDiagnostics as
+                    | ((
+                        filePaths: string[],
+                        root: string,
+                        reader: (fp: string) => Promise<string>
+                    ) => Promise<{
+                        files: any[]
+                        diagnostics: Array<{ reason: string }>
+                        summary: { diagnostics: number; fallbackFiles: number }
+                    }>)
+                    | undefined
+
+                const parseResult = typeof parseWithDiagnostics === 'function'
+                    ? await parseWithDiagnostics(files, projectRoot, (fp) => readFileContent(fp))
+                    : {
+                        files: await parseFiles(files, projectRoot, (fp) => readFileContent(fp)),
+                        diagnostics: [],
+                        summary: {
+                            diagnostics: 0,
+                            fallbackFiles: 0,
+                        },
+                    }
+                const parsedFiles = parseResult.files
+
+                if (parseResult.summary.diagnostics > 0) {
+                    const reasonCounts = new Map<string, number>()
+                    for (const diagnostic of parseResult.diagnostics) {
+                        reasonCounts.set(diagnostic.reason, (reasonCounts.get(diagnostic.reason) || 0) + 1)
+                    }
+                    const reasonText = [...reasonCounts.entries()]
+                        .sort((a, b) => b[1] - a[1])
+                        .map(([reason, count]) => `${reason}: ${count}`)
+                        .join(', ')
+
+                    const message =
+                        `Parse diagnostics: ${parseResult.summary.diagnostics} issue(s), ` +
+                        `${parseResult.summary.fallbackFiles} fallback file(s). ${reasonText}`
+
+                    if (options.strictParsing) {
+                        spinner.fail(message)
+                        process.exit(1)
+                    }
+
+                    spinner.warn(message)
+                    spinner.start('Building dependency graph...')
+                }
+
                 spinner.text = 'Building dependency graph...'
 
                 // 3. Build graph

@@ -73,7 +73,10 @@ Initialize Mikk in the current directory. Performs a full codebase scan, builds 
 
 ```bash
 mikk init
+mikk init --strict-parsing
 ```
+
+`--strict-parsing` fails initialization if any parser/read/import-resolution diagnostics are detected.
 
 **Generated files:**
 - `mikk.json` — Architecture contract (modules, constraints, decisions)
@@ -94,7 +97,10 @@ Re-analyze the codebase and update all generated files. Run this after making co
 
 ```bash
 mikk analyze
+mikk analyze --strict-parsing
 ```
+
+`mikk analyze` prints parser diagnostics (with reason counts) when fallbacks occur. Use `--strict-parsing` to fail fast in CI or release pipelines.
 
 ---
 

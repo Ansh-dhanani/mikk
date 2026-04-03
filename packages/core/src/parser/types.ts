@@ -116,7 +116,7 @@ export interface ParsedRoute {
 /** Everything extracted from a single file */
 export interface ParsedFile {
   path: string;            // normalized absolute path
-  language: 'python' | 'go' | 'typescript' | 'javascript' | 'java' | 'c' | 'cpp' | 'csharp' | 'rust' | 'php' | 'ruby' | 'unknown';
+  language: 'python' | 'go' | 'typescript' | 'javascript' | 'java' | 'kotlin' | 'swift' | 'c' | 'cpp' | 'csharp' | 'rust' | 'php' | 'ruby' | 'unknown';
   functions: ParsedFunction[];
   classes: ParsedClass[];
   variables: ParsedVariable[];

@@ -29,7 +29,7 @@ Mikk uses **OXC** (Rust-backed, 50× faster than the TypeScript Compiler API) fo
 |----------|--------|-------------------|
 | TypeScript / JavaScript | OXC | Functions, classes, generics, imports, exports, call graph, routes, variables |
 | Go | Native | Functions, structs, imports, methods, call graph |
-| Python, Java, C#, Rust, C++, C, PHP, Ruby | Tree-sitter | Functions, classes, imports, call graph |
+| Python, Java, Kotlin (`.kt`, `.kts`), C#, Rust, C++, C, PHP, Ruby, Swift | Tree-sitter | Functions, classes, imports, call graph |
 
 Every function stores its **exact file path, line range, call list, hash, and purpose**. When your AI calls `mikk_get_function_detail`, it receives the real body — not a guess.
 
@@ -83,6 +83,8 @@ function hash  →  file hash  →  module hash  →  root hash
     Updated `mikk.lock.json` is written via temp file → rename. Zero corruption risk on crash.
   </Step>
 </Steps>
+
+ADR updates in `mikk.json` follow the same atomic-write pattern.
 
 A 100-file change in a 10,000-file project re-parses exactly 100 files.
 

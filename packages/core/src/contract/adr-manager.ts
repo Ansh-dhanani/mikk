@@ -1,6 +1,7 @@
-import * as fs from 'node:fs/promises'
 import type { MikkContract, MikkDecision } from './schema.js'
 import { MikkContractSchema } from './schema.js'
+import { readJsonSafe } from '../utils/json.js'
+import { writeFileAtomic } from '../utils/atomic-write.js'
 
 /**
  * AdrManager — CRUD operations on Architectural Decision Records
@@ -65,11 +66,11 @@ export class AdrManager {
     // ─── Helpers ───────────────────────────────────────────────────
 
     private async readContract(): Promise<MikkContract> {
-        const raw = await fs.readFile(this.contractPath, 'utf-8')
-        return MikkContractSchema.parse(JSON.parse(raw))
+        const json = await readJsonSafe(this.contractPath, 'mikk.json')
+        return MikkContractSchema.parse(json)
     }
 
     private async writeContract(contract: MikkContract): Promise<void> {
-        await fs.writeFile(this.contractPath, JSON.stringify(contract, null, 2), 'utf-8')
+        await writeFileAtomic(this.contractPath, JSON.stringify(contract, null, 2), { encoding: 'utf-8' })
     }
 }

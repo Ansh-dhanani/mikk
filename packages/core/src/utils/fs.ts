@@ -334,7 +334,7 @@ export function getDiscoveryPatterns(language: ProjectLanguage): { patterns: str
             }
         case 'java':
             return {
-                patterns: ['**/*.java', '**/*.kt'],
+                patterns: ['**/*.java', '**/*.kt', '**/*.kts'],
                 ignore: [...commonIgnore, '**/target/**', '**/.gradle/**', '**/Test*.java', '**/*Test.java'],
             }
         case 'ruby':
@@ -354,7 +354,7 @@ export function getDiscoveryPatterns(language: ProjectLanguage): { patterns: str
             }
         case 'cpp':
             return {
-                patterns: ['**/*.cpp', '**/*.cc', '**/*.cxx', '**/*.hpp', '**/*.hxx', '**/*.h'],
+                patterns: ['**/*.cpp', '**/*.cc', '**/*.cxx', '**/*.hpp', '**/*.hxx', '**/*.hh', '**/*.h'],
                 ignore: [...commonIgnore, '**/build/**', '**/cmake-build-*/**'],
             }
         case 'c':

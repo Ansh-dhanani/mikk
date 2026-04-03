@@ -87,10 +87,10 @@
     },
     "packages/ai-context": {
       "name": "@getmikk/ai-context",
-      "version": "2.0.10",
+      "version": "2.0.11",
       "dependencies": {
-        "@getmikk/core": "workspace:*",
-        "@getmikk/intent-engine": "workspace:*",
+        "@getmikk/core": "^2.0.11",
+        "@getmikk/intent-engine": "^2.0.11",
       },
       "devDependencies": {
         "@types/node": "^22.0.0",
@@ -100,21 +100,26 @@
     },
     "packages/cli": {
       "name": "@getmikk/cli",
-      "version": "2.0.10",
+      "version": "2.0.11",
       "bin": {
         "mikk": "bin/mikk.js",
       },
       "dependencies": {
+        "better-sqlite3": "^12.6.2",
+        "chalk": "^5.4.0",
+        "chokidar": "^4.0.0",
+        "commander": "^13.0.0",
+        "ora": "^8.0.0",
+        "oxc-parser": "^0.121.0",
+        "oxc-resolver": "^11.19.1",
+        "zod": "^3.22.0",
+      },
+      "devDependencies": {
         "@getmikk/ai-context": "workspace:*",
         "@getmikk/core": "workspace:*",
         "@getmikk/diagram-generator": "workspace:*",
         "@getmikk/intent-engine": "workspace:*",
         "@getmikk/watcher": "workspace:*",
-        "chalk": "^5.4.0",
-        "commander": "^13.0.0",
-        "ora": "^8.0.0",
-      },
-      "devDependencies": {
         "@types/node": "^22.0.0",
         "esbuild": "^0.21.4",
         "eslint": "^9.39.2",
@@ -123,7 +128,7 @@
     },
     "packages/core": {
       "name": "@getmikk/core",
-      "version": "2.0.10",
+      "version": "2.0.11",
       "dependencies": {
         "better-sqlite3": "^12.6.2",
         "fast-glob": "^3.3.0",
@@ -140,9 +145,9 @@
     },
     "packages/diagram-generator": {
       "name": "@getmikk/diagram-generator",
-      "version": "2.0.10",
+      "version": "2.0.11",
       "dependencies": {
-        "@getmikk/core": "workspace:*",
+        "@getmikk/core": "^2.0.11",
       },
       "devDependencies": {
         "@types/node": "^22.0.0",
@@ -152,9 +157,9 @@
     },
     "packages/intent-engine": {
       "name": "@getmikk/intent-engine",
-      "version": "2.0.10",
+      "version": "2.0.11",
       "dependencies": {
-        "@getmikk/core": "workspace:*",
+        "@getmikk/core": "^2.0.11",
         "zod": "^3.22.0",
       },
       "devDependencies": {
@@ -201,9 +206,9 @@
     },
     "packages/watcher": {
       "name": "@getmikk/watcher",
-      "version": "2.0.10",
+      "version": "2.0.11",
       "dependencies": {
-        "@getmikk/core": "workspace:*",
+        "@getmikk/core": "^2.0.11",
         "chokidar": "^4.0.0",
       },
       "devDependencies": {

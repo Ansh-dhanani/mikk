@@ -29,7 +29,10 @@ Full codebase scan. Parses all source files via OXC (TS/JS) and Tree-sitter (oth
 ```bash
 mikk init
 mikk init --force    # re-initialize even if mikk.json already exists
+mikk init --strict-parsing
 ```
+
+`--strict-parsing` fails initialization if parser/read/import-resolution diagnostics are detected.
 
 **What gets generated:**
 - `mikk.json` — architecture contract with auto-detected modules
@@ -46,7 +49,10 @@ Re-analyze and update all generated files. Incremental by default — only re-pa
 ```bash
 mikk analyze
 mikk analyze --full    # force full re-parse (ignore hashes)
+mikk analyze --strict-parsing
 ```
+
+`mikk analyze` surfaces parse diagnostics with reason counts when files fall back to empty parsed output. Use `--strict-parsing` to make diagnostics a hard failure.
 
 After `mikk analyze` completes, the MCP server's cache is busted on the next tool call — the server detects the updated `mikk.lock.json` mtime immediately.
 

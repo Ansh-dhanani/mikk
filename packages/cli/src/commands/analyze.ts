@@ -64,14 +64,15 @@ export function registerAnalyzeCommand(program: Command) {
     program
         .command('analyze')
         .description('Re-analyze codebase and update lock file')
-        .action(async () => {
+        .option('--strict-parsing', 'Fail if any files could not be parsed cleanly')
+        .action(async (options) => {
             const spinner = ora('Analyzing project...').start()
             const projectRoot = process.cwd()
 
             try {
                 const core = await resolveCoreModule(projectRoot)
                 const {
-                    discoverFiles, discoverContextFiles, parseFiles, readFileContent,
+                    discoverFiles, discoverContextFiles, parseFilesWithDiagnostics, parseFiles, readFileContent,
                     GraphBuilder, LockCompiler, ContractReader, LockReader,
                     detectProjectLanguage, getDiscoveryPatterns,
                 } = core
@@ -95,9 +96,44 @@ export function registerAnalyzeCommand(program: Command) {
 
                 spinner.text = `Parsing ${files.length} files...`
 
-                const parsedFiles = await parseFiles(files, projectRoot, (fp) =>
-                    readFileContent(fp)
-                )
+                const parseResult = typeof parseFilesWithDiagnostics === 'function'
+                    ? await parseFilesWithDiagnostics(files, projectRoot, (fp) => readFileContent(fp))
+                    : {
+                        files: await parseFiles(files, projectRoot, (fp) => readFileContent(fp)),
+                        diagnostics: [],
+                        summary: {
+                            requestedFiles: files.length,
+                            parsedFiles: files.length,
+                            fallbackFiles: 0,
+                            unreadableFiles: 0,
+                            unsupportedFiles: 0,
+                            diagnostics: 0,
+                        },
+                    }
+                const parsedFiles = parseResult.files
+
+                if (parseResult.summary.diagnostics > 0) {
+                    const reasonCounts = new Map<string, number>()
+                    for (const diagnostic of parseResult.diagnostics) {
+                        reasonCounts.set(diagnostic.reason, (reasonCounts.get(diagnostic.reason) || 0) + 1)
+                    }
+                    const reasonText = [...reasonCounts.entries()]
+                        .sort((a, b) => b[1] - a[1])
+                        .map(([reason, count]) => `${reason}: ${count}`)
+                        .join(', ')
+
+                    const message =
+                        `Parse diagnostics: ${parseResult.summary.diagnostics} issue(s), ` +
+                        `${parseResult.summary.fallbackFiles} fallback file(s). ${reasonText}`
+
+                    if (options.strictParsing) {
+                        spinner.fail(message)
+                        process.exit(1)
+                    }
+
+                    spinner.warn(message)
+                    spinner.start('Building dependency graph...')
+                }
 
                 spinner.text = 'Building dependency graph...'
                 const graph = new GraphBuilder().build(parsedFiles)

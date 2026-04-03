@@ -36,6 +36,11 @@ function isExportedByLanguage(ext: string, name: string, nodeText: string): bool
             return !name.startsWith('_')
         case '.java':
             return /\bpublic\b/.test(nodeText)
+        case '.kt':
+        case '.kts':
+            return !/\bprivate\b/.test(nodeText) && !/\binternal\b/.test(nodeText) && !/\bprotected\b/.test(nodeText)
+        case '.swift':
+            return !/\bprivate\b/.test(nodeText) && !/\bfileprivate\b/.test(nodeText)
         case '.cs':
             return /\bpublic\b/.test(nodeText) && !/\binternal\b/.test(nodeText)
         case '.go':
@@ -181,7 +186,7 @@ export class TreeSitterParser extends BaseParser {
     private wasmLoadError = false
 
     getSupportedExtensions(): string[] {
-        return ['.py', '.java', '.c', '.cpp', '.cc', '.h', '.hpp', '.cs', '.go', '.rs', '.php', '.rb']
+        return ['.py', '.java', '.kt', '.kts', '.swift', '.c', '.cpp', '.cc', '.cxx', '.h', '.hpp', '.hxx', '.hh', '.cs', '.go', '.rs', '.php', '.rb']
     }
 
     private async init() {
@@ -591,12 +596,19 @@ export class TreeSitterParser extends BaseParser {
                 return { lang: await this.loadLang('python'), query: Queries.PYTHON_QUERIES }
             case '.java':
                 return { lang: await this.loadLang('java'), query: Queries.JAVA_QUERIES }
+            case '.kt':
+            case '.kts':
+                return { lang: await this.loadLang('kotlin'), query: Queries.KOTLIN_QUERIES }
+            case '.swift':
+                return { lang: await this.loadLang('swift'), query: Queries.SWIFT_QUERIES }
             case '.c':
             case '.h':
                 return { lang: await this.loadLang('c'), query: Queries.C_QUERIES }
             case '.cpp':
             case '.cc':
+            case '.cxx':
             case '.hpp':
+            case '.hxx':
             case '.hh':
                 return { lang: await this.loadLang('cpp'), query: Queries.CPP_QUERIES }
             case '.cs':
@@ -619,8 +631,14 @@ function extensionToLanguage(ext: string): ParsedFile['language'] {
     switch (ext) {
         case '.py': return 'python'
         case '.java': return 'java'
+        case '.kt':
+        case '.kts':
+            return 'kotlin'
+        case '.swift':
+            return 'swift'
         case '.c': case '.h': return 'c'
         case '.cpp': case '.cc': case '.hpp': return 'cpp'
+        case '.cxx': case '.hxx': case '.hh': return 'cpp'
         case '.cs': return 'csharp'
         case '.go': return 'go'
         case '.rs': return 'rust'
