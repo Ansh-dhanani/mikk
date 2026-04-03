@@ -729,6 +729,16 @@ describe('getParser - Comprehensive', () => {
         const parser = getParser('src/lib/utils/helper.ts')
         expect(parser).toBeInstanceOf(OxcParser)
     })
+
+    it('supports C++ variant extensions via tree-sitter parser', () => {
+      const cxxParser = getParser('src/engine.cxx')
+      const hxxParser = getParser('src/engine.hxx')
+      const hhParser = getParser('src/engine.hh')
+
+      expect(cxxParser.getSupportedExtensions()).toContain('.cxx')
+      expect(hxxParser.getSupportedExtensions()).toContain('.hxx')
+      expect(hhParser.getSupportedExtensions()).toContain('.hh')
+    })
 })
 
 describe('OxcParser - Direct', () => {

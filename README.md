@@ -221,7 +221,9 @@ When you run `mikk init`, Mikk automatically integrates itself into your workflo
 
 ```bash
 mikk init                      # Full scan — graph, lock, diagrams, claude.md
+mikk init --strict-parsing     # Fail if parser/read diagnostics are detected
 mikk analyze                   # Re-analyze after code changes
+mikk analyze --strict-parsing  # CI-friendly parse completeness enforcement
 mikk watch                     # Live watcher daemon (incremental, debounced at 100ms)
 mikk diff                      # Files changed since last analysis
 mikk ci                        # CI gate — exits non-zero on constraint violations
@@ -278,9 +280,14 @@ mikk watch
 | Java | Tree-sitter | 90% |
 | C# | Tree-sitter | 90% |
 | Rust | Tree-sitter | 85% |
-| C / C++ | Tree-sitter | 85% |
+| C / C++ (`.cpp`, `.cc`, `.cxx`, `.hpp`, `.hxx`, `.hh`) | Tree-sitter | 85% |
 | PHP | Tree-sitter | 85% |
 | Ruby | Tree-sitter | 85% |
+
+Notes:
+- Java discovery now includes Kotlin script files (`.kts`) in addition to `.kt`.
+- `mikk analyze` surfaces parse diagnostics with reason counts; use `--strict-parsing` to fail on any parser fallback.
+- ADR updates are persisted with atomic writes to reduce corruption risk during concurrent agent edits.
 
 ---
 

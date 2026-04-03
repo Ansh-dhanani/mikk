@@ -1,8 +1,8 @@
 <repository_context>
   <name>mikk</name>
   <stats>
-    <files>212</files>
-    <functions>859</functions>
+    <files>221</files>
+    <functions>777</functions>
     <modules>30</modules>
     <language>typescript</language>
   </stats>
@@ -11,6 +11,7 @@
 <modules>
 <tech_stack>
   <technology>Vercel Analytics</technology>
+  <technology>Turborepo</technology>
 </tech_stack>
 <commands>
   <command>
@@ -47,11 +48,11 @@
     <location>c:/users/ansh/desktop/web/mesh/benchmarks/**</location>
     <purpose>17 files, 0 functions</purpose>
     <entry_points>
-      <function signature="AsciinemaBenchmark.constructor() [c:/users/ansh/desktop/web/mesh/benchmarks/asciinema-benchmark.ts:78]" purpose="Asciinema benchmark.constructor" />
-      <function signature="async AsciinemaBenchmark.recordScenario(scenario, mode) [c:/users/ansh/desktop/web/mesh/benchmarks/asciinema-benchmark.ts:85]" purpose="Asciinema benchmark.record scenario (scenario, mode)" />
-      <function signature="AsciinemaBenchmark.generateScript(scenario, mode) [c:/users/ansh/desktop/web/mesh/benchmarks/asciinema-benchmark.ts:138]" purpose="Asciinema benchmark.generate script (scenario, mode)" />
-      <function signature="AsciinemaBenchmark.analyzeRecording(castFile) [c:/users/ansh/desktop/web/mesh/benchmarks/asciinema-benchmark.ts:160]" purpose="Asciinema benchmark.analyze recording (castFile)" />
-      <function signature="async AsciinemaBenchmark.runAll() [c:/users/ansh/desktop/web/mesh/benchmarks/asciinema-benchmark.ts:197]" purpose="Asciinema benchmark.run all" />
+      <function signature="getFixturePath(name) [c:/users/ansh/desktop/web/mesh/benchmarks/ground-truth-benchmark.ts:16]" purpose="Get fixture path (name)" />
+      <function signature="async runCommand(cmd, cwd) [c:/users/ansh/desktop/web/mesh/benchmarks/ground-truth-benchmark.ts:38]" purpose="Run command (cmd, cwd)" />
+      <function signature="async loadLock(projectPath) [c:/users/ansh/desktop/web/mesh/benchmarks/ground-truth-benchmark.ts:47]" purpose="Load lock (projectPath)" />
+      <function signature="async benchmarkDeadCodeDetection(projectPath, projectName) [c:/users/ansh/desktop/web/mesh/benchmarks/ground-truth-benchmark.ts:56]" purpose="Benchmark dead code detection (projectPath, projectName)" />
+      <function signature="async benchmarkFunctionSearch(projectPath, projectName) [c:/users/ansh/desktop/web/mesh/benchmarks/ground-truth-benchmark.ts:122]" purpose="Benchmark function search (projectPath, projectName)" />
     </entry_points>
   </module>
   <module id="mesh-apps-web">
@@ -373,5 +374,17 @@
     </entry_points>
   </module>
 </modules>
+
+## HTTP Routes
+
+- **POST** `/login` → `async (req, res) => { try { const { email, password } = req.body if (!isValidEma...` *(C:/Users/Ansh/Desktop/web/Mesh/benchmarks/fixtures/ts-express-api/src/routes/auth.ts:7)*
+- **POST** `/register` → `async (req, res) => { try { const { email, password } = req.body if (!isValidEma...` *(C:/Users/Ansh/Desktop/web/Mesh/benchmarks/fixtures/ts-express-api/src/routes/auth.ts:21)*
+- **POST** `/invoices` → `async (req, res) => { try { const { amount, currency } = req.body const userId =...` → [requireAuth] *(C:/Users/Ansh/Desktop/web/Mesh/benchmarks/fixtures/ts-express-api/src/routes/payments.ts:7)*
+- **POST** `/invoices/:id/charge` → `async (req, res) => { try { const clientSecret = await chargeInvoice(req.params....` → [requireAuth] *(C:/Users/Ansh/Desktop/web/Mesh/benchmarks/fixtures/ts-express-api/src/routes/payments.ts:18)*
+- **POST** `/invoices/:id/paid` → `async (req, res) => { try { const { paymentIntentId } = req.body await markInvoi...` → [requireAuth] *(C:/Users/Ansh/Desktop/web/Mesh/benchmarks/fixtures/ts-express-api/src/routes/payments.ts:27)*
+- **POST** `/invoices/:id/refund` → `async (req, res) => { try { await refundInvoice(req.params.id) res.json({ messag...` → [requireAuth, requireAdmin] *(C:/Users/Ansh/Desktop/web/Mesh/benchmarks/fixtures/ts-express-api/src/routes/payments.ts:37)*
+- **GET** `/me` → `async (req, res) => { try { const userId = (req as any).user.userId const profil...` → [requireAuth] *(C:/Users/Ansh/Desktop/web/Mesh/benchmarks/fixtures/ts-express-api/src/routes/users.ts:7)*
+- **DELETE** `/:id` → `async (req, res) => { try { await removeUser(req.params.id) res.status(204).send...` → [requireAuth, requireAdmin] *(C:/Users/Ansh/Desktop/web/Mesh/benchmarks/fixtures/ts-express-api/src/routes/users.ts:17)*
+- **POST** `/:id/promote` → `async (req, res) => { try { await promoteToAdmin(req.params.id) res.json({ messa...` → [requireAuth, requireAdmin] *(C:/Users/Ansh/Desktop/web/Mesh/benchmarks/fixtures/ts-express-api/src/routes/users.ts:26)*
 
 

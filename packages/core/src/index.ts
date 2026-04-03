@@ -14,3 +14,5 @@ export { discoverFiles, discoverContextFiles, readFileContent, writeFileContent,
 export type { ContextFile, ContextFileType, ProjectLanguage } from './utils/fs.js'
 export { minimatch } from './utils/minimatch.js'
 export { scoreFunctions, findFuzzyMatches, levenshtein, splitCamelCase, extractKeywords } from './utils/fuzzy-match.js'
+export { writeFileAtomic, writeJsonAtomic } from './utils/atomic-write.js'
+export type { AtomicWriteOptions } from './utils/atomic-write.js'

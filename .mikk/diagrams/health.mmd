@@ -2,7 +2,7 @@
 graph TD
 
     packages_vscode_extension_webview["🟢 Dashboard<br/>Cohesion: 100%<br/>Coupling: 0<br/>Functions: 11"]
-    web_mesh_benchmarks["🔴 Testing & Search<br/>Cohesion: 50%<br/>Coupling: 0<br/>Functions: 155"]
+    web_mesh_benchmarks["🟡 Testing & Search<br/>Cohesion: 50%<br/>Coupling: 0<br/>Functions: 9"]
     mesh_apps_web["🟡 API & Config<br/>Cohesion: 50%<br/>Coupling: 0<br/>Functions: 2"]
     mesh_apps_registry["🟡 Search<br/>Cohesion: 50%<br/>Coupling: 0<br/>Functions: 1"]
     packages_cli_bin["🟡 CLI<br/>Cohesion: 50%<br/>Coupling: 0<br/>Functions: 0"]
@@ -53,7 +53,7 @@ graph TD
     classDef critical fill:#ef4444,stroke:#f87171,color:#fef2f2
 
     class packages_vscode_extension_webview healthy
-    class web_mesh_benchmarks critical
+    class web_mesh_benchmarks warning
     class mesh_apps_web warning
     class mesh_apps_registry warning
     class packages_cli_bin warning

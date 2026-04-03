@@ -65,6 +65,33 @@ export const JAVA_QUERIES = `
 (class_declaration name: (identifier) @heritage.class (super_interfaces (type_list (type_identifier) @heritage.implements))) @heritage.impl
 `;
 
+export const KOTLIN_QUERIES = `
+(class_declaration name: (type_identifier) @name) @definition.class
+(object_declaration name: (type_identifier) @name) @definition.class
+(function_declaration name: (simple_identifier) @name) @definition.function
+(property_declaration (variable_declaration (simple_identifier) @name)) @definition.property
+(type_alias (type_identifier) @name) @definition.type
+(import_header (identifier) @import.source) @import
+(call_expression (simple_identifier) @call.name) @call
+(call_expression
+  (navigation_expression
+    (navigation_suffix (simple_identifier) @call.name))) @call
+(constructor_invocation
+  (user_type (type_identifier) @call.name)) @call
+`;
+
+export const SWIFT_QUERIES = `
+(class_declaration name: (type_identifier) @name) @definition.class
+(protocol_declaration name: (type_identifier) @name) @definition.interface
+(function_declaration name: (simple_identifier) @name) @definition.function
+(property_declaration (pattern (simple_identifier) @name)) @definition.property
+(import_declaration (identifier) @import.source) @import
+(call_expression (simple_identifier) @call.name) @call
+(call_expression
+  (navigation_expression
+    (navigation_suffix (simple_identifier) @call.name))) @call
+`;
+
 export const C_QUERIES = `
 (function_definition declarator: (function_declarator declarator: (identifier) @name)) @definition.function
 (declaration declarator: (function_declarator declarator: (identifier) @name)) @definition.function

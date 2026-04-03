@@ -143,6 +143,16 @@ describe('getDiscoveryPatterns', () => {
         expect(patterns).toContain('**/*.py')
     })
 
+    it('java patterns include Kotlin scripts', () => {
+        const { patterns } = getDiscoveryPatterns('java')
+        expect(patterns).toContain('**/*.kts')
+    })
+
+    it('cpp patterns include .hh headers', () => {
+        const { patterns } = getDiscoveryPatterns('cpp')
+        expect(patterns).toContain('**/*.hh')
+    })
+
     it('all languages ignore .mikk and .git', () => {
         for (const lang of languages) {
             const { ignore } = getDiscoveryPatterns(lang)

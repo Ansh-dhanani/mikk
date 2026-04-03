@@ -15,13 +15,16 @@ Foundation package for the Mikk ecosystem. All other packages depend on core —
 
 ### Parsers
 
-Three language parsers, each following the same interface: `parse(filePath, content)` → `ParsedFile`.
+Three parser families follow the same interface: `parse(filePath, content)` → `ParsedFile`.
 
 **TypeScript / TSX**
-Uses the TypeScript Compiler API. Extracts: functions (name, params with types, return type, start/end line, async flag, decorators, generics), classes (methods, properties, inheritance), imports (named, default, namespace, type-only) with full resolution (tsconfig `paths` alias resolution, recursive `extends` chain, index file inference, extension inference). Every extracted function has its exact byte-accurate body location.
+Uses OXC (Rust parser). Extracts: functions (name, params with types, return type, start/end line, async flag, decorators, generics), classes (methods, properties, inheritance), imports (named, default, namespace, type-only) with full resolution (tsconfig `paths` alias resolution, recursive `extends` chain, index file inference, extension inference). Every extracted function has its exact byte-accurate body location.
 
 **JavaScript / JSX**
-Uses the TypeScript Compiler API with `ScriptKind` inference (detects JS/JSX/CJS/MJS). Handles: JSX expression containers, default exports, CommonJS `module.exports`, re-exports via barrel files.
+Uses OXC with `ScriptKind` inference (detects JS/JSX/CJS/MJS). Handles: JSX expression containers, default exports, CommonJS `module.exports`, re-exports via barrel files.
+
+**Polyglot (Tree-sitter)**
+Python, Java, Kotlin (`.kt`, `.kts`), Swift, C/C++ (`.cpp`, `.cc`, `.cxx`, `.hpp`, `.hxx`, `.hh`), C#, Rust, PHP, and Ruby via tree-sitter grammars.
 
 **Go**
 Regex + stateful scanning. No Go toolchain dependency. Extracts: functions, methods (with receiver types), structs, interfaces, package imports. `go.mod` used for project boundary detection.
@@ -80,6 +83,12 @@ Lock format v1.7.0:
 ### ContractReader / ContractWriter / LockReader
 
 Read and write `mikk.json` and `mikk.lock.json`. `LockReader.write()` uses atomic temp-file + rename to prevent corruption.
+
+`AdrManager` writes `mikk.json` atomically as well (temp file + rename + file lock), reducing corruption risk in concurrent agent workflows.
+
+### Parse Diagnostics
+
+`parseFilesWithDiagnostics` returns both parsed files and parser/read/import-resolution diagnostics. This enables strict parse enforcement in CLI commands (`mikk init --strict-parsing`, `mikk analyze --strict-parsing`) for high-assurance pipelines.
 
 ### AdrManager
 
