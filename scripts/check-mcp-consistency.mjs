@@ -10,7 +10,9 @@ const [toolsSource, readmeSource] = await Promise.all([
   readFile(readmePath, 'utf8'),
 ])
 
-const toolNameMatches = [...toolsSource.matchAll(/server\.tool\(\s*\n\s*'([^']+)'/g)]
+const toolNameMatches = [
+  ...toolsSource.matchAll(/(?:server|\(\s*server\s+as\s+any\s*\))\.tool\(\s*\n\s*'([^']+)'/g),
+]
 const toolNames = [...new Set(toolNameMatches.map((m) => m[1]))].sort()
 
 if (toolNames.length === 0) {

@@ -1,4 +1,4 @@
-import * as path from 'node:path'
+﻿import * as path from 'node:path'
 import * as fs from 'node:fs/promises'
 import { execFile } from 'node:child_process'
 import { createHash } from 'node:crypto'
@@ -116,7 +116,7 @@ function isTrackedByLock(lock: MikkLock, projectRoot: string, resolvedPath: stri
     return false
 }
 
-// Singleton per projectRoot — pipeline load is ~1-2s, must not repeat per request
+// Singleton per projectRoot - pipeline load is ~1-2s, must not repeat per request
 const semanticSearchers = new Map<string, SemanticSearcher>()
 
 /** Quick-hash a file by reading first 8KB for fast drift detection */
@@ -205,13 +205,14 @@ async function getDirtySampleFiles(projectRoot: string, sampleFiles: string[]): 
 }
 
 /**
- * Register all MCP tools — actions an AI assistant can invoke.
+ * Register all MCP tools - actions an AI assistant can invoke.
  */
 export function registerTools(server: McpServer, projectRoot: string) {
 
 
     // TOOL: mikk_test_tool
 
+    // @ts-ignore TS2589 false-positive from deep MCP generic instantiation.
     server.tool(
         'mikk_test_tool',
         'A simple test tool that returns a static message.',
@@ -224,6 +225,7 @@ export function registerTools(server: McpServer, projectRoot: string) {
 
     // TOOL: mikk_get_project_overview
 
+    // @ts-ignore TS2589 false-positive from deep MCP generic instantiation.
     server.tool(
         'mikk_get_project_overview',
         'Get a high-level overview: modules, function counts, file counts, constraints. WHEN TO USE: When you need raw project stats. For session start, prefer mikk_get_session_context instead. AFTER THIS: Use mikk_query_context with your task, or mikk_list_modules to drill into a module.',
@@ -269,9 +271,9 @@ export function registerTools(server: McpServer, projectRoot: string) {
 
     // TOOL: mikk_query_context
 
-    server.tool(
+    ; (server as any).tool(
         'mikk_query_context',
-        'Ask an architecture question — returns graph-traced context with relevant functions, files, and call chains. Use this to understand how code flows through the project.',
+        'Ask an architecture question - returns graph-traced context with relevant functions, files, and call chains. Use this to understand how code flows through the project.',
         {
             question: z.string().describe('The architecture question or task description'),
             maxHops: z.number().int().min(1).max(MAX_QUERY_HOPS).optional().default(4).describe('Graph traversal depth (default: 4)'),
@@ -287,7 +289,8 @@ export function registerTools(server: McpServer, projectRoot: string) {
             autoFallback: z.boolean().optional().default(true).describe('When strict mode returns empty, retry with balanced retrieval'),
             provider: z.enum(['claude', 'generic', 'compact']).optional().default('generic').describe('AI provider format: claude (XML tags), generic (plain), compact (minimal tokens)'),
         },
-        async ({ question, maxHops, tokenBudget, focusFile, focusModule, strict, requiredTerms, requireAllKeywords, minKeywordMatches, exactOnly, failFast, autoFallback, provider }) => {
+        async (args: any): Promise<any> => {
+            const { question, maxHops, tokenBudget, focusFile, focusModule, strict, requiredTerms, requireAllKeywords, minKeywordMatches, exactOnly, failFast, autoFallback, provider } = args as any
             const { contract, lock, staleness } = await loadContractAndLock(projectRoot)
 
             const query: ContextQuery = {
@@ -351,7 +354,7 @@ export function registerTools(server: McpServer, projectRoot: string) {
                 ? 'Note: strict mode had no exact matches; showing balanced fallback context.\n\n'
                 : ''
 
-            // Token savings: tokenBudget is the cap — raw cost without Mikk is reading all files naively
+            // Token savings: tokenBudget is the cap - raw cost without Mikk is reading all files naively
             const _rawQC = (tokenBudget ?? 6000) * 3   // Mikk's BFS gives ~3x compression over naive search
             const _tokQC = _track(projectRoot, _rawQC, output)
             const tokLine = `\n\n---\n// tokens: ${JSON.stringify(_tokQC)}`
@@ -364,7 +367,7 @@ export function registerTools(server: McpServer, projectRoot: string) {
 
     // TOOL: mikk_impact_analysis
 
-    server.tool(
+    ; (server as any).tool(
         'mikk_impact_analysis',
         'Analyze the blast radius of changing a file. Returns impacted functions classified by severity (critical/high/medium/low). WHEN TO USE: Before refactoring, renaming, or modifying shared code. AFTER THIS: Use mikk_get_function_detail on critical/high items to review them.',
         {
@@ -372,7 +375,8 @@ export function registerTools(server: McpServer, projectRoot: string) {
             tokenBudget: z.number().optional().describe('Token budget for response payload (default: 1200)'),
             abortOnHighTokens: z.boolean().optional().default(false).describe('If true, fail fast instead of returning minimized payload when token budget is exceeded'),
         },
-        async ({ file, tokenBudget, abortOnHighTokens }) => {
+        async (args: any): Promise<any> => {
+            const { file, tokenBudget, abortOnHighTokens } = args as any
             const { lock, staleness } = await loadContractAndLock(projectRoot)
             const graph = buildGraphFromLock(lock)
             const analyzer = new ImpactAnalyzer(graph)
@@ -469,14 +473,15 @@ export function registerTools(server: McpServer, projectRoot: string) {
 
     // TOOL: mikk_search_functions
 
-    server.tool(
+    ; (server as any).tool(
         'mikk_search_functions',
         'Search for functions by name or ID using a hybrid BM25+substring search. WHEN TO USE: When you need to find a function but are unsure of its exact name or location. AFTER THIS: Use mikk_get_function_detail to get more information about a specific function.',
         {
             query: z.string().describe('The search query for function names or IDs'),
             limit: z.number().optional().default(10).describe('Maximum number of results to return'),
         },
-        async ({ query, limit }) => {
+        async (args: any): Promise<any> => {
+            const { query, limit } = args as any
             const { lock, staleness } = await loadContractAndLock(projectRoot)
             const allFunctions = Object.values(lock.functions)
             const queryLower = query.toLowerCase()
@@ -529,7 +534,7 @@ export function registerTools(server: McpServer, projectRoot: string) {
 
     // TOOL: mikk_before_edit
 
-    server.tool(
+    ; (server as any).tool(
         'mikk_before_edit',
         'MANDATORY: Call BEFORE editing any file. Returns blast radius, exported functions at risk, constraint violations (6 rule types), and circular dependency warnings. WHEN TO USE: ALWAYS before modifying files. AFTER THIS: If constraintStatus is fail, redesign your approach. If pass, proceed with edits. TIP: Pass multiple files for combined blast radius.',
         {
@@ -537,7 +542,8 @@ export function registerTools(server: McpServer, projectRoot: string) {
             tokenBudget: z.number().optional().describe('Token budget for response payload (default: 1200)'),
             abortOnHighTokens: z.boolean().optional().default(false).describe('If true, fail fast when payload exceeds token budget'),
         },
-        async ({ files: filesToEdit, tokenBudget, abortOnHighTokens }) => {
+        async (args: any): Promise<any> => {
+            const { files: filesToEdit, tokenBudget, abortOnHighTokens } = args as any
             const { contract, lock, staleness } = await loadContractAndLock(projectRoot)
             const graph = buildGraphFromLock(lock)
             const analyzer = new ImpactAnalyzer(graph)
@@ -625,7 +631,7 @@ export function registerTools(server: McpServer, projectRoot: string) {
                 files: fileReports,
                 warning: staleness,
                 hint: totalViolations > 0
-                    ? '⚠ Constraint violations detected! Review the violations before proceeding. Use mikk_get_constraints for full rule context.'
+                    ? 'WARNING: Constraint violations detected! Review the violations before proceeding. Use mikk_get_constraints for full rule context.'
                     : 'All constraints satisfied. If safe, proceed with your edits.',
             }
 
@@ -667,6 +673,7 @@ export function registerTools(server: McpServer, projectRoot: string) {
 
     // TOOL: mikk_list_modules
 
+    // @ts-ignore TS2589 false-positive from deep MCP generic instantiation.
     server.tool(
         'mikk_list_modules',
         'List all declared modules with file counts, function counts, entry points, and descriptions. WHEN TO USE: To explore the project structure. Good starting point after mikk_get_session_context. AFTER THIS: Use mikk_get_module_detail with a specific moduleId.',
@@ -700,13 +707,15 @@ export function registerTools(server: McpServer, projectRoot: string) {
 
     // TOOL: mikk_get_module_detail
 
-    server.tool(
+    // @ts-ignore TS2589 false-positive from deep MCP generic instantiation.
+    ; (server as any).tool(
         'mikk_get_module_detail',
         'Deep dive into a single module: all functions, files, exported API surface, internal call graph. WHEN TO USE: After mikk_list_modules to understand a specific module. AFTER THIS: Use mikk_get_function_detail for specific functions, or mikk_before_edit if modifying files in this module.',
         {
             moduleId: z.string().describe('The module ID (e.g., "packages-core", "lib-auth")'),
         },
-        async ({ moduleId }) => {
+        async (args: any): Promise<any> => {
+            const { moduleId } = args as any
             const { contract, lock, staleness } = await loadContractAndLock(projectRoot)
             const mod = contract.declared.modules.find(m => m.id === moduleId)
 
@@ -747,13 +756,14 @@ export function registerTools(server: McpServer, projectRoot: string) {
 
     // TOOL: mikk_get_function_detail
 
-    server.tool(
+    ; (server as any).tool(
         'mikk_get_function_detail',
         '360-degree view of a function: params, return type, source body, call graph (who calls it + what it calls), error handling, edge cases. WHEN TO USE: When you need to understand a specific function in depth. AFTER THIS: Use mikk_find_usages to see all callers. TIP: Pass full qualified name (e.g. GraphBuilder.build) for class methods.',
         {
             name: z.string().describe('Function name to search for (e.g., "parseFiles", "GraphBuilder.build")'),
         },
-        async ({ name }) => {
+        async (args: any): Promise<any> => {
+            const { name } = args as any
             const { lock, staleness } = await loadContractAndLock(projectRoot)
 
             const matches = Object.values(lock.functions).filter(
@@ -793,7 +803,7 @@ export function registerTools(server: McpServer, projectRoot: string) {
                     const fileContent = await fs.readFile(resolved, 'utf-8')
                     const lines = fileContent.split('\n')
                     body = lines.slice(fn.startLine - 1, fn.endLine).join('\n')
-                } catch { /* non-fatal — body may not be available */ }
+                } catch { /* non-fatal - body may not be available */ }
 
                 return {
                     id: fn.id,
@@ -822,6 +832,7 @@ export function registerTools(server: McpServer, projectRoot: string) {
 
     // TOOL: mikk_semantic_search
 
+    // @ts-ignore TS2589 false-positive from deep MCP generic instantiation.
     server.tool(
         'mikk_semantic_search',
         'Find functions by meaning using local vector embeddings. Query "validate JWT" returns verifyToken ranked by cosine similarity. WHEN TO USE: When you dont know the function name but know what it does. Complements mikk_search_functions (keyword). AFTER THIS: Use mikk_get_function_detail on top matches. Requires @xenova/transformers (22MB model, downloads once).',
@@ -836,7 +847,7 @@ export function registerTools(server: McpServer, projectRoot: string) {
                     content: [{
                         type: 'text' as const,
                         text: [
-                            '⚠ Semantic search requires @xenova/transformers.',
+                            'WARNING: Semantic search requires @xenova/transformers.',
                             '',
                             'Install it in your project root:',
                             '  npm install @xenova/transformers',
@@ -881,7 +892,7 @@ export function registerTools(server: McpServer, projectRoot: string) {
 
 
     // TOOL: mikk_validate_edit (NEW - Uses IntentUnderstanding, AutoCorrection, SafetyGates)
-    server.tool(
+    ; (server as any).tool(
         'mikk_validate_edit',
         'MANDATORY: Use BEFORE any edit. Combines intent analysis, impact assessment, auto-correction, and enforced safety gates. Tells you if edit is allowed, what breaks, and auto-fixes issues. WHEN TO USE: Always before modifying files. AFTER THIS: If allowed, proceed with edit. If blocked, follow nextSteps.',
         {
@@ -891,7 +902,8 @@ export function registerTools(server: McpServer, projectRoot: string) {
             branchName: z.string().optional().describe('Current branch name (helps detect intent)'),
             autoFix: z.boolean().optional().default(true).describe('Apply automatic fixes?'),
         },
-        async ({ files, description, commitMessage, branchName, autoFix }) => {
+        async (args: any): Promise<any> => {
+            const { files, description, commitMessage, branchName, autoFix } = args as any
             const { contract, lock, staleness } = await loadContractAndLock(projectRoot)
             const graph = buildGraphFromLock(lock)
             
@@ -900,7 +912,7 @@ export function registerTools(server: McpServer, projectRoot: string) {
             
             const validator = new PreEditValidation(contract, lock, graph, projectRoot)
             
-            const proposal = {
+            const proposal: any = {
                 files,
                 description,
                 author: 'AI Assistant',
@@ -950,8 +962,8 @@ export function registerTools(server: McpServer, projectRoot: string) {
                 
                 warning: staleness,
                 hint: result.allowed 
-                    ? '✓ Edit approved. Review recommendations before proceeding.'
-                    : '✗ Edit blocked. Address blocking gates first.',
+                    ? 'OK: Edit approved. Review recommendations before proceeding.'
+                    : 'BLOCKED: Edit blocked. Address blocking gates first.',
             }
             
             const _rawVal = files.length * Math.round((200 * _ALC) / _CPT)
@@ -967,6 +979,7 @@ export function registerTools(server: McpServer, projectRoot: string) {
 
     // TOOL: mikk_get_constraints
 
+    // @ts-ignore TS2589 false-positive from deep MCP generic instantiation.
     server.tool(
         'mikk_get_constraints',
         'Get all architectural constraints and ADRs. WHEN TO USE: Before cross-module changes, or when mikk_before_edit reports violations. Understand WHY a constraint exists. AFTER THIS: Use mikk_manage_adr to add/update decisions. 6 constraint types: no-import, must-use, no-call, layer, naming, max-files.',
@@ -988,6 +1001,7 @@ export function registerTools(server: McpServer, projectRoot: string) {
 
     // TOOL: mikk_get_file
 
+    // @ts-ignore TS2589 false-positive from deep MCP generic instantiation.
     server.tool(
         'mikk_get_file',
         'Read raw source of a file. TIP: Prefer mikk_read_file with function names to save tokens. WHEN TO USE: When you need entire file content (config files, small files). AFTER THIS: Use mikk_before_edit before making changes.',
@@ -1045,6 +1059,7 @@ export function registerTools(server: McpServer, projectRoot: string) {
 
     // TOOL: mikk_find_usages
 
+    // @ts-ignore TS2589 false-positive from deep MCP generic instantiation.
     server.tool(
         'mikk_find_usages',
         'Find every function that calls a specific function. Essential before renaming or changing signatures. WHEN TO USE: Before renaming, refactoring, or changing a function interface. AFTER THIS: Review each caller to ensure your change wont break them. Use mikk_read_file to see caller code.',
@@ -1091,6 +1106,7 @@ export function registerTools(server: McpServer, projectRoot: string) {
 
     // TOOL: mikk_get_routes
 
+    // @ts-ignore TS2589 false-positive from deep MCP generic instantiation.
     server.tool(
         'mikk_get_routes',
         'Get all detected HTTP routes with methods, paths, handlers, and middleware chains. WHEN TO USE: When working on API endpoints. Shows Express/Koa/Hono route registrations detected from AST. AFTER THIS: Use mikk_get_function_detail on a handler to see its implementation.',
@@ -1115,13 +1131,15 @@ export function registerTools(server: McpServer, projectRoot: string) {
 
     // TOOL: mikk_dead_code
 
-    server.tool(
+    // @ts-ignore TS2589 false-positive from deep MCP generic instantiation.
+    ; (server as any).tool(
         'mikk_dead_code',
-        'Detect dead code — functions with zero callers after exempting exports, entry points, route handlers, tests, and constructors. Use this before refactoring or cleanup.',
+        'Detect dead code - functions with zero callers after exempting exports, entry points, route handlers, tests, and constructors. Use this before refactoring or cleanup.',
         {
             moduleId: z.string().optional().describe('Filter results to a specific module ID'),
         },
-        async ({ moduleId }) => {
+        async (args: any): Promise<any> => {
+            const { moduleId } = args as any
             const { lock, staleness } = await loadContractAndLock(projectRoot)
             const graph = buildGraphFromLock(lock)
             const detector = new DeadCodeDetector(graph, lock)
@@ -1149,9 +1167,9 @@ export function registerTools(server: McpServer, projectRoot: string) {
 
     // TOOL: mikk_manage_adr
 
-    server.tool(
+    ; (server as any).tool(
         'mikk_manage_adr',
-        'CRUD for Architectural Decision Records (ADRs) in mikk.json. Actions: list, get, add, update, remove. WHEN TO USE: When making architectural changes — document WHY so future AI agents understand. AFTER THIS: ADRs automatically surface in mikk_query_context responses. Required for add: id, title, reason.',
+        'CRUD for Architectural Decision Records (ADRs) in mikk.json. Actions: list, get, add, update, remove. WHEN TO USE: When making architectural changes - document WHY so future AI agents understand. AFTER THIS: ADRs automatically surface in mikk_query_context responses. Required for add: id, title, reason.',
         {
             action: z.enum(['list', 'get', 'add', 'update', 'remove']).describe('The CRUD action to perform'),
             id: z.string().optional().describe('ADR id (required for get, update, remove)'),
@@ -1159,7 +1177,8 @@ export function registerTools(server: McpServer, projectRoot: string) {
             reason: z.string().optional().describe('ADR reason/description (required for add)'),
             date: z.string().optional().describe('ADR date string (defaults to today for add)'),
         },
-        async ({ action, id, title, reason, date }) => {
+        async (args: any): Promise<any> => {
+            const { action, id, title, reason, date } = args as any
             const contractPath = path.join(projectRoot, 'mikk.json')
             const manager = new AdrManager(contractPath)
 
@@ -1210,6 +1229,7 @@ export function registerTools(server: McpServer, projectRoot: string) {
 
     // TOOL: mikk_get_changes  (Phase 2)
 
+    // @ts-ignore TS2589 false-positive from deep MCP generic instantiation.
     server.tool(
         'mikk_get_changes',
         'Detect files added, modified, and deleted since last mikk analyze. WHEN TO USE: At session start (after mikk_get_session_context), or after making edits to see what drifted. AFTER THIS: Run mikk analyze to update the lock, then mikk_impact_analysis on modified files. Uses SHA-256 hash comparison for accurate drift detection.',
@@ -1254,7 +1274,7 @@ export function registerTools(server: McpServer, projectRoot: string) {
                         }
                     } catch { /* dir doesn't exist */ }
                 }
-            } catch { /* scan failed — non-fatal */ }
+            } catch { /* scan failed - non-fatal */ }
 
             const response = {
                 added: added.slice(0, 50),
@@ -1284,7 +1304,7 @@ export function registerTools(server: McpServer, projectRoot: string) {
 
     ; (server as any).tool(
         'mikk_read_file',
-        'Read file scoped to specific functions. Returns bodies with metadata headers (params, calls, calledBy). WHEN TO USE: When you know which functions you need — saves tokens vs mikk_get_file. AFTER THIS: Use mikk_before_edit before making changes. TIP: This is the preferred way to read code — always specify function names when possible.',
+        'Read file scoped to specific functions. Returns bodies with metadata headers (params, calls, calledBy). WHEN TO USE: When you know which functions you need - saves tokens vs mikk_get_file. AFTER THIS: Use mikk_before_edit before making changes. TIP: This is the preferred way to read code - always specify function names when possible.',
         {
             file: z.string().describe('File path relative to project root'),
             functions: z.array(z.string()).max(30).optional().describe('Function names to extract. If omitted, returns the whole file.'),
@@ -1305,7 +1325,6 @@ export function registerTools(server: McpServer, projectRoot: string) {
                 }
             }
 
-            // @ts-expect-error TS2589 false-positive from deep MCP generic instantiation in this tool handler.
             let content: string
             try {
                 const stat = await fs.stat(resolved)
@@ -1351,7 +1370,7 @@ export function registerTools(server: McpServer, projectRoot: string) {
                 )
 
                 if (!fn) {
-                    sections.push(`// ⚠ Function "${fnName}" not found in ${fileInput}`)
+                    sections.push(`// WARNING: Function "${fnName}" not found in ${fileInput}`)
                     continue
                 }
 
@@ -1368,9 +1387,7 @@ export function registerTools(server: McpServer, projectRoot: string) {
                     fn.calls.length > 0 ? `// Calls: ${fn.calls.map((id: string) => lockAny.functions[id]?.name).filter(Boolean).join(', ')}` : null,
                 ].filter(Boolean).join('\n')
 
-                // @ts-expect-error TS2589 false-positive from deep MCP generic instantiation in this tool handler.
                 const body = lines.slice(fn.startLine - 1, fn.endLine).join('\n')
-                // @ts-expect-error TS2589 false-positive from deep MCP generic instantiation in this tool handler.
                 sections.push(`${header}\n${body}`)
             }
 
@@ -1385,6 +1402,7 @@ export function registerTools(server: McpServer, projectRoot: string) {
     )
 
     // TOOL: mikk_get_session_context  (Phase 2)
+    // @ts-ignore TS2589 false-positive from deep MCP generic instantiation.
     server.tool(
         'mikk_get_session_context',
         'CALL THIS FIRST. One-shot context for session start: project overview + constraint status + hot modules + recently modified files + active decisions. WHEN TO USE: At the very beginning of every AI conversation. This is your onboarding. AFTER THIS: Use mikk_query_context with your task description, or mikk_get_changes for detailed drift.',
@@ -1478,14 +1496,15 @@ export function registerTools(server: McpServer, projectRoot: string) {
     )
 
     // TOOL: mikk_git_diff_impact
-    server.tool(
+    ; (server as any).tool(
         'mikk_git_diff_impact',
         'Map git diff hunks to affected symbols. Shows which functions were modified/added/deleted. WHEN TO USE: After commits/merges to understand symbol-level changes. AFTER THIS: Use mikk_impact_analysis on affected files.',
         {
             ref: z.string().optional().default('HEAD~1').describe('Git ref to diff against (default: HEAD~1)'),
             staged: z.boolean().optional().default(false).describe('If true, diff staged changes only'),
         },
-        async ({ ref, staged }) => {
+        async (args: any): Promise<any> => {
+            const { ref, staged } = args as any
             const { lock, staleness } = await loadContractAndLock(projectRoot)
             try {
                 const validatedRef = /^[A-Za-z0-9_./\-~^]+$/.test(ref) ? ref : null
@@ -1537,9 +1556,10 @@ export function registerTools(server: McpServer, projectRoot: string) {
     )
 
     // TOOL: mikk_rename
+    // @ts-ignore TS2589 false-positive from deep MCP generic instantiation.
     server.tool(
         'mikk_rename',
-        'Plan a coordinated multi-file rename. Finds all call sites and import locations for a function and provides a step-by-step edit plan. WHEN TO USE: Before renaming any function — ensures you update ALL call sites. AFTER THIS: Execute the edit plan, then run mikk analyze.',
+        'Plan a coordinated multi-file rename. Finds all call sites and import locations for a function and provides a step-by-step edit plan. WHEN TO USE: Before renaming any function - ensures you update ALL call sites. AFTER THIS: Execute the edit plan, then run mikk analyze.',
         {
             functionName: z.string().describe('The current function name to rename'),
             newName: z.string().describe('The desired new name'),
@@ -1607,9 +1627,10 @@ export function registerTools(server: McpServer, projectRoot: string) {
         },
     )
     // TOOL: mikk_token_stats
+    // @ts-ignore TS2589 false-positive from deep MCP generic instantiation.
     server.tool(
         'mikk_token_stats',
-        'Show token savings for this session — how many tokens Mikk saved vs. the agent reading raw source files. WHEN TO USE: Any time. Useful at end of session to see cumulative efficiency. Returns per-session totals and cost estimates.',
+        'Show token savings for this session - how many tokens Mikk saved vs. the agent reading raw source files. WHEN TO USE: Any time. Useful at end of session to see cumulative efficiency. Returns per-session totals and cost estimates.',
         {},
         async () => {
             const t = _tally(projectRoot)
@@ -1647,25 +1668,25 @@ export function registerTools(server: McpServer, projectRoot: string) {
 /**
  * Load contract + lock from disk with 30s caching and active staleness detection.
  * Cache is invalidated immediately when the lock file's mtime is newer than
- * cachedAt — this means `mikk analyze` takes effect on the very next tool call,
+ * cachedAt - this means `mikk analyze` takes effect on the very next tool call,
  * not after a 30s wait.
  */
 async function loadContractAndLock(projectRoot: string) {
-    // Check lock file mtime first — if the file changed since we cached, bust immediately.
+    // Check lock file mtime first - if the file changed since we cached, bust immediately.
     const lockFilePath = path.join(projectRoot, 'mikk.lock.json')
     const cached = projectCache.get(projectRoot)
     if (cached) {
         try {
             const stat = await fs.stat(lockFilePath)
             if (stat.mtimeMs > cached.cachedAt) {
-                // Lock file was written after we cached (e.g. `mikk analyze` ran) — invalidate
+                // Lock file was written after we cached (e.g. `mikk analyze` ran) - invalidate
                 invalidateCache(projectRoot)
             } else if ((Date.now() - cached.cachedAt) < CACHE_TTL_MS) {
-                // Still within TTL and lock file unchanged — serve from cache
+                // Still within TTL and lock file unchanged - serve from cache
                 return { contract: cached.contract, lock: cached.lock, staleness: cached.staleness }
             }
         } catch {
-            // stat failed (lock deleted?) — fall through to re-read
+            // stat failed (lock deleted?) - fall through to re-read
             invalidateCache(projectRoot)
         }
     }
@@ -1680,7 +1701,7 @@ async function loadContractAndLock(projectRoot: string) {
     let staleness: string | null = null
 
     if (syncStatus === 'drifted' || syncStatus === 'conflict') {
-        staleness = `⚠ Lock file is ${syncStatus}. Run \`mikk analyze\` for accurate results.`
+        staleness = `WARNING: Lock file is ${syncStatus}. Run \`mikk analyze\` for accurate results.`
     }
 
     // Active staleness detection:
@@ -1694,7 +1715,7 @@ async function loadContractAndLock(projectRoot: string) {
         const dirtyFiles = await getDirtySampleFiles(projectRoot, sampleFiles)
 
         if (dirtyFiles && dirtyFiles.length > 0) {
-            staleness = `⚠ STALE: ${dirtyFiles.length} file(s) changed since last analysis (${dirtyFiles.slice(0, 3).join(', ')}${dirtyFiles.length > 3 ? '...' : ''}). Run \`mikk analyze\`.`
+            staleness = `WARNING: STALE: ${dirtyFiles.length} file(s) changed since last analysis (${dirtyFiles.slice(0, 3).join(', ')}${dirtyFiles.length > 3 ? '...' : ''}). Run \`mikk analyze\`.`
         }
     }
 
@@ -1706,7 +1727,7 @@ async function loadContractAndLock(projectRoot: string) {
     const callEdgeCount = graph.edges.filter(e => e.type === 'calls').length
     const functionCount = Object.keys(lock.functions).length
     if (!staleness && functionCount >= 50 && callEdgeCount === 0) {
-        staleness = '⚠ DEGRADED: lock has zero call edges. Blast radius may be underestimated. Run `mikk analyze` and verify parser extraction.'
+        staleness = 'WARNING: DEGRADED: lock has zero call edges. Blast radius may be underestimated. Run `mikk analyze` and verify parser extraction.'
     }
     projectCache.set(projectRoot, {
         contract, lock, graph, staleness,
@@ -1795,7 +1816,7 @@ function detectCircularDeps(
                 const cycleStart = cyclePath.indexOf(id)
                 const cycle = cyclePath.slice(cycleStart).map(cid => lock.functions[cid]?.name ?? cid)
                 cycle.push(lock.functions[id]?.name ?? id)
-                warnings.push(`⚠ Circular: ${cycle.join(' -> ')}`)
+                warnings.push(`WARNING: Circular: ${cycle.join(' -> ')}`)
                 return true
             }
             if (visited.has(id)) return false
@@ -1872,7 +1893,7 @@ function parseDiffHunks(diff: string): { file: string; changedLines: number[]; i
                 files.set(currentFile, { changedLines: [], isNew: nextIsNew, isDeleted: false })
             }
             if (currentFile === '/dev/null') {
-                // deletion — mark previous file
+                // deletion - mark previous file
                 const prev = [...files.keys()].pop()
                 if (prev) files.get(prev)!.isDeleted = true
             }
@@ -1890,3 +1911,5 @@ function parseDiffHunks(diff: string): { file: string; changedLines: number[]; i
 
     return [...files.entries()].map(([file, data]) => ({ file, ...data }))
 }
+
+
