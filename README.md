@@ -40,7 +40,7 @@ Mikk uses **[Oxc](https://oxc.rs/)** — a Rust-native JavaScript and TypeScript
 | **Call graph** | Call edges are resolved from actual `CallExpression` AST nodes. If function A calls function B, that edge exists. If it doesn't, it doesn't. |
 | **Non-TS languages** | Python, Java, C#, Go, Rust, C, C++, PHP, and Ruby are parsed using Tree-sitter, providing the same AST-driven extraction for those ecosystems. |
 
-This is why Mikk achieves 85% average accuracy across benchmark tasks where RAG-based tools average 36% — not because of better prompting, but because the underlying data is exact.
+Mikk accuracy is measured through local ground-truth benchmarks. Current published numbers reflect bounded test scope, not universal accuracy claims.
 
 ---
 
@@ -78,17 +78,37 @@ Then configure your AI tool:
 | Token usage | High — dumps raw files | Low — distilled API boundaries |
 | Setup | Index + embed | One command |
 
-### Benchmark Results
+### Benchmark and Accuracy (Ground Truth)
 
-| Task | Mikk Accuracy | Competitor Accuracy | Mikk Tokens | Manual Tokens |
-|---|---|---|---|---|
-| Context Query | 80% | 60% | 6,410 | 4,741 |
-| Function Search | 100% | 10% | 346 | 15,055 |
-| Impact Analysis | 75% | 20% | 55 | 1,390 |
-| Dead Code Detection | 100% | 0% | 290 | 5 |
-| Session Context | 100% | 45% | 743 | 8,059 |
-| Constraint Check | 100% | 80% | 417 | 5 |
-| **Average** | **85%** | **36%** | **2,285** | **5,558** |
+Latest local ground-truth run summary:
+
+- Mode: semantic-ground-truth-local
+- Fixture: benchmarks/fixtures/ts-express-api
+- Overall score: 100% on executed benchmark cases
+- Important: this is not a global real-world accuracy claim
+
+| Test | Metric | Result |
+|---|---|---|
+| Routes | F1 | 100% (9/9 matched) |
+| Function detail callers | Recall | 100% (4/4) |
+| Semantic search | Hit@5 | 100% (3/3) |
+| CLI route count | Exact match | 100% (9 vs 9) |
+
+Scope and limitations of this run:
+
+- Single fixture and single-language scenario (TypeScript Express)
+- Small sample size (4 tests, 3 semantic queries)
+- No confidence interval reported for this run
+- No cross-repository generalization test in this report
+
+Reproduce locally:
+
+```bash
+bun run benchmarks/ground-truth-benchmark.ts
+cat benchmarks/ground-truth-report.json
+```
+
+Truth statement: numeric 100 means full pass on this bounded benchmark only.
 
 ---
 

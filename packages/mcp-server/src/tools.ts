@@ -205,14 +205,13 @@ async function getDirtySampleFiles(projectRoot: string, sampleFiles: string[]): 
 }
 
 /**
- * Register all MCP tools - actions an AI assistant can invoke.
+ * Register all MCP tools — actions an AI assistant can invoke.
  */
 export function registerTools(server: McpServer, projectRoot: string) {
 
 
     // TOOL: mikk_test_tool
 
-    // @ts-expect-error TS2589 false-positive from deep MCP generic instantiation.
     server.tool(
         'mikk_test_tool',
         'A simple test tool that returns a static message.',
@@ -225,7 +224,6 @@ export function registerTools(server: McpServer, projectRoot: string) {
 
     // TOOL: mikk_get_project_overview
 
-    // @ts-expect-error TS2589 false-positive from deep MCP generic instantiation.
     server.tool(
         'mikk_get_project_overview',
         'Get a high-level overview: modules, function counts, file counts, constraints. WHEN TO USE: When you need raw project stats. For session start, prefer mikk_get_session_context instead. AFTER THIS: Use mikk_query_context with your task, or mikk_list_modules to drill into a module.',
@@ -673,7 +671,6 @@ export function registerTools(server: McpServer, projectRoot: string) {
 
     // TOOL: mikk_list_modules
 
-    // @ts-expect-error TS2589 false-positive from deep MCP generic instantiation.
     server.tool(
         'mikk_list_modules',
         'List all declared modules with file counts, function counts, entry points, and descriptions. WHEN TO USE: To explore the project structure. Good starting point after mikk_get_session_context. AFTER THIS: Use mikk_get_module_detail with a specific moduleId.',
@@ -707,7 +704,6 @@ export function registerTools(server: McpServer, projectRoot: string) {
 
     // TOOL: mikk_get_module_detail
 
-    // @ts-expect-error TS2589 false-positive from deep MCP generic instantiation.
     ; (server as any).tool(
         'mikk_get_module_detail',
         'Deep dive into a single module: all functions, files, exported API surface, internal call graph. WHEN TO USE: After mikk_list_modules to understand a specific module. AFTER THIS: Use mikk_get_function_detail for specific functions, or mikk_before_edit if modifying files in this module.',
@@ -832,15 +828,15 @@ export function registerTools(server: McpServer, projectRoot: string) {
 
     // TOOL: mikk_semantic_search
 
-    // @ts-expect-error TS2589 false-positive from deep MCP generic instantiation.
-    server.tool(
+    ; (server as any).tool(
         'mikk_semantic_search',
         'Find functions by meaning using local vector embeddings. Query "validate JWT" returns verifyToken ranked by cosine similarity. WHEN TO USE: When you dont know the function name but know what it does. Complements mikk_search_functions (keyword). AFTER THIS: Use mikk_get_function_detail on top matches. Requires @xenova/transformers (22MB model, downloads once).',
         {
             query: z.string().min(1).max(500).describe('Natural-language description of what you are looking for (e.g. "validate a JWT token", "send an email notification")'),
             topK: z.number().int().min(1).max(50).optional().default(10).describe('Number of results to return (default: 10)'),
         },
-        async ({ query, topK }) => {
+        async (args: any): Promise<any> => {
+            const { query, topK } = args as any
             const available = await SemanticSearcher.isAvailable()
             if (!available) {
                 return {
@@ -861,12 +857,13 @@ export function registerTools(server: McpServer, projectRoot: string) {
             }
 
             const { lock, staleness } = await loadContractAndLock(projectRoot)
+            const lockAny: any = lock
             const searcher = getSemanticSearcher(projectRoot)
 
-            let matches: Awaited<ReturnType<typeof searcher.search>>
+            let matches: any
             try {
-                await searcher.index(lock)
-                matches = await searcher.search(query, lock, topK)
+                await searcher.index(lockAny)
+                matches = await searcher.search(query, lockAny, topK)
             } catch (err: any) {
                 return {
                     content: [{
@@ -979,7 +976,6 @@ export function registerTools(server: McpServer, projectRoot: string) {
 
     // TOOL: mikk_get_constraints
 
-    // @ts-expect-error TS2589 false-positive from deep MCP generic instantiation.
     server.tool(
         'mikk_get_constraints',
         'Get all architectural constraints and ADRs. WHEN TO USE: Before cross-module changes, or when mikk_before_edit reports violations. Understand WHY a constraint exists. AFTER THIS: Use mikk_manage_adr to add/update decisions. 6 constraint types: no-import, must-use, no-call, layer, naming, max-files.',
@@ -1001,14 +997,13 @@ export function registerTools(server: McpServer, projectRoot: string) {
 
     // TOOL: mikk_get_file
 
-    // @ts-expect-error TS2589 false-positive from deep MCP generic instantiation.
-    server.tool(
+    ; (server as any).tool(
         'mikk_get_file',
         'Read raw source of a file. TIP: Prefer mikk_read_file with function names to save tokens. WHEN TO USE: When you need entire file content (config files, small files). AFTER THIS: Use mikk_before_edit before making changes.',
         {
             file: z.string().describe('File path relative to project root (e.g., "src/auth/verify.ts")'),
         },
-        async ({ file }) => {
+        async ({ file }: any) => {
             try {
                 const absPath = path.isAbsolute(file) ? file : path.join(projectRoot, file)
 
@@ -1059,14 +1054,13 @@ export function registerTools(server: McpServer, projectRoot: string) {
 
     // TOOL: mikk_find_usages
 
-    // @ts-expect-error TS2589 false-positive from deep MCP generic instantiation.
-    server.tool(
+    ; (server as any).tool(
         'mikk_find_usages',
         'Find every function that calls a specific function. Essential before renaming or changing signatures. WHEN TO USE: Before renaming, refactoring, or changing a function interface. AFTER THIS: Review each caller to ensure your change wont break them. Use mikk_read_file to see caller code.',
         {
             name: z.string().describe('Function name to find callers of'),
         },
-        async ({ name }) => {
+        async ({ name }: any) => {
             const { lock, staleness } = await loadContractAndLock(projectRoot)
 
             const fn = Object.values(lock.functions).find(
@@ -1106,7 +1100,6 @@ export function registerTools(server: McpServer, projectRoot: string) {
 
     // TOOL: mikk_get_routes
 
-    // @ts-expect-error TS2589 false-positive from deep MCP generic instantiation.
     server.tool(
         'mikk_get_routes',
         'Get all detected HTTP routes with methods, paths, handlers, and middleware chains. WHEN TO USE: When working on API endpoints. Shows Express/Koa/Hono route registrations detected from AST. AFTER THIS: Use mikk_get_function_detail on a handler to see its implementation.',
@@ -1131,7 +1124,6 @@ export function registerTools(server: McpServer, projectRoot: string) {
 
     // TOOL: mikk_dead_code
 
-    // @ts-expect-error TS2589 false-positive from deep MCP generic instantiation.
     ; (server as any).tool(
         'mikk_dead_code',
         'Detect dead code - functions with zero callers after exempting exports, entry points, route handlers, tests, and constructors. Use this before refactoring or cleanup.',
@@ -1229,7 +1221,6 @@ export function registerTools(server: McpServer, projectRoot: string) {
 
     // TOOL: mikk_get_changes  (Phase 2)
 
-    // @ts-expect-error TS2589 false-positive from deep MCP generic instantiation.
     server.tool(
         'mikk_get_changes',
         'Detect files added, modified, and deleted since last mikk analyze. WHEN TO USE: At session start (after mikk_get_session_context), or after making edits to see what drifted. AFTER THIS: Run mikk analyze to update the lock, then mikk_impact_analysis on modified files. Uses SHA-256 hash comparison for accurate drift detection.',
@@ -1402,7 +1393,6 @@ export function registerTools(server: McpServer, projectRoot: string) {
     )
 
     // TOOL: mikk_get_session_context  (Phase 2)
-    // @ts-expect-error TS2589 false-positive from deep MCP generic instantiation.
     server.tool(
         'mikk_get_session_context',
         'CALL THIS FIRST. One-shot context for session start: project overview + constraint status + hot modules + recently modified files + active decisions. WHEN TO USE: At the very beginning of every AI conversation. This is your onboarding. AFTER THIS: Use mikk_query_context with your task description, or mikk_get_changes for detailed drift.',
@@ -1556,15 +1546,14 @@ export function registerTools(server: McpServer, projectRoot: string) {
     )
 
     // TOOL: mikk_rename
-    // @ts-expect-error TS2589 false-positive from deep MCP generic instantiation.
-    server.tool(
+    ; (server as any).tool(
         'mikk_rename',
         'Plan a coordinated multi-file rename. Finds all call sites and import locations for a function and provides a step-by-step edit plan. WHEN TO USE: Before renaming any function - ensures you update ALL call sites. AFTER THIS: Execute the edit plan, then run mikk analyze.',
         {
             functionName: z.string().describe('The current function name to rename'),
             newName: z.string().describe('The desired new name'),
         },
-        async ({ functionName, newName }) => {
+        async ({ functionName, newName }: any) => {
             const { lock, staleness } = await loadContractAndLock(projectRoot)
 
             const targetFn = Object.values(lock.functions).find(fn =>
@@ -1627,7 +1616,6 @@ export function registerTools(server: McpServer, projectRoot: string) {
         },
     )
     // TOOL: mikk_token_stats
-    // @ts-expect-error TS2589 false-positive from deep MCP generic instantiation.
     server.tool(
         'mikk_token_stats',
         'Show token savings for this session - how many tokens Mikk saved vs. the agent reading raw source files. WHEN TO USE: Any time. Useful at end of session to see cumulative efficiency. Returns per-session totals and cost estimates.',
@@ -1911,9 +1899,5 @@ function parseDiffHunks(diff: string): { file: string; changedLines: number[]; i
 
     return [...files.entries()].map(([file, data]) => ({ file, ...data }))
 }
-
-
-
-
 
 
