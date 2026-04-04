@@ -75,7 +75,10 @@ export function registerAnalyzeCommand(program: Command) {
                     discoverFiles, discoverContextFiles, parseFilesWithDiagnostics, parseFiles, readFileContent,
                     GraphBuilder, LockCompiler, ContractReader, LockReader,
                     detectProjectLanguage, getDiscoveryPatterns,
+                    runArtifactWriteTransaction, recoverArtifactWriteTransactions,
                 } = core
+
+                await recoverArtifactWriteTransactions(projectRoot)
 
                 const contractReader = new ContractReader()
                 const contract = await contractReader.read(path.join(projectRoot, 'mikk.json'))
@@ -97,7 +100,9 @@ export function registerAnalyzeCommand(program: Command) {
                 spinner.text = `Parsing ${files.length} files...`
 
                 const parseResult = typeof parseFilesWithDiagnostics === 'function'
-                    ? await parseFilesWithDiagnostics(files, projectRoot, (fp) => readFileContent(fp))
+                    ? await parseFilesWithDiagnostics(files, projectRoot, (fp) => readFileContent(fp), {
+                        strictParserPreflight: Boolean(options.strictParsing),
+                    })
                     : {
                         files: await parseFiles(files, projectRoot, (fp) => readFileContent(fp)),
                         diagnostics: [],
@@ -143,14 +148,51 @@ export function registerAnalyzeCommand(program: Command) {
 
                 spinner.text = 'Compiling lock file...'
                 const lock = new LockCompiler().compile(graph, contract, parsedFiles, contextFiles, projectRoot)
+                lock.syncState.parseDiagnostics = {
+                    requestedFiles: parseResult.summary.requestedFiles,
+                    parsedFiles: parseResult.summary.parsedFiles,
+                    fallbackFiles: parseResult.summary.fallbackFiles,
+                    diagnostics: parseResult.summary.diagnostics,
+                }
 
                 const lockReader = new LockReader()
-                await lockReader.write(lock, path.join(projectRoot, 'mikk.lock.json'))
+                const lockPath = path.join(projectRoot, 'mikk.lock.json')
+                const preparedLock = await lockReader.prepareForWrite(lock, lockPath)
+                const functionCount = Object.keys(preparedLock.functions).length
+                const callEdgeCount = Object.values(preparedLock.functions).reduce((sum, fn) => sum + fn.calls.length, 0)
+
+                // Robustness gate: in strict mode, reject suspicious lock outputs that
+                // would make impact analysis silently return near-zero blast radius.
+                if (options.strictParsing && functionCount >= 50 && callEdgeCount === 0) {
+                    spinner.fail(
+                        'Strict parsing failed: generated lock has zero call edges for a large codebase. ' +
+                        'Blast radius would be unreliable. Check parser extraction and re-run analyze.'
+                    )
+                    process.exit(1)
+                }
+
+                if (!options.strictParsing && functionCount >= 50 && callEdgeCount === 0) {
+                    spinner.warn(
+                        'Degraded analysis: generated lock has zero call edges. Blast radius may be underestimated. '
+                        + 'Use --strict-parsing to fail on this condition.'
+                    )
+                    spinner.start('Generating Mermaid diagrams...')
+                }
+
+                const artifactWrites: Array<{ targetPath: string; content: string }> = [
+                    {
+                        targetPath: lockPath,
+                        content: lockReader.serialize(preparedLock),
+                    },
+                ]
+
+                let claudeMd: string | undefined
+                let clinerules: string | undefined
 
                 spinner.text = 'Generating Mermaid diagrams...'
                 try {
                     const { DiagramOrchestrator } = await import('@getmikk/diagram-generator')
-                    const orchestrator = new DiagramOrchestrator(contract, lock, projectRoot)
+                    const orchestrator = new DiagramOrchestrator(contract, preparedLock, projectRoot)
                     await orchestrator.generateAll()
                 } catch {
                     // diagram package not available — skip silently
@@ -171,21 +213,29 @@ export function registerAnalyzeCommand(program: Command) {
                         dependencies: pkgJson.dependencies,
                         devDependencies: pkgJson.devDependencies,
                     }
-                    const mdGenerator = new ClaudeMdGenerator(contract, lock, undefined, meta, projectRoot)
-                    const claudeMd = mdGenerator.generate()
-                    await fs.writeFile(path.join(projectRoot, 'claude.md'), claudeMd, 'utf-8')
-                    await patchFileContent(path.join(projectRoot, 'AGENTS.md'), claudeMd)
+                    const mdGenerator = new ClaudeMdGenerator(contract, preparedLock, undefined, meta, projectRoot)
+                    claudeMd = mdGenerator.generate()
+                    artifactWrites.push({
+                        targetPath: path.join(projectRoot, 'claude.md'),
+                        content: claudeMd,
+                    })
 
                     const projectName = pkgJson.name || path.basename(projectRoot)
                     const openclawGenerator = new OpenClawRulesGenerator(projectName)
-                    const clinerules = openclawGenerator.generate()
-                    await patchFileContent(path.join(projectRoot, '.clinerules'), clinerules)
+                    clinerules = openclawGenerator.generate()
 
                 } catch {
                     // ai-context package not available — skip silently
                 }
 
-                const functionCount = Object.keys(lock.functions).length
+                await runArtifactWriteTransaction(projectRoot, 'analyze-artifacts', artifactWrites)
+                if (claudeMd) {
+                    await patchFileContent(path.join(projectRoot, 'AGENTS.md'), claudeMd)
+                }
+                if (clinerules) {
+                    await patchFileContent(path.join(projectRoot, '.clinerules'), clinerules)
+                }
+
                 spinner.succeed(`Analyzed ${files.length} files, ${functionCount} functions`)
             } catch (err: any) {
                 spinner.fail('Analysis failed')

@@ -131,4 +131,16 @@ describe('DeadCodeDetector', () => {
 
         expect(result.deadFunctions).toHaveLength(0) // InternalHelper is called by exported fn in same file
     })
+
+    it('keeps deadCount aligned with deadFunctions length', () => {
+        const graph = buildTestGraph([
+            ['A', 'nothing'],
+            ['B', 'nothing'],
+        ])
+        const lock = generateDummyLock(graph.nodes)
+
+        const detector = new DeadCodeDetector(graph, lock)
+        const result = detector.detect()
+        expect(result.deadCount).toBe(result.deadFunctions.length)
+    })
 })

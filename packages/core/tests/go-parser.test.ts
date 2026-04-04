@@ -363,4 +363,11 @@ describe('GoParser', () => {
         const resolved = await parser.resolveImports(files, '/tmp/no-gomod-' + Date.now())
         expect(resolved.length).toBe(1)
     })
+
+    test('parse keeps deterministic hash for identical input', async () => {
+        const parser = new GoParser()
+        const a = await parser.parse('auth/service.go', SIMPLE_GO)
+        const b = await parser.parse('auth/service.go', SIMPLE_GO)
+        expect(a.hash).toBe(b.hash)
+    })
 })

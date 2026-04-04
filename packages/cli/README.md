@@ -40,6 +40,18 @@ mikk init
 ```
 
 ---
+
+## When To Use Mikk
+
+Use Mikk as a workflow tool, not as architecture theory:
+
+- Before risky refactors: run `mikk intent "..."` to see likely impact and conflicts.
+- Before merge/PR: run `mikk ci --strict` to catch boundary regressions early.
+- After code changes: run `mikk analyze` to refresh lock + AI context artifacts.
+- During onboarding/debugging: run `mikk context query "..."` for graph-traced answers.
+- For next step guidance: run `mikk suggest` to get practical, repo-state-driven suggestions.
+
+---
  
 ## Professional CLI snapshot
 
@@ -282,6 +294,22 @@ Run a suite of health checks on your project infrastructure (config files, lock 
 ```bash
 mikk doctor
 ```
+
+---
+
+### `mikk suggest`
+
+Show practical next actions for developers and AI agents based on current repo state (missing setup, stale lock, boundary issues, dead code, refactor/context workflows).
+
+```bash
+mikk suggest
+```
+
+Sample outputs include recommendations such as:
+- `mikk init` when project is not initialized
+- `mikk analyze` when lock is missing or stale
+- `mikk ci --strict` when boundary violations are present
+- `mikk dead-code` when dead code candidates are detected
 
 ---
 

@@ -1042,6 +1042,16 @@ describe('JavaScript - Additional Edge Cases', () => {
         })
     })
 
+    describe('Deterministic parsing', () => {
+        test('produces identical file hash for identical source', async () => {
+            const parser = new JavaScriptParser()
+            const source = 'export function stable() { return 1 }'
+            const a = await parser.parse('src/stable.js', source)
+            const b = await parser.parse('src/stable.js', source)
+            expect(a.hash).toBe(b.hash)
+        })
+    })
+
     describe('Chained Methods', () => {
         test('handles method chaining', () => {
             const src = `

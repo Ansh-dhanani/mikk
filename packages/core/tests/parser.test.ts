@@ -739,6 +739,16 @@ describe('getParser - Comprehensive', () => {
       expect(hxxParser.getSupportedExtensions()).toContain('.hxx')
       expect(hhParser.getSupportedExtensions()).toContain('.hh')
     })
+
+    it('supports Rust/C#/Swift extensions via tree-sitter parser', () => {
+      const rustParser = getParser('src/lib.rs')
+      const csharpParser = getParser('src/Program.cs')
+      const swiftParser = getParser('Sources/App/main.swift')
+
+      expect(rustParser.getSupportedExtensions()).toContain('.rs')
+      expect(csharpParser.getSupportedExtensions()).toContain('.cs')
+      expect(swiftParser.getSupportedExtensions()).toContain('.swift')
+    })
 })
 
 describe('OxcParser - Direct', () => {
@@ -760,5 +770,21 @@ describe('OxcParser - Direct', () => {
         
         const result = await parser.parse('large.ts', content)
         expect(result.functions.length).toBe(1000)
+    })
+
+    it('extracts direct and method call expressions', async () => {
+      const result = await parser.parse('calls.ts', `
+        function b() { return 1 }
+        const svc = { run() { return 2 } }
+        export function a() {
+          b()
+          svc.run()
+        }
+      `)
+
+      const a = result.functions.find(f => f.name === 'a')
+      expect(a).toBeDefined()
+      expect(a!.calls.some(c => c.name === 'b')).toBe(true)
+      expect(a!.calls.some(c => c.name === 'svc.run')).toBe(true)
     })
 })

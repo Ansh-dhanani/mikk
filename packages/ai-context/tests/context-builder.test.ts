@@ -156,4 +156,19 @@ describe('ContextBuilder strict relevance mode', () => {
         expect((ctx.meta.reasons?.length ?? 0) > 0).toBe(true)
         expect((ctx.meta.suggestions?.length ?? 0) > 0).toBe(true)
     })
+
+    test('strict mode with high keyword threshold can return zero selected functions', () => {
+        const { contract, lock } = makeFixture()
+        const builder = new ContextBuilder(contract, lock)
+        const ctx = builder.build({
+            task: 'resolver imports',
+            tokenBudget: 1200,
+            includeBodies: false,
+            includeCallGraph: false,
+            relevanceMode: 'strict',
+            minKeywordMatches: 10,
+        })
+
+        expect(ctx.meta.selectedFunctions).toBe(0)
+    })
 })

@@ -54,4 +54,22 @@ describe('MainDiagramGenerator', () => {
         expect(diagram).toContain('auth["📦 Auth')
         expect(diagram).toContain('db["📦 Database')
     })
+
+    it('always emits a non-empty diagram string', () => {
+        const contract: MikkContract = {
+            project: { name: 'x', language: 'typescript', framework: null },
+            declared: { modules: [], constraints: [], decisions: [] },
+            overwrite: { mode: 'never', requireConfirmation: false },
+        }
+        const lock: MikkLock = {
+            version: '1',
+            lastUpdated: new Date().toISOString(),
+            files: {},
+            functions: {},
+            classes: {},
+            modules: {},
+        }
+        const diagram = new MainDiagramGenerator(contract, lock).generate()
+        expect(diagram.trim().length).toBeGreaterThan(0)
+    })
 })

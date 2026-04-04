@@ -120,7 +120,7 @@ Running `mikk init` produces:
 
 ---
 
-## MCP Server — 22 Tools
+## MCP Server — 23 Tools
 
 Connect to Claude Desktop, Cursor, VS Code Copilot, or any MCP-compatible client.
 
@@ -152,6 +152,7 @@ Connect to Claude Desktop, Cursor, VS Code Copilot, or any MCP-compatible client
 | Tool | Description |
 |---|---|
 | `mikk_before_edit` | Call before editing any file. Returns blast radius, constraint violations, and circular dependency warnings. |
+| `mikk_validate_edit` | Mandatory pre-edit validation with intent analysis, safety gates, and recommendations. |
 | `mikk_impact_analysis` | Full blast radius classified as critical / high / medium / low. |
 | `mikk_dead_code` | Unused functions, exempt from exports, tests, constructors, and route handlers. |
 
@@ -169,6 +170,12 @@ Connect to Claude Desktop, Cursor, VS Code Copilot, or any MCP-compatible client
 | `mikk_get_constraints` | All architectural constraints and ADRs from `mikk.json`. |
 | `mikk_manage_adr` | CRUD for Architectural Decision Records. |
 | `mikk_token_stats` | Track token savings across sessions. |
+
+### Utility Tools
+
+| Tool | Description |
+|---|---|
+| `mikk_test_tool` | Internal MCP connectivity smoke tool used for diagnostics. |
 
 ---
 
@@ -217,6 +224,18 @@ When you run `mikk init`, Mikk automatically integrates itself into your workflo
 
 ---
 
+## Practical Use Cases
+
+Mikk is most useful when tied to specific workflows:
+
+- Refactor safety: run `mikk intent "..."` before large renames/splits.
+- PR/CI safety: run `mikk ci --strict` to prevent architectural regressions.
+- Fresh context for AI agents: run `mikk analyze` after code changes.
+- Fast onboarding: run `mikk context query "How does X work?"`.
+- Next command guidance: run `mikk suggest` for actionable suggestions from current repo state.
+
+---
+
 ## CLI Reference
 
 ```bash
@@ -224,6 +243,11 @@ mikk init                      # Full scan — graph, lock, diagrams, claude.md
 mikk init --strict-parsing     # Fail if parser/read diagnostics are detected
 mikk analyze                   # Re-analyze after code changes
 mikk analyze --strict-parsing  # CI-friendly parse completeness enforcement
+mikk doctor                    # 8-point diagnostics (includes parser runtime preflight)
+mikk update                    # Interactive self-update (stable/latest/specific version)
+mikk update --channel stable   # Latest stable release
+mikk update --channel latest   # Latest prerelease/canary channel
+mikk update --channel version --version 2.1.0  # Pin specific version
 mikk watch                     # Live watcher daemon (incremental, debounced at 100ms)
 mikk diff                      # Files changed since last analysis
 mikk ci                        # CI gate — exits non-zero on constraint violations
@@ -235,13 +259,44 @@ mikk context query "<q>"       # Architecture question
 mikk context impact <file>     # Blast radius of changing a file
 mikk context for "<task>"      # Token-budgeted context for a coding task
 mikk stats                     # Per-module metrics
-mikk doctor                    # 7-point diagnostic check
+mikk suggest                   # Practical next-step recommendations
 mikk visualize all             # Regenerate all Mermaid diagrams
 mikk contract validate         # Check for violations and drift
+mikk mcp install               # Auto-write MCP config (local-first command, self-healing fallback)
+
+## CI Gate Clarity
+
+CI intentionally has two separate quality jobs:
+
+- `quality-gates`: build, lint, tests, and MCP docs/registry parity via `check:mcp-consistency`.
+- `strict-cli-preflight`: CLI-driven runtime preflight (`mikk doctor`) and strict parsing (`mikk analyze --strict-parsing`).
+
+The MCP consistency gate runs a script because it validates tool docs/registry parity, while strict parsing runs the CLI commands directly to verify the end-user execution path.
 mikk adr list                  # List all architectural decisions
 mikk mcp                       # Start MCP server
 mikk remove                    # Uninstall and delete all generated artifacts
 ```
+
+`mikk mcp install` now writes a local-first MCP entry automatically:
+
+- If this is a workspace repo, it uses `node <repo>/packages/cli/dist/index.js mcp start --project <repo>`.
+- Otherwise it falls back to `npx -y @getmikk/cli@latest mcp start --project <repo>`.
+
+This avoids stale global npm installations and removes the need for manual `mcp.json` edits.
+
+### Parser Runtime Preflight (Non-TS/JS)
+
+For Python/Java/Rust/C#/Swift/C/C++/PHP/Ruby projects, run `mikk doctor` before strict CI to confirm Tree-sitter parser runtime availability.
+
+Recommended CI gate order:
+
+```bash
+mikk doctor
+mikk analyze --strict-parsing
+mikk ci --strict
+```
+
+If doctor reports parser runtime as missing, install runtime dependencies first and rerun `mikk doctor`.
 
 ---
 
@@ -267,6 +322,16 @@ mikk watch
 ```
 
 `mikk ci` exits non-zero on constraint violations. Use `--strict` to also enforce dead code thresholds.
+
+Enterprise rollout and incident procedure is documented in `ENTERPRISE_RUNBOOK.md`.
+
+Quality dashboard snapshot command:
+
+```bash
+bun run quality:dashboard
+```
+
+This reports key readiness metrics (parse fallback rate, unresolved edge count/rate, and lock sync status).
 
 ---
 
@@ -297,7 +362,7 @@ Notes:
 |---|---|
 | `@getmikk/core` | AST parsing, dependency graph, BM25, Merkle hashing, contract management |
 | `@getmikk/cli` | 17+ CLI commands |
-| `@getmikk/mcp-server` | 22 MCP tools, 30s TTL cache, staleness detection |
+| `@getmikk/mcp-server` | 23 MCP tools, 30s TTL cache, staleness detection |
 | `@getmikk/ai-context` | BFS context builder, token budgeting, claude.md generation |
 | `@getmikk/intent-engine` | Intent parsing, conflict detection, semantic search |
 | `@getmikk/diagram-generator` | 7 Mermaid diagram types with real cohesion/coupling metrics |

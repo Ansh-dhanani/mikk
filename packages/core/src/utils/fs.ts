@@ -1,6 +1,7 @@
 import * as fs from 'node:fs/promises'
 import * as path from 'node:path'
 import fg from 'fast-glob'
+import { getDiscoveryExtensions } from './language-registry.js'
 
 // --- Well-known patterns for schema/config/route files ---------------------
 // These are structural files an AI agent needs but aren't source code.
@@ -275,7 +276,7 @@ function inferContextFileType(filePath: string): ContextFileType {
 }
 
 /** Recognised project language */
-export type ProjectLanguage = 'typescript' | 'javascript' | 'python' | 'go' | 'rust' | 'java' | 'ruby' | 'php' | 'csharp' | 'c' | 'cpp' | 'unknown'
+export type ProjectLanguage = 'typescript' | 'javascript' | 'python' | 'go' | 'rust' | 'java' | 'swift' | 'ruby' | 'php' | 'csharp' | 'c' | 'cpp' | 'unknown'
 
 /** Auto-detect the project's primary language from manifest files */
 export async function detectProjectLanguage(projectRoot: string): Promise<ProjectLanguage> {
@@ -293,6 +294,7 @@ export async function detectProjectLanguage(projectRoot: string): Promise<Projec
     if (await exists('pyproject.toml') || await exists('setup.py') || await exists('requirements.txt')) return 'python'
     if (await exists('Gemfile')) return 'ruby'
     if (await exists('pom.xml') || await exists('build.gradle') || await exists('build.gradle.kts')) return 'java'
+    if (await exists('Package.swift')) return 'swift'
     if (await exists('composer.json')) return 'php'
     if (await hasGlob('*.csproj') || await hasGlob('*.sln')) return 'csharp'
     if (await hasGlob('CMakeLists.txt') || await hasGlob('**/*.cmake') || await hasGlob('*.cpp')) return 'cpp'
@@ -306,66 +308,76 @@ export function getDiscoveryPatterns(language: ProjectLanguage): { patterns: str
     const commonIgnore = [
         '**/.mikk/**', '**/.git/**', '**/coverage/**', '**/build/**',
     ]
+
+    const toPatterns = (lang: ProjectLanguage): string[] => {
+        return getDiscoveryExtensions(lang).map(ext => `**/*${ext}`)
+    }
+
     switch (language) {
         case 'typescript':
             return {
-                patterns: ['**/*.ts', '**/*.tsx', '**/*.js', '**/*.jsx'],
+                patterns: toPatterns(language),
                 ignore: [...commonIgnore, '**/node_modules/**', '**/dist/**', '**/.next/**', '**/.nuxt/**', '**/.svelte-kit/**', '**/*.d.ts', '**/*.test.{ts,js,tsx,jsx}', '**/*.spec.{ts,js,tsx,jsx}'],
             }
         case 'javascript':
             return {
-                patterns: ['**/*.js', '**/*.jsx', '**/*.mjs', '**/*.cjs', '**/*.ts', '**/*.tsx'],
+                patterns: toPatterns(language),
                 ignore: [...commonIgnore, '**/node_modules/**', '**/dist/**', '**/.next/**', '**/*.d.ts', '**/*.test.{ts,js,tsx,jsx}', '**/*.spec.{ts,js,tsx,jsx}'],
             }
         case 'python':
             return {
-                patterns: ['**/*.py'],
+                patterns: toPatterns(language),
                 ignore: [...commonIgnore, '**/__pycache__/**', '**/venv/**', '**/.venv/**', '**/.tox/**', '**/test_*.py', '**/*_test.py'],
             }
         case 'go':
             return {
-                patterns: ['**/*.go'],
+                patterns: toPatterns(language),
                 ignore: [...commonIgnore, '**/vendor/**', '**/*_test.go'],
             }
         case 'rust':
             return {
-                patterns: ['**/*.rs'],
+                patterns: toPatterns(language),
                 ignore: [...commonIgnore, '**/target/**'],
             }
         case 'java':
             return {
-                patterns: ['**/*.java', '**/*.kt', '**/*.kts'],
+                patterns: toPatterns(language),
                 ignore: [...commonIgnore, '**/target/**', '**/.gradle/**', '**/Test*.java', '**/*Test.java'],
+            }
+        case 'swift':
+            return {
+                patterns: toPatterns(language),
+                ignore: [...commonIgnore, '**/.build/**', '**/Tests/**'],
             }
         case 'ruby':
             return {
-                patterns: ['**/*.rb'],
+                patterns: toPatterns(language),
                 ignore: [...commonIgnore, '**/vendor/**', '**/*_spec.rb', '**/spec/**'],
             }
         case 'php':
             return {
-                patterns: ['**/*.php'],
+                patterns: toPatterns(language),
                 ignore: [...commonIgnore, '**/vendor/**', '**/*Test.php'],
             }
         case 'csharp':
             return {
-                patterns: ['**/*.cs'],
+                patterns: toPatterns(language),
                 ignore: [...commonIgnore, '**/bin/**', '**/obj/**'],
             }
         case 'cpp':
             return {
-                patterns: ['**/*.cpp', '**/*.cc', '**/*.cxx', '**/*.hpp', '**/*.hxx', '**/*.hh', '**/*.h'],
+                patterns: toPatterns(language),
                 ignore: [...commonIgnore, '**/build/**', '**/cmake-build-*/**'],
             }
         case 'c':
             return {
-                patterns: ['**/*.c', '**/*.h'],
+                patterns: toPatterns(language),
                 ignore: [...commonIgnore, '**/build/**'],
             }
         default:
             // Fallback: discover JS/TS (most common)
             return {
-                patterns: ['**/*.ts', '**/*.tsx', '**/*.js', '**/*.jsx'],
+                patterns: toPatterns(language),
                 ignore: [...commonIgnore, '**/node_modules/**', '**/dist/**', '**/*.d.ts'],
             }
     }
@@ -548,6 +560,14 @@ const LANGUAGE_IGNORE_TEMPLATES: Record<ProjectLanguage, string[]> = {
         'target/',
         '.gradle/',
         'gradle/',
+        '',
+    ],
+    swift: [
+        '# Swift artifacts',
+        '.build/',
+        '.swiftpm/',
+        'Packages/',
+        'Tests/',
         '',
     ],
     ruby: [

@@ -3,9 +3,9 @@ graph TD
     subgraph mod_mesh_packages_cli["📦 Module: CLI & Utils"]
         subgraph file_c__users_ansh_desktop_web_mesh_packages_cli_src_ui_ts["📄 ui.ts"]
             fn_c__users_ansh_desktop_web_mesh_packages_cli_src_ui_ts_banner["⚡ banner"]
-            fn_c__users_ansh_desktop_web_mesh_packages_cli_src_ui_ts_vislen["⚡ visLen"]
-            fn_c__users_ansh_desktop_web_mesh_packages_cli_src_ui_ts_pad["⚡ pad"]
-            fn_c__users_ansh_desktop_web_mesh_packages_cli_src_ui_ts_tw["⚡ tw"]
+            fn_c__users_ansh_desktop_web_mesh_packages_cli_src_ui_ts_vislen["λ visLen"]
+            fn_c__users_ansh_desktop_web_mesh_packages_cli_src_ui_ts_pad["λ pad"]
+            fn_c__users_ansh_desktop_web_mesh_packages_cli_src_ui_ts_tw["λ tw"]
             fn_c__users_ansh_desktop_web_mesh_packages_cli_src_ui_ts_infobar["⚡ infoBar"]
             fn_c__users_ansh_desktop_web_mesh_packages_cli_src_ui_ts_healthbar["⚡ healthBar"]
             fn_c__users_ansh_desktop_web_mesh_packages_cli_src_ui_ts_panel["⚡ panel"]
@@ -22,6 +22,13 @@ graph TD
         end
     end
 
+    fn_c__users_ansh_desktop_web_mesh_packages_cli_src_ui_ts_pad --> fn_c__users_ansh_desktop_web_mesh_packages_cli_src_ui_ts_vislen
+    fn_c__users_ansh_desktop_web_mesh_packages_cli_src_ui_ts_panel --> fn_c__users_ansh_desktop_web_mesh_packages_cli_src_ui_ts_tw
+    fn_c__users_ansh_desktop_web_mesh_packages_cli_src_ui_ts_panel --> fn_c__users_ansh_desktop_web_mesh_packages_cli_src_ui_ts_vislen
+    fn_c__users_ansh_desktop_web_mesh_packages_cli_src_ui_ts_panel --> fn_c__users_ansh_desktop_web_mesh_packages_cli_src_ui_ts_pad
+    fn_c__users_ansh_desktop_web_mesh_packages_cli_src_ui_ts_rule --> fn_c__users_ansh_desktop_web_mesh_packages_cli_src_ui_ts_tw
+    fn_c__users_ansh_desktop_web_mesh_packages_cli_src_ui_ts_cols --> fn_c__users_ansh_desktop_web_mesh_packages_cli_src_ui_ts_tw
+    fn_c__users_ansh_desktop_web_mesh_packages_cli_src_ui_ts_cols --> fn_c__users_ansh_desktop_web_mesh_packages_cli_src_ui_ts_pad
 
     classDef default fill:#334155,stroke:#64748b,color:#e2e8f0,stroke-width:1px
     classDef external fill:#1e293b,stroke:#475569,color:#94a3b8,stroke-dasharray: 5 5

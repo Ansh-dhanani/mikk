@@ -73,4 +73,10 @@ describe('OxcResolver - ESM and CJS Resolution', () => {
         const res = await resolver.resolve('./local', path.join(FIXTURE_DIR, 'index.ts'))
         expect(res).toContain('.test-fixture-esm/local.ts')
     })
+
+    it('does not throw for missing package imports', async () => {
+        const resolver = new OxcResolver(FIXTURE_DIR)
+        const res = await resolver.resolve('totally-missing-pkg', path.join(FIXTURE_DIR, 'index.ts'))
+        expect(typeof res).toBe('string')
+    })
 })

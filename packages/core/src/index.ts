@@ -16,3 +16,12 @@ export { minimatch } from './utils/minimatch.js'
 export { scoreFunctions, findFuzzyMatches, levenshtein, splitCamelCase, extractKeywords } from './utils/fuzzy-match.js'
 export { writeFileAtomic, writeJsonAtomic } from './utils/atomic-write.js'
 export type { AtomicWriteOptions } from './utils/atomic-write.js'
+export {
+	runArtifactWriteTransaction,
+	recoverArtifactWriteTransactions,
+} from './utils/artifact-transaction.js'
+export type {
+	ArtifactWriteInput,
+	ArtifactTransactionOptions,
+	RecoverySummary,
+} from './utils/artifact-transaction.js'

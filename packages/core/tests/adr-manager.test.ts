@@ -94,4 +94,10 @@ describe('AdrManager', () => {
         const decisions = await manager.list()
         expect(decisions).toHaveLength(0)
     })
+
+    it('returns false when removing a missing decision', async () => {
+        const manager = new AdrManager(CONTRACT_PATH)
+        const success = await manager.remove('ADR-404')
+        expect(success).toBe(false)
+    })
 })

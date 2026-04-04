@@ -71,4 +71,17 @@ describe('ImpactAnalyzer - Classified', () => {
         expect(result.classified.low).toHaveLength(1)
         expect(result.classified.low[0].nodeId).toBe('fn:src/highriskauthservice.ts:highriskauthservice')
     })
+
+    it('deduplicates impacted nodes when changed list includes duplicates', () => {
+        const graph = buildTestGraph([
+            ['A', 'B'],
+            ['B', 'C'],
+            ['C', 'nothing'],
+        ])
+
+        const analyzer = new ImpactAnalyzer(graph)
+        const result = analyzer.analyze(['fn:src/c.ts:c', 'fn:src/c.ts:c'])
+        const unique = new Set(result.impacted)
+        expect(unique.size).toBe(result.impacted.length)
+    })
 })

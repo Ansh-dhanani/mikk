@@ -1,6 +1,6 @@
 %%{init: {"theme": "base", "themeVariables": {"primaryColor": "#1e293b", "primaryTextColor": "#e2e8f0", "lineColor": "#64748b", "secondaryColor": "#334155", "tertiaryColor": "#475569", "background": "#0f172a", "mainBkg": "#1e293b", "nodeBorder": "#475569"}}}%%
 graph TD
-    subgraph mod_mesh_packages_ai_context["📦 Module: Authentication & Providers (14 internal functions collapsed)"]
+    subgraph mod_mesh_packages_ai_context["📦 Module: Authentication & Providers (16 internal functions collapsed)"]
         subgraph file_c__users_ansh_desktop_web_mesh_packages_ai_context_src_claude_md_generator_ts["📄 claude-md-generator.ts"]
             fn_c__users_ansh_desktop_web_mesh_packages_ai_context_src_claude_md_generator_ts_claudemdgenerator_constructor["⚡ ClaudeMdGenerator.constructor"]
             fn_c__users_ansh_desktop_web_mesh_packages_ai_context_src_claude_md_generator_ts_claudemdgenerator_generate["⚡ ClaudeMdGenerator.generate"]
@@ -21,22 +21,7 @@ graph TD
             fn_c__users_ansh_desktop_web_mesh_packages_ai_context_src_claude_md_generator_ts_claudemdgenerator_getmodulessortedbydependencyorder["⚡ ClaudeMdGenerator.getModulesSortedByDependencyOrder"]
         end
         subgraph file_c__users_ansh_desktop_web_mesh_packages_ai_context_src_context_builder_ts["📄 context-builder.ts"]
-            fn_c__users_ansh_desktop_web_mesh_packages_ai_context_src_context_builder_ts_readcontextfile["⚡ readContextFile"]
-            fn_c__users_ansh_desktop_web_mesh_packages_ai_context_src_context_builder_ts_estimatetokens["⚡ estimateTokens"]
-            fn_c__users_ansh_desktop_web_mesh_packages_ai_context_src_context_builder_ts_bfsneighbors["⚡ bfsNeighbors"]
-            fn_c__users_ansh_desktop_web_mesh_packages_ai_context_src_context_builder_ts_depthtoscore["⚡ depthToScore"]
             fn_c__users_ansh_desktop_web_mesh_packages_ai_context_src_context_builder_ts_normalizekeyword["⚡ normalizeKeyword"]
-            fn_c__users_ansh_desktop_web_mesh_packages_ai_context_src_context_builder_ts_extractkeywords["⚡ extractKeywords"]
-            fn_c__users_ansh_desktop_web_mesh_packages_ai_context_src_context_builder_ts_keywordscore["⚡ keywordScore"]
-            fn_c__users_ansh_desktop_web_mesh_packages_ai_context_src_context_builder_ts_resolveseeds["⚡ resolveSeeds"]
-            fn_c__users_ansh_desktop_web_mesh_packages_ai_context_src_context_builder_ts_compressbody["⚡ compressBody"]
-            fn_c__users_ansh_desktop_web_mesh_packages_ai_context_src_context_builder_ts_stripnoise["⚡ stripNoise"]
-            fn_c__users_ansh_desktop_web_mesh_packages_ai_context_src_context_builder_ts_removeemptyblocks["⚡ removeEmptyBlocks"]
-            fn_c__users_ansh_desktop_web_mesh_packages_ai_context_src_context_builder_ts_collapsetemplates["⚡ collapseTemplates"]
-            fn_c__users_ansh_desktop_web_mesh_packages_ai_context_src_context_builder_ts_describetemplate["⚡ describeTemplate"]
-            fn_c__users_ansh_desktop_web_mesh_packages_ai_context_src_context_builder_ts_collapsechains["⚡ collapseChains"]
-            fn_c__users_ansh_desktop_web_mesh_packages_ai_context_src_context_builder_ts_collapsesimpleblocks["⚡ collapseSimpleBlocks"]
-            fn_c__users_ansh_desktop_web_mesh_packages_ai_context_src_context_builder_ts_dedent["⚡ dedent"]
             fn_c__users_ansh_desktop_web_mesh_packages_ai_context_src_context_builder_ts_contextbuilder_constructor["⚡ ContextBuilder.constructor"]
             fn_c__users_ansh_desktop_web_mesh_packages_ai_context_src_context_builder_ts_contextbuilder_build["⚡ ContextBuilder.build"]
             fn_c__users_ansh_desktop_web_mesh_packages_ai_context_src_context_builder_ts_contextbuilder_tocontextfunction["⚡ ContextBuilder.toContextFunction"]
@@ -46,9 +31,29 @@ graph TD
         end
         subgraph file_c__users_ansh_desktop_web_mesh_packages_ai_context_src_openclaw_generator_ts["📄 openclaw-generator.ts"]
             fn_c__users_ansh_desktop_web_mesh_packages_ai_context_src_openclaw_generator_ts_openclawrulesgenerator_constructor["⚡ OpenClawRulesGenerator.constructor"]
+            fn_c__users_ansh_desktop_web_mesh_packages_ai_context_src_openclaw_generator_ts_openclawrulesgenerator_generate["⚡ OpenClawRulesGenerator.generate"]
+        end
+        subgraph file_c__users_ansh_desktop_web_mesh_packages_ai_context_src_providers_ts["📄 providers.ts"]
+            fn_c__users_ansh_desktop_web_mesh_packages_ai_context_src_providers_ts_getprovider["⚡ getProvider"]
+            fn_c__users_ansh_desktop_web_mesh_packages_ai_context_src_providers_ts_claudeprovider_formatcontext["⚡ ClaudeProvider.formatContext"]
+            fn_c__users_ansh_desktop_web_mesh_packages_ai_context_src_providers_ts_genericprovider_formatcontext["⚡ GenericProvider.formatContext"]
+            fn_c__users_ansh_desktop_web_mesh_packages_ai_context_src_providers_ts_compactprovider_formatcontext["⚡ CompactProvider.formatContext"]
+        end
+        subgraph file_c__users_ansh_desktop_web_mesh_packages_ai_context_src_token_counter_ts["📄 token-counter.ts"]
+            fn_c__users_ansh_desktop_web_mesh_packages_ai_context_src_token_counter_ts_counttokens["λ countTokens"]
+            fn_c__users_ansh_desktop_web_mesh_packages_ai_context_src_token_counter_ts_counttokensfast["λ countTokensFast"]
+            fn_c__users_ansh_desktop_web_mesh_packages_ai_context_src_token_counter_ts_estimatefiletokens["⚡ estimateFileTokens"]
+            fn_c__users_ansh_desktop_web_mesh_packages_ai_context_src_token_counter_ts_tokenbudget_constructor["⚡ TokenBudget.constructor"]
+            fn_c__users_ansh_desktop_web_mesh_packages_ai_context_src_token_counter_ts_tokenbudget_remaining["⚡ TokenBudget.remaining"]
+            fn_c__users_ansh_desktop_web_mesh_packages_ai_context_src_token_counter_ts_tokenbudget_fits["⚡ TokenBudget.fits"]
+            fn_c__users_ansh_desktop_web_mesh_packages_ai_context_src_token_counter_ts_tokenbudget_consume["⚡ TokenBudget.consume"]
+            fn_c__users_ansh_desktop_web_mesh_packages_ai_context_src_token_counter_ts_tokenbudget_truncate["⚡ TokenBudget.truncate"]
         end
     end
 
+    fn_c__users_ansh_desktop_web_mesh_packages_ai_context_src_token_counter_ts_estimatefiletokens --> fn_c__users_ansh_desktop_web_mesh_packages_ai_context_src_token_counter_ts_counttokens
+    fn_c__users_ansh_desktop_web_mesh_packages_ai_context_src_token_counter_ts_tokenbudget_fits --> fn_c__users_ansh_desktop_web_mesh_packages_ai_context_src_token_counter_ts_counttokensfast
+    fn_c__users_ansh_desktop_web_mesh_packages_ai_context_src_token_counter_ts_tokenbudget_truncate --> fn_c__users_ansh_desktop_web_mesh_packages_ai_context_src_token_counter_ts_counttokensfast
 
     classDef default fill:#334155,stroke:#64748b,color:#e2e8f0,stroke-width:1px
     classDef external fill:#1e293b,stroke:#475569,color:#94a3b8,stroke-dasharray: 5 5

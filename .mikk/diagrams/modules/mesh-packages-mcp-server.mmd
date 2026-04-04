@@ -3,7 +3,7 @@ graph TD
     subgraph mod_mesh_packages_mcp_server["📦 Module: Storage"]
         subgraph file_c__users_ansh_desktop_web_mesh_packages_mcp_server_src_resources_ts["📄 resources.ts"]
             fn_c__users_ansh_desktop_web_mesh_packages_mcp_server_src_resources_ts_registerresources["⚡ registerResources"]
-            fn_c__users_ansh_desktop_web_mesh_packages_mcp_server_src_resources_ts_saferead["⚡ safeRead"]
+            fn_c__users_ansh_desktop_web_mesh_packages_mcp_server_src_resources_ts_saferead["λ safeRead"]
         end
         subgraph file_c__users_ansh_desktop_web_mesh_packages_mcp_server_src_server_ts["📄 server.ts"]
             fn_c__users_ansh_desktop_web_mesh_packages_mcp_server_src_server_ts_createmikkmcpserver["⚡ createMikkMcpServer"]
@@ -12,25 +12,50 @@ graph TD
             fn_c__users_ansh_desktop_web_mesh_packages_mcp_server_src_stdio_ts_startstdioserver["⚡ startStdioServer"]
         end
         subgraph file_c__users_ansh_desktop_web_mesh_packages_mcp_server_src_tools_ts["📄 tools.ts"]
-            fn_c__users_ansh_desktop_web_mesh_packages_mcp_server_src_tools_ts_invalidatecache["⚡ invalidateCache"]
-            fn_c__users_ansh_desktop_web_mesh_packages_mcp_server_src_tools_ts_getsemanticsearcher["⚡ getSemanticSearcher"]
-            fn_c__users_ansh_desktop_web_mesh_packages_mcp_server_src_tools_ts__tally["⚡ _tally"]
-            fn_c__users_ansh_desktop_web_mesh_packages_mcp_server_src_tools_ts__tok["⚡ _tok"]
-            fn_c__users_ansh_desktop_web_mesh_packages_mcp_server_src_tools_ts__filetok["⚡ _fileTok"]
-            fn_c__users_ansh_desktop_web_mesh_packages_mcp_server_src_tools_ts__filestok["⚡ _filesTok"]
-            fn_c__users_ansh_desktop_web_mesh_packages_mcp_server_src_tools_ts__track["⚡ _track"]
-            fn_c__users_ansh_desktop_web_mesh_packages_mcp_server_src_tools_ts_quickhashfile["⚡ quickHashFile"]
+            fn_c__users_ansh_desktop_web_mesh_packages_mcp_server_src_tools_ts_invalidatecache["λ invalidateCache"]
+            fn_c__users_ansh_desktop_web_mesh_packages_mcp_server_src_tools_ts_getsemanticsearcher["λ getSemanticSearcher"]
+            fn_c__users_ansh_desktop_web_mesh_packages_mcp_server_src_tools_ts__tally["λ _tally"]
+            fn_c__users_ansh_desktop_web_mesh_packages_mcp_server_src_tools_ts__tok["λ _tok"]
+            fn_c__users_ansh_desktop_web_mesh_packages_mcp_server_src_tools_ts__filetok["λ _fileTok"]
+            fn_c__users_ansh_desktop_web_mesh_packages_mcp_server_src_tools_ts__filestok["λ _filesTok"]
+            fn_c__users_ansh_desktop_web_mesh_packages_mcp_server_src_tools_ts__clampbudget["λ _clampBudget"]
+            fn_c__users_ansh_desktop_web_mesh_packages_mcp_server_src_tools_ts__compactimpacted["λ _compactImpacted"]
+            fn_c__users_ansh_desktop_web_mesh_packages_mcp_server_src_tools_ts__track["λ _track"]
+            fn_c__users_ansh_desktop_web_mesh_packages_mcp_server_src_tools_ts_quickhashfile["λ quickHashFile"]
             fn_c__users_ansh_desktop_web_mesh_packages_mcp_server_src_tools_ts_registertools["⚡ registerTools"]
-            fn_c__users_ansh_desktop_web_mesh_packages_mcp_server_src_tools_ts_loadcontractandlock["⚡ loadContractAndLock"]
-            fn_c__users_ansh_desktop_web_mesh_packages_mcp_server_src_tools_ts_buildgraphfromlock["⚡ buildGraphFromLock"]
-            fn_c__users_ansh_desktop_web_mesh_packages_mcp_server_src_tools_ts_detectcirculardeps["⚡ detectCircularDeps"]
-            fn_c__users_ansh_desktop_web_mesh_packages_mcp_server_src_tools_ts_dfs["⚡ dfs"]
-            fn_c__users_ansh_desktop_web_mesh_packages_mcp_server_src_tools_ts_walkdir["⚡ walkDir"]
-            fn_c__users_ansh_desktop_web_mesh_packages_mcp_server_src_tools_ts_issourcefile["⚡ isSourceFile"]
-            fn_c__users_ansh_desktop_web_mesh_packages_mcp_server_src_tools_ts_parsediffhunks["⚡ parseDiffHunks"]
+            fn_c__users_ansh_desktop_web_mesh_packages_mcp_server_src_tools_ts_loadcontractandlock["λ loadContractAndLock"]
+            fn_c__users_ansh_desktop_web_mesh_packages_mcp_server_src_tools_ts_buildgraphfromlock["λ buildGraphFromLock"]
+            fn_c__users_ansh_desktop_web_mesh_packages_mcp_server_src_tools_ts_detectcirculardeps["λ detectCircularDeps"]
+            fn_c__users_ansh_desktop_web_mesh_packages_mcp_server_src_tools_ts_dfs["λ dfs"]
+            fn_c__users_ansh_desktop_web_mesh_packages_mcp_server_src_tools_ts_walkdir["λ walkDir"]
+            fn_c__users_ansh_desktop_web_mesh_packages_mcp_server_src_tools_ts_issourcefile["λ isSourceFile"]
+            fn_c__users_ansh_desktop_web_mesh_packages_mcp_server_src_tools_ts_parsediffhunks["λ parseDiffHunks"]
         end
     end
 
+    fn_c__users_ansh_desktop_web_mesh_packages_mcp_server_src_resources_ts_registerresources --> fn_c__users_ansh_desktop_web_mesh_packages_mcp_server_src_resources_ts_saferead
+    fn_c__users_ansh_desktop_web_mesh_packages_mcp_server_src_tools_ts__filestok --> fn_c__users_ansh_desktop_web_mesh_packages_mcp_server_src_tools_ts__filetok
+    fn_c__users_ansh_desktop_web_mesh_packages_mcp_server_src_tools_ts__compactimpacted --> fn_c__users_ansh_desktop_web_mesh_packages_mcp_server_src_tools_ts__tok
+    fn_c__users_ansh_desktop_web_mesh_packages_mcp_server_src_tools_ts__track --> fn_c__users_ansh_desktop_web_mesh_packages_mcp_server_src_tools_ts__tok
+    fn_c__users_ansh_desktop_web_mesh_packages_mcp_server_src_tools_ts__track --> fn_c__users_ansh_desktop_web_mesh_packages_mcp_server_src_tools_ts__tally
+    fn_c__users_ansh_desktop_web_mesh_packages_mcp_server_src_tools_ts_registertools --> fn_c__users_ansh_desktop_web_mesh_packages_mcp_server_src_tools_ts_loadcontractandlock
+    fn_c__users_ansh_desktop_web_mesh_packages_mcp_server_src_tools_ts_registertools --> fn_c__users_ansh_desktop_web_mesh_packages_mcp_server_src_tools_ts__track
+    fn_c__users_ansh_desktop_web_mesh_packages_mcp_server_src_tools_ts_registertools --> fn_c__users_ansh_desktop_web_mesh_packages_mcp_server_src_tools_ts_buildgraphfromlock
+    fn_c__users_ansh_desktop_web_mesh_packages_mcp_server_src_tools_ts_registertools --> fn_c__users_ansh_desktop_web_mesh_packages_mcp_server_src_tools_ts__clampbudget
+    fn_c__users_ansh_desktop_web_mesh_packages_mcp_server_src_tools_ts_registertools --> fn_c__users_ansh_desktop_web_mesh_packages_mcp_server_src_tools_ts__compactimpacted
+    fn_c__users_ansh_desktop_web_mesh_packages_mcp_server_src_tools_ts_registertools --> fn_c__users_ansh_desktop_web_mesh_packages_mcp_server_src_tools_ts__filetok
+    fn_c__users_ansh_desktop_web_mesh_packages_mcp_server_src_tools_ts_registertools --> fn_c__users_ansh_desktop_web_mesh_packages_mcp_server_src_tools_ts_detectcirculardeps
+    fn_c__users_ansh_desktop_web_mesh_packages_mcp_server_src_tools_ts_registertools --> fn_c__users_ansh_desktop_web_mesh_packages_mcp_server_src_tools_ts__tok
+    fn_c__users_ansh_desktop_web_mesh_packages_mcp_server_src_tools_ts_registertools --> fn_c__users_ansh_desktop_web_mesh_packages_mcp_server_src_tools_ts__filestok
+    fn_c__users_ansh_desktop_web_mesh_packages_mcp_server_src_tools_ts_registertools --> fn_c__users_ansh_desktop_web_mesh_packages_mcp_server_src_tools_ts_getsemanticsearcher
+    fn_c__users_ansh_desktop_web_mesh_packages_mcp_server_src_tools_ts_registertools --> fn_c__users_ansh_desktop_web_mesh_packages_mcp_server_src_tools_ts_quickhashfile
+    fn_c__users_ansh_desktop_web_mesh_packages_mcp_server_src_tools_ts_registertools --> fn_c__users_ansh_desktop_web_mesh_packages_mcp_server_src_tools_ts_walkdir
+    fn_c__users_ansh_desktop_web_mesh_packages_mcp_server_src_tools_ts_registertools --> fn_c__users_ansh_desktop_web_mesh_packages_mcp_server_src_tools_ts_issourcefile
+    fn_c__users_ansh_desktop_web_mesh_packages_mcp_server_src_tools_ts_registertools --> fn_c__users_ansh_desktop_web_mesh_packages_mcp_server_src_tools_ts_parsediffhunks
+    fn_c__users_ansh_desktop_web_mesh_packages_mcp_server_src_tools_ts_registertools --> fn_c__users_ansh_desktop_web_mesh_packages_mcp_server_src_tools_ts__tally
+    fn_c__users_ansh_desktop_web_mesh_packages_mcp_server_src_tools_ts_loadcontractandlock --> fn_c__users_ansh_desktop_web_mesh_packages_mcp_server_src_tools_ts_invalidatecache
+    fn_c__users_ansh_desktop_web_mesh_packages_mcp_server_src_tools_ts_loadcontractandlock --> fn_c__users_ansh_desktop_web_mesh_packages_mcp_server_src_tools_ts_buildgraphfromlock
+    fn_c__users_ansh_desktop_web_mesh_packages_mcp_server_src_tools_ts_detectcirculardeps --> fn_c__users_ansh_desktop_web_mesh_packages_mcp_server_src_tools_ts_dfs
 
     classDef default fill:#334155,stroke:#64748b,color:#e2e8f0,stroke-width:1px
     classDef external fill:#1e293b,stroke:#475569,color:#94a3b8,stroke-dasharray: 5 5

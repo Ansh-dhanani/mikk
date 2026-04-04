@@ -71,4 +71,83 @@ describe('@getmikk/cli integration', () => {
         // context without subcommands prints help, so we look for usage text
         expect(result.stdout || result.stderr).toContain('Usage: mikk context')
     })
+
+    it('init help exposes strict parsing and force flags', async () => {
+        const result = await runCli(['init', '--help'])
+        const output = result.stdout + result.stderr
+        expect(output).toContain('--force')
+        expect(output).toContain('--strict-parsing')
+    })
+
+    it('analyze help exposes strict parsing flag', async () => {
+        const result = await runCli(['analyze', '--help'])
+        const output = result.stdout + result.stderr
+        expect(output).toContain('--strict-parsing')
+    })
+
+    it('context query help exposes strict and fallback controls', async () => {
+        const result = await runCli(['context', 'query', '--help'])
+        const output = result.stdout + result.stderr
+        expect(output).toContain('--strict')
+        expect(output).toContain('--must')
+        expect(output).toContain('--all-keywords')
+        expect(output).toContain('--min-keywords')
+        expect(output).toContain('--exact-only')
+        expect(output).toContain('--fail-fast')
+        expect(output).toContain('--no-auto-fallback')
+        expect(output).toContain('--no-callgraph')
+    })
+
+    it('context for help exposes file/module anchors', async () => {
+        const result = await runCli(['context', 'for', '--help'])
+        const output = result.stdout + result.stderr
+        expect(output).toContain('--file')
+        expect(output).toContain('--module')
+        expect(output).toContain('--strict')
+        expect(output).toContain('--no-auto-fallback')
+    })
+
+    it('ci and contract validate help expose validation flags', async () => {
+        const ci = await runCli(['ci', '--help'])
+        const ciOutput = ci.stdout + ci.stderr
+        expect(ciOutput).toContain('--strict')
+        expect(ciOutput).toContain('--dead-code-threshold')
+        expect(ciOutput).toContain('--format')
+
+        const contract = await runCli(['contract', 'validate', '--help'])
+        const contractOutput = contract.stdout + contract.stderr
+        expect(contractOutput).toContain('--boundaries-only')
+        expect(contractOutput).toContain('--drift-only')
+        expect(contractOutput).toContain('--strict')
+    })
+
+    it('mcp, dead-code, stats, and remove help expose their flags', async () => {
+        const mcp = await runCli(['mcp', 'install', '--help'])
+        const mcpOutput = mcp.stdout + mcp.stderr
+        expect(mcpOutput).toContain('--tool')
+        expect(mcpOutput).toContain('--dry-run')
+
+        const deadCode = await runCli(['dead-code', '--help'])
+        const deadCodeOutput = deadCode.stdout + deadCode.stderr
+        expect(deadCodeOutput).toContain('--module')
+        expect(deadCodeOutput).toContain('--json')
+
+        const stats = await runCli(['stats', '--help'])
+        const statsOutput = stats.stdout + stats.stderr
+        expect(statsOutput).toContain('--format')
+
+        const remove = await runCli(['remove', '--help'])
+        const removeOutput = remove.stdout + remove.stderr
+        expect(removeOutput).toContain('--force')
+
+        const suggest = await runCli(['suggest', '--help'])
+        const suggestOutput = suggest.stdout + suggest.stderr
+        expect(suggestOutput).toContain('practical')
+
+        const update = await runCli(['update', '--help'])
+        const updateOutput = update.stdout + update.stderr
+        expect(updateOutput).toContain('--channel')
+        expect(updateOutput).toContain('--version')
+        expect(updateOutput).toContain('--yes')
+    }, 12000)
 })

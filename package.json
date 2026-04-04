@@ -7,6 +7,8 @@
     "test": "turbo run test",
     "dev": "turbo run dev",
     "lint": "turbo run lint",
+    "check:mcp-consistency": "bun scripts/check-mcp-consistency.mjs",
+    "quality:dashboard": "bun scripts/quality-dashboard.mjs",
     "release": "bun run build && changeset publish",
     "version-packages": "changeset version"
   },

@@ -14,10 +14,9 @@
     "jsx": "react-jsx",
     "incremental": true,
     "plugins": [{ "name": "next" }],
-    "baseUrl": ".",
     "paths": {
       "@/*": ["./*"],
-      "collections/*": [".source/*"]
+      "collections/*": ["./.source/*"]
     }
   },
   "include": [

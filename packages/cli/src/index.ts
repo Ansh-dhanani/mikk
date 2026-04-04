@@ -27,6 +27,8 @@ import { registerDoctorCommand } from './commands/doctor.js'
 import { registerStatsCommand } from './commands/stats.js'
 import { registerAdrCommand } from './commands/adr.js'
 import { registerRemoveCommand } from './commands/remove.js'
+import { registerSuggestCommand } from './commands/suggest.js'
+import { registerUpdateCommand } from './commands/update.js'
 import { banner, sq, gap } from './ui.js'
 
 declare const __MIKK_VERSION__: string
@@ -55,6 +57,8 @@ if (process.argv.length <= 2) {
         ['ci',        'Architecture gate — exits non-zero on violations'],
         ['stats',     'Codebase health dashboard'],
         ['doctor',    'Project diagnostic check'],
+        ['update',    'Update CLI (stable/latest/specific version)'],
+        ['suggest',   'Task-oriented recommendations for next command'],
         ['intent',    'Pre-flight a refactor before writing code'],
         ['context',   'Graph-traced context queries'],
         ['dead-code', 'Detect unused functions'],
@@ -96,5 +100,7 @@ registerDoctorCommand(program)
 registerStatsCommand(program)
 registerAdrCommand(program)
 registerRemoveCommand(program)
+registerSuggestCommand(program)
+registerUpdateCommand(program)
 
 program.parse()

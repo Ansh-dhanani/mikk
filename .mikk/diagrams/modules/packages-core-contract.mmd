@@ -1,6 +1,6 @@
 %%{init: {"theme": "base", "themeVariables": {"primaryColor": "#1e293b", "primaryTextColor": "#e2e8f0", "lineColor": "#64748b", "secondaryColor": "#334155", "tertiaryColor": "#475569", "background": "#0f172a", "mainBkg": "#1e293b", "nodeBorder": "#475569"}}}%%
 graph TD
-    subgraph mod_packages_core_contract["📦 Module: Storage & Validation"]
+    subgraph mod_packages_core_contract["📦 Module: Storage & Validation (10 internal functions collapsed)"]
         subgraph file_c__users_ansh_desktop_web_mesh_packages_core_src_contract_adr_manager_ts["📄 adr-manager.ts"]
             fn_c__users_ansh_desktop_web_mesh_packages_core_src_contract_adr_manager_ts_adrmanager_constructor["⚡ AdrManager.constructor"]
             fn_c__users_ansh_desktop_web_mesh_packages_core_src_contract_adr_manager_ts_adrmanager_list["⚡ AdrManager.list"]
@@ -12,7 +12,6 @@ graph TD
             fn_c__users_ansh_desktop_web_mesh_packages_core_src_contract_adr_manager_ts_adrmanager_writecontract["⚡ AdrManager.writeContract"]
         end
         subgraph file_c__users_ansh_desktop_web_mesh_packages_core_src_contract_contract_generator_ts["📄 contract-generator.ts"]
-            fn_c__users_ansh_desktop_web_mesh_packages_core_src_contract_contract_generator_ts_inferlanguagefromfiles["⚡ inferLanguageFromFiles"]
             fn_c__users_ansh_desktop_web_mesh_packages_core_src_contract_contract_generator_ts_contractgenerator_generatefromclusters["⚡ ContractGenerator.generateFromClusters"]
             fn_c__users_ansh_desktop_web_mesh_packages_core_src_contract_contract_generator_ts_contractgenerator_infermoduledescription["⚡ ContractGenerator.inferModuleDescription"]
             fn_c__users_ansh_desktop_web_mesh_packages_core_src_contract_contract_generator_ts_contractgenerator_inferpaths["⚡ ContractGenerator.inferPaths"]
@@ -29,10 +28,6 @@ graph TD
             fn_c__users_ansh_desktop_web_mesh_packages_core_src_contract_contract_writer_ts_contractwriter_writeauditlog["⚡ ContractWriter.writeAuditLog"]
         end
         subgraph file_c__users_ansh_desktop_web_mesh_packages_core_src_contract_lock_compiler_ts["📄 lock-compiler.ts"]
-            fn_c__users_ansh_desktop_web_mesh_packages_core_src_contract_lock_compiler_ts_splitidentifier["⚡ splitIdentifier"]
-            fn_c__users_ansh_desktop_web_mesh_packages_core_src_contract_lock_compiler_ts_getmodulematchpath["⚡ getModuleMatchPath"]
-            fn_c__users_ansh_desktop_web_mesh_packages_core_src_contract_lock_compiler_ts_inferpurpose["⚡ inferPurpose"]
-            fn_c__users_ansh_desktop_web_mesh_packages_core_src_contract_lock_compiler_ts_capitalise["⚡ capitalise"]
             fn_c__users_ansh_desktop_web_mesh_packages_core_src_contract_lock_compiler_ts_lockcompiler_compile["⚡ LockCompiler.compile"]
             fn_c__users_ansh_desktop_web_mesh_packages_core_src_contract_lock_compiler_ts_lockcompiler_compilefunctions["⚡ LockCompiler.compileFunctions"]
             fn_c__users_ansh_desktop_web_mesh_packages_core_src_contract_lock_compiler_ts_lockcompiler_compileclasses["⚡ LockCompiler.compileClasses"]
@@ -44,13 +39,10 @@ graph TD
             fn_c__users_ansh_desktop_web_mesh_packages_core_src_contract_lock_compiler_ts_lockcompiler_filematchesmodule["⚡ LockCompiler.fileMatchesModule"]
         end
         subgraph file_c__users_ansh_desktop_web_mesh_packages_core_src_contract_lock_reader_ts["📄 lock-reader.ts"]
-            fn_c__users_ansh_desktop_web_mesh_packages_core_src_contract_lock_reader_ts_compactifylock["⚡ compactifyLock"]
-            fn_c__users_ansh_desktop_web_mesh_packages_core_src_contract_lock_reader_ts_hydratelock["⚡ hydrateLock"]
-            fn_c__users_ansh_desktop_web_mesh_packages_core_src_contract_lock_reader_ts_parseentitykey["⚡ parseEntityKey"]
-            fn_c__users_ansh_desktop_web_mesh_packages_core_src_contract_lock_reader_ts_parseentitykeyfull["⚡ parseEntityKeyFull"]
             fn_c__users_ansh_desktop_web_mesh_packages_core_src_contract_lock_reader_ts_normalizeimportentry["⚡ normalizeImportEntry"]
-            fn_c__users_ansh_desktop_web_mesh_packages_core_src_contract_lock_reader_ts_normalizefilepath["⚡ normalizeFilePath"]
             fn_c__users_ansh_desktop_web_mesh_packages_core_src_contract_lock_reader_ts_lockreader_read["⚡ LockReader.read"]
+            fn_c__users_ansh_desktop_web_mesh_packages_core_src_contract_lock_reader_ts_lockreader_serialize["⚡ LockReader.serialize"]
+            fn_c__users_ansh_desktop_web_mesh_packages_core_src_contract_lock_reader_ts_lockreader_prepareforwrite["⚡ LockReader.prepareForWrite"]
             fn_c__users_ansh_desktop_web_mesh_packages_core_src_contract_lock_reader_ts_lockreader_write["⚡ LockReader.write"]
         end
     end

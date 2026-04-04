@@ -1,4 +1,4 @@
-import * as path from 'node:path'
+﻿import * as path from 'node:path'
 import * as fs from 'node:fs/promises'
 import { execFile } from 'node:child_process'
 import { createHash } from 'node:crypto'
@@ -58,19 +58,65 @@ function getSemanticSearcher(projectRoot: string): SemanticSearcher {
     return s
 }
 const _CPT = 4; const _ALC = 42
+const MIN_TOKEN_BUDGET = 200
+const MAX_TOKEN_BUDGET = 10_000
 interface TokenTally { calls: number; used: number; raw: number; saved: number; start: number }
+interface TokenLockLike {
+    functions: Record<string, { file: string; endLine: number }>
+}
 const _tallies = new Map<string, TokenTally>()
 function _tally(r: string): TokenTally { let t = _tallies.get(r); if (!t) { t = { calls: 0, used: 0, raw: 0, saved: 0, start: Date.now() }; _tallies.set(r, t) } return t }
 function _tok(o: unknown): number { return Math.max(1, Math.round(JSON.stringify(o).length / _CPT)) }
-function _fileTok(lock: MikkLock, fp: string): number { const fs2 = Object.values(lock.functions).filter(f => f.file === fp); const ln = fs2.length > 0 ? Math.max(...fs2.map(f => f.endLine)) : 80; return Math.round((ln * _ALC) / _CPT) }
-function _filesTok(lock: MikkLock, fps: string[]): number { return fps.reduce((s, f) => s + _fileTok(lock, f), 0) }
+function _fileTok(lock: TokenLockLike, fp: string): number { const fs2 = Object.values(lock.functions).filter(f => f.file === fp); const ln = fs2.length > 0 ? Math.max(...fs2.map(f => f.endLine)) : 80; return Math.round((ln * _ALC) / _CPT) }
+function _filesTok(lock: TokenLockLike, fps: string[]): number { return fps.reduce((s, f) => s + _fileTok(lock, f), 0) }
+function _clampBudget(budget?: number): number {
+    const b = typeof budget === 'number' && Number.isFinite(budget) ? Math.round(budget) : 1200
+    return Math.min(MAX_TOKEN_BUDGET, Math.max(MIN_TOKEN_BUDGET, b))
+}
+function _compactImpacted<T>(items: T[], base: unknown, budget: number, floor = 5): { items: T[]; minimized: boolean; estimatedTokens: number } {
+    if (items.length === 0) return { items, minimized: false, estimatedTokens: _tok(base) }
+    let keep = items.length
+    let candidate = items.slice(0, keep)
+    let probe = { ...(base as any), impacted: candidate }
+    let est = _tok(probe)
+    if (est <= budget) return { items: candidate, minimized: false, estimatedTokens: est }
+    while (est > budget && keep > floor) {
+        keep = Math.max(floor, Math.floor(keep * 0.7))
+        candidate = items.slice(0, keep)
+        probe = { ...(base as any), impacted: candidate }
+        est = _tok(probe)
+        if (keep === floor) break
+    }
+    return { items: candidate, minimized: true, estimatedTokens: est }
+}
 function _track(root: string, raw: number, resp: unknown): Record<string, number> {
     const used = _tok(resp); const saved = Math.max(0, raw - used); const t = _tally(root)
     t.calls++; t.used += used; t.raw += raw; t.saved += saved
     return { used, raw, saved, sessionSaved: t.saved, sessionCalls: t.calls }
 }
 
-// Singleton per projectRoot — pipeline load is ~1-2s, must not repeat per request
+function isTrackedByLock(lock: MikkLock, projectRoot: string, resolvedPath: string): boolean {
+    const rootResolved = path.resolve(projectRoot)
+    const normalizedResolved = path.resolve(resolvedPath).replace(/\\/g, '/').toLowerCase()
+    const rel = path.relative(rootResolved, resolvedPath).replace(/\\/g, '/')
+    const normalizedRel = rel.toLowerCase()
+
+    if (normalizedRel in lock.files) return true
+
+    for (const key of Object.keys(lock.files)) {
+        const normalizedKey = key.replace(/\\/g, '/').toLowerCase()
+        if (normalizedKey === normalizedRel || normalizedKey === normalizedResolved) return true
+    }
+
+    for (const info of Object.values(lock.files)) {
+        const filePath = (info.path || '').replace(/\\/g, '/').toLowerCase()
+        if (filePath === normalizedResolved || filePath === normalizedRel) return true
+    }
+
+    return false
+}
+
+// Singleton per projectRoot - pipeline load is ~1-2s, must not repeat per request
 const semanticSearchers = new Map<string, SemanticSearcher>()
 
 /** Quick-hash a file by reading first 8KB for fast drift detection */
@@ -90,14 +136,83 @@ async function quickHashFile(filePath: string): Promise<string> {
     }
 }
 
+async function isGitWorktree(projectRoot: string): Promise<boolean> {
+    try {
+        const stdout = await new Promise<string>((resolve, reject) => {
+            execFile('git', ['rev-parse', '--is-inside-work-tree'], { cwd: projectRoot, encoding: 'utf-8' }, (err, out) => {
+                if (err) return reject(err)
+                resolve(out)
+            })
+        })
+        return stdout.trim() === 'true'
+    } catch {
+        return false
+    }
+}
+
+async function getGitTopLevel(projectRoot: string): Promise<string | null> {
+    try {
+        const stdout = await new Promise<string>((resolve, reject) => {
+            execFile('git', ['rev-parse', '--show-toplevel'], { cwd: projectRoot, encoding: 'utf-8' }, (err, out) => {
+                if (err) return reject(err)
+                resolve(out)
+            })
+        })
+        return path.resolve(stdout.trim())
+    } catch {
+        return null
+    }
+}
+
+async function getDirtySampleFiles(projectRoot: string, sampleFiles: string[]): Promise<string[] | null> {
+    if (sampleFiles.length === 0) return []
+    if (!(await isGitWorktree(projectRoot))) return null
+
+    const topLevel = await getGitTopLevel(projectRoot)
+    if (!topLevel || path.resolve(projectRoot) !== topLevel) {
+        // Nested directories inside a larger git worktree (like tmp fixture copies
+        // created during tests) should not be treated as dirty based on parent repo state.
+        return []
+    }
+
+    try {
+        const stdout = await new Promise<string>((resolve, reject) => {
+            execFile(
+                'git',
+                ['status', '--porcelain', '--', ...sampleFiles],
+                { cwd: projectRoot, encoding: 'utf-8', maxBuffer: 1024 * 1024 },
+                (err, out) => {
+                    if (err) return reject(err)
+                    resolve(out)
+                },
+            )
+        })
+
+        const dirty = stdout
+            .split('\n')
+            .map(line => line.trim())
+            .filter(Boolean)
+            .map(line => {
+                const m = line.match(/^[ MARCUD?!]{1,2}\s+(.+)$/)
+                return (m?.[1] || '').replace(/\\/g, '/')
+            })
+            .filter(Boolean)
+
+        return dirty
+    } catch {
+        return null
+    }
+}
+
 /**
- * Register all MCP tools — actions an AI assistant can invoke.
+ * Register all MCP tools - actions an AI assistant can invoke.
  */
 export function registerTools(server: McpServer, projectRoot: string) {
 
 
     // TOOL: mikk_test_tool
 
+    // @ts-expect-error TS2589 false-positive from deep MCP generic instantiation.
     server.tool(
         'mikk_test_tool',
         'A simple test tool that returns a static message.',
@@ -110,6 +225,7 @@ export function registerTools(server: McpServer, projectRoot: string) {
 
     // TOOL: mikk_get_project_overview
 
+    // @ts-expect-error TS2589 false-positive from deep MCP generic instantiation.
     server.tool(
         'mikk_get_project_overview',
         'Get a high-level overview: modules, function counts, file counts, constraints. WHEN TO USE: When you need raw project stats. For session start, prefer mikk_get_session_context instead. AFTER THIS: Use mikk_query_context with your task, or mikk_list_modules to drill into a module.',
@@ -132,6 +248,9 @@ export function registerTools(server: McpServer, projectRoot: string) {
 
             const overview = {
                 project: contract.project,
+                // Compatibility aliases for older clients/evaluators.
+                functions: Object.keys(lock.functions).length,
+                files: Object.keys(lock.files).length,
                 totalFunctions: Object.keys(lock.functions).length,
                 totalFiles: Object.keys(lock.files).length,
                 totalModules: modules.length,
@@ -152,9 +271,9 @@ export function registerTools(server: McpServer, projectRoot: string) {
 
     // TOOL: mikk_query_context
 
-    server.tool(
+    ; (server as any).tool(
         'mikk_query_context',
-        'Ask an architecture question — returns graph-traced context with relevant functions, files, and call chains. Use this to understand how code flows through the project.',
+        'Ask an architecture question - returns graph-traced context with relevant functions, files, and call chains. Use this to understand how code flows through the project.',
         {
             question: z.string().describe('The architecture question or task description'),
             maxHops: z.number().int().min(1).max(MAX_QUERY_HOPS).optional().default(4).describe('Graph traversal depth (default: 4)'),
@@ -170,7 +289,8 @@ export function registerTools(server: McpServer, projectRoot: string) {
             autoFallback: z.boolean().optional().default(true).describe('When strict mode returns empty, retry with balanced retrieval'),
             provider: z.enum(['claude', 'generic', 'compact']).optional().default('generic').describe('AI provider format: claude (XML tags), generic (plain), compact (minimal tokens)'),
         },
-        async ({ question, maxHops, tokenBudget, focusFile, focusModule, strict, requiredTerms, requireAllKeywords, minKeywordMatches, exactOnly, failFast, autoFallback, provider }) => {
+        async (args: any): Promise<any> => {
+            const { question, maxHops, tokenBudget, focusFile, focusModule, strict, requiredTerms, requireAllKeywords, minKeywordMatches, exactOnly, failFast, autoFallback, provider } = args as any
             const { contract, lock, staleness } = await loadContractAndLock(projectRoot)
 
             const query: ContextQuery = {
@@ -234,7 +354,7 @@ export function registerTools(server: McpServer, projectRoot: string) {
                 ? 'Note: strict mode had no exact matches; showing balanced fallback context.\n\n'
                 : ''
 
-            // Token savings: tokenBudget is the cap — raw cost without Mikk is reading all files naively
+            // Token savings: tokenBudget is the cap - raw cost without Mikk is reading all files naively
             const _rawQC = (tokenBudget ?? 6000) * 3   // Mikk's BFS gives ~3x compression over naive search
             const _tokQC = _track(projectRoot, _rawQC, output)
             const tokLine = `\n\n---\n// tokens: ${JSON.stringify(_tokQC)}`
@@ -247,18 +367,22 @@ export function registerTools(server: McpServer, projectRoot: string) {
 
     // TOOL: mikk_impact_analysis
 
-    server.tool(
+    ; (server as any).tool(
         'mikk_impact_analysis',
         'Analyze the blast radius of changing a file. Returns impacted functions classified by severity (critical/high/medium/low). WHEN TO USE: Before refactoring, renaming, or modifying shared code. AFTER THIS: Use mikk_get_function_detail on critical/high items to review them.',
         {
             file: z.string().describe('The file path (relative to project root) to analyze impact for'),
+            tokenBudget: z.number().optional().describe('Token budget for response payload (default: 1200)'),
+            abortOnHighTokens: z.boolean().optional().default(false).describe('If true, fail fast instead of returning minimized payload when token budget is exceeded'),
         },
-        async ({ file }) => {
+        async (args: any): Promise<any> => {
+            const { file, tokenBudget, abortOnHighTokens } = args as any
             const { lock, staleness } = await loadContractAndLock(projectRoot)
             const graph = buildGraphFromLock(lock)
             const analyzer = new ImpactAnalyzer(graph)
 
-            const normalizedFile = file.replace(/\\/g, '/')
+            const fileInput: string = String(file)
+            const normalizedFile = fileInput.replace(/\\/g, '/')
             let fileNodes = [...graph.nodes.values()].filter(n => n.file === normalizedFile)
 
             if (fileNodes.length === 0) {
@@ -278,12 +402,14 @@ export function registerTools(server: McpServer, projectRoot: string) {
 
             const result = analyzer.analyze(fileNodes.map(n => n.id))
 
-            const impactedDetails = result.impacted.slice(0, 30).map(id => {
+            const fullImpacted = result.impacted.map(id => {
                 const node = graph.nodes.get(id)
                 return { function: node?.name ?? id, file: node?.file ?? '', module: node?.moduleId ?? '' }
             })
 
-            const response = {
+            const budget = _clampBudget(tokenBudget)
+
+            const baseResponse = {
                 file,
                 changedNodes: result.changed.length,
                 impactedNodes: result.impacted.length,
@@ -297,10 +423,44 @@ export function registerTools(server: McpServer, projectRoot: string) {
                     criticalItems: result.classified.critical.slice(0, 10),
                     highItems: result.classified.high.slice(0, 10),
                 },
-                impacted: impactedDetails,
-                truncated: result.impacted.length > 30,
                 warning: staleness,
                 hint: 'Next: Use mikk_get_function_detail on critical/high items to review them. Then mikk_before_edit to validate your planned changes.',
+            }
+
+            const compact = _compactImpacted(fullImpacted, baseResponse, budget)
+            if (abortOnHighTokens && compact.minimized) {
+                return {
+                    content: [{
+                        type: 'text' as const,
+                        text: JSON.stringify({
+                            ...baseResponse,
+                            warning: `Token budget exceeded (${budget}). Aborting early to preserve agent efficiency.`,
+                            tokenGuard: {
+                                budget,
+                                estimatedTokens: compact.estimatedTokens,
+                                minimized: true,
+                                shouldAbort: true,
+                                originalImpactedNodes: fullImpacted.length,
+                                returnedImpactedNodes: 0,
+                            },
+                        }, null, 2),
+                    }],
+                    isError: true,
+                }
+            }
+
+            const response = {
+                ...baseResponse,
+                impacted: compact.items,
+                truncated: compact.minimized || compact.items.length < fullImpacted.length,
+                tokenGuard: {
+                    budget,
+                    estimatedTokens: compact.estimatedTokens,
+                    minimized: compact.minimized,
+                    shouldAbort: false,
+                    originalImpactedNodes: fullImpacted.length,
+                    returnedImpactedNodes: compact.items.length,
+                },
             }
 
             // Token savings: replaces reading the changed file + all its dependents manually
@@ -313,14 +473,15 @@ export function registerTools(server: McpServer, projectRoot: string) {
 
     // TOOL: mikk_search_functions
 
-    server.tool(
+    ; (server as any).tool(
         'mikk_search_functions',
         'Search for functions by name or ID using a hybrid BM25+substring search. WHEN TO USE: When you need to find a function but are unsure of its exact name or location. AFTER THIS: Use mikk_get_function_detail to get more information about a specific function.',
         {
             query: z.string().describe('The search query for function names or IDs'),
             limit: z.number().optional().default(10).describe('Maximum number of results to return'),
         },
-        async ({ query, limit }) => {
+        async (args: any): Promise<any> => {
+            const { query, limit } = args as any
             const { lock, staleness } = await loadContractAndLock(projectRoot)
             const allFunctions = Object.values(lock.functions)
             const queryLower = query.toLowerCase()
@@ -373,16 +534,20 @@ export function registerTools(server: McpServer, projectRoot: string) {
 
     // TOOL: mikk_before_edit
 
-    server.tool(
+    ; (server as any).tool(
         'mikk_before_edit',
         'MANDATORY: Call BEFORE editing any file. Returns blast radius, exported functions at risk, constraint violations (6 rule types), and circular dependency warnings. WHEN TO USE: ALWAYS before modifying files. AFTER THIS: If constraintStatus is fail, redesign your approach. If pass, proceed with edits. TIP: Pass multiple files for combined blast radius.',
         {
             files: z.array(z.string()).min(1).max(20).describe('The file paths (relative to project root) you are about to edit'),
+            tokenBudget: z.number().optional().describe('Token budget for response payload (default: 1200)'),
+            abortOnHighTokens: z.boolean().optional().default(false).describe('If true, fail fast when payload exceeds token budget'),
         },
-        async ({ files: filesToEdit }) => {
+        async (args: any): Promise<any> => {
+            const { files: filesToEdit, tokenBudget, abortOnHighTokens } = args as any
             const { contract, lock, staleness } = await loadContractAndLock(projectRoot)
             const graph = buildGraphFromLock(lock)
             const analyzer = new ImpactAnalyzer(graph)
+            const budget = _clampBudget(tokenBudget)
 
             // Run boundary checker to detect actual constraint violations
             const checker = new BoundaryChecker(contract, lock)
@@ -405,7 +570,7 @@ export function registerTools(server: McpServer, projectRoot: string) {
                 }
 
                 const result = analyzer.analyze(fileFns.map(fn => fn.id))
-                const impactedDetails = result.impacted.slice(0, 20).map(id => {
+                const fullImpactedDetails = result.impacted.map(id => {
                     const node = graph.nodes.get(id)
                     return { function: node?.name ?? id, file: node?.file ?? '', module: node?.moduleId ?? '' }
                 })
@@ -430,14 +595,22 @@ export function registerTools(server: McpServer, projectRoot: string) {
                 // Detect circular dependencies for this file's functions
                 const circularWarnings = detectCircularDeps(fileFns, lock)
 
+                const perFileBase = {
+                    file,
+                    impactedNodes: result.impacted.length,
+                    depth: result.depth,
+                    confidence: result.confidence,
+                }
+                const compact = _compactImpacted(fullImpactedDetails, perFileBase, Math.max(120, Math.floor(budget / Math.max(1, filesToEdit.length))), 4)
+
                 fileReports[file] = {
                     functionsInFile: fileFns.map(fn => fn.name),
                     exportedAtRisk,
                     impactedNodes: result.impacted.length,
                     depth: result.depth,
                     confidence: result.confidence,
-                    impacted: impactedDetails,
-                    truncated: result.impacted.length > 20,
+                    impacted: compact.items,
+                    truncated: compact.minimized || compact.items.length < fullImpactedDetails.length,
                     constraints: contract.declared.constraints,
                     constraintStatus: fileViolations.length === 0 ? 'pass' : 'fail',
                     violations: fileViolations,
@@ -458,8 +631,36 @@ export function registerTools(server: McpServer, projectRoot: string) {
                 files: fileReports,
                 warning: staleness,
                 hint: totalViolations > 0
-                    ? '⚠ Constraint violations detected! Review the violations before proceeding. Use mikk_get_constraints for full rule context.'
+                    ? 'WARNING: Constraint violations detected! Review the violations before proceeding. Use mikk_get_constraints for full rule context.'
                     : 'All constraints satisfied. If safe, proceed with your edits.',
+            }
+
+            const estimated = _tok(response)
+            if (estimated > budget && abortOnHighTokens) {
+                return {
+                    content: [{
+                        type: 'text' as const,
+                        text: JSON.stringify({
+                            summary: response.summary,
+                            constraintStatus: response.constraintStatus,
+                            warning: `Token budget exceeded (${budget}). Aborting early to preserve agent efficiency.`,
+                            tokenGuard: {
+                                budget,
+                                estimatedTokens: estimated,
+                                minimized: true,
+                                shouldAbort: true,
+                            },
+                        }, null, 2),
+                    }],
+                    isError: true,
+                }
+            }
+
+            ; (response as any).tokenGuard = {
+                budget,
+                estimatedTokens: estimated,
+                minimized: estimated > budget,
+                shouldAbort: false,
             }
 
             // Token savings: replaces reading each edited file + tracing call graph manually
@@ -472,6 +673,7 @@ export function registerTools(server: McpServer, projectRoot: string) {
 
     // TOOL: mikk_list_modules
 
+    // @ts-expect-error TS2589 false-positive from deep MCP generic instantiation.
     server.tool(
         'mikk_list_modules',
         'List all declared modules with file counts, function counts, entry points, and descriptions. WHEN TO USE: To explore the project structure. Good starting point after mikk_get_session_context. AFTER THIS: Use mikk_get_module_detail with a specific moduleId.',
@@ -505,13 +707,15 @@ export function registerTools(server: McpServer, projectRoot: string) {
 
     // TOOL: mikk_get_module_detail
 
-    server.tool(
+    // @ts-expect-error TS2589 false-positive from deep MCP generic instantiation.
+    ; (server as any).tool(
         'mikk_get_module_detail',
         'Deep dive into a single module: all functions, files, exported API surface, internal call graph. WHEN TO USE: After mikk_list_modules to understand a specific module. AFTER THIS: Use mikk_get_function_detail for specific functions, or mikk_before_edit if modifying files in this module.',
         {
             moduleId: z.string().describe('The module ID (e.g., "packages-core", "lib-auth")'),
         },
-        async ({ moduleId }) => {
+        async (args: any): Promise<any> => {
+            const { moduleId } = args as any
             const { contract, lock, staleness } = await loadContractAndLock(projectRoot)
             const mod = contract.declared.modules.find(m => m.id === moduleId)
 
@@ -552,17 +756,18 @@ export function registerTools(server: McpServer, projectRoot: string) {
 
     // TOOL: mikk_get_function_detail
 
-    server.tool(
+    ; (server as any).tool(
         'mikk_get_function_detail',
         '360-degree view of a function: params, return type, source body, call graph (who calls it + what it calls), error handling, edge cases. WHEN TO USE: When you need to understand a specific function in depth. AFTER THIS: Use mikk_find_usages to see all callers. TIP: Pass full qualified name (e.g. GraphBuilder.build) for class methods.',
         {
             name: z.string().describe('Function name to search for (e.g., "parseFiles", "GraphBuilder.build")'),
         },
-        async ({ name }) => {
+        async (args: any): Promise<any> => {
+            const { name } = args as any
             const { lock, staleness } = await loadContractAndLock(projectRoot)
 
             const matches = Object.values(lock.functions).filter(
-                f => f.name === name || f.name.endsWith(`.${name}`) || f.id.includes(name),
+                f => f.name === name || f.name.endsWith(`.${name}`) || (f.id ?? '').includes(name),
             )
 
             if (matches.length === 0) {
@@ -586,7 +791,7 @@ export function registerTools(server: McpServer, projectRoot: string) {
 
                     const rel = path.relative(rootResolved, resolved).replace(/\\/g, '/')
                     const allowlisted = new Set(['mikk.json', 'mikk.lock.json', 'package.json', 'tsconfig.json'])
-                    if (!(rel in lock.files) && !allowlisted.has(rel)) {
+                    if (!isTrackedByLock(lock, projectRoot, resolved) && !allowlisted.has(rel)) {
                         throw new Error('Access denied')
                     }
 
@@ -598,7 +803,7 @@ export function registerTools(server: McpServer, projectRoot: string) {
                     const fileContent = await fs.readFile(resolved, 'utf-8')
                     const lines = fileContent.split('\n')
                     body = lines.slice(fn.startLine - 1, fn.endLine).join('\n')
-                } catch { /* non-fatal — body may not be available */ }
+                } catch { /* non-fatal - body may not be available */ }
 
                 return {
                     id: fn.id,
@@ -627,6 +832,7 @@ export function registerTools(server: McpServer, projectRoot: string) {
 
     // TOOL: mikk_semantic_search
 
+    // @ts-expect-error TS2589 false-positive from deep MCP generic instantiation.
     server.tool(
         'mikk_semantic_search',
         'Find functions by meaning using local vector embeddings. Query "validate JWT" returns verifyToken ranked by cosine similarity. WHEN TO USE: When you dont know the function name but know what it does. Complements mikk_search_functions (keyword). AFTER THIS: Use mikk_get_function_detail on top matches. Requires @xenova/transformers (22MB model, downloads once).',
@@ -641,7 +847,7 @@ export function registerTools(server: McpServer, projectRoot: string) {
                     content: [{
                         type: 'text' as const,
                         text: [
-                            '⚠ Semantic search requires @xenova/transformers.',
+                            'WARNING: Semantic search requires @xenova/transformers.',
                             '',
                             'Install it in your project root:',
                             '  npm install @xenova/transformers',
@@ -686,7 +892,7 @@ export function registerTools(server: McpServer, projectRoot: string) {
 
 
     // TOOL: mikk_validate_edit (NEW - Uses IntentUnderstanding, AutoCorrection, SafetyGates)
-    server.tool(
+    ; (server as any).tool(
         'mikk_validate_edit',
         'MANDATORY: Use BEFORE any edit. Combines intent analysis, impact assessment, auto-correction, and enforced safety gates. Tells you if edit is allowed, what breaks, and auto-fixes issues. WHEN TO USE: Always before modifying files. AFTER THIS: If allowed, proceed with edit. If blocked, follow nextSteps.',
         {
@@ -696,7 +902,8 @@ export function registerTools(server: McpServer, projectRoot: string) {
             branchName: z.string().optional().describe('Current branch name (helps detect intent)'),
             autoFix: z.boolean().optional().default(true).describe('Apply automatic fixes?'),
         },
-        async ({ files, description, commitMessage, branchName, autoFix }) => {
+        async (args: any): Promise<any> => {
+            const { files, description, commitMessage, branchName, autoFix } = args as any
             const { contract, lock, staleness } = await loadContractAndLock(projectRoot)
             const graph = buildGraphFromLock(lock)
             
@@ -705,7 +912,7 @@ export function registerTools(server: McpServer, projectRoot: string) {
             
             const validator = new PreEditValidation(contract, lock, graph, projectRoot)
             
-            const proposal = {
+            const proposal: any = {
                 files,
                 description,
                 author: 'AI Assistant',
@@ -755,8 +962,8 @@ export function registerTools(server: McpServer, projectRoot: string) {
                 
                 warning: staleness,
                 hint: result.allowed 
-                    ? '✓ Edit approved. Review recommendations before proceeding.'
-                    : '✗ Edit blocked. Address blocking gates first.',
+                    ? 'OK: Edit approved. Review recommendations before proceeding.'
+                    : 'BLOCKED: Edit blocked. Address blocking gates first.',
             }
             
             const _rawVal = files.length * Math.round((200 * _ALC) / _CPT)
@@ -772,6 +979,7 @@ export function registerTools(server: McpServer, projectRoot: string) {
 
     // TOOL: mikk_get_constraints
 
+    // @ts-expect-error TS2589 false-positive from deep MCP generic instantiation.
     server.tool(
         'mikk_get_constraints',
         'Get all architectural constraints and ADRs. WHEN TO USE: Before cross-module changes, or when mikk_before_edit reports violations. Understand WHY a constraint exists. AFTER THIS: Use mikk_manage_adr to add/update decisions. 6 constraint types: no-import, must-use, no-call, layer, naming, max-files.',
@@ -793,6 +1001,7 @@ export function registerTools(server: McpServer, projectRoot: string) {
 
     // TOOL: mikk_get_file
 
+    // @ts-expect-error TS2589 false-positive from deep MCP generic instantiation.
     server.tool(
         'mikk_get_file',
         'Read raw source of a file. TIP: Prefer mikk_read_file with function names to save tokens. WHEN TO USE: When you need entire file content (config files, small files). AFTER THIS: Use mikk_before_edit before making changes.',
@@ -823,7 +1032,7 @@ export function registerTools(server: McpServer, projectRoot: string) {
                 const rel = path.relative(path.resolve(projectRoot), resolved).replace(/\\/g, '/')
                 const { lock } = await loadContractAndLock(projectRoot)
                 const allowlisted = new Set(['mikk.json', 'mikk.lock.json', 'package.json', 'tsconfig.json'])
-                const isTracked = rel in lock.files
+                const isTracked = isTrackedByLock(lock, projectRoot, resolved)
                 if (!isTracked && !allowlisted.has(rel)) {
                     return {
                         content: [{ type: 'text' as const, text: `Access denied: "${file}" is not tracked in mikk.lock.json.` }],
@@ -850,6 +1059,7 @@ export function registerTools(server: McpServer, projectRoot: string) {
 
     // TOOL: mikk_find_usages
 
+    // @ts-expect-error TS2589 false-positive from deep MCP generic instantiation.
     server.tool(
         'mikk_find_usages',
         'Find every function that calls a specific function. Essential before renaming or changing signatures. WHEN TO USE: Before renaming, refactoring, or changing a function interface. AFTER THIS: Review each caller to ensure your change wont break them. Use mikk_read_file to see caller code.',
@@ -860,7 +1070,7 @@ export function registerTools(server: McpServer, projectRoot: string) {
             const { lock, staleness } = await loadContractAndLock(projectRoot)
 
             const fn = Object.values(lock.functions).find(
-                f => f.name === name || f.name.endsWith(`.${name}`) || f.id.includes(name),
+                f => f.name === name || f.name.endsWith(`.${name}`) || (f.id ?? '').includes(name),
             )
 
             if (!fn) {
@@ -896,6 +1106,7 @@ export function registerTools(server: McpServer, projectRoot: string) {
 
     // TOOL: mikk_get_routes
 
+    // @ts-expect-error TS2589 false-positive from deep MCP generic instantiation.
     server.tool(
         'mikk_get_routes',
         'Get all detected HTTP routes with methods, paths, handlers, and middleware chains. WHEN TO USE: When working on API endpoints. Shows Express/Koa/Hono route registrations detected from AST. AFTER THIS: Use mikk_get_function_detail on a handler to see its implementation.',
@@ -920,13 +1131,15 @@ export function registerTools(server: McpServer, projectRoot: string) {
 
     // TOOL: mikk_dead_code
 
-    server.tool(
+    // @ts-expect-error TS2589 false-positive from deep MCP generic instantiation.
+    ; (server as any).tool(
         'mikk_dead_code',
-        'Detect dead code — functions with zero callers after exempting exports, entry points, route handlers, tests, and constructors. Use this before refactoring or cleanup.',
+        'Detect dead code - functions with zero callers after exempting exports, entry points, route handlers, tests, and constructors. Use this before refactoring or cleanup.',
         {
             moduleId: z.string().optional().describe('Filter results to a specific module ID'),
         },
-        async ({ moduleId }) => {
+        async (args: any): Promise<any> => {
+            const { moduleId } = args as any
             const { lock, staleness } = await loadContractAndLock(projectRoot)
             const graph = buildGraphFromLock(lock)
             const detector = new DeadCodeDetector(graph, lock)
@@ -954,9 +1167,9 @@ export function registerTools(server: McpServer, projectRoot: string) {
 
     // TOOL: mikk_manage_adr
 
-    server.tool(
+    ; (server as any).tool(
         'mikk_manage_adr',
-        'CRUD for Architectural Decision Records (ADRs) in mikk.json. Actions: list, get, add, update, remove. WHEN TO USE: When making architectural changes — document WHY so future AI agents understand. AFTER THIS: ADRs automatically surface in mikk_query_context responses. Required for add: id, title, reason.',
+        'CRUD for Architectural Decision Records (ADRs) in mikk.json. Actions: list, get, add, update, remove. WHEN TO USE: When making architectural changes - document WHY so future AI agents understand. AFTER THIS: ADRs automatically surface in mikk_query_context responses. Required for add: id, title, reason.',
         {
             action: z.enum(['list', 'get', 'add', 'update', 'remove']).describe('The CRUD action to perform'),
             id: z.string().optional().describe('ADR id (required for get, update, remove)'),
@@ -964,7 +1177,8 @@ export function registerTools(server: McpServer, projectRoot: string) {
             reason: z.string().optional().describe('ADR reason/description (required for add)'),
             date: z.string().optional().describe('ADR date string (defaults to today for add)'),
         },
-        async ({ action, id, title, reason, date }) => {
+        async (args: any): Promise<any> => {
+            const { action, id, title, reason, date } = args as any
             const contractPath = path.join(projectRoot, 'mikk.json')
             const manager = new AdrManager(contractPath)
 
@@ -1015,6 +1229,7 @@ export function registerTools(server: McpServer, projectRoot: string) {
 
     // TOOL: mikk_get_changes  (Phase 2)
 
+    // @ts-expect-error TS2589 false-positive from deep MCP generic instantiation.
     server.tool(
         'mikk_get_changes',
         'Detect files added, modified, and deleted since last mikk analyze. WHEN TO USE: At session start (after mikk_get_session_context), or after making edits to see what drifted. AFTER THIS: Run mikk analyze to update the lock, then mikk_impact_analysis on modified files. Uses SHA-256 hash comparison for accurate drift detection.',
@@ -1059,7 +1274,7 @@ export function registerTools(server: McpServer, projectRoot: string) {
                         }
                     } catch { /* dir doesn't exist */ }
                 }
-            } catch { /* scan failed — non-fatal */ }
+            } catch { /* scan failed - non-fatal */ }
 
             const response = {
                 added: added.slice(0, 50),
@@ -1087,22 +1302,25 @@ export function registerTools(server: McpServer, projectRoot: string) {
 
     // TOOL: mikk_read_file  (Phase 2)
 
-    server.tool(
+    ; (server as any).tool(
         'mikk_read_file',
-        'Read file scoped to specific functions. Returns bodies with metadata headers (params, calls, calledBy). WHEN TO USE: When you know which functions you need — saves tokens vs mikk_get_file. AFTER THIS: Use mikk_before_edit before making changes. TIP: This is the preferred way to read code — always specify function names when possible.',
+        'Read file scoped to specific functions. Returns bodies with metadata headers (params, calls, calledBy). WHEN TO USE: When you know which functions you need - saves tokens vs mikk_get_file. AFTER THIS: Use mikk_before_edit before making changes. TIP: This is the preferred way to read code - always specify function names when possible.',
         {
             file: z.string().describe('File path relative to project root'),
             functions: z.array(z.string()).max(30).optional().describe('Function names to extract. If omitted, returns the whole file.'),
         },
-        async ({ file, functions: fnNames }) => {
+        async (args: any): Promise<any> => {
             const { lock, staleness } = await loadContractAndLock(projectRoot)
+            const lockAny: any = lock
+            const fileInput: string = String(args?.file ?? '')
+            const fnNames: string[] | undefined = Array.isArray(args?.functions) ? args.functions : undefined
 
-            const absPath = path.isAbsolute(file) ? file : path.join(projectRoot, file)
+            const absPath = path.isAbsolute(fileInput) ? fileInput : path.join(projectRoot, fileInput)
             const resolved = path.resolve(absPath)
             const rootResolved = path.resolve(projectRoot)
             if (!resolved.startsWith(rootResolved + path.sep) && resolved !== rootResolved) {
                 return {
-                    content: [{ type: 'text' as const, text: `Access denied: "${file}" is outside the project root.` }],
+                    content: [{ type: 'text' as const, text: `Access denied: "${fileInput}" is outside the project root.` }],
                     isError: true,
                 }
             }
@@ -1112,23 +1330,23 @@ export function registerTools(server: McpServer, projectRoot: string) {
                 const stat = await fs.stat(resolved)
                 if (stat.size > MAX_SOURCE_FILE_BYTES) {
                     return {
-                        content: [{ type: 'text' as const, text: `Refusing to read "${file}" because it exceeds ${MAX_SOURCE_FILE_BYTES} bytes.` }],
+                        content: [{ type: 'text' as const, text: `Refusing to read "${fileInput}" because it exceeds ${MAX_SOURCE_FILE_BYTES} bytes.` }],
                         isError: true,
                     }
                 }
                 const rel = path.relative(path.resolve(projectRoot), resolved).replace(/\\/g, '/')
                 const allowlisted = new Set(['mikk.json', 'mikk.lock.json', 'package.json', 'tsconfig.json'])
-                const isTracked = rel in lock.files
+                const isTracked = rel in lockAny.files
                 if (!isTracked && !allowlisted.has(rel)) {
                     return {
-                        content: [{ type: 'text' as const, text: `Access denied: "${file}" is not tracked in mikk.lock.json.` }],
+                        content: [{ type: 'text' as const, text: `Access denied: "${fileInput}" is not tracked in mikk.lock.json.` }],
                         isError: true,
                     }
                 }
                 content = await fs.readFile(resolved, 'utf-8')
             } catch (err: any) {
                 return {
-                    content: [{ type: 'text' as const, text: `Cannot read "${file}": ${err.message}` }],
+                    content: [{ type: 'text' as const, text: `Cannot read "${fileInput}": ${err.message}` }],
                     isError: true,
                 }
             }
@@ -1136,22 +1354,23 @@ export function registerTools(server: McpServer, projectRoot: string) {
             if (!fnNames || fnNames.length === 0) {
                 const lines = content.split('\n')
                 return {
-                    content: [{ type: 'text' as const, text: `// ${file} (${lines.length} lines)\n${content}` }],
+                    content: [{ type: 'text' as const, text: `// ${fileInput} (${lines.length} lines)\n${content}` }],
                 }
             }
 
             const lines = content.split('\n')
             const sections: string[] = []
-            const normalizedFile = file.replace(/\\/g, '/')
+            const normalizedFile = fileInput.replace(/\\/g, '/')
+            const allFunctions = Object.values(lockAny.functions) as any[]
 
             for (const fnName of fnNames) {
-                const fn = Object.values(lock.functions).find(
+                const fn = allFunctions.find(
                     f => (f.name === fnName || f.name.endsWith(`.${fnName}`)) &&
                         (f.file === normalizedFile || f.file.endsWith('/' + normalizedFile))
                 )
 
                 if (!fn) {
-                    sections.push(`// ⚠ Function "${fnName}" not found in ${file}`)
+                    sections.push(`// WARNING: Function "${fnName}" not found in ${fileInput}`)
                     continue
                 }
 
@@ -1160,12 +1379,12 @@ export function registerTools(server: McpServer, projectRoot: string) {
                     `// File: ${fn.file}:${fn.startLine}-${fn.endLine}`,
                     `// Module: ${fn.moduleId}`,
                     fn.purpose ? `// Purpose: ${fn.purpose}` : null,
-                    fn.params && fn.params.length > 0 ? `// Params: ${fn.params.map(p => `${p.name}: ${p.type}`).join(', ')}` : null,
+                    fn.params && fn.params.length > 0 ? `// Params: ${fn.params.map((p: any) => `${p.name}: ${p.type}`).join(', ')}` : null,
                     fn.returnType ? `// Returns: ${fn.returnType}` : null,
                     fn.isAsync ? '// Async: true' : null,
                     fn.isExported ? '// Exported: true' : null,
-                    fn.calledBy.length > 0 ? `// Called by: ${fn.calledBy.map(id => lock.functions[id]?.name).filter(Boolean).join(', ')}` : null,
-                    fn.calls.length > 0 ? `// Calls: ${fn.calls.map(id => lock.functions[id]?.name).filter(Boolean).join(', ')}` : null,
+                    fn.calledBy.length > 0 ? `// Called by: ${fn.calledBy.map((id: string) => lockAny.functions[id]?.name).filter(Boolean).join(', ')}` : null,
+                    fn.calls.length > 0 ? `// Calls: ${fn.calls.map((id: string) => lockAny.functions[id]?.name).filter(Boolean).join(', ')}` : null,
                 ].filter(Boolean).join('\n')
 
                 const body = lines.slice(fn.startLine - 1, fn.endLine).join('\n')
@@ -1176,18 +1395,19 @@ export function registerTools(server: McpServer, projectRoot: string) {
             const warningText = staleness ? `\n\n${staleness}` : ''
 
             // Token savings: reading specific functions saves tokens vs whole-file read
-            const _rawRF = _fileTok(lock, file.replace(/\\/g, '/'))
+            const _rawRF = _fileTok(lockAny, normalizedFile)
             const _tokRF = _track(projectRoot, _rawRF, output)
             return { content: [{ type: 'text' as const, text: output + warningText + `\n// tokens: ${JSON.stringify(_tokRF)}` }] }
         },
     )
 
     // TOOL: mikk_get_session_context  (Phase 2)
+    // @ts-expect-error TS2589 false-positive from deep MCP generic instantiation.
     server.tool(
         'mikk_get_session_context',
         'CALL THIS FIRST. One-shot context for session start: project overview + constraint status + hot modules + recently modified files + active decisions. WHEN TO USE: At the very beginning of every AI conversation. This is your onboarding. AFTER THIS: Use mikk_query_context with your task description, or mikk_get_changes for detailed drift.',
         {},
-        async () => {
+        async (): Promise<any> => {
             const { contract, lock, staleness } = await loadContractAndLock(projectRoot)
 
             const modules = contract.declared.modules.map(mod => {
@@ -1200,22 +1420,34 @@ export function registerTools(server: McpServer, projectRoot: string) {
                 }
             })
 
-            // Detect recent changes via mtime comparison
+            // Detect recent changes.
+            // Prefer git status for deterministic CI behavior; fall back to mtime only when
+            // git metadata is unavailable.
             let changedCount = 0
             const modifiedFiles: string[] = []
             const fileEntries = Object.entries(lock.files)
             const sampleSize = Math.min(fileEntries.length, 20)
-            for (let i = 0; i < sampleSize; i++) {
-                const [filePath, fileInfo] = fileEntries[i]
-                const absPath = path.isAbsolute(filePath) ? filePath : path.join(projectRoot, filePath)
-                try {
-                    const stat = await fs.stat(absPath)
-                    const lockDate = new Date(fileInfo.lastModified || 0)
-                    if (stat.mtime > lockDate) {
-                        modifiedFiles.push(filePath)
+            const sampleFiles = fileEntries.slice(0, sampleSize).map(([filePath]) => filePath.replace(/\\/g, '/'))
+            const dirtyFiles = await getDirtySampleFiles(projectRoot, sampleFiles)
+
+            if (dirtyFiles !== null) {
+                for (const f of dirtyFiles) modifiedFiles.push(f)
+                changedCount = dirtyFiles.length
+            } else {
+                for (let i = 0; i < sampleSize; i++) {
+                    const [filePath, fileInfo] = fileEntries[i]
+                    const absPath = path.isAbsolute(filePath) ? filePath : path.join(projectRoot, filePath)
+                    try {
+                        const stat = await fs.stat(absPath)
+                        const lockDate = new Date(fileInfo.lastModified || 0)
+                        if (stat.mtime > lockDate) {
+                            modifiedFiles.push(filePath)
+                            changedCount++
+                        }
+                    } catch {
                         changedCount++
                     }
-                } catch { changedCount++ }
+                }
             }
 
 
@@ -1264,14 +1496,15 @@ export function registerTools(server: McpServer, projectRoot: string) {
     )
 
     // TOOL: mikk_git_diff_impact
-    server.tool(
+    ; (server as any).tool(
         'mikk_git_diff_impact',
         'Map git diff hunks to affected symbols. Shows which functions were modified/added/deleted. WHEN TO USE: After commits/merges to understand symbol-level changes. AFTER THIS: Use mikk_impact_analysis on affected files.',
         {
             ref: z.string().optional().default('HEAD~1').describe('Git ref to diff against (default: HEAD~1)'),
             staged: z.boolean().optional().default(false).describe('If true, diff staged changes only'),
         },
-        async ({ ref, staged }) => {
+        async (args: any): Promise<any> => {
+            const { ref, staged } = args as any
             const { lock, staleness } = await loadContractAndLock(projectRoot)
             try {
                 const validatedRef = /^[A-Za-z0-9_./\-~^]+$/.test(ref) ? ref : null
@@ -1323,9 +1556,10 @@ export function registerTools(server: McpServer, projectRoot: string) {
     )
 
     // TOOL: mikk_rename
+    // @ts-expect-error TS2589 false-positive from deep MCP generic instantiation.
     server.tool(
         'mikk_rename',
-        'Plan a coordinated multi-file rename. Finds all call sites and import locations for a function and provides a step-by-step edit plan. WHEN TO USE: Before renaming any function — ensures you update ALL call sites. AFTER THIS: Execute the edit plan, then run mikk analyze.',
+        'Plan a coordinated multi-file rename. Finds all call sites and import locations for a function and provides a step-by-step edit plan. WHEN TO USE: Before renaming any function - ensures you update ALL call sites. AFTER THIS: Execute the edit plan, then run mikk analyze.',
         {
             functionName: z.string().describe('The current function name to rename'),
             newName: z.string().describe('The desired new name'),
@@ -1358,7 +1592,7 @@ export function registerTools(server: McpServer, projectRoot: string) {
                 }))
 
             const filesImporting = Object.values(lock.files).filter(file =>
-                file.imports?.some(imp => imp.names.includes(functionName) || imp.source === targetFn.file)
+                file.imports?.some(imp => (imp.names ?? []).includes(functionName) || imp.source === targetFn.file)
             )
 
             const instructions = [
@@ -1393,9 +1627,10 @@ export function registerTools(server: McpServer, projectRoot: string) {
         },
     )
     // TOOL: mikk_token_stats
+    // @ts-expect-error TS2589 false-positive from deep MCP generic instantiation.
     server.tool(
         'mikk_token_stats',
-        'Show token savings for this session — how many tokens Mikk saved vs. the agent reading raw source files. WHEN TO USE: Any time. Useful at end of session to see cumulative efficiency. Returns per-session totals and cost estimates.',
+        'Show token savings for this session - how many tokens Mikk saved vs. the agent reading raw source files. WHEN TO USE: Any time. Useful at end of session to see cumulative efficiency. Returns per-session totals and cost estimates.',
         {},
         async () => {
             const t = _tally(projectRoot)
@@ -1433,25 +1668,25 @@ export function registerTools(server: McpServer, projectRoot: string) {
 /**
  * Load contract + lock from disk with 30s caching and active staleness detection.
  * Cache is invalidated immediately when the lock file's mtime is newer than
- * cachedAt — this means `mikk analyze` takes effect on the very next tool call,
+ * cachedAt - this means `mikk analyze` takes effect on the very next tool call,
  * not after a 30s wait.
  */
 async function loadContractAndLock(projectRoot: string) {
-    // Check lock file mtime first — if the file changed since we cached, bust immediately.
+    // Check lock file mtime first - if the file changed since we cached, bust immediately.
     const lockFilePath = path.join(projectRoot, 'mikk.lock.json')
     const cached = projectCache.get(projectRoot)
     if (cached) {
         try {
             const stat = await fs.stat(lockFilePath)
             if (stat.mtimeMs > cached.cachedAt) {
-                // Lock file was written after we cached (e.g. `mikk analyze` ran) — invalidate
+                // Lock file was written after we cached (e.g. `mikk analyze` ran) - invalidate
                 invalidateCache(projectRoot)
             } else if ((Date.now() - cached.cachedAt) < CACHE_TTL_MS) {
-                // Still within TTL and lock file unchanged — serve from cache
+                // Still within TTL and lock file unchanged - serve from cache
                 return { contract: cached.contract, lock: cached.lock, staleness: cached.staleness }
             }
         } catch {
-            // stat failed (lock deleted?) — fall through to re-read
+            // stat failed (lock deleted?) - fall through to re-read
             invalidateCache(projectRoot)
         }
     }
@@ -1466,42 +1701,34 @@ async function loadContractAndLock(projectRoot: string) {
     let staleness: string | null = null
 
     if (syncStatus === 'drifted' || syncStatus === 'conflict') {
-        staleness = `⚠ Lock file is ${syncStatus}. Run \`mikk analyze\` for accurate results.`
+        staleness = `WARNING: Lock file is ${syncStatus}. Run \`mikk analyze\` for accurate results.`
     }
 
-    // Active staleness detection: check mtime of a sample of tracked files
+    // Active staleness detection:
+    // 1) Prefer git-based dirty-file checks (truthful and stable across CI checkouts)
+    // 2) If git metadata is unavailable (e.g., temp fixture copies), skip active checks
+    //    to avoid false-positive warnings from filesystem mtime drift.
     if (!staleness) {
         const fileEntries = Object.entries(lock.files)
         const sampleSize = Math.min(fileEntries.length, 5)
-        let mismatched = 0
-        const mismatchedFiles: string[] = []
+        const sampleFiles = fileEntries.slice(0, sampleSize).map(([filePath]) => filePath.replace(/\\/g, '/'))
+        const dirtyFiles = await getDirtySampleFiles(projectRoot, sampleFiles)
 
-        for (let i = 0; i < sampleSize; i++) {
-            const [filePath, fileInfo] = fileEntries[i]
-            const absPath = path.isAbsolute(filePath)
-                ? filePath
-                : path.join(projectRoot, filePath)
-
-            try {
-                const stat = await fs.stat(absPath)
-                const lockDate = new Date(fileInfo.lastModified || 0)
-                if (stat.mtime > lockDate) {
-                    mismatched++
-                    mismatchedFiles.push(filePath)
-                }
-            } catch {
-                mismatched++ // file deleted
-                mismatchedFiles.push(filePath)
-            }
-        }
-
-        if (mismatched > 0) {
-            staleness = `⚠ STALE: ${mismatched} file(s) changed since last analysis (${mismatchedFiles.slice(0, 3).join(', ')}${mismatched > 3 ? '...' : ''}). Run \`mikk analyze\`.`
+        if (dirtyFiles && dirtyFiles.length > 0) {
+            staleness = `WARNING: STALE: ${dirtyFiles.length} file(s) changed since last analysis (${dirtyFiles.slice(0, 3).join(', ')}${dirtyFiles.length > 3 ? '...' : ''}). Run \`mikk analyze\`.`
         }
     }
 
     // Build graph and cache everything
     const graph = buildGraphFromLock(lock)
+
+    // If the lock has many functions but zero call edges, impact analysis can
+    // silently under-report. Surface this as an explicit degraded-state warning.
+    const callEdgeCount = graph.edges.filter(e => e.type === 'calls').length
+    const functionCount = Object.keys(lock.functions).length
+    if (!staleness && functionCount >= 50 && callEdgeCount === 0) {
+        staleness = 'WARNING: DEGRADED: lock has zero call edges. Blast radius may be underestimated. Run `mikk analyze` and verify parser extraction.'
+    }
     projectCache.set(projectRoot, {
         contract, lock, graph, staleness,
         cachedAt: Date.now(),
@@ -1589,7 +1816,7 @@ function detectCircularDeps(
                 const cycleStart = cyclePath.indexOf(id)
                 const cycle = cyclePath.slice(cycleStart).map(cid => lock.functions[cid]?.name ?? cid)
                 cycle.push(lock.functions[id]?.name ?? id)
-                warnings.push(`⚠ Circular: ${cycle.join(' -> ')}`)
+                warnings.push(`WARNING: Circular: ${cycle.join(' -> ')}`)
                 return true
             }
             if (visited.has(id)) return false
@@ -1666,7 +1893,7 @@ function parseDiffHunks(diff: string): { file: string; changedLines: number[]; i
                 files.set(currentFile, { changedLines: [], isNew: nextIsNew, isDeleted: false })
             }
             if (currentFile === '/dev/null') {
-                // deletion — mark previous file
+                // deletion - mark previous file
                 const prev = [...files.keys()].pop()
                 if (prev) files.get(prev)!.isDeleted = true
             }
@@ -1684,3 +1911,9 @@ function parseDiffHunks(diff: string): { file: string; changedLines: number[]; i
 
     return [...files.entries()].map(([file, data]) => ({ file, ...data }))
 }
+
+
+
+
+
+

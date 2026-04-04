@@ -1,0 +1,166 @@
+{
+  "generatedAt": "2026-04-03T17:47:16.508Z",
+  "mode": "local-first",
+  "server": {
+    "projectRoot": "C:\\Users\\Ansh\\Desktop\\web\\Mesh",
+    "localCli": "C:\\Users\\Ansh\\Desktop\\web\\Mesh\\packages\\cli\\dist\\index.js"
+  },
+  "totals": {
+    "checks": 54,
+    "passed": 54,
+    "overallAccuracy": 100
+  },
+  "perTool": [
+    {
+      "tool": "cli",
+      "passed": 4,
+      "total": 4,
+      "accuracy": 100
+    },
+    {
+      "tool": "mcp:mikk_before_edit",
+      "passed": 3,
+      "total": 3,
+      "accuracy": 100
+    },
+    {
+      "tool": "mcp:mikk_dead_code",
+      "passed": 2,
+      "total": 2,
+      "accuracy": 100
+    },
+    {
+      "tool": "mcp:mikk_find_usages",
+      "passed": 2,
+      "total": 2,
+      "accuracy": 100
+    },
+    {
+      "tool": "mcp:mikk_get_changes",
+      "passed": 2,
+      "total": 2,
+      "accuracy": 100
+    },
+    {
+      "tool": "mcp:mikk_get_constraints",
+      "passed": 2,
+      "total": 2,
+      "accuracy": 100
+    },
+    {
+      "tool": "mcp:mikk_get_file",
+      "passed": 2,
+      "total": 2,
+      "accuracy": 100
+    },
+    {
+      "tool": "mcp:mikk_get_function_detail",
+      "passed": 2,
+      "total": 2,
+      "accuracy": 100
+    },
+    {
+      "tool": "mcp:mikk_get_module_detail",
+      "passed": 2,
+      "total": 2,
+      "accuracy": 100
+    },
+    {
+      "tool": "mcp:mikk_get_project_overview",
+      "passed": 2,
+      "total": 2,
+      "accuracy": 100
+    },
+    {
+      "tool": "mcp:mikk_get_routes",
+      "passed": 2,
+      "total": 2,
+      "accuracy": 100
+    },
+    {
+      "tool": "mcp:mikk_get_session_context",
+      "passed": 2,
+      "total": 2,
+      "accuracy": 100
+    },
+    {
+      "tool": "mcp:mikk_git_diff_impact",
+      "passed": 2,
+      "total": 2,
+      "accuracy": 100
+    },
+    {
+      "tool": "mcp:mikk_impact_analysis",
+      "passed": 3,
+      "total": 3,
+      "accuracy": 100
+    },
+    {
+      "tool": "mcp:mikk_list_modules",
+      "passed": 2,
+      "total": 2,
+      "accuracy": 100
+    },
+    {
+      "tool": "mcp:mikk_manage_adr",
+      "passed": 3,
+      "total": 3,
+      "accuracy": 100
+    },
+    {
+      "tool": "mcp:mikk_query_context",
+      "passed": 2,
+      "total": 2,
+      "accuracy": 100
+    },
+    {
+      "tool": "mcp:mikk_read_file",
+      "passed": 2,
+      "total": 2,
+      "accuracy": 100
+    },
+    {
+      "tool": "mcp:mikk_rename",
+      "passed": 2,
+      "total": 2,
+      "accuracy": 100
+    },
+    {
+      "tool": "mcp:mikk_search_functions",
+      "passed": 2,
+      "total": 2,
+      "accuracy": 100
+    },
+    {
+      "tool": "mcp:mikk_semantic_search",
+      "passed": 2,
+      "total": 2,
+      "accuracy": 100
+    },
+    {
+      "tool": "mcp:mikk_test_tool",
+      "passed": 2,
+      "total": 2,
+      "accuracy": 100
+    },
+    {
+      "tool": "mcp:mikk_token_stats",
+      "passed": 2,
+      "total": 2,
+      "accuracy": 100
+    },
+    {
+      "tool": "mcp:mikk_validate_edit",
+      "passed": 2,
+      "total": 2,
+      "accuracy": 100
+    },
+    {
+      "tool": "registry",
+      "passed": 1,
+      "total": 1,
+      "accuracy": 100
+    }
+  ],
+  "failedChecks": []
+}

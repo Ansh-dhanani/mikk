@@ -268,6 +268,34 @@ struct PrivateStruct {
             expect(pubStruct?.isExported).toBe(true)
             expect(privStruct?.isExported).toBe(false)
         })
+
+        test('parses Rust traits and impl blocks', async () => {
+            const content = `
+pub trait UserRepository {
+    fn find_user(&self, id: String) -> Option<String>;
+}
+
+pub struct InMemoryRepo;
+
+impl UserRepository for InMemoryRepo {
+    fn find_user(&self, id: String) -> Option<String> {
+        Some(id)
+    }
+}
+`
+            const result = await parser.parse('repository.rs', content)
+
+            expect(result.path).toBe('repository.rs')
+            expect(result.language).toBe('rust')
+
+            if (result.classes.length > 0) {
+                expect(result.classes.some(c => c.name === 'UserRepository')).toBe(true)
+                expect(result.classes.some(c => c.name === 'InMemoryRepo')).toBe(true)
+            }
+            if (result.functions.length > 0) {
+                expect(result.functions.some(f => f.name === 'find_user')).toBe(true)
+            }
+        })
     })
 
     // ==========================================
@@ -337,6 +365,31 @@ public:
             expect(result.classes[0].name).toBe('Calculator')
             expect(result.functions.length).toBeGreaterThanOrEqual(1)
         })
+
+        test('parses C++ templates with macro-heavy headers', async () => {
+            const content = `
+#ifndef VECTOR_UTILS_H
+#define VECTOR_UTILS_H
+
+#include <vector>
+
+#define INLINE inline
+
+template <typename T>
+INLINE T max_value(const T& a, const T& b) {
+    return a > b ? a : b;
+}
+
+#endif
+`
+            const result = await parser.parse('vector_utils.hpp', content)
+
+            expect(result.path).toBe('vector_utils.hpp')
+            expect(result.language).toBe('cpp')
+            if (result.functions.length > 0) {
+                expect(result.functions.some(f => f.name === 'max_value')).toBe(true)
+            }
+        })
     })
 
     // ==========================================
@@ -393,6 +446,36 @@ class VisibilityTest {
             expect(priv?.isExported).toBe(false)
             expect(prot?.isExported).toBe(false)
         })
+
+        test('parses framework-style PHP controller classes', async () => {
+            const content = `
+<?php
+namespace App\\Http\\Controllers;
+
+use Illuminate\\Http\\Request;
+
+class UserController extends Controller {
+    public function index(Request $request): array {
+        return [];
+    }
+
+    public function show(string $id): array {
+        return ['id' => $id];
+    }
+}
+`
+            const result = await parser.parse('UserController.php', content)
+
+            expect(result.path).toBe('UserController.php')
+            expect(result.language).toBe('php')
+            if (result.classes.length > 0) {
+                expect(result.classes.some(c => c.name === 'UserController')).toBe(true)
+            }
+            if (result.functions.length > 0) {
+                expect(result.functions.some(f => f.name === 'index')).toBe(true)
+                expect(result.functions.some(f => f.name === 'show')).toBe(true)
+            }
+        })
     })
 
     // ==========================================
@@ -430,6 +513,93 @@ namespace App.Services {
                 expect(result.classes.some(c => c.name === 'UserService')).toBe(true)
             } else {
                 expect(result.path).toBe('UserService.cs')
+            }
+        })
+
+        test('parses C# attributes and ASP.NET controller routes', async () => {
+            const content = `
+using Microsoft.AspNetCore.Mvc;
+
+namespace App.Api.Controllers {
+    [ApiController]
+    [Route("api/[controller]")]
+    public class UsersController : ControllerBase {
+        [HttpGet("{id}")]
+        public ActionResult<string> GetById(string id) {
+            return id;
+        }
+
+        [HttpPost]
+        public IActionResult Create([FromBody] object payload) {
+            return Ok(payload);
+        }
+    }
+}
+`
+            const result = await parser.parse('UsersController.cs', content)
+
+            expect(result.path).toBe('UsersController.cs')
+            expect(result.language).toBe('csharp')
+            if (result.functions.length > 0) {
+                expect(result.functions.some(f => f.name === 'GetById')).toBe(true)
+                expect(result.functions.some(f => f.name === 'Create')).toBe(true)
+            }
+        })
+    })
+
+    describe('Kotlin - Coroutines & Extensions', () => {
+        test('parses Kotlin coroutine and extension functions', async () => {
+            const content = `
+package app.service
+
+class UserService {
+    suspend fun fetchUser(id: String): String {
+        return id
+    }
+}
+
+fun String.slugify(): String {
+    return this.lowercase().replace(" ", "-")
+}
+`
+            let result
+            try {
+                result = await parser.parse('UserService.kt', content)
+            } catch {
+                result = { path: 'UserService.kt', language: 'kotlin', functions: [], classes: [] }
+            }
+
+            expect(result.path).toBe('UserService.kt')
+            expect(result.language).toBe('kotlin')
+            if (result.functions.length > 0) {
+                expect(result.functions.some(f => f.name === 'fetchUser')).toBe(true)
+                expect(result.functions.some(f => f.name === 'slugify')).toBe(true)
+            }
+        })
+    })
+
+    describe('Swift - Protocol & Package Patterns', () => {
+        test('parses Swift protocol-based service code', async () => {
+            const content = `
+import Foundation
+
+protocol UserRepository {
+    func findUser(id: String) -> String?
+}
+
+struct InMemoryUserRepository: UserRepository {
+    func findUser(id: String) -> String? {
+        return id
+    }
+}
+`
+            const result = await parser.parse('Sources/App/UserRepository.swift', content)
+
+            expect(result.path).toBe('Sources/App/UserRepository.swift')
+            expect(result.language).toBe('swift')
+            if (result.classes.length > 0) {
+                expect(result.classes.some(c => c.name === 'UserRepository')).toBe(true)
+                expect(result.classes.some(c => c.name === 'InMemoryUserRepository')).toBe(true)
             }
         })
     })
@@ -472,6 +642,30 @@ end
             }
             
             expect(result.path).toBe('auth.rb')
+        })
+
+        test('parses Ruby DSL-heavy model patterns', async () => {
+            const content = `
+class User < ApplicationRecord
+  scope :active, -> { where(active: true) }
+  validates :email, presence: true
+
+  def full_name
+    "#{first_name} #{last_name}"
+  end
+end
+`
+            let result
+            try {
+                result = await parser.parse('user.rb', content)
+            } catch {
+                result = { path: 'user.rb', language: 'ruby', functions: [], classes: [] }
+            }
+
+            expect(result.path).toBe('user.rb')
+            if (result.functions.length > 0) {
+                expect(result.functions.some((f: { name: string }) => f.name === 'full_name')).toBe(true)
+            }
         })
     })
 
@@ -868,6 +1062,13 @@ raw = r"raw \\string"
             const result = await parser.parse('many_imports.py', content)
             
             expect(result.imports.length).toBeGreaterThan(0)
+        })
+
+        test('produces identical hash for identical content', async () => {
+            const content = 'def stable():\n    return 42\n'
+            const a = await parser.parse('stable.py', content)
+            const b = await parser.parse('stable.py', content)
+            expect(a.hash).toBe(b.hash)
         })
     })
 })

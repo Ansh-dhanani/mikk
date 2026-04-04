@@ -5,9 +5,9 @@ graph TD
             fn_c__users_ansh_desktop_web_mesh_packages_core_src_parser_javascript_js_extractor_ts_walk["⚡ walk"]
             fn_c__users_ansh_desktop_web_mesh_packages_core_src_parser_javascript_js_extractor_ts_walk_2["⚡ walk"]
             fn_c__users_ansh_desktop_web_mesh_packages_core_src_parser_javascript_js_extractor_ts_walk_3["⚡ walk"]
-            fn_c__users_ansh_desktop_web_mesh_packages_core_src_parser_javascript_js_extractor_ts_ismoduleexports["⚡ isModuleExports"]
-            fn_c__users_ansh_desktop_web_mesh_packages_core_src_parser_javascript_js_extractor_ts_isexportsdotprop["⚡ isExportsDotProp"]
-            fn_c__users_ansh_desktop_web_mesh_packages_core_src_parser_javascript_js_extractor_ts_ismoduleexportsdotprop["⚡ isModuleExportsDotProp"]
+            fn_c__users_ansh_desktop_web_mesh_packages_core_src_parser_javascript_js_extractor_ts_ismoduleexports["λ isModuleExports"]
+            fn_c__users_ansh_desktop_web_mesh_packages_core_src_parser_javascript_js_extractor_ts_isexportsdotprop["λ isExportsDotProp"]
+            fn_c__users_ansh_desktop_web_mesh_packages_core_src_parser_javascript_js_extractor_ts_ismoduleexportsdotprop["λ isModuleExportsDotProp"]
             fn_c__users_ansh_desktop_web_mesh_packages_core_src_parser_javascript_js_extractor_ts_javascriptextractor_extractfunctions["⚡ JavaScriptExtractor.extractFunctions"]
             fn_c__users_ansh_desktop_web_mesh_packages_core_src_parser_javascript_js_extractor_ts_javascriptextractor_extractimports["⚡ JavaScriptExtractor.extractImports"]
             fn_c__users_ansh_desktop_web_mesh_packages_core_src_parser_javascript_js_extractor_ts_javascriptextractor_extractexports["⚡ JavaScriptExtractor.extractExports"]
@@ -17,7 +17,7 @@ graph TD
             fn_c__users_ansh_desktop_web_mesh_packages_core_src_parser_javascript_js_extractor_ts_javascriptextractor_extractcommonjsfunctions["⚡ JavaScriptExtractor.extractCommonJsFunctions"]
         end
         subgraph file_c__users_ansh_desktop_web_mesh_packages_core_src_parser_javascript_js_parser_ts["📄 js-parser.ts"]
-            fn_c__users_ansh_desktop_web_mesh_packages_core_src_parser_javascript_js_parser_ts_loadaliases["⚡ loadAliases"]
+            fn_c__users_ansh_desktop_web_mesh_packages_core_src_parser_javascript_js_parser_ts_loadaliases["λ loadAliases"]
             fn_c__users_ansh_desktop_web_mesh_packages_core_src_parser_javascript_js_parser_ts_javascriptparser_parse["⚡ JavaScriptParser.parse"]
             fn_c__users_ansh_desktop_web_mesh_packages_core_src_parser_javascript_js_parser_ts_javascriptparser_resolveimports["⚡ JavaScriptParser.resolveImports"]
             fn_c__users_ansh_desktop_web_mesh_packages_core_src_parser_javascript_js_parser_ts_javascriptparser_getsupportedextensions["⚡ JavaScriptParser.getSupportedExtensions"]
@@ -33,6 +33,20 @@ graph TD
         end
     end
 
+    fn_c__users_ansh_desktop_web_mesh_packages_core_src_parser_javascript_js_extractor_ts_walk_2 --> fn_c__users_ansh_desktop_web_mesh_packages_core_src_parser_javascript_js_extractor_ts_ismoduleexports
+    fn_c__users_ansh_desktop_web_mesh_packages_core_src_parser_javascript_js_extractor_ts_walk_2 --> fn_c__users_ansh_desktop_web_mesh_packages_core_src_parser_javascript_js_extractor_ts_isexportsdotprop
+    fn_c__users_ansh_desktop_web_mesh_packages_core_src_parser_javascript_js_extractor_ts_walk_2 --> fn_c__users_ansh_desktop_web_mesh_packages_core_src_parser_javascript_js_extractor_ts_ismoduleexportsdotprop
+    fn_c__users_ansh_desktop_web_mesh_packages_core_src_parser_javascript_js_extractor_ts_walk_3 --> fn_c__users_ansh_desktop_web_mesh_packages_core_src_parser_javascript_js_extractor_ts_ismoduleexports
+    fn_c__users_ansh_desktop_web_mesh_packages_core_src_parser_javascript_js_extractor_ts_walk_3 --> fn_c__users_ansh_desktop_web_mesh_packages_core_src_parser_javascript_js_extractor_ts_isexportsdotprop
+    fn_c__users_ansh_desktop_web_mesh_packages_core_src_parser_javascript_js_extractor_ts_walk_3 --> fn_c__users_ansh_desktop_web_mesh_packages_core_src_parser_javascript_js_extractor_ts_ismoduleexportsdotprop
+    fn_c__users_ansh_desktop_web_mesh_packages_core_src_parser_javascript_js_extractor_ts_ismoduleexportsdotprop --> fn_c__users_ansh_desktop_web_mesh_packages_core_src_parser_javascript_js_extractor_ts_ismoduleexports
+    fn_c__users_ansh_desktop_web_mesh_packages_core_src_parser_javascript_js_extractor_ts_javascriptextractor_extractcommonjsexports --> fn_c__users_ansh_desktop_web_mesh_packages_core_src_parser_javascript_js_extractor_ts_ismoduleexports
+    fn_c__users_ansh_desktop_web_mesh_packages_core_src_parser_javascript_js_extractor_ts_javascriptextractor_extractcommonjsexports --> fn_c__users_ansh_desktop_web_mesh_packages_core_src_parser_javascript_js_extractor_ts_isexportsdotprop
+    fn_c__users_ansh_desktop_web_mesh_packages_core_src_parser_javascript_js_extractor_ts_javascriptextractor_extractcommonjsexports --> fn_c__users_ansh_desktop_web_mesh_packages_core_src_parser_javascript_js_extractor_ts_ismoduleexportsdotprop
+    fn_c__users_ansh_desktop_web_mesh_packages_core_src_parser_javascript_js_extractor_ts_javascriptextractor_extractcommonjsfunctions --> fn_c__users_ansh_desktop_web_mesh_packages_core_src_parser_javascript_js_extractor_ts_ismoduleexports
+    fn_c__users_ansh_desktop_web_mesh_packages_core_src_parser_javascript_js_extractor_ts_javascriptextractor_extractcommonjsfunctions --> fn_c__users_ansh_desktop_web_mesh_packages_core_src_parser_javascript_js_extractor_ts_isexportsdotprop
+    fn_c__users_ansh_desktop_web_mesh_packages_core_src_parser_javascript_js_extractor_ts_javascriptextractor_extractcommonjsfunctions --> fn_c__users_ansh_desktop_web_mesh_packages_core_src_parser_javascript_js_extractor_ts_ismoduleexportsdotprop
+    fn_c__users_ansh_desktop_web_mesh_packages_core_src_parser_javascript_js_parser_ts_javascriptparser_resolveimports --> fn_c__users_ansh_desktop_web_mesh_packages_core_src_parser_javascript_js_parser_ts_loadaliases
 
     classDef default fill:#334155,stroke:#64748b,color:#e2e8f0,stroke-width:1px
     classDef external fill:#1e293b,stroke:#475569,color:#94a3b8,stroke-dasharray: 5 5

@@ -1,6 +1,7 @@
 import * as path from 'node:path'
 import * as fs from 'node:fs'
 import * as os from 'node:os'
+import { createRequire } from 'node:module'
 import type { Command } from 'commander'
 
 /**
@@ -26,35 +27,47 @@ export function registerMcpCommand(program: Command) {
             process.env.MIKK_PROJECT_ROOT = projectRoot
             
             try {
-                // Use a relative path to the server package (from monorepo root)
                 const cliDir = path.dirname(__filename)
-                const isSource = cliDir.includes('src')
-                
-                // Determine if we're running from source or built dist
-                let serverPath: string
-                if (isSource) {
-                    // Running from source: go to packages/mcp-server
-                    serverPath = path.resolve(cliDir, '../../mcp-server/dist/index.cjs')
-                } else {
-                    // Running from dist: go up to packages, then to mcp-server
-                    serverPath = path.resolve(cliDir, '../../mcp-server/dist/index.cjs')
-                }
-                
-                // Also check common installation paths
-                if (!fs.existsSync(serverPath)) {
-                    // Try global npm installation
-                    const globalPaths = [
-                        path.join(process.env.APPDATA || '', 'npm', 'node_modules', '@getmikk', 'mcp-server', 'dist', 'index.cjs'),
-                        path.join(process.env.LOCALAPPDATA || '', 'npm', 'node_modules', '@getmikk', 'mcp-server', 'dist', 'index.cjs'),
-                    ]
-                    for (const globalPath of globalPaths) {
-                        if (fs.existsSync(globalPath)) {
-                            serverPath = globalPath
-                            break
-                        }
+                const attempted: string[] = []
+                const candidates: string[] = [
+                    // Local monorepo workspace layout
+                    path.resolve(projectRoot, 'packages/mcp-server/dist/index.cjs'),
+                    // Local install from npm/pnpm/bun
+                    path.resolve(projectRoot, 'node_modules/@getmikk/mcp-server/dist/index.cjs'),
+                    // Relative sibling package when installed side-by-side
+                    path.resolve(cliDir, '../../mcp-server/dist/index.cjs'),
+                    // Common global npm locations (Windows)
+                    path.join(process.env.APPDATA || '', 'npm', 'node_modules', '@getmikk', 'mcp-server', 'dist', 'index.cjs'),
+                    path.join(process.env.LOCALAPPDATA || '', 'npm', 'node_modules', '@getmikk', 'mcp-server', 'dist', 'index.cjs'),
+                ]
+
+                let serverPath: string | undefined
+                for (const candidate of candidates) {
+                    attempted.push(candidate)
+                    if (candidate && fs.existsSync(candidate)) {
+                        serverPath = candidate
+                        break
                     }
                 }
-                
+
+                if (!serverPath) {
+                    try {
+                        const req = createRequire(path.join(projectRoot, 'package.json'))
+                        serverPath = req.resolve('@getmikk/mcp-server/dist/index.cjs')
+                    } catch {
+                        // Continue to final error below.
+                    }
+                }
+
+                if (!serverPath) {
+                    throw new Error(
+                        'Unable to resolve @getmikk/mcp-server. Tried:\n' + attempted.map(p => `- ${p}`).join('\n') +
+                        '\n\nFix options:\n' +
+                        '1) From your repo root, run: bun install && bun run build\n' +
+                        '2) Or install globally: npm i -g @getmikk/mcp-server'
+                    )
+                }
+
                 const mod = require(serverPath)
                 
                 if (!mod.startStdioServer) {
@@ -89,12 +102,18 @@ interface ToolTarget {
     name: string
     configPath: string
     /** Patch function: read existing config, merge the mikk entry, return new content */
-    patch: (existing: string, projectRoot: string) => string
+    patch: (existing: string, projectRoot: string, entry: McpEntry) => string
+}
+
+interface McpEntry {
+    command: string
+    args: string[]
 }
 
 function installMcpConfig(projectRoot: string, toolFilter: string | undefined, dryRun: boolean) {
     const absProject = path.resolve(projectRoot)
-    const targets = buildTargets()
+    const mcpEntry = buildMcpEntry(absProject)
+    const targets = buildTargets(absProject)
 
     const selected = toolFilter
         ? targets.filter(t => t.name.toLowerCase() === toolFilter.toLowerCase())
@@ -117,7 +136,7 @@ function installMcpConfig(projectRoot: string, toolFilter: string | undefined, d
 
         let updated: string
         try {
-            updated = target.patch(existingRaw, absProject)
+            updated = target.patch(existingRaw, absProject, mcpEntry)
         } catch (err) {
             console.error(`  ✖ ${(err as Error).message}`)
             if (!dryRun) process.exit(1)
@@ -137,11 +156,12 @@ function installMcpConfig(projectRoot: string, toolFilter: string | undefined, d
 
     if (!dryRun) {
         console.log('\nMikk MCP server installed. Restart your AI tool to pick up the changes.')
+        console.log('Configured server command:', `${mcpEntry.command} ${mcpEntry.args.join(' ')}`)
         console.log('Verify with: mikk mcp start --project ' + absProject)
     }
 }
 
-function buildTargets(): ToolTarget[] {
+function buildTargets(projectRoot: string): ToolTarget[] {
     const home = os.homedir()
     const isWin = process.platform === 'win32'
     const isMac = process.platform === 'darwin'
@@ -167,7 +187,7 @@ function buildTargets(): ToolTarget[] {
     }
 
     // VS Code global MCP config (.vscode/mcp.json in the workspace)
-    const vscodeMcpConfig = path.join(process.cwd(), '.vscode', 'mcp.json')
+    const vscodeMcpConfig = path.join(projectRoot, '.vscode', 'mcp.json')
 
     // Windsurf/Cascade global MCP config (Codeium)
     let windsurfConfig: string
@@ -183,30 +203,40 @@ function buildTargets(): ToolTarget[] {
         {
             name: 'claude',
             configPath: claudeConfig,
-            patch: (existing: string, projectRoot: string) => patchClaudeConfig(existing, projectRoot, claudeConfig),
+            patch: (existing: string, projectRoot: string, entry: McpEntry) => patchClaudeConfig(existing, projectRoot, claudeConfig, entry),
         },
         {
             name: 'cursor',
             configPath: cursorConfig,
-            patch: (existing: string, projectRoot: string) => patchCursorConfig(existing, projectRoot, cursorConfig),
+            patch: (existing: string, projectRoot: string, entry: McpEntry) => patchCursorConfig(existing, projectRoot, cursorConfig, entry),
         },
         {
             name: 'windsurf',
             configPath: windsurfConfig,
-            patch: (existing: string, projectRoot: string) => patchCursorConfig(existing, projectRoot, windsurfConfig), // Same format as Cursor
+            patch: (existing: string, projectRoot: string, entry: McpEntry) => patchCursorConfig(existing, projectRoot, windsurfConfig, entry), // Same format as Cursor
         },
         {
             name: 'vscode',
             configPath: vscodeMcpConfig,
-            patch: (existing: string, projectRoot: string) => patchVSCodeConfig(existing, projectRoot, vscodeMcpConfig),
+            patch: (existing: string, projectRoot: string, entry: McpEntry) => patchVSCodeConfig(existing, projectRoot, vscodeMcpConfig, entry),
         },
     ]
 }
 
-function buildMcpEntry(projectRoot: string) {
+function buildMcpEntry(projectRoot: string): McpEntry {
+    // Local-first for monorepos/workspaces: this avoids global npm drift and keeps MCP behavior in sync.
+    const localCliDist = path.resolve(projectRoot, 'packages/cli/dist/index.js')
+    if (fs.existsSync(localCliDist)) {
+        return {
+            command: 'node',
+            args: [localCliDist, 'mcp', 'start', '--project', projectRoot],
+        }
+    }
+
+    // Fallback for non-workspace installs: always use latest published CLI instead of stale global binaries.
     return {
         command: 'npx',
-        args: ['-y', '@getmikk/cli', 'mcp', 'start', '--project', projectRoot],
+        args: ['-y', '@getmikk/cli@latest', 'mcp', 'start', '--project', projectRoot],
     }
 }
 
@@ -222,26 +252,26 @@ function parseJsonSafe(raw: string, configPath: string): Record<string, any> {
     }
 }
 
-function patchClaudeConfig(existing: string, projectRoot: string, configPath: string): string {
+function patchClaudeConfig(existing: string, _projectRoot: string, configPath: string, entry: McpEntry): string {
     const config = parseJsonSafe(existing, configPath)
     config.mcpServers ??= {}
-    config.mcpServers['mikk'] = buildMcpEntry(projectRoot)
+    config.mcpServers['mikk'] = entry
     return JSON.stringify(config, null, 2)
 }
 
-function patchCursorConfig(existing: string, projectRoot: string, configPath: string): string {
+function patchCursorConfig(existing: string, _projectRoot: string, configPath: string, entry: McpEntry): string {
     const config = parseJsonSafe(existing, configPath)
     config.mcpServers ??= {}
-    config.mcpServers['mikk'] = buildMcpEntry(projectRoot)
+    config.mcpServers['mikk'] = entry
     return JSON.stringify(config, null, 2)
 }
 
-function patchVSCodeConfig(existing: string, projectRoot: string, configPath: string): string {
+function patchVSCodeConfig(existing: string, _projectRoot: string, configPath: string, entry: McpEntry): string {
     const config = parseJsonSafe(existing, configPath)
     config.servers ??= {}
     config.servers['mikk'] = {
         type: 'stdio',
-        ...buildMcpEntry(projectRoot),
+        ...entry,
     }
     return JSON.stringify(config, null, 2)
 }

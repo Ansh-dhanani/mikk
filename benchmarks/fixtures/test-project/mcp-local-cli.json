@@ -1,0 +1,16 @@
+{
+  "servers": {
+    "mikk": {
+      "command": "node",
+      "args": [
+        "C:/Users/Ansh/Desktop/web/Mesh/packages/cli/dist/index.js",
+        "mcp",
+        "start",
+        "--project",
+        "C:/Users/Ansh/Desktop/web/Mesh"
+      ],
+      "type": "stdio"
+    }
+  },
+  "inputs": []
+}

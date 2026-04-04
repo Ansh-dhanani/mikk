@@ -17,11 +17,11 @@ graph TD
             fn_c__users_ansh_desktop_web_mesh_packages_core_src_error_handler_ts_createnodenotfounderror["⚡ createNodeNotFoundError"]
             fn_c__users_ansh_desktop_web_mesh_packages_core_src_error_handler_ts_createtokenbudgetexceedederror["⚡ createTokenBudgetExceededError"]
             fn_c__users_ansh_desktop_web_mesh_packages_core_src_error_handler_ts_createvalidationerror["⚡ createValidationError"]
-            fn_c__users_ansh_desktop_web_mesh_packages_core_src_error_handler_ts_ismikkerror["⚡ isMikkError"]
+            fn_c__users_ansh_desktop_web_mesh_packages_core_src_error_handler_ts_ismikkerror["λ isMikkError"]
             fn_c__users_ansh_desktop_web_mesh_packages_core_src_error_handler_ts_getrootcause["⚡ getRootCause"]
             fn_c__users_ansh_desktop_web_mesh_packages_core_src_error_handler_ts_tomikkerror["⚡ toMikkError"]
-            fn_c__users_ansh_desktop_web_mesh_packages_core_src_error_handler_ts_categorizeerror["⚡ categorizeError"]
-            fn_c__users_ansh_desktop_web_mesh_packages_core_src_error_handler_ts_getdefaulterrormessage["⚡ getDefaultErrorMessage"]
+            fn_c__users_ansh_desktop_web_mesh_packages_core_src_error_handler_ts_categorizeerror["λ categorizeError"]
+            fn_c__users_ansh_desktop_web_mesh_packages_core_src_error_handler_ts_getdefaulterrormessage["λ getDefaultErrorMessage"]
             fn_c__users_ansh_desktop_web_mesh_packages_core_src_error_handler_ts_createdefaulterrorlistener["⚡ createDefaultErrorListener"]
             fn_c__users_ansh_desktop_web_mesh_packages_core_src_error_handler_ts_mikkerror_constructor["⚡ MikkError.constructor"]
             fn_c__users_ansh_desktop_web_mesh_packages_core_src_error_handler_ts_mikkerror_tosummary["⚡ MikkError.toSummary"]
@@ -47,6 +47,9 @@ graph TD
         end
     end
 
+    fn_c__users_ansh_desktop_web_mesh_packages_core_src_error_handler_ts_tomikkerror --> fn_c__users_ansh_desktop_web_mesh_packages_core_src_error_handler_ts_ismikkerror
+    fn_c__users_ansh_desktop_web_mesh_packages_core_src_error_handler_ts_mikkerror_constructor --> fn_c__users_ansh_desktop_web_mesh_packages_core_src_error_handler_ts_getdefaulterrormessage
+    fn_c__users_ansh_desktop_web_mesh_packages_core_src_error_handler_ts_mikkerror_constructor --> fn_c__users_ansh_desktop_web_mesh_packages_core_src_error_handler_ts_categorizeerror
 
     classDef default fill:#334155,stroke:#64748b,color:#e2e8f0,stroke-width:1px
     classDef external fill:#1e293b,stroke:#475569,color:#94a3b8,stroke-dasharray: 5 5

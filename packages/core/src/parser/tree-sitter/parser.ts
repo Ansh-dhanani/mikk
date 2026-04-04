@@ -198,6 +198,11 @@ export class TreeSitterParser extends BaseParser {
         }
     }
 
+    async isRuntimeAvailable(): Promise<boolean> {
+        await this.init()
+        return Boolean(this.parser)
+    }
+
     async parse(filePath: string, content: string): Promise<ParsedFile> {
         this.nameCounter.clear()
         await this.init()

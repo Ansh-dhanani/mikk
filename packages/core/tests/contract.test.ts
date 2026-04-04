@@ -49,6 +49,18 @@ describe('MikkContractSchema', () => {
             expect(result.data.overwrite.mode).toBe('never')
         }
     })
+
+    it('rejects contract with invalid declared.modules type', () => {
+        const bad = {
+            ...validContract,
+            declared: {
+                ...validContract.declared,
+                modules: 'not-an-array',
+            },
+        }
+        const result = MikkContractSchema.safeParse(bad)
+        expect(result.success).toBe(false)
+    })
 })
 
 describe('LockCompiler', () => {

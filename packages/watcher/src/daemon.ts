@@ -165,13 +165,19 @@ export class WatcherDaemon {
         if (!this.analyzer || !this.lock) return
 
         try {
+            const expectedGenerationId = this.lock.syncState.generationId
+            const expectedWriteVersion = this.lock.syncState.writeVersion
             const result = await this.analyzer.analyzeBatch(events)
-            this.lock = result.lock
+            const nextLock = result.lock
 
             // Write updated lock
             const lockPath = path.join(this.config.projectRoot, 'mikk.lock.json')
             const lockReader = new LockReader()
-            await lockReader.write(this.lock, lockPath)
+            await lockReader.write(nextLock, lockPath, {
+                expectedGenerationId,
+                expectedWriteVersion,
+            })
+            this.lock = nextLock
 
             // Log batch info
             if (result.mode === 'full') {
