@@ -1,0 +1,38 @@
+{
+  "version": "1.0.0",
+  "project": {
+    "name": "test-project",
+    "description": "Fixture project for MCP server tests",
+    "language": "typescript",
+    "framework": "none",
+    "entryPoints": ["src/auth.ts"]
+  },
+  "declared": {
+    "modules": [
+      {
+        "id": "auth",
+        "name": "Authentication",
+        "description": "Handles user authentication and token generation",
+        "intent": "Authenticate users and return JWT tokens",
+        "paths": ["src/**"],
+        "entryFunctions": ["login"]
+      }
+    ],
+    "constraints": [
+      "Do not use global state",
+      "All async functions must handle errors explicitly"
+    ],
+    "decisions": [
+      {
+        "id": "token-format",
+        "title": "Use simple prefix tokens for testing",
+        "reason": "Avoids JWT dependency in test fixture",
+        "date": "2025-01-01"
+      }
+    ]
+  },
+  "overwrite": {
+    "mode": "never",
+    "requireConfirmation": true
+  }
+}

@@ -1,5 +1,5 @@
 import type { MikkContract, MikkLock, MikkLockFunction } from '@getmikk/core'
-import { BM25Index, type BM25Result } from '@getmikk/core'
+import { BM25Index } from '@getmikk/core'
 import type { AIContext, ContextQuery, ContextModule, ContextFunction } from './types.js'
 import * as fs from 'node:fs'
 import * as path from 'node:path'
@@ -328,8 +328,9 @@ function resolveSeeds(
         for (const mod of contract.declared.modules) {
             const modNameLower = mod.name.toLowerCase()
             if (taskLower.includes(modNameLower) || modNameLower.split(' ').some(w => taskLower.includes(w))) {
+                const modIds = getModuleAndDescendants(mod.id, contract.declared.modules)
                 for (const fn of Object.values(lock.functions)) {
-                    if (fn.moduleId === mod.id) seeds.add(fn.id)
+                    if (modIds.includes(fn.moduleId)) seeds.add(fn.id)
                 }
             }
         }
@@ -506,12 +507,14 @@ export class ContextBuilder {
         const suggestions: string[] = []
         const nearMissSuggestions: string[] = []
 
+        // Pre-compute BM25 results to avoid O(N²) complexity
+        const bm25Results = this.bm25Index.search(keywords.join(' '), Math.min(100, allFunctions.length))
+        const bm25ScoreMap = new Map(bm25Results.map(r => [r.id, r.score]))
+
         const scored: { fn: MikkLockFunction; score: number }[] = allFunctions.map(fn => {
             let score = 0
 
             // ── BM25 Search Score (primary ranking) ────────────────────────────
-            const bm25Results = this.bm25Index.search(keywords.join(' '), Math.min(100, allFunctions.length))
-            const bm25ScoreMap = new Map(bm25Results.map(r => [r.id, r.score]))
             const bm25Score = bm25ScoreMap.get(fn.id) ?? 0
             // Normalize BM25 score to 0-1 range and weight it heavily
             const normalizedBm25 = bm25Score > 0 ? Math.min(1, bm25Score / 10) * 0.7 : 0
@@ -573,9 +576,6 @@ export class ContextBuilder {
 
         // ── Step 5: Fill token budget ──────────────────────────────────────
         let selected: MikkLockFunction[] = []
-        
-        // Check if query found any relevant matches
-        const hasRelevantMatches = scored.some(s => s.score > 0)
         
         // Pre-calculate baseline overhead (context files, routes, constraints)
         let usedTokens = 0

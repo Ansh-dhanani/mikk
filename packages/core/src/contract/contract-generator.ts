@@ -1,6 +1,7 @@
 import type { MikkContract } from './schema.js'
 import type { ModuleCluster } from '../graph/types.js'
 import type { ParsedFile } from '../parser/types.js'
+import { minimatch } from '../utils/minimatch.js'
 
 /** Common vendor directories to exclude from contract generation */
 const VENDOR_PATTERNS = [
@@ -17,11 +18,8 @@ const VENDOR_PATTERNS = [
 
 /** Check if a path is from a vendor directory */
 function isVendorPath(filePath: string): boolean {
-    const normalized = filePath.toLowerCase().replace(/\\/g, '/')
-    return VENDOR_PATTERNS.some(pattern => {
-        const p = pattern.toLowerCase().replace(/\*\*/g, '.*').replace(/\*/g, '[^/]*').replace(/\?/g, '.')
-        return new RegExp('^' + p + '$').test(normalized)
-    })
+    const normalized = filePath.replace(/\\/g, '/')
+    return VENDOR_PATTERNS.some(pattern => minimatch(normalized, pattern))
 }
 
 /** Common entry point filenames across ecosystems (without extensions) */

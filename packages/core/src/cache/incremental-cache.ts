@@ -9,7 +9,9 @@ import type { ParsedFile } from '../parser/types.js'
 interface CacheEntry {
   hash: string
   parsedAt: string
-  file: ParsedFile
+  // Store lightweight metadata instead of full ParsedFile to prevent metadata bloat
+  size: number
+  lastAccessed: number
 }
 
 interface CacheMetadata {
@@ -27,16 +29,35 @@ export class IncrementalCache {
   private metadata: CacheMetadata
   private hits = 0
   private misses = 0
+  // Mutex to prevent race conditions during concurrent access
+  private mutex = Promise.resolve()
 
-  constructor(projectRoot: string) {
-    this.cacheDir = path.join(projectRoot, '.mikk', 'cache')
-    this.metadata = {
-      version: CACHE_VERSION,
-      entries: new Map(),
-      lastPruned: Date.now(),
-    }
-    this.loadMetadata()
-  }
+   constructor(projectRoot: string) {
+     this.cacheDir = path.join(projectRoot, '.mikk', 'cache')
+     this.metadata = {
+       version: CACHE_VERSION,
+       entries: new Map(),
+       lastPruned: Date.now(),
+     }
+     this.loadMetadata()
+   }
+
+   /**
+    * Simple mutex-like protection using a flag for basic race condition prevention
+    * Note: For production, a proper mutex library would be better
+    */
+   private isLocked = false
+   private async withMutex<T>(fn: () => Promise<T>): Promise<T> {
+     while (this.isLocked) {
+       await new Promise(resolve => setTimeout(resolve, 1))
+     }
+     this.isLocked = true
+     try {
+       return await fn()
+     } finally {
+       this.isLocked = false
+     }
+   }
 
   private getCacheFilePath(hash: string): string {
     return path.join(this.cacheDir, `${hash}.json`)
@@ -78,100 +99,114 @@ export class IncrementalCache {
    * Get cached parse result if content hash matches.
    * Returns null if cache miss or stale.
    */
-  get(filePath: string, contentHash: string): ParsedFile | null {
-    const entry = this.metadata.entries.get(filePath)
-    if (!entry) {
-      this.misses++
-      return null
-    }
-
-    if (entry.hash !== contentHash) {
-      this.misses++
-      return null
-    }
-
-    // Check TTL
-    const parsedAt = new Date(entry.parsedAt).getTime()
-    if (Date.now() - parsedAt > CACHE_TTL_MS) {
-      this.metadata.entries.delete(filePath)
-      this.misses++
-      return null
-    }
-
-    // Load from disk
-    const cacheFile = this.getCacheFilePath(contentHash)
-    try {
-      if (fs.existsSync(cacheFile)) {
-        const raw = fs.readFileSync(cacheFile, 'utf-8')
-        this.hits++
-        return JSON.parse(raw) as ParsedFile
+  async get(filePath: string, contentHash: string): Promise<ParsedFile | null> {
+    return this.withMutex(async () => {
+      const entry = this.metadata.entries.get(filePath)
+      if (!entry) {
+        this.misses++
+        return null
       }
-    } catch {
-      // Corrupted cache entry
-      this.metadata.entries.delete(filePath)
-    }
 
-    this.misses++
-    return null
+      if (entry.hash !== contentHash) {
+        this.misses++
+        return null
+      }
+
+      // Check TTL
+      const parsedAt = new Date(entry.parsedAt).getTime()
+      if (Date.now() - parsedAt > CACHE_TTL_MS) {
+        this.metadata.entries.delete(filePath)
+        this.misses++
+        return null
+      }
+
+      // Load from disk and reconstruct ParsedFile
+      const cacheFile = this.getCacheFilePath(contentHash)
+      try {
+        if (fs.existsSync(cacheFile)) {
+          const raw = fs.readFileSync(cacheFile, 'utf-8')
+          const parsed = JSON.parse(raw) as ParsedFile
+          this.hits++
+          // Update last accessed time
+          entry.lastAccessed = Date.now()
+          return parsed
+        }
+      } catch (err) {
+        // Corrupted cache entry
+        console.warn(`Corrupted cache entry for ${filePath}:`, err)
+        this.metadata.entries.delete(filePath)
+      }
+
+      this.misses++
+      return null
+    })
   }
 
   /**
    * Store parse result in cache.
    */
-  set(filePath: string, contentHash: string, parsed: ParsedFile): void {
-    // Evict if cache is full
-    if (this.metadata.entries.size >= MAX_CACHE_SIZE) {
-      this.evictLRU()
-    }
+  async set(filePath: string, contentHash: string, parsed: ParsedFile): Promise<void> {
+    return this.withMutex(async () => {
+      // Evict if cache is full
+      if (this.metadata.entries.size >= MAX_CACHE_SIZE) {
+        this.evictLRU()
+      }
 
-    const entry: CacheEntry = {
-      hash: contentHash,
-      parsedAt: new Date().toISOString(),
-      file: parsed,
-    }
+      const entry: CacheEntry = {
+        hash: contentHash,
+        parsedAt: new Date().toISOString(),
+        // Store file size for lightweight tracking instead of full ParsedFile
+        size: JSON.stringify(parsed).length,
+        lastAccessed: Date.now()
+      }
 
-    this.metadata.entries.set(filePath, entry)
+      this.metadata.entries.set(filePath, entry)
 
-    // Write to disk
-    try {
-      fs.mkdirSync(this.cacheDir, { recursive: true })
-      const cacheFile = this.getCacheFilePath(contentHash)
-      fs.writeFileSync(cacheFile, JSON.stringify(parsed), 'utf-8')
-    } catch {
-      // Silently fail — cache is non-critical
-    }
+      // Write to disk
+      try {
+        fs.mkdirSync(this.cacheDir, { recursive: true })
+        const cacheFile = this.getCacheFilePath(contentHash)
+        fs.writeFileSync(cacheFile, JSON.stringify(parsed), 'utf-8')
+      } catch {
+        // Silently fail — cache is non-critical
+      }
+    })
   }
 
   /**
    * Invalidate cache for a specific file.
    */
-  invalidate(filePath: string): void {
-    const entry = this.metadata.entries.get(filePath)
-    if (entry) {
-      const cacheFile = this.getCacheFilePath(entry.hash)
-      try {
-        if (fs.existsSync(cacheFile)) {
-          fs.unlinkSync(cacheFile)
-        }
-      } catch { /* ignore */ }
-      this.metadata.entries.delete(filePath)
-    }
+  async invalidate(filePath: string): Promise<void> {
+    return this.withMutex(async () => {
+      const entry = this.metadata.entries.get(filePath)
+      if (entry) {
+        const cacheFile = this.getCacheFilePath(entry.hash)
+        try {
+          if (fs.existsSync(cacheFile)) {
+            fs.unlinkSync(cacheFile)
+          }
+        } catch { /* ignore */ }
+        this.metadata.entries.delete(filePath)
+      }
+    })
   }
 
   /**
    * Clear entire cache.
    */
-  clear(): void {
-    for (const [, entry] of this.metadata.entries) {
-      const cacheFile = this.getCacheFilePath(entry.hash)
-      try {
-        if (fs.existsSync(cacheFile)) {
-          fs.unlinkSync(cacheFile)
-        }
-      } catch { /* ignore */ }
-    }
-    this.metadata.entries.clear()
-    this.saveMetadata()
+  async clear(): Promise<void> {
+    return this.withMutex(async () => {
+      for (const [, entry] of this.metadata.entries) {
+        const cacheFile = this.getCacheFilePath(entry.hash)
+        try {
+          if (fs.existsSync(cacheFile)) {
+            fs.unlinkSync(cacheFile)
+          }
+        } catch { /* ignore */ }
+      }
+      this.metadata.entries.clear()
+      this.saveMetadata()
+    })
   }
 
   /**
@@ -191,8 +226,10 @@ export class IncrementalCache {
    * Persist cache metadata to disk.
    * Call this after batch operations.
    */
-  flush(): void {
-    this.saveMetadata()
+  async flush(): Promise<void> {
+    return this.withMutex(async () => {
+      this.saveMetadata()
+    })
   }
 
   /**
@@ -219,15 +256,17 @@ export class IncrementalCache {
   /**
    * Prune expired entries from cache.
    */
-  prune(): void {
-    const now = Date.now()
-    for (const [filePath, entry] of this.metadata.entries) {
-      const parsedAt = new Date(entry.parsedAt).getTime()
-      if (now - parsedAt > CACHE_TTL_MS) {
-        this.invalidate(filePath)
+  async prune(): Promise<void> {
+    return this.withMutex(async () => {
+      const now = Date.now()
+      for (const [filePath, entry] of this.metadata.entries) {
+        const parsedAt = new Date(entry.parsedAt).getTime()
+        if (now - parsedAt > CACHE_TTL_MS) {
+          this.invalidate(filePath)
+        }
       }
-    }
-    this.metadata.lastPruned = now
-    this.saveMetadata()
+      this.metadata.lastPruned = now
+      this.saveMetadata()
+    })
   }
 }

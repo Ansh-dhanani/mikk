@@ -113,7 +113,7 @@ const VULNERABILITY_PATTERNS: VulnerabilityPattern[] = [
     category: 'secrets',
     title: 'Hardcoded API Key',
     description: 'API key or token appears to be hardcoded.',
-    regex: /(?:api[_-]?key|api[_-]?secret|access[_-]?token|auth[_-]?token)\s*[:=]\s*["'][A-Za-z0-9_\-]{8,}["']/i,
+    regex: /(?:api[_-]?key|api[_-]?secret|access[_-]?token|auth[_-]?token)\s*[:=]\s*["'][A-Za-z0-9_-]{8,}["']/i,
     suggestion: 'Use environment variables or a secrets manager.',
     cwe: 'CWE-798',
   },

@@ -1653,42 +1653,50 @@ export function registerTools(server: McpServer, projectRoot: string) {
         },
     )
 
-    // TOOL: mikk_security_scan
-    server.tool(
-        'mikk_security_scan',
-        'Scan codebase for security vulnerabilities: hardcoded secrets, SQL injection, XSS, weak crypto, path traversal, command injection. WHEN TO USE: Before deploying, reviewing security posture, or when asked about security. Returns findings sorted by severity (critical first).',
-        {
-            severity: z.enum(['critical', 'high', 'medium', 'low', 'info']).optional().describe('Filter by minimum severity'),
-            file: z.string().optional().describe('Scan a specific file only'),
-            category: z.string().optional().describe('Filter by category: injection, secrets, xss, crypto, path-traversal, best-practice'),
-        },
-        async ({ severity, file, category }) => {
+     // TOOL: mikk_security_scan
+     server.tool(
+         'mikk_security_scan',
+         'Scan codebase for security vulnerabilities: hardcoded secrets, SQL injection, XSS, weak crypto, path traversal, command injection. WHEN TO USE: Before deploying, reviewing security posture, or when asked about security. Returns findings sorted by severity (critical first).',
+         {
+             severity: z.enum(['critical', 'high', 'medium', 'low', 'info']).optional().describe('Filter by minimum severity'),
+             file: z.string().optional().describe('Scan a specific file only'),
+             category: z.string().optional().describe('Filter by category: injection, secrets, xss, crypto, path-traversal, best-practice'),
+         },
+         async (args: any) => {
+             const { severity, file, category } = args as any
             const startTime = Date.now()
             const { lock } = await loadContractAndLock(projectRoot)
             const scanner = new SecurityScanner()
             const findings = []
 
-            const filesToScan = file
-                ? [{ path: file, content: '', language: '' }]
-                : Object.values(lock.files).map(f => ({ path: f.path, content: '', language: '' }))
+             const filesToScan = file
+                 ? [{ path: file, content: '', language: '' }]
+                 : Object.values(lock.files).map(f => ({ path: f.path, content: '', language: '' }))
 
-            for (const fileInfo of filesToScan) {
-                try {
-                    const fullPath = path.resolve(projectRoot, fileInfo.path)
-                    const content = await fs.readFile(fullPath, 'utf-8')
-                    const ext = path.extname(fileInfo.path).toLowerCase()
-                    const langMap: Record<string, string> = {
-                        '.py': 'python', '.ts': 'typescript', '.tsx': 'typescript',
-                        '.js': 'javascript', '.jsx': 'javascript', '.go': 'go',
-                        '.java': 'java', '.rs': 'rust', '.cs': 'csharp',
-                        '.php': 'php', '.rb': 'ruby', '.c': 'c', '.cpp': 'cpp',
-                    }
-                    const fileFindings = scanner.scanFile(fileInfo.path, content, langMap[ext])
-                    findings.push(...fileFindings)
-                } catch {
-                    // Skip files that can't be read
-                }
-            }
+             for (const fileInfo of filesToScan) {
+                 try {
+                     // Validate that file path is within project root to prevent path traversal
+                     const resolvedPath = path.resolve(fileInfo.path)
+                     const projectRootResolved = path.resolve(projectRoot)
+                     if (!resolvedPath.startsWith(projectRootResolved + path.sep) && resolvedPath !== projectRootResolved) {
+                         continue // Skip files outside project root
+                     }
+                     
+                     const fullPath = resolvedPath
+                     const content = await fs.readFile(fullPath, 'utf-8')
+                     const ext = path.extname(fileInfo.path).toLowerCase()
+                     const langMap: Record<string, string> = {
+                         '.py': 'python', '.ts': 'typescript', '.tsx': 'typescript',
+                         '.js': 'javascript', '.jsx': 'javascript', '.go': 'go',
+                         '.java': 'java', '.rs': 'rust', '.cs': 'csharp',
+                         '.php': 'php', '.rb': 'ruby', '.c': 'c', '.cpp': 'cpp',
+                     }
+                     const fileFindings = scanner.scanFile(fullPath, content, langMap[ext])
+                     findings.push(...fileFindings)
+                 } catch {
+                     // Skip files that can't be read
+                 }
+             }
 
             let filtered = findings
             if (severity) {

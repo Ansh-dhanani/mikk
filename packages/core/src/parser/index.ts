@@ -6,7 +6,6 @@ import { UnsupportedLanguageError } from '../utils/errors.js'
 import type { ParsedFile } from './types.js'
 import { hashContent } from '../hash/file-hasher.js'
 import { IncrementalCache } from '../cache/incremental-cache.js'
-import { ErrorRecoveryEngine } from './error-recovery.js'
 import {
     parserKindForExtension,
     languageForExtension,
@@ -320,7 +319,7 @@ export async function parseFilesWithDiagnostics(
             const contentHash = hashContent(content)
 
             // Check cache first
-            const cached = cache.get(absoluteFp, contentHash)
+            const cached = await cache.get(absoluteFp, contentHash)
             if (cached) {
                 // Cache hit — reuse parsed result
                 if (parserKind === 'oxc') {
@@ -337,12 +336,12 @@ export async function parseFilesWithDiagnostics(
             // Cache miss — parse and store
             if (parserKind === 'oxc') {
                 const parsed = await oxcParser.parse(absoluteFp, content)
-                cache.set(absoluteFp, contentHash, parsed)
+                await cache.set(absoluteFp, contentHash, parsed)
                 oxcFiles.push(parsed)
                 parsedFilesCount += 1
             } else if (parserKind === 'go') {
                 const parsed = await goParser.parse(absoluteFp, content)
-                cache.set(absoluteFp, contentHash, parsed)
+                await cache.set(absoluteFp, contentHash, parsed)
                 goFiles.push(parsed)
                 parsedFilesCount += 1
             } else {
@@ -361,7 +360,7 @@ export async function parseFilesWithDiagnostics(
                 }
                 const ts = await getTreeSitter()
                 const parsed = await ts.parse(absoluteFp, content)
-                cache.set(absoluteFp, contentHash, parsed)
+                await cache.set(absoluteFp, contentHash, parsed)
                 treeFiles.push(parsed)
                 parsedFilesCount += 1
             }

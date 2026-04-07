@@ -436,7 +436,7 @@ export class LockCompiler {
 
     /** Check if a path is from a vendor directory */
     private isVendorPath(filePath: string): boolean {
-        const normalized = filePath.toLowerCase().replace(/\\/g, '/')
+        const normalized = filePath.replace(/\\/g, '/')
         const vendorPatterns = [
             '**/node_modules/**',
             '**/venv/**',
@@ -448,27 +448,6 @@ export class LockCompiler {
             '**/.next/**',
             '**/target/**',
         ]
-        for (const pattern of vendorPatterns) {
-            // Convert glob to regex: ** becomes .* (match any depth)
-            // But handle leading ** specially: allow it to match from start
-            let p = pattern.toLowerCase()
-            if (p.startsWith('**/')) {
-                // Pattern like **/venv/** -> match anywhere containing /venv/
-                p = p.slice(3) // Remove **/
-                // Build regex that matches the pattern anywhere in the path
-                const regexStr = p.replace(/\*/g, '[^/]*')
-                if (normalized.includes('/' + regexStr.replace(/\//g, '/') + '/') || 
-                    normalized.endsWith('/' + regexStr) ||
-                    normalized === regexStr) {
-                    return true
-                }
-            } else {
-                const regexStr = p.replace(/\*\*/g, '.*').replace(/\*/g, '[^/]*')
-                if (new RegExp('^' + regexStr + '$').test(normalized)) {
-                    return true
-                }
-            }
-        }
-        return false
+        return vendorPatterns.some(pattern => minimatch(normalized, pattern))
     }
 }
