@@ -140,7 +140,7 @@ Running `mikk init` produces:
 
 ---
 
-## MCP Server — 23 Tools
+## MCP Server — 24 Tools
 
 Connect to Claude Desktop, Cursor, VS Code Copilot, or any MCP-compatible client.
 
@@ -175,6 +175,7 @@ Connect to Claude Desktop, Cursor, VS Code Copilot, or any MCP-compatible client
 | `mikk_validate_edit` | Mandatory pre-edit validation with intent analysis, safety gates, and recommendations. |
 | `mikk_impact_analysis` | Full blast radius classified as critical / high / medium / low. |
 | `mikk_dead_code` | Unused functions, exempt from exports, tests, constructors, and route handlers. |
+| `mikk_security_scan` | Scan codebase for security vulnerabilities: hardcoded secrets, SQL injection, XSS, weak crypto, path traversal, command injection. Returns findings sorted by severity (critical first). |
 
 ### Refactoring Tools
 
@@ -382,7 +383,7 @@ Notes:
 |---|---|
 | `@getmikk/core` | AST parsing, dependency graph, BM25, Merkle hashing, contract management |
 | `@getmikk/cli` | 17+ CLI commands |
-| `@getmikk/mcp-server` | 23 MCP tools, 30s TTL cache, staleness detection |
+| `@getmikk/mcp-server` | 24 MCP tools, 30s TTL cache, staleness detection |
 | `@getmikk/ai-context` | BFS context builder, token budgeting, claude.md generation |
 | `@getmikk/intent-engine` | Intent parsing, conflict detection, semantic search |
 | `@getmikk/diagram-generator` | 7 Mermaid diagram types with real cohesion/coupling metrics |

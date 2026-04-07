@@ -83,7 +83,9 @@ export function registerAnalyzeCommand(program: Command) {
                 const contractReader = new ContractReader()
                 const contract = await contractReader.read(path.join(projectRoot, 'mikk.json'))
 
-                const language = await detectProjectLanguage(projectRoot)
+                // Use contract's language for discovery, with fallback to detection
+                const detectedLang = contract.project.language || await detectProjectLanguage(projectRoot)
+                const language = detectedLang as any // TypeScript narrowing
                 const { patterns, ignore } = getDiscoveryPatterns(language)
                 const files = await discoverFiles(projectRoot, patterns, ignore)
 
@@ -102,6 +104,7 @@ export function registerAnalyzeCommand(program: Command) {
                 const parseResult = typeof parseFilesWithDiagnostics === 'function'
                     ? await parseFilesWithDiagnostics(files, projectRoot, (fp) => readFileContent(fp), {
                         strictParserPreflight: Boolean(options.strictParsing),
+                        treeSitterRuntimeAvailable: true
                     })
                     : {
                         files: await parseFiles(files, projectRoot, (fp) => readFileContent(fp)),

@@ -519,13 +519,41 @@ export class TreeSitterParser extends BaseParser {
         try {
             const nameForFile = name.replace(/-/g, '_')
             
-            // Try multiple possible WASM locations
-            const possiblePaths = [
-                path.resolve('node_modules/tree-sitter-wasms/out', `tree-sitter-${nameForFile}.wasm`),
-                path.resolve('./node_modules/tree-sitter-wasms/out', `tree-sitter-${nameForFile}.wasm`),
-                path.resolve(process.cwd(), 'node_modules/tree-sitter-wasms/out', `tree-sitter-${nameForFile}.wasm`),
-                path.resolve(process.cwd(), 'node_modules', 'tree-sitter-wasms', 'out', `tree-sitter-${nameForFile}.wasm`),
-            ]
+            // Try multiple possible WASM locations, including parent directories and siblings for monorepos
+            const baseDirs = new Set<string>()
+            baseDirs.add(process.cwd())
+            
+            // Add parent directories (up to 4 levels) for monorepo setups
+            let current = process.cwd()
+            let parentDir = ''
+            for (let i = 0; i < 4; i++) {
+                parentDir = path.dirname(current)
+                if (parentDir === current) break
+                baseDirs.add(parentDir)
+                baseDirs.add(path.join(parentDir, 'node_modules'))
+                
+                // Also check sibling directories in the parent for monorepo setups
+                // (e.g., metis and Mesh are siblings under the same parent)
+                try {
+                    const fs = await import('node:fs')
+                    const entries = fs.readdirSync(parentDir, { withFileTypes: true })
+                    for (const entry of entries) {
+                        if (entry.isDirectory() && entry.name !== path.basename(current)) {
+                            baseDirs.add(path.join(parentDir, entry.name, 'node_modules'))
+                        }
+                    }
+                } catch { /* skip */ }
+                
+                current = parentDir
+            }
+
+            const possiblePaths: string[] = []
+            for (const baseDir of baseDirs) {
+                if (!baseDir) continue
+                possiblePaths.push(
+                    path.join(baseDir, 'node_modules/tree-sitter-wasms/out', `tree-sitter-${nameForFile}.wasm`),
+                )
+            }
             
             let wasmPath = ''
             for (const p of possiblePaths) {
@@ -563,7 +591,6 @@ export class TreeSitterParser extends BaseParser {
             
             if (!wasmPath) {
                 // WASM not found - but don't mark as permanent error, just skip this language
-                console.warn(`Tree-sitter WASM not found for ${name}`)
                 return null
             }
             

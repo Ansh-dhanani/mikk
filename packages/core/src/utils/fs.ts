@@ -276,7 +276,7 @@ function inferContextFileType(filePath: string): ContextFileType {
 }
 
 /** Recognised project language */
-export type ProjectLanguage = 'typescript' | 'javascript' | 'python' | 'go' | 'rust' | 'java' | 'swift' | 'ruby' | 'php' | 'csharp' | 'c' | 'cpp' | 'unknown'
+export type ProjectLanguage = 'typescript' | 'javascript' | 'python' | 'go' | 'rust' | 'java' | 'swift' | 'ruby' | 'php' | 'csharp' | 'c' | 'cpp' | 'unknown' | 'polyglot'
 
 /** Auto-detect the project's primary language from manifest files */
 export async function detectProjectLanguage(projectRoot: string): Promise<ProjectLanguage> {
@@ -310,24 +310,28 @@ export function getDiscoveryPatterns(language: ProjectLanguage): { patterns: str
     ]
 
     const toPatterns = (lang: ProjectLanguage): string[] => {
-        return getDiscoveryExtensions(lang).map(ext => `**/*${ext}`)
+        if (lang === 'polyglot') {
+            // For polyglot, use LANGUAGE_EXTENSIONS.polyglot directly
+            return getDiscoveryExtensions('polyglot' as any).map(ext => `**/*${ext}`)
+        }
+        return getDiscoveryExtensions(lang as any).map(ext => `**/*${ext}`)
     }
 
     switch (language) {
         case 'typescript':
             return {
                 patterns: toPatterns(language),
-                ignore: [...commonIgnore, '**/node_modules/**', '**/dist/**', '**/.next/**', '**/.nuxt/**', '**/.svelte-kit/**', '**/*.d.ts', '**/*.test.{ts,js,tsx,jsx}', '**/*.spec.{ts,js,tsx,jsx}'],
+                ignore: [...commonIgnore, '**/node_modules/**', '**/dist/**', '**/.next/**', '**/.nuxt/**', '**/.svelte-kit/**', '**/*.d.ts', '**/*.test.{ts,js,tsx,jsx}', '**/*.spec.{ts,js,tsx,jsx}', '**/venv/**', '**/.venv/**'],
             }
         case 'javascript':
             return {
                 patterns: toPatterns(language),
-                ignore: [...commonIgnore, '**/node_modules/**', '**/dist/**', '**/.next/**', '**/*.d.ts', '**/*.test.{ts,js,tsx,jsx}', '**/*.spec.{ts,js,tsx,jsx}'],
+                ignore: [...commonIgnore, '**/node_modules/**', '**/dist/**', '**/.next/**', '**/*.d.ts', '**/*.test.{ts,js,tsx,jsx}', '**/*.spec.{ts,js,tsx,jsx}', '**/venv/**', '**/.venv/**'],
             }
         case 'python':
             return {
                 patterns: toPatterns(language),
-                ignore: [...commonIgnore, '**/__pycache__/**', '**/venv/**', '**/.venv/**', '**/.tox/**', '**/test_*.py', '**/*_test.py'],
+                ignore: [...commonIgnore, '**/__pycache__/**', '**/venv/**', '**/.venv/**', '**/.tox/**', '**/test_*.py', '**/*_test.py', '**/lib/site-packages/**'],
             }
         case 'go':
             return {
@@ -352,34 +356,47 @@ export function getDiscoveryPatterns(language: ProjectLanguage): { patterns: str
         case 'ruby':
             return {
                 patterns: toPatterns(language),
-                ignore: [...commonIgnore, '**/vendor/**', '**/*_spec.rb', '**/spec/**'],
+                ignore: [...commonIgnore, '**/vendor/**', '**/*.gemspec'],
             }
         case 'php':
             return {
                 patterns: toPatterns(language),
-                ignore: [...commonIgnore, '**/vendor/**', '**/*Test.php'],
+                ignore: [...commonIgnore, '**/vendor/**', '**/tests/**', '**/Test*.php'],
             }
         case 'csharp':
             return {
                 patterns: toPatterns(language),
-                ignore: [...commonIgnore, '**/bin/**', '**/obj/**'],
-            }
-        case 'cpp':
-            return {
-                patterns: toPatterns(language),
-                ignore: [...commonIgnore, '**/build/**', '**/cmake-build-*/**'],
+                ignore: [...commonIgnore, '**/bin/**', '**/obj/**', '**/*Test.cs'],
             }
         case 'c':
             return {
                 patterns: toPatterns(language),
-                ignore: [...commonIgnore, '**/build/**'],
+                ignore: [...commonIgnore, '**/*.h'],
             }
-        default:
-            // Fallback: discover JS/TS (most common)
+        case 'cpp':
             return {
                 patterns: toPatterns(language),
-                ignore: [...commonIgnore, '**/node_modules/**', '**/dist/**', '**/*.d.ts'],
+                ignore: [...commonIgnore, '**/build/**', '**/*.hpp'],
             }
+        case 'polyglot':
+            return {
+                patterns: toPatterns(language),
+                ignore: [
+                    ...commonIgnore,
+                    '**/node_modules/**', '**/dist/**', '**/.next/**', '**/.nuxt/**', '**/.svelte-kit/**',
+                    '**/__pycache__/**', '**/venv/**', '**/.venv/**', '**/.tox/**', '**/lib/site-packages/**',
+                    '**/vendor/**', '**/target/**', '**/.gradle/**', '**/.build/**', '**/bin/**', '**/obj/**',
+                    '**/*.d.ts', '**/*.test.{ts,js,tsx,jsx}', '**/*.spec.{ts,js,tsx,jsx}',
+                    '**/test_*.py', '**/*_test.py', '**/Test*.java', '**/*Test.java', '**/*Test.cs',
+                ],
+            }
+        case 'unknown':
+            return {
+                patterns: ['**/*.{ts,tsx,js,jsx}'],
+                ignore: [...commonIgnore, '**/node_modules/**'],
+            }
+        default:
+            return { patterns: [], ignore: commonIgnore }
     }
 }
 
@@ -623,6 +640,20 @@ const LANGUAGE_IGNORE_TEMPLATES: Record<ProjectLanguage, string[]> = {
         'tests/',
         'test/',
         '__tests__/',
+        '',
+    ],
+    polyglot: [
+        '# Multi-language project',
+        '**/node_modules/**',
+        '**/venv/**',
+        '**/.venv/**',
+        '**/__pycache__/**',
+        '**/site-packages/**',
+        '**/vendor/**',
+        '**/target/**',
+        '**/build/**',
+        '**/dist/**',
+        '**/.next/**',
         '',
     ],
 }

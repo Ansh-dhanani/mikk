@@ -8,6 +8,7 @@ import {
     ContractReader, LockReader,
     ImpactAnalyzer, DeadCodeDetector, AdrManager,
     BoundaryChecker,
+    SecurityScanner,
     type MikkContract, type MikkLock,
     type DependencyGraph, type GraphNode, type GraphEdge,
     BM25Index, buildFunctionTokens, reciprocalRankFusion, tokenize,
@@ -1646,6 +1647,91 @@ export function registerTools(server: McpServer, projectRoot: string) {
                 interpretation: t.saved > 0
                     ? `Mikk saved ~${t.saved.toLocaleString()} tokens this session (${Math.round((t.saved / t.raw) * 100)}% reduction). Roughly ${Math.round(t.saved / 1000)}k tokens = ~${(t.saved * 0.000003).toFixed(3)} USD at GPT-4o rates.`
                     : 'No tools called yet this session.',
+            }
+
+            return { content: [{ type: 'text' as const, text: JSON.stringify(response, null, 2) }] }
+        },
+    )
+
+     // TOOL: mikk_security_scan
+     server.tool(
+         'mikk_security_scan',
+         'Scan codebase for security vulnerabilities: hardcoded secrets, SQL injection, XSS, weak crypto, path traversal, command injection. WHEN TO USE: Before deploying, reviewing security posture, or when asked about security. Returns findings sorted by severity (critical first).',
+         {
+             severity: z.enum(['critical', 'high', 'medium', 'low', 'info']).optional().describe('Filter by minimum severity'),
+             file: z.string().optional().describe('Scan a specific file only'),
+             category: z.string().optional().describe('Filter by category: injection, secrets, xss, crypto, path-traversal, best-practice'),
+         },
+         async (args: any) => {
+             const { severity, file, category } = args as any
+            const startTime = Date.now()
+            const { lock } = await loadContractAndLock(projectRoot)
+            const scanner = new SecurityScanner()
+            const findings = []
+
+             const filesToScan = file
+                 ? [{ path: file, content: '', language: '' }]
+                 : Object.values(lock.files).map(f => ({ path: f.path, content: '', language: '' }))
+
+             for (const fileInfo of filesToScan) {
+                 try {
+                     // Validate that file path is within project root to prevent path traversal
+                     const resolvedPath = path.resolve(fileInfo.path)
+                     const projectRootResolved = path.resolve(projectRoot)
+                     if (!resolvedPath.startsWith(projectRootResolved + path.sep) && resolvedPath !== projectRootResolved) {
+                         continue // Skip files outside project root
+                     }
+                     
+                     const fullPath = resolvedPath
+                     const content = await fs.readFile(fullPath, 'utf-8')
+                     const ext = path.extname(fileInfo.path).toLowerCase()
+                     const langMap: Record<string, string> = {
+                         '.py': 'python', '.ts': 'typescript', '.tsx': 'typescript',
+                         '.js': 'javascript', '.jsx': 'javascript', '.go': 'go',
+                         '.java': 'java', '.rs': 'rust', '.cs': 'csharp',
+                         '.php': 'php', '.rb': 'ruby', '.c': 'c', '.cpp': 'cpp',
+                     }
+                     const fileFindings = scanner.scanFile(fullPath, content, langMap[ext])
+                     findings.push(...fileFindings)
+                 } catch {
+                     // Skip files that can't be read
+                 }
+             }
+
+            let filtered = findings
+            if (severity) {
+                const severityOrder = { critical: 0, high: 1, medium: 2, low: 3, info: 4 }
+                const minLevel = severityOrder[severity]
+                filtered = filtered.filter(f => severityOrder[f.severity] <= minLevel)
+            }
+            if (category) {
+                filtered = filtered.filter(f => f.category === category)
+            }
+
+            const summary = {
+                total: filtered.length,
+                critical: filtered.filter(f => f.severity === 'critical').length,
+                high: filtered.filter(f => f.severity === 'high').length,
+                medium: filtered.filter(f => f.severity === 'medium').length,
+                low: filtered.filter(f => f.severity === 'low').length,
+                info: filtered.filter(f => f.severity === 'info').length,
+            }
+
+            const response = {
+                summary,
+                findings: filtered.slice(0, 50).map(f => ({
+                    severity: f.severity,
+                    category: f.category,
+                    title: f.title,
+                    file: f.file,
+                    line: f.line,
+                    code: f.code,
+                    suggestion: f.suggestion,
+                    cwe: f.cwe,
+                })),
+                scanDuration: Date.now() - startTime,
+                filesScanned: filesToScan.length,
+                note: filtered.length > 50 ? `Showing first 50 of ${filtered.length} findings` : undefined,
             }
 
             return { content: [{ type: 'text' as const, text: JSON.stringify(response, null, 2) }] }

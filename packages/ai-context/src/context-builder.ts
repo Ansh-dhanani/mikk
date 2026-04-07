@@ -1,4 +1,5 @@
 import type { MikkContract, MikkLock, MikkLockFunction } from '@getmikk/core'
+import { BM25Index } from '@getmikk/core'
 import type { AIContext, ContextQuery, ContextModule, ContextFunction } from './types.js'
 import * as fs from 'node:fs'
 import * as path from 'node:path'
@@ -95,6 +96,18 @@ function depthToScore(depth: number): number {
         case 3: return WEIGHT.HOP_3
         default: return WEIGHT.HOP_4
     }
+}
+
+/**
+ * Get a module ID and all its descendant module IDs (children, grandchildren, etc.)
+ */
+function getModuleAndDescendants(moduleId: string, modules: MikkContract['declared']['modules']): string[] {
+    const result = [moduleId]
+    const children = modules.filter(m => m.parentId === moduleId)
+    for (const child of children) {
+        result.push(...getModuleAndDescendants(child.id, modules))
+    }
+    return result
 }
 
 // ---------------------------------------------------------------------------
@@ -265,22 +278,49 @@ function resolveSeeds(
     // 2. Explicit focus modules → all functions in those modules
     if (query.focusModules && query.focusModules.length > 0) {
         for (const modId of query.focusModules) {
+            // Include functions from the module itself and its children
+            const allModIds = getModuleAndDescendants(modId, contract.declared.modules)
             for (const fn of Object.values(lock.functions)) {
-                if (fn.moduleId === modId) seeds.add(fn.id)
+                if (allModIds.includes(fn.moduleId)) seeds.add(fn.id)
             }
         }
     }
 
-    // 3. Keyword match against function names and file paths
+    // 3. Keyword/BM25 match against function names and file paths
     if (seeds.size === 0) {
+        // Use inline BM25 scoring for seed finding
+        const index = new BM25Index()
         for (const fn of Object.values(lock.functions)) {
-            if (keywordScore(fn, keywords).score >= WEIGHT.KEYWORD_PARTIAL) {
+            const tokens: string[] = []
+            const nameParts = fn.name.replace(/([a-z])([A-Z])/g, '$1 $2').split(/[-_]/)
+            tokens.push(...nameParts.filter(p => p.length >= 2))
+            if (fn.purpose) {
+                const purposeTokens = fn.purpose.toLowerCase().replace(/[^a-z0-9]/g, ' ').split(/\s+/)
+                tokens.push(...purposeTokens.filter(t => t.length >= 2))
+            }
+            const fileName = path.basename(fn.file).replace(/\.(d\.ts|ts|tsx|js|jsx|py|go|java|rs|cs|cpp|c|php|rb)$/i, '')
+            const fileParts = fileName.replace(/([a-z])([A-Z])/g, '$1 $2').split(/[-_]/)
+            tokens.push(...fileParts.filter(p => p.length >= 2))
+            if (tokens.length > 0) index.addDocument(fn.id, tokens)
+        }
+        
+        const bm25Results = index.search(keywords.join(' '), Math.min(50, Object.keys(lock.functions).length))
+        const scoredSeeds = new Map<string, number>()
+        for (const r of bm25Results) {
+            scoredSeeds.set(r.id, r.score)
+        }
+        
+        for (const fn of Object.values(lock.functions)) {
+            const bm25Score = scoredSeeds.get(fn.id) ?? 0
+            // Use BM25 score or keyword score (whichever is higher)
+            const kwScore = keywordScore(fn, keywords).score
+            if (bm25Score > 0 || kwScore >= WEIGHT.KEYWORD_PARTIAL) {
                 seeds.add(fn.id)
             }
         }
     }
 
-    // 4. For large codebases: also match module names and file paths with lower threshold
+    // 4. For large codebases: also match module names and file paths with BM25
     if (isLargeCodebase && seeds.size === 0) {
         const taskLower = query.task.toLowerCase()
         
@@ -288,20 +328,42 @@ function resolveSeeds(
         for (const mod of contract.declared.modules) {
             const modNameLower = mod.name.toLowerCase()
             if (taskLower.includes(modNameLower) || modNameLower.split(' ').some(w => taskLower.includes(w))) {
+                const modIds = getModuleAndDescendants(mod.id, contract.declared.modules)
                 for (const fn of Object.values(lock.functions)) {
-                    if (fn.moduleId === mod.id) seeds.add(fn.id)
+                    if (modIds.includes(fn.moduleId)) seeds.add(fn.id)
                 }
             }
         }
         
-        // Match against file path components
+        // Match against file path components (including context files)
         if (seeds.size === 0) {
+            // Also check context files from lock
+            const contextFilePaths = new Set<string>()
+            if (lock.contextFiles) {
+                for (const cf of lock.contextFiles) {
+                    contextFilePaths.add(path.basename(cf.path).toLowerCase())
+                }
+            }
+            
             for (const fn of Object.values(lock.functions)) {
                 const pathParts = fn.file.toLowerCase().split(/[-_.]+/)
                 for (const kw of keywords) {
                     if (pathParts.includes(kw) || pathParts.some(p => p.includes(kw))) {
                         seeds.add(fn.id)
                         break
+                    }
+                }
+                // Also check against context file basenames
+                if (seeds.size === 0) {
+                    const fnBase = path.basename(fn.file).toLowerCase()
+                    for (const cfPath of contextFilePaths) {
+                        for (const kw of keywords) {
+                            if (cfPath.includes(kw) || kw.includes(cfPath.replace(/\.[^.]+$/, ''))) {
+                                seeds.add(fn.id)
+                                break
+                            }
+                        }
+                        if (seeds.size > 0) break
                     }
                 }
             }
@@ -317,8 +379,10 @@ function resolveSeeds(
                 taskLower.includes(mod.name.toLowerCase()) ||
                 mod.name.split(' ').some(w => w.length > 2 && taskLower.includes(w.toLowerCase()))
             ) {
+                // Include functions from module and its children
+                const allModIds = getModuleAndDescendants(mod.id, contract.declared.modules)
                 for (const fn of Object.values(lock.functions)) {
-                    if (fn.moduleId === mod.id) seeds.add(fn.id)
+                    if (allModIds.includes(fn.moduleId)) seeds.add(fn.id)
                 }
             }
         }
@@ -336,7 +400,8 @@ function resolveSeeds(
             .slice(0, 3)
         
         for (const fn of allFns) {
-            if (relevantModules.some(m => m.id === fn.moduleId)) {
+            const modIds = relevantModules.flatMap(m => getModuleAndDescendants(m.id, contract.declared.modules))
+            if (modIds.includes(fn.moduleId)) {
                 seeds.add(fn.id)
             }
         }
@@ -355,10 +420,47 @@ function resolveSeeds(
 // ---------------------------------------------------------------------------
 
 export class ContextBuilder {
+    private bm25Index: BM25Index
+
     constructor(
         private contract: MikkContract,
         private lock: MikkLock
-    ) { }
+    ) {
+        this.bm25Index = this.buildBm25Index()
+    }
+
+    private buildBm25Index(): BM25Index {
+        const index = new BM25Index()
+        for (const fn of Object.values(this.lock.functions)) {
+            const tokens: string[] = []
+            
+            // Add function name tokens (split by underscore, camelCase)
+            const nameParts = fn.name.replace(/([a-z])([A-Z])/g, '$1 $2').split(/[-_]/)
+            tokens.push(...nameParts.filter(p => p.length >= 2))
+            
+            // Add purpose tokens
+            if (fn.purpose) {
+                const purposeTokens = fn.purpose.toLowerCase().replace(/[^a-z0-9]/g, ' ').split(/\s+/)
+                tokens.push(...purposeTokens.filter(t => t.length >= 2))
+            }
+            
+            // Add file name tokens (basename without extension)
+            const fileName = path.basename(fn.file).replace(/\.(d\.ts|ts|tsx|js|jsx|py|go|java|rs|cs|cpp|c|php|rb)$/i, '')
+            const fileParts = fileName.replace(/([a-z])([A-Z])/g, '$1 $2').split(/[-_]/)
+            tokens.push(...fileParts.filter(p => p.length >= 2))
+            
+            // Add module ID tokens
+            if (fn.moduleId) {
+                const modParts = fn.moduleId.split(/[-_]/)
+                tokens.push(...modParts.filter(p => p.length >= 2))
+            }
+            
+            if (tokens.length > 0) {
+                index.addDocument(fn.id, tokens)
+            }
+        }
+        return index
+    }
 
     /**
      * Build AI context for a given query.
@@ -405,8 +507,18 @@ export class ContextBuilder {
         const suggestions: string[] = []
         const nearMissSuggestions: string[] = []
 
+        // Pre-compute BM25 results to avoid O(N²) complexity
+        const bm25Results = this.bm25Index.search(keywords.join(' '), Math.min(100, allFunctions.length))
+        const bm25ScoreMap = new Map(bm25Results.map(r => [r.id, r.score]))
+
         const scored: { fn: MikkLockFunction; score: number }[] = allFunctions.map(fn => {
             let score = 0
+
+            // ── BM25 Search Score (primary ranking) ────────────────────────────
+            const bm25Score = bm25ScoreMap.get(fn.id) ?? 0
+            // Normalize BM25 score to 0-1 range and weight it heavily
+            const normalizedBm25 = bm25Score > 0 ? Math.min(1, bm25Score / 10) * 0.7 : 0
+            score += normalizedBm25
 
             // Proximity from BFS
             const depth = proximityMap.get(fn.id)
@@ -414,9 +526,9 @@ export class ContextBuilder {
                 score += depthToScore(depth)
             }
 
-            // Keyword match
+            // Keyword match (supplemental)
             const kwInfo = keywordScore(fn, keywords)
-            score += kwInfo.score
+            score += kwInfo.score * 0.3
 
             const matchedSet = new Set(kwInfo.matchedKeywords)
             const inFocusFile = focusFiles.some(filePath => fn.file.includes(filePath) || filePath.includes(fn.file))
@@ -474,7 +586,12 @@ export class ContextBuilder {
         usedTokens += estimateTokens(routesStr + ctxStr + JSON.stringify(this.contract.declared.constraints))
 
         for (const { fn, score } of scored) {
-            if (score <= 0 && seeds.length > 0) break // Nothing relevant left
+            // Only select functions with positive BM25/keyword score
+            // If no seeds found at all (unmatched query), still filter by score > 0
+            const hasRelevantScore = score > 0
+            const shouldFilter = seeds.length > 0 || keywords.length > 0
+            
+            if (shouldFilter && !hasRelevantScore) continue // Skip irrelevant functions
             if (selected.length >= (query.maxFunctions ?? 80)) break
 
             const snippet = this.buildFunctionSnippet(fn, query)

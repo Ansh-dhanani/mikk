@@ -14,6 +14,7 @@ export type RegistryLanguage =
     | 'csharp'
     | 'c'
     | 'cpp'
+    | 'polyglot'
     | 'unknown'
 
 const OXC_EXTENSIONS = ['.ts', '.tsx', '.js', '.jsx', '.mjs', '.cjs'] as const
@@ -44,6 +45,18 @@ const LANGUAGE_EXTENSIONS: Record<RegistryLanguage, readonly string[]> = {
     csharp: ['.cs'],
     c: ['.c', '.h'],
     cpp: ['.cpp', '.cc', '.cxx', '.hpp', '.hxx', '.hh', '.h'],
+    polyglot: [
+        '.ts', '.tsx', '.js', '.jsx', '.mjs', '.cjs',
+        '.py',
+        '.go',
+        '.rs',
+        '.java', '.kt', '.kts',
+        '.swift',
+        '.rb',
+        '.php',
+        '.cs',
+        '.c', '.h', '.cpp', '.cc', '.cxx', '.hpp', '.hxx', '.hh',
+    ],
     unknown: ['.ts', '.tsx', '.js', '.jsx'],
 }
 
