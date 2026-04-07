@@ -195,6 +195,9 @@ export class LockCompiler {
         for (const [id, node] of graph.nodes) {
             if (node.type !== 'function') continue
 
+            // Skip vendor files
+            if (this.isVendorPath(node.file)) continue
+
             const moduleId = this.findModule(node.file, contract.declared.modules)
             const displayName = node.name ?? ''
             const metadata = node.metadata ?? {}
@@ -238,6 +241,8 @@ export class LockCompiler {
         const result: Record<string, any> = {}
         for (const [id, node] of graph.nodes) {
             if (node.type !== 'class') continue
+            if (this.isVendorPath(node.file)) continue
+            
             const moduleId = this.findModule(node.file, contract.declared.modules)
             const className = node.name ?? ''
             const metadata = node.metadata ?? {}
@@ -267,6 +272,8 @@ export class LockCompiler {
             // Only include exported generics  non-exported types/interfaces are
             // internal implementation details that add noise without value.
             if (!(node.metadata?.isExported)) continue
+            if (this.isVendorPath(node.file)) continue
+            
             const moduleId = this.findModule(node.file, contract.declared.modules)
             const genericName = node.name ?? ''
             const metadata = node.metadata ?? {}
@@ -329,6 +336,7 @@ export class LockCompiler {
                 files: moduleFiles,
                 hash: computeModuleHash(fileHashes),
                 fragmentPath: `.mikk/fragments/${module.id}.lock`,
+                ...(module.parentId ? { parentId: module.parentId } : {}),
             }
         }
 
@@ -344,6 +352,9 @@ export class LockCompiler {
         const result: Record<string, MikkLock['files'][string]> = {}
 
         for (const file of parsedFiles) {
+            // Skip vendor files entirely
+            if (this.isVendorPath(file.path)) continue
+
             const moduleId = this.findModule(file.path, contract.declared.modules)
 
             // Collect file-level imports from the parsed file info directly
@@ -400,6 +411,9 @@ export class LockCompiler {
 
     /** Check if a file path matches any of the module's path patterns */
     private fileMatchesModule(filePath: string, patterns: string[]): boolean {
+        // Skip vendor paths - never match them to any module
+        if (this.isVendorPath(filePath)) return false
+
         const relativePath = getModuleMatchPath(filePath, this.projectRootPath)
         const normalizedRelative = relativePath.replace(/\\/g, '/').toLowerCase()
         const normalizedAbsolute = filePath.replace(/\\/g, '/').toLowerCase()
@@ -415,6 +429,44 @@ export class LockCompiler {
             if (minimatch(normalizedRelative, relativePattern) ||
                 minimatch(normalizedAbsolute, normalizedPattern)) {
                 return true
+            }
+        }
+        return false
+    }
+
+    /** Check if a path is from a vendor directory */
+    private isVendorPath(filePath: string): boolean {
+        const normalized = filePath.toLowerCase().replace(/\\/g, '/')
+        const vendorPatterns = [
+            '**/node_modules/**',
+            '**/venv/**',
+            '**/.venv/**',
+            '**/__pycache__/**',
+            '**/vendor/**',
+            '**/dist/**',
+            '**/build/**',
+            '**/.next/**',
+            '**/target/**',
+        ]
+        for (const pattern of vendorPatterns) {
+            // Convert glob to regex: ** becomes .* (match any depth)
+            // But handle leading ** specially: allow it to match from start
+            let p = pattern.toLowerCase()
+            if (p.startsWith('**/')) {
+                // Pattern like **/venv/** -> match anywhere containing /venv/
+                p = p.slice(3) // Remove **/
+                // Build regex that matches the pattern anywhere in the path
+                const regexStr = p.replace(/\*/g, '[^/]*')
+                if (normalized.includes('/' + regexStr.replace(/\//g, '/') + '/') || 
+                    normalized.endsWith('/' + regexStr) ||
+                    normalized === regexStr) {
+                    return true
+                }
+            } else {
+                const regexStr = p.replace(/\*\*/g, '.*').replace(/\*/g, '[^/]*')
+                if (new RegExp('^' + regexStr + '$').test(normalized)) {
+                    return true
+                }
             }
         }
         return false

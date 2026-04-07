@@ -5,6 +5,8 @@ import { GoParser } from './go/go-parser.js'
 import { UnsupportedLanguageError } from '../utils/errors.js'
 import type { ParsedFile } from './types.js'
 import { hashContent } from '../hash/file-hasher.js'
+import { IncrementalCache } from '../cache/incremental-cache.js'
+import { ErrorRecoveryEngine } from './error-recovery.js'
 import {
     parserKindForExtension,
     languageForExtension,
@@ -256,6 +258,9 @@ export async function parseFilesWithDiagnostics(
         }
     }
 
+    // Initialize incremental cache
+    const cache = new IncrementalCache(projectRoot)
+
     // Normalized project root for absolute path construction.
     const normalizedRoot = nodePath.resolve(projectRoot).replace(/\\/g, '/')
 
@@ -311,12 +316,33 @@ export async function parseFilesWithDiagnostics(
         }
 
         try {
+            // Compute content hash for cache lookup
+            const contentHash = hashContent(content)
+
+            // Check cache first
+            const cached = cache.get(absoluteFp, contentHash)
+            if (cached) {
+                // Cache hit — reuse parsed result
+                if (parserKind === 'oxc') {
+                    oxcFiles.push(cached)
+                } else if (parserKind === 'go') {
+                    goFiles.push(cached)
+                } else {
+                    treeFiles.push(cached)
+                }
+                parsedFilesCount += 1
+                continue
+            }
+
+            // Cache miss — parse and store
             if (parserKind === 'oxc') {
                 const parsed = await oxcParser.parse(absoluteFp, content)
+                cache.set(absoluteFp, contentHash, parsed)
                 oxcFiles.push(parsed)
                 parsedFilesCount += 1
             } else if (parserKind === 'go') {
                 const parsed = await goParser.parse(absoluteFp, content)
+                cache.set(absoluteFp, contentHash, parsed)
                 goFiles.push(parsed)
                 parsedFilesCount += 1
             } else {
@@ -335,6 +361,7 @@ export async function parseFilesWithDiagnostics(
                 }
                 const ts = await getTreeSitter()
                 const parsed = await ts.parse(absoluteFp, content)
+                cache.set(absoluteFp, contentHash, parsed)
                 treeFiles.push(parsed)
                 parsedFilesCount += 1
             }
@@ -413,6 +440,9 @@ export async function parseFilesWithDiagnostics(
         ...resolvedTreeFiles,
         ...fallbackFiles,
     ]
+
+    // Persist cache metadata
+    cache.flush()
 
     return {
         files: resolved,

@@ -2,6 +2,28 @@ import type { MikkContract } from './schema.js'
 import type { ModuleCluster } from '../graph/types.js'
 import type { ParsedFile } from '../parser/types.js'
 
+/** Common vendor directories to exclude from contract generation */
+const VENDOR_PATTERNS = [
+    '**/node_modules/**',
+    '**/venv/**',
+    '**/.venv/**',
+    '**/__pycache__/**',
+    '**/vendor/**',
+    '**/dist/**',
+    '**/build/**',
+    '**/.next/**',
+    '**/target/**',
+]
+
+/** Check if a path is from a vendor directory */
+function isVendorPath(filePath: string): boolean {
+    const normalized = filePath.toLowerCase().replace(/\\/g, '/')
+    return VENDOR_PATTERNS.some(pattern => {
+        const p = pattern.toLowerCase().replace(/\*\*/g, '.*').replace(/\*/g, '[^/]*').replace(/\?/g, '.')
+        return new RegExp('^' + p + '$').test(normalized)
+    })
+}
+
 /** Common entry point filenames across ecosystems (without extensions) */
 const ENTRY_BASENAMES = ['index', 'main', 'app', 'server', 'mod', 'lib', '__init__', 'manage', 'program', 'startup']
 
@@ -39,7 +61,13 @@ export class ContractGenerator {
         projectName: string,
         packageJsonDescription?: string
     ): MikkContract {
-        const modules = clusters.map(cluster => ({
+        // Filter out vendor files from clusters
+        const filteredClusters = clusters.map(cluster => ({
+            ...cluster,
+            files: cluster.files.filter(f => !isVendorPath(f)),
+        })).filter(cluster => cluster.files.length > 0)
+
+        const modules = filteredClusters.map(cluster => ({
             id: cluster.id,
             name: cluster.suggestedName,
             description: this.inferModuleDescription(cluster, parsedFiles),
@@ -50,14 +78,16 @@ export class ContractGenerator {
 
         // Detect entry points — language-agnostic basename matching
         const entryPoints = parsedFiles
+            .filter(f => !isVendorPath(f.path))
             .filter(f => {
                 const basename = (f.path.split('/').pop() || '').replace(/\.[^.]+$/, '')
                 return ENTRY_BASENAMES.includes(basename)
             })
             .map(f => f.path)
 
-        const detectedLanguage = inferLanguageFromFiles(parsedFiles)
-        const fallbackEntry = parsedFiles[0]?.path ?? 'src/index'
+        const filteredParsedFiles = parsedFiles.filter(f => !isVendorPath(f.path))
+        const detectedLanguage = inferLanguageFromFiles(filteredParsedFiles)
+        const fallbackEntry = filteredParsedFiles[0]?.path ?? 'src/index'
 
         return {
             version: '1.0.0',

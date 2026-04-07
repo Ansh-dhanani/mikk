@@ -10,6 +10,7 @@ export const MikkModuleSchema = z.object({
     owners: z.array(z.string()).optional(),
     paths: z.array(z.string()),
     entryFunctions: z.array(z.string()).optional(),
+    parentId: z.string().optional(),
 })
 
 export const MikkDecisionSchema = z.object({
@@ -99,6 +100,7 @@ export const MikkLockModuleSchema = z.object({
     files: z.array(z.string()),
     hash: z.string(),
     fragmentPath: z.string(),
+    parentId: z.string().optional(),
 })
 
 export const MikkLockImportSchema = z.object({

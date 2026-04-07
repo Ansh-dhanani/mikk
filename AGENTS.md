@@ -381,8 +381,8 @@
 <repository_context>
   <name>mikk</name>
   <stats>
-    <files>236</files>
-    <functions>813</functions>
+    <files>245</files>
+    <functions>858</functions>
     <modules>30</modules>
     <language>typescript</language>
   </stats>
@@ -430,15 +430,12 @@
     <name>Testing & Search</name>
     <location>c:/users/ansh/desktop/web/mesh/benchmarks/**</location>
     <purpose>17 files, 0 functions</purpose>
-    <entry_points>
-      <function signature="getFixturePath(name) [c:/users/ansh/desktop/web/mesh/benchmarks/ground-truth-benchmark.ts:16]" purpose="Get fixture path (name)" />
-    </entry_points>
     <key_internal_functions>
-      <function name="runCommand" callers="5" purpose="Run command (cmd, cwd)" />
-      <function name="loadLock" callers="5" purpose="Load lock (projectPath)" />
-      <function name="benchmarkDeadCodeDetection" callers="1" purpose="Benchmark dead code detection (projectPath, projectName)" />
-      <function name="benchmarkFunctionSearch" callers="1" purpose="Benchmark function search (projectPath, projectName)" />
-      <function name="benchmarkImpactAnalysis" callers="1" purpose="Benchmark impact analysis (projectPath, projectName)" />
+      <function name="normalizeRoute" callers="3" purpose="Normalize route (method, routePath)" />
+      <function name="send" callers="3" purpose="Send (method, params, timeoutMs)" />
+      <function name="normalizePath" callers="2" purpose="Normalize path (filePath)" />
+      <function name="close" callers="2" purpose="Close" />
+      <function name="scoreToPct" callers="1" purpose="Score to pct (score, maxScore)" />
     </key_internal_functions>
   </module>
   <module id="mesh-apps-web">
@@ -480,9 +477,9 @@
     <location>c:/users/ansh/desktop/web/mesh/packages/ai-context/src/**</location>
     <purpose>7 files, 0 functions</purpose>
     <entry_points>
-      <function signature="ContextBuilder.build(query) [c:/users/ansh/desktop/web/mesh/packages/ai-context/src/context-builder.ts:374]" purpose="Context builder.build (query)" />
-      <function signature="ContextBuilder.readFunctionBody(fn, projectRoot) [c:/users/ansh/desktop/web/mesh/packages/ai-context/src/context-builder.ts:643]" purpose="Context builder.read function body (fn, projectRoot)" />
-      <function signature="ContextBuilder.generatePrompt(query, modules) [c:/users/ansh/desktop/web/mesh/packages/ai-context/src/context-builder.ts:687]" purpose="Context builder.generate prompt (query, modules)" />
+      <function signature="ContextBuilder.build(query) [c:/users/ansh/desktop/web/mesh/packages/ai-context/src/context-builder.ts:458]" purpose="Context builder.build (query)" />
+      <function signature="ContextBuilder.readFunctionBody(fn, projectRoot) [c:/users/ansh/desktop/web/mesh/packages/ai-context/src/context-builder.ts:743]" purpose="Context builder.read function body (fn, projectRoot)" />
+      <function signature="ContextBuilder.generatePrompt(query, modules) [c:/users/ansh/desktop/web/mesh/packages/ai-context/src/context-builder.ts:787]" purpose="Context builder.generate prompt (query, modules)" />
       <function signature="ClaudeProvider.formatContext(context) [c:/users/ansh/desktop/web/mesh/packages/ai-context/src/providers.ts:13]" purpose="Claude provider.format context (context)" />
       <function signature="estimateFileTokens(content, filePath) [c:/users/ansh/desktop/web/mesh/packages/ai-context/src/token-counter.ts:119]" purpose="Estimate file tokens (content, filePath)" />
     </entry_points>
@@ -562,7 +559,7 @@
     <location>c:/users/ansh/desktop/web/mesh/packages/mcp-server/src/**</location>
     <purpose>5 files, 0 functions</purpose>
     <entry_points>
-      <function signature="registerTools(server, projectRoot) [c:/users/ansh/desktop/web/mesh/packages/mcp-server/src/tools.ts:118]" purpose="Register tools (server, projectRoot)" />
+      <function signature="registerTools(server, projectRoot) [c:/users/ansh/desktop/web/mesh/packages/mcp-server/src/tools.ts:210]" purpose="Register tools (server, projectRoot)" />
       <function signature="registerResources(server, projectRoot) [c:/users/ansh/desktop/web/mesh/packages/mcp-server/src/resources.ts:8]" purpose="Register resources (server, projectRoot)" />
       <function signature="createMikkMcpServer(projectRoot) [c:/users/ansh/desktop/web/mesh/packages/mcp-server/src/server.ts:12]" purpose="Create mikk mcp server (projectRoot)" />
       <function signature="async startStdioServer() [c:/users/ansh/desktop/web/mesh/packages/mcp-server/src/stdio.ts:8]" purpose="Start stdio server" />
@@ -571,8 +568,8 @@
       <function name="_tok" callers="4" purpose="Tok (o)" />
       <function name="_tally" callers="3" purpose="Tally (r)" />
       <function name="_fileTok" callers="3" purpose="File tok (lock, fp)" />
+      <function name="getDirtySampleFiles" callers="3" purpose="Get dirty sample files (projectRoot, sampleFiles)" />
       <function name="buildGraphFromLock" callers="3" purpose="Build graph from lock (lock)" />
-      <function name="safeRead" callers="2" purpose="Safe read (filePath)" />
     </key_internal_functions>
   </module>
   <module id="mesh-packages-intent-engine">
@@ -610,7 +607,7 @@
     <location>c:/users/ansh/desktop/web/mesh/packages/core/src/contract/**</location>
     <purpose>8 files, 0 functions</purpose>
     <entry_points>
-      <function signature="ContractGenerator.generateFromClusters(clusters, parsedFiles, projectName, packageJsonDescription?) [c:/users/ansh/desktop/web/mesh/packages/core/src/contract/contract-generator.ts:36]" purpose="Contract generator.generate from clusters" />
+      <function signature="ContractGenerator.generateFromClusters(clusters, parsedFiles, projectName, packageJsonDescription?) [c:/users/ansh/desktop/web/mesh/packages/core/src/contract/contract-generator.ts:58]" purpose="Contract generator.generate from clusters" />
       <function signature="LockCompiler.compileFunctions(graph, contract) [c:/users/ansh/desktop/web/mesh/packages/core/src/contract/lock-compiler.ts:189]" purpose="Lock compiler.compile functions (graph, contract)" />
       <function signature="LockCompiler.compileClasses(graph, contract) [c:/users/ansh/desktop/web/mesh/packages/core/src/contract/lock-compiler.ts:234]" purpose="Lock compiler.compile classes (graph, contract)" />
       <function signature="LockCompiler.compileGenerics(graph, contract) [c:/users/ansh/desktop/web/mesh/packages/core/src/contract/lock-compiler.ts:260]" purpose="Lock compiler.compile generics (graph, contract)" />
@@ -619,9 +616,9 @@
     <key_internal_functions>
       <function name="inferPurpose" callers="3" purpose="Infer purpose" />
       <function name="parseEntityKey" callers="2" purpose="Parse entity key (key, prefix)" />
+      <function name="isVendorPath" callers="1" purpose="Check if vendor path (filePath)" />
       <function name="inferLanguageFromFiles" callers="1" purpose="Infer language from files (parsedFiles)" />
       <function name="splitIdentifier" callers="1" purpose="Split identifier (name)" />
-      <function name="getModuleMatchPath" callers="1" purpose="Get module match path (filePath, projectRootPath)" />
     </key_internal_functions>
   </module>
   <module id="packages-cli-commands">
@@ -693,7 +690,7 @@
       <function signature="async OxcParser.parse(filePath, content) [c:/users/ansh/desktop/web/mesh/packages/core/src/parser/oxc-parser.ts:280]" purpose="Oxc parser.parse (filePath, content)" />
       <function signature="parseConstraint(constraint) [c:/users/ansh/desktop/web/mesh/packages/core/src/parser/boundary-checker.ts:34]" purpose="Parse constraint (constraint)" />
       <function signature="getParser(filePath) [c:/users/ansh/desktop/web/mesh/packages/core/src/parser/index.ts:104]" purpose="Get parser (filePath)" />
-      <function signature="async parseFiles(filePaths, projectRoot, readFile) [c:/users/ansh/desktop/web/mesh/packages/core/src/parser/index.ts:426]" purpose="Parse files (filePaths, projectRoot, readFile)" />
+      <function signature="async parseFiles(filePaths, projectRoot, readFile) [c:/users/ansh/desktop/web/mesh/packages/core/src/parser/index.ts:440]" purpose="Parse files (filePaths, projectRoot, readFile)" />
       <function signature="parseJsonWithComments(raw) [c:/users/ansh/desktop/web/mesh/packages/core/src/parser/parser-constants.ts:75]" purpose="Parse json with comments (raw)" />
     </entry_points>
     <key_internal_functions>
