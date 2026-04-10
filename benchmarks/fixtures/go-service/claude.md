@@ -94,10 +94,19 @@ type UserPublic struct {
 }
 ```
 
-## HTTP Routes
+## File Import Graph
 
-- **ANY** `/health` → `handlers.HealthCheck` *(main.go:21)*
-- **ANY** `/users/register` → `userHandler.Register` *(main.go:22)*
-- **ANY** `/users/login` → `userHandler.Login` *(main.go:23)*
+Which files import which — useful for understanding data flow.
+
+### unknown
+- `C:/Users/Ansh/Desktop/web/Mesh/benchmarks/fixtures/go-service/main.go` → `fmt`, `log`, `net/http`, `github.com/example/go-service/config`, `github.com/example/go-service/handlers`, `github.com/example/go-service/middleware`
+- `C:/Users/Ansh/Desktop/web/Mesh/benchmarks/fixtures/go-service/config/config.go` → `os`
+- `C:/Users/Ansh/Desktop/web/Mesh/benchmarks/fixtures/go-service/handlers/task_handler.go` → `encoding/json`, `net/http`
+- `C:/Users/Ansh/Desktop/web/Mesh/benchmarks/fixtures/go-service/handlers/user_handler.go` → `encoding/json`, `net/http`
+- `C:/Users/Ansh/Desktop/web/Mesh/benchmarks/fixtures/go-service/middleware/auth_middleware.go` → `context`, `net/http`, `strings`, `github.com/golang-jwt/jwt/v5`
+- `C:/Users/Ansh/Desktop/web/Mesh/benchmarks/fixtures/go-service/models/task.go` → `time`
+- `C:/Users/Ansh/Desktop/web/Mesh/benchmarks/fixtures/go-service/models/user.go` → `time`
+- `C:/Users/Ansh/Desktop/web/Mesh/benchmarks/fixtures/go-service/repository/user_repo.go` → `errors`, `sync`, `time`, `github.com/example/go-service/models`, `github.com/google/uuid`
+- `C:/Users/Ansh/Desktop/web/Mesh/benchmarks/fixtures/go-service/service/auth_service.go` → `errors`, `time`, `github.com/example/go-service/models`, `github.com/example/go-service/repository`, `github.com/golang-jwt/jwt/v5`, `golang.org/x/crypto/bcrypt`
 
 

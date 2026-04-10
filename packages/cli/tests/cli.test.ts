@@ -66,11 +66,13 @@ describe('@getmikk/cli integration', () => {
         expect(result.stderr).toContain('unknown command')
     })
     
-    it('returns help when context command is missing subcommands', async () => {
-        const result = await runCli(['context'])
-        // context without subcommands prints help, so we look for usage text
-        expect(result.stdout || result.stderr).toContain('Usage: mikk context')
-    })
+     it('returns help when context command is missing subcommands', async () => {
+         const result = await runCli(['context'])
+         // context without subcommands prints help, so we look for usage text
+         // Filter out TreeSitter registration noise
+         const output = (result.stdout + result.stderr).replace(/--- Registering TreeSitter languages ---\n?/g, '')
+         expect(output).toContain('Usage: mikk context')
+     })
 
     it('init help exposes strict parsing and force flags', async () => {
         const result = await runCli(['init', '--help'])

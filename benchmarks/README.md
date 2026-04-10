@@ -66,7 +66,7 @@ Compares Mikk against realistic alternatives.
 | Task | Baseline | Mikk | Improvement |
 |------|----------|------|-------------|
 | Dead Code Detection | Simple "no callers" check | Graph analysis + exclusions | +45% F1 |
-| Impact Analysis | Text search for function names | Call graph BFS | +82% accuracy |
+| Impact Analysis | Text search for function names | Call graph BFS | Significant improvement |
 | Function Search | Substring matching | BM25 + RRF | +38% MRR |
 | Context Efficiency | Read all files | BFS relevance | 3.9x fewer tokens |
 

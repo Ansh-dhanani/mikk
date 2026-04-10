@@ -93,6 +93,8 @@ export const MikkLockFunctionSchema = z.object({
     })).optional(),
     confidence: z.number().optional(),
     riskScore: z.number().optional(),
+    signatureHash: z.string().optional(),
+    tokenVector: z.array(z.number()).optional(),
 })
 
 export const MikkLockModuleSchema = z.object({

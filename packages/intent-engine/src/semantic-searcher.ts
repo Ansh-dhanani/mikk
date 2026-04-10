@@ -1,6 +1,8 @@
 import * as path from 'node:path'
 import * as fs from 'node:fs/promises'
-import type { MikkLock } from '@getmikk/core'
+import type { MikkLock, MikkLockFunction } from '@getmikk/core'
+
+const MAX_BODY_TOKENS = 150
 
 interface EmbeddingCache {
     lockFingerprint: string
@@ -35,6 +37,7 @@ export class SemanticSearcher {
     static readonly MODEL = 'Xenova/all-MiniLM-L6-v2'
 
     private readonly cachePath: string
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     private pipeline: any = null
     private cache: EmbeddingCache | null = null
 
@@ -77,7 +80,9 @@ export class SemanticSearcher {
                 this.cache = cached
                 return
             }
-        } catch { /* miss or corrupt -- rebuild */ }
+        } catch (err) {
+            console.warn(`[mikk] Semantic search cache miss/rebuild: ${err instanceof Error ? err.message : String(err)}`)
+        }
 
         // -- Empty lock fast-path -- nothing to embed ------------------------
         const fns = Object.values(lock.functions)
@@ -86,16 +91,8 @@ export class SemanticSearcher {
             return
         }
 
-        // Text representation: name + purpose + param names (no bodies, keeps it fast)
-        const texts = fns.map(fn => {
-            const parts: string[] = [fn.name]
-            if (fn.purpose) parts.push(fn.purpose)
-            if (fn.params?.length) parts.push(fn.params.map((p: any) => p.name).join(' '))
-            if (fn.returnType && fn.returnType !== 'void' && fn.returnType !== 'any') {
-                parts.push('returns ' + fn.returnType)
-            }
-            return parts.join(' ')
-        })
+        // Text representation: name + purpose + params + types + return type + body snippet
+        const texts = await Promise.all(fns.map(fn => buildRichText(fn, this.projectRoot)))
 
         await this.ensurePipeline()
         const embeddings: Record<string, number[]> = {}
@@ -109,8 +106,12 @@ export class SemanticSearcher {
         }
 
         this.cache = { lockFingerprint: fingerprint, model: SemanticSearcher.MODEL, embeddings }
-        await fs.mkdir(path.dirname(this.cachePath), { recursive: true })
-        await fs.writeFile(this.cachePath, JSON.stringify(this.cache))
+        try {
+            await fs.mkdir(path.dirname(this.cachePath), { recursive: true })
+            await fs.writeFile(this.cachePath, JSON.stringify(this.cache))
+        } catch (err) {
+            console.warn(`[mikk] Failed to write semantic search cache: ${err instanceof Error ? err.message : String(err)}`)
+        }
     }
 
     /**
@@ -154,12 +155,97 @@ export class SemanticSearcher {
     }
 }
 
-// --- Helpers -----------------------------------------------------------------
+async function buildRichText(fn: MikkLockFunction, projectRoot: string): Promise<string> {
+    const parts: string[] = [fn.name]
 
-/** Lightweight fingerprint: function count + first 20 sorted IDs */
+    if (fn.purpose) {
+        parts.push(fn.purpose)
+    }
+
+    if (fn.params?.length) {
+        const paramStr = fn.params.map((p) => p.name).join(' ')
+        const typeStr = fn.params.map((p) => p.type || '').filter(Boolean).join(' ')
+        parts.push(paramStr, typeStr)
+    }
+
+    if (fn.returnType && fn.returnType !== 'void' && fn.returnType !== 'any') {
+        parts.push('returns', fn.returnType)
+    }
+
+    const body = await getFunctionBodySnippet(fn, projectRoot)
+    if (body) {
+        parts.push(body)
+    }
+
+    return parts.join(' ')
+}
+
+async function getFunctionBodySnippet(fn: MikkLockFunction, projectRoot: string): Promise<string> {
+    try {
+        const fullPath = path.join(projectRoot, fn.file)
+        const content = await fs.readFile(fullPath, 'utf-8')
+        const lines = content.split('\n')
+        const start = Math.max(0, fn.startLine - 1)
+        const end = Math.min(lines.length, fn.endLine)
+        const bodyLines = lines.slice(start, end)
+        const bodyText = bodyLines.join(' ')
+
+        const cleaned = cleanCodeForEmbedding(bodyText)
+
+        const tokens = cleaned.split(/\s+/).filter(Boolean)
+        if (tokens.length <= MAX_BODY_TOKENS) {
+            return cleaned
+        }
+
+        const truncated = tokens.slice(0, MAX_BODY_TOKENS).join(' ')
+        return truncated + ' ...'
+    } catch {
+        return ''
+    }
+}
+
+function cleanCodeForEmbedding(code: string): string {
+    return code
+        .replace(/\/\*\*[\s\S]*?\*\//g, ' ')
+        .replace(/\/\/[^\n]*/g, ' ')
+        .replace(/#.*$/gm, ' ')
+        .replace(/['"`][^'"`]*['"`]/g, ' ')
+        .replace(/\{[^}]*\}/g, ' ')
+        .replace(/\s+/g, ' ')
+        .trim()
+}
+
+async function _readFileCached(filePath: string, cache: Map<string, string>): Promise<string> {
+    if (cache.has(filePath)) {
+        return cache.get(filePath)!
+    }
+    try {
+        const content = await fs.readFile(filePath, 'utf-8')
+        cache.set(filePath, content)
+        return content
+    } catch {
+        return ''
+    }
+}
+
+/** Improved fingerprint: function count + all sorted IDs + metadata */
 function lockFingerprint(lock: MikkLock): string {
-    const ids = Object.keys(lock.functions).sort().slice(0, 20).join('|')
-    return `${Object.keys(lock.functions).length}:${ids}`
+    const ids = Object.keys(lock.functions).sort().join('|')
+    const fnCount = Object.keys(lock.functions).length
+    const fileCount = Object.keys(lock.files ?? {}).length
+    const moduleCount = Object.keys(lock.modules ?? {}).length
+    const hash = hashContent(`${fnCount}:${fileCount}:${moduleCount}:${ids}`)
+    return hash.slice(0, 32)
+}
+
+function hashContent(content: string): string {
+    let hash = 0
+    for (let i = 0; i < content.length; i++) {
+        const char = content.charCodeAt(i)
+        hash = ((hash << 5) - hash) + char
+        hash = hash & hash
+    }
+    return Math.abs(hash).toString(16)
 }
 
 function cosineSimilarity(a: number[], b: number[]): number {

@@ -31,8 +31,9 @@ export function registerAdrCommand(program: Command) {
                     console.log(`  ${dateStr}${chalk.cyan(d.id.padEnd(20))} ${d.title}`)
                 }
                 console.log('')
-            } catch (err: any) {
-                console.error(chalk.red(`Failed to list ADRs: ${err.message}`))
+            } catch (err: unknown) {
+                const message = err instanceof Error ? err.message : String(err)
+                console.error(chalk.red(`Failed to list ADRs: ${message}`))
                 process.exit(1)
             }
         })
@@ -72,8 +73,9 @@ export function registerAdrCommand(program: Command) {
                 if (line) console.log(`  ${line}`)
                 console.log('')
 
-            } catch (err: any) {
-                console.error(chalk.red(`Failed to get ADR: ${err.message}`))
+            } catch (err: unknown) {
+                const message = err instanceof Error ? err.message : String(err)
+                console.error(chalk.red(`Failed to get ADR: ${message}`))
                 process.exit(1)
             }
         })
@@ -99,8 +101,9 @@ export function registerAdrCommand(program: Command) {
                 })
 
                 console.log(chalk.green(`\n✓ Added ADR "${options.id}" successfully.\n`))
-            } catch (err: any) {
-                console.error(chalk.red(`\nFailed to add ADR: ${err.message}\n`))
+            } catch (err: unknown) {
+                const message = err instanceof Error ? err.message : String(err)
+                console.error(chalk.red(`\nFailed to add ADR: ${message}\n`))
                 process.exit(1)
             }
         })
@@ -120,8 +123,9 @@ export function registerAdrCommand(program: Command) {
                     console.error(chalk.red(`\n  ADR "${id}" not found.\n`))
                     process.exit(1)
                 }
-            } catch (err: any) {
-                console.error(chalk.red(`Failed to remove ADR: ${err.message}`))
+            } catch (err: unknown) {
+                const message = err instanceof Error ? err.message : String(err)
+                console.error(chalk.red(`Failed to remove ADR: ${message}`))
                 process.exit(1)
             }
         })

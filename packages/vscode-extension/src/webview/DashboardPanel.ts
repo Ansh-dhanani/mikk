@@ -1,17 +1,24 @@
 import * as vscode from 'vscode';
 
+interface MikkContractModule { id: string; name: string; description?: string; paths: string[]; entryFunctions?: string[] }
+interface DashboardData {
+    contract: { declared: { modules: MikkContractModule[]; constraints: unknown[]; decisions: unknown[] } }
+    lock: { functions: unknown[] }
+    stats: { fileCount: number; functionCount: number; moduleCount: number }
+}
+
 export class DashboardPanel {
     public static currentPanel: DashboardPanel | undefined;
     private readonly _panel: vscode.WebviewPanel;
     private _disposables: vscode.Disposable[] = [];
 
-    private constructor(panel: vscode.WebviewPanel, data: any) {
+    private constructor(panel: vscode.WebviewPanel, data: DashboardData) {
         this._panel = panel;
         this._panel.onDidDispose(() => this.dispose(), null, this._disposables);
         this._update(data);
     }
 
-    public static createOrShow(extensionUri: vscode.Uri, data: any) {
+    public static createOrShow(extensionUri: vscode.Uri, data: DashboardData) {
         const column = vscode.window.activeTextEditor?.viewColumn ?? vscode.ViewColumn.One;
 
         if (DashboardPanel.currentPanel) {
@@ -30,10 +37,12 @@ export class DashboardPanel {
         DashboardPanel.currentPanel = new DashboardPanel(panel, data);
     }
 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     public update(data: any) {
         this._update(data);
     }
 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     private _update(data: any) {
         const { contract, lock } = data ?? {};
 
@@ -42,7 +51,9 @@ export class DashboardPanel {
             return;
         }
 
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const fns = Object.values(lock.functions) as any[];
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const files = Object.values(lock.files) as any[];
         const fnCount = fns.length;
         const fileCount = files.length;
@@ -62,7 +73,7 @@ export class DashboardPanel {
         // Mermaid module graph
         const mermaid = contract.declared.modules
             .slice(0, 12) // cap to avoid huge diagrams
-            .map((m: any) => `  ${m.id.replace(/[^a-z0-9]/gi, '_')}["${m.name}"]`)
+            .map((m: MikkContractModule) => `  ${m.id.replace(/[^a-z0-9]/gi, '_')}["${m.name}"]`)
             .join('\n');
 
         this._panel.webview.html = `<!DOCTYPE html>

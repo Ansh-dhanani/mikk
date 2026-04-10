@@ -247,13 +247,18 @@ export function getProvider(name: string): ContextProvider {
             return new ClaudeProvider()
         case 'compact':
             return new CompactProvider()
-        default:
+        case 'generic':
             return new GenericProvider()
+        default:
+            throw new Error(
+                `Unknown provider "${name}". Available providers: claude, anthropic, compact, generic`
+            )
     }
 }
 
 /** Minimal XML attribute escaping */
-function esc(s: string): string {
+function esc(s: string | null | undefined): string {
+    if (s == null) return ''
     return s
         .replace(/&/g, '&amp;')
         .replace(/</g, '&lt;')

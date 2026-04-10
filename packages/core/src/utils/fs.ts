@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import * as fs from 'node:fs/promises'
 import * as path from 'node:path'
 import fg from 'fast-glob'
@@ -184,7 +185,22 @@ export function parseMikkIgnore(content: string): string[] {
  * This is technology-agnostic: it works for Prisma, Drizzle, GraphQL, SQL,
  * Protobuf, Docker, OpenAPI, and more -- anything with a well-known file pattern.
  */
-export async function discoverContextFiles(projectRoot: string): Promise<ContextFile[]> {
+
+export interface DiscoverContextFilesOptions {
+    /** Maximum number of context files to return (default 20) */
+    maxFiles?: number
+    /** Callback for progress updates */
+    onProgress?: (current: number, total: number, file: string) => void
+    /** Skip reading file content - just get file list with stats */
+    metadataOnly?: boolean
+}
+
+export async function discoverContextFiles(
+    projectRoot: string,
+    options: DiscoverContextFilesOptions = {}
+): Promise<ContextFile[]> {
+    const { maxFiles = 20, onProgress, metadataOnly = false } = options
+
     const mikkIgnore = await readMikkIgnore(projectRoot)
     const files = await fg(CONTEXT_FILE_PATTERNS, {
         cwd: projectRoot,
@@ -194,29 +210,49 @@ export async function discoverContextFiles(projectRoot: string): Promise<Context
     })
 
     const normalised = files.map(f => f.replace(/\\/g, '/'))
-
-    // Deduplicate -- some patterns overlap (e.g. models/*.ts also matched by source discovery)
     const unique = [...new Set(normalised)]
 
     const results: ContextFile[] = []
+    const batchSize = 10
 
-    for (const relPath of unique) {
-        const absPath = path.join(projectRoot, relPath)
-        try {
-            const stat = await fs.stat(absPath)
-            if (stat.size > MAX_CONTEXT_FILE_SIZE) continue // skip huge files
-            if (stat.size === 0) continue
+    for (let i = 0; i < unique.length; i += batchSize) {
+        const batch = unique.slice(i, i + batchSize)
 
-            const content = await fs.readFile(absPath, 'utf-8')
-            const type = inferContextFileType(relPath)
+        const batchResults = await Promise.all(
+            batch.map(async (relPath) => {
+                const absPath = path.join(projectRoot, relPath)
+                try {
+                    const stat = await fs.stat(absPath)
+                    if (stat.size > MAX_CONTEXT_FILE_SIZE) return null
+                    if (stat.size === 0) return null
 
-            results.push({ path: relPath, content, type, size: stat.size })
-        } catch {
-            // File unreadable -- skip
+                    const type = inferContextFileType(relPath)
+
+                    if (onProgress) {
+                        onProgress(results.length + 1, Math.min(unique.length, maxFiles), relPath)
+                    }
+
+                    if (metadataOnly) {
+                        return { path: relPath, content: '', type, size: stat.size }
+                    }
+
+                    const content = await fs.readFile(absPath, 'utf-8')
+                    return { path: relPath, content, type, size: stat.size }
+                } catch {
+                    return null
+                }
+            })
+        )
+
+        for (const result of batchResults) {
+            if (result && results.length < maxFiles) {
+                results.push(result)
+            }
         }
+
+        if (results.length >= maxFiles) break
     }
 
-    // Sort: schemas/models first, then types, routes, config
     const priority: Record<ContextFileType, number> = {
         schema: 0,
         model: 1,
@@ -229,9 +265,6 @@ export async function discoverContextFiles(projectRoot: string): Promise<Context
     }
     results.sort((a, b) => priority[a.type] - priority[b.type])
 
-    // If we have a schema file (e.g. prisma/schema.prisma), the migrations
-    // are redundant -- they represent historical deltas, not the current state.
-    // Including them wastes AI tokens and can be actively misleading.
     const hasSchema = results.some(f => f.type === 'schema')
     if (hasSchema) {
         return results.filter(f => f.type !== 'migration')
@@ -287,19 +320,52 @@ export async function detectProjectLanguage(projectRoot: string): Promise<Projec
         const matches = await fg(pattern, { cwd: projectRoot, onlyFiles: true, deep: 1 })
         return matches.length > 0
     }
+    
+    const hasTsConfig = await exists('tsconfig.json') || await hasGlob('tsconfig.*.json')
+    const hasPackageJson = await exists('package.json')
+    const hasRust = await exists('Cargo.toml')
+    const hasGo = await exists('go.mod')
+    const hasPython = await exists('pyproject.toml') || await exists('setup.py') || await exists('requirements.txt')
+    const hasRuby = await exists('Gemfile')
+    const hasJava = await exists('pom.xml') || await exists('build.gradle') || await exists('build.gradle.kts')
+    const hasSwift = await exists('Package.swift')
+    const hasPhp = await exists('composer.json')
+    const hasCSharp = await hasGlob('*.csproj') || await hasGlob('*.sln')
+    const hasCpp = await hasGlob('CMakeLists.txt') || await hasGlob('**/*.cmake')
+    const hasC = await hasGlob('*.c') || await hasGlob('*.h')
+    
+    // Count non-JS family manifests (TypeScript and JavaScript share package.json, so count them together)
+    let languageFamilyCount = 0
+    if (hasTsConfig || hasPackageJson) languageFamilyCount++ // JS family (TS or JS)
+    if (hasRust) languageFamilyCount++
+    if (hasGo) languageFamilyCount++
+    if (hasPython) languageFamilyCount++
+    if (hasRuby) languageFamilyCount++
+    if (hasJava) languageFamilyCount++
+    if (hasSwift) languageFamilyCount++
+    if (hasPhp) languageFamilyCount++
+    if (hasCSharp) languageFamilyCount++
+    if (hasCpp) languageFamilyCount++
+    if (hasC) languageFamilyCount++
+    
+    // If multiple language families detected, it's polyglot
+    if (languageFamilyCount > 1) {
+        return 'polyglot'
+    }
+    
     // Check in priority order -- most specific first
-    if (await exists('tsconfig.json') || await hasGlob('tsconfig.*.json')) return 'typescript'
-    if (await exists('Cargo.toml')) return 'rust'
-    if (await exists('go.mod')) return 'go'
-    if (await exists('pyproject.toml') || await exists('setup.py') || await exists('requirements.txt')) return 'python'
-    if (await exists('Gemfile')) return 'ruby'
-    if (await exists('pom.xml') || await exists('build.gradle') || await exists('build.gradle.kts')) return 'java'
-    if (await exists('Package.swift')) return 'swift'
-    if (await exists('composer.json')) return 'php'
-    if (await hasGlob('*.csproj') || await hasGlob('*.sln')) return 'csharp'
-    if (await hasGlob('CMakeLists.txt') || await hasGlob('**/*.cmake') || await hasGlob('*.cpp')) return 'cpp'
-    if (await hasGlob('*.c') || await hasGlob('*.h')) return 'c'
-    if (await exists('package.json')) return 'javascript'
+    if (hasTsConfig) return 'typescript'
+    if (hasRust) return 'rust'
+    if (hasGo) return 'go'
+    if (hasPython) return 'python'
+    if (hasRuby) return 'ruby'
+    if (hasJava) return 'java'
+    if (hasSwift) return 'swift'
+    if (hasPhp) return 'php'
+    if (hasCSharp) return 'csharp'
+    if (hasCpp) return 'cpp'
+    if (hasC) return 'c'
+    if (hasPackageJson) return 'javascript'
     return 'unknown'
 }
 
@@ -320,12 +386,12 @@ export function getDiscoveryPatterns(language: ProjectLanguage): { patterns: str
     switch (language) {
         case 'typescript':
             return {
-                patterns: toPatterns(language),
+                patterns: [...toPatterns(language), '**/*.js', '**/*.jsx'],
                 ignore: [...commonIgnore, '**/node_modules/**', '**/dist/**', '**/.next/**', '**/.nuxt/**', '**/.svelte-kit/**', '**/*.d.ts', '**/*.test.{ts,js,tsx,jsx}', '**/*.spec.{ts,js,tsx,jsx}', '**/venv/**', '**/.venv/**'],
             }
         case 'javascript':
             return {
-                patterns: toPatterns(language),
+                patterns: [...toPatterns(language), '**/*.ts', '**/*.tsx'],
                 ignore: [...commonIgnore, '**/node_modules/**', '**/dist/**', '**/.next/**', '**/*.d.ts', '**/*.test.{ts,js,tsx,jsx}', '**/*.spec.{ts,js,tsx,jsx}', '**/venv/**', '**/.venv/**'],
             }
         case 'python':
@@ -345,7 +411,7 @@ export function getDiscoveryPatterns(language: ProjectLanguage): { patterns: str
             }
         case 'java':
             return {
-                patterns: toPatterns(language),
+                patterns: [...toPatterns(language), '**/*.kt', '**/*.kts'],
                 ignore: [...commonIgnore, '**/target/**', '**/.gradle/**', '**/Test*.java', '**/*Test.java'],
             }
         case 'swift':
@@ -448,28 +514,16 @@ export async function fileExists(filePath: string): Promise<boolean> {
 
 /**
  * Set up the .mikk directory structure in a project root.
+ * Only creates directories that are actually used.
  */
 export async function setupMikkDirectory(projectRoot: string): Promise<void> {
     const dirs = [
         '.mikk',
-        '.mikk/fragments',
-        '.mikk/diagrams',
-        '.mikk/diagrams/modules',
-        '.mikk/diagrams/capsules',
-        '.mikk/diagrams/flows',
-        '.mikk/diagrams/impact',
-        '.mikk/diagrams/exposure',
-        '.mikk/intent',
         '.mikk/cache',
+        '.mikk/transactions',
     ]
     for (const dir of dirs) {
         await fs.mkdir(path.join(projectRoot, dir), { recursive: true })
-    }
-
-    // Create .gitkeep in impact dir
-    const impactKeep = path.join(projectRoot, '.mikk/diagrams/impact/.gitkeep')
-    if (!await fileExists(impactKeep)) {
-        await fs.writeFile(impactKeep, '', 'utf-8')
     }
 }
 

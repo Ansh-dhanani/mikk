@@ -4,17 +4,19 @@ export class MikkCodeLensProvider implements vscode.CodeLensProvider {
     private _onDidChangeCodeLenses: vscode.EventEmitter<void> = new vscode.EventEmitter<void>();
     public readonly onDidChangeCodeLenses: vscode.Event<void> = this._onDidChangeCodeLenses.event;
 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     constructor(private dataProvider: any) {}
 
     public refresh() {
         this._onDidChangeCodeLenses.fire();
     }
 
-    public provideCodeLenses(document: vscode.TextDocument, token: vscode.CancellationToken): vscode.CodeLens[] | Thenable<vscode.CodeLens[]> {
+    public provideCodeLenses(document: vscode.TextDocument, _token: vscode.CancellationToken): vscode.CodeLens[] | Thenable<vscode.CodeLens[]> {
         const lock = this.dataProvider.getLock();
         if (!lock || !lock.functions) return [];
 
         const currentFile = vscode.workspace.asRelativePath(document.fileName);
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const fns = Object.values(lock.functions) as any[];
         const fileFns = fns.filter(f => f.file === currentFile);
 

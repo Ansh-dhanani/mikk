@@ -1,5 +1,3 @@
-import type { MikkContract, MikkLock, MikkLockFunction } from '@getmikk/core'
-
 /** The structured context object passed to AI models */
 export interface AIContext {
     project: {

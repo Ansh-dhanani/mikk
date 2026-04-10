@@ -55,14 +55,7 @@ For high-assurance environments, use `mikk init --strict-parsing` and `mikk anal
 
 ## Token Efficiency
 
-Mikk achieves **85% average accuracy** while using dramatically fewer tokens than manual file reading:
-
-| Task | Mikk | Manual | Savings |
-|------|------|--------|---------|
-| Session context | 743 tokens | 8,059 tokens | **91% less** |
-| Function search | 346 tokens | 15,055 tokens | **98% less** |
-| Dead code detection | 290 tokens | 5+ files read | **~100% less** |
-| Impact analysis | 55 tokens | 1,390 tokens | **96% less** |
+Mikk uses fewer tokens than manual file reading by serving distilled API boundaries instead of raw files.
 
 <SectionSpacer />
 
@@ -104,8 +97,8 @@ Configure all thresholds in `mikk.json` under `policies`.
 ## Next Steps
 
 <Cards>
+  <Card title="Interactive Playground" href="/playground" description="Try all 22 MCP tools with live examples. See exactly what Mikk returns for each command." />
+  <Card title="3D Codebase Explorer" href="/playground/3d" description="Interactive 3D graph visualization of your codebase with AI chat. Free models powered by OpenRouter." />
   <Card title="Installation & Quick Start" href="/docs/core/installation" description="Get Mikk running in your project in under 3 minutes." />
   <Card title="Core Concepts" href="/docs/core/concepts" description="The Mesh, Merkle hashing, AI Context Builder, Intent Engine, and Safety Gates." />
-  <Card title="MCP Server Reference" href="/docs/reference/mcp" description="All 22 tools with descriptions, parameters, and workflow guidance." />
-  <Card title="CLI Reference" href="/docs/reference/cli" description="All 17+ commands with flags and examples." />
 </Cards>

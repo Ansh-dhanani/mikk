@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import * as path from 'node:path'
 import * as fs from 'node:fs'
 import Database from 'better-sqlite3'

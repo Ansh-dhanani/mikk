@@ -52,6 +52,108 @@ The result is surgical — agents get exactly the functions relevant to their ta
 
 ---
 
+## New: Advanced Features
+
+### Context Caching
+```typescript
+import { ContextCache } from '@getmikk/ai-context'
+
+const cache = new ContextCache({
+  maxSize: 500,
+  ttlMs: 1000 * 60 * 60, // 1 hour
+})
+
+// Check cache first
+let context = cache.get(query)
+if (!context) {
+  context = await builder.build(query)
+  cache.set(query, context)
+}
+
+// Warmup with common queries
+cache.warmup(queries, builder)
+
+// Get stats
+const stats = cache.getStats()
+console.log(`Hit rate: ${stats.hitRate}`)
+```
+
+### Streaming Context
+```typescript
+import { ContextStreamer } from '@getmikk/ai-context'
+
+const streamer = new ContextStreamer()
+
+// Stream large contexts in chunks
+for await (const chunk of streamer.streamContext(context)) {
+  if (chunk.type === 'function') {
+    console.log(`Streaming: ${chunk.data.name}`)
+  }
+}
+
+// Convert to ReadableStream for HTTP responses
+const stream = streamer.toReadableStream(context)
+```
+
+### Batch Context Fetching
+```typescript
+import { BatchContextFetcher } from '@getmikk/ai-context'
+
+const fetcher = new BatchContextFetcher(builder)
+
+// Batch fetch multiple contexts
+const results = await fetcher.fetchBatch([query1, query2, query3])
+console.log(`Loaded ${results.contexts.length} contexts`)
+
+// Fetch specific modules
+const modules = await fetcher.fetchModules(['auth', 'api'])
+
+// Fetch specific functions
+const functions = await fetcher.fetchFunctions(['login', 'logout'])
+```
+
+### Query Suggestions
+```typescript
+import { QuerySuggestionEngine } from '@getmikk/ai-context'
+
+const engine = new QuerySuggestionEngine()
+
+// Get suggestions for a task
+const suggestions = engine.suggest({
+  taskDescription: 'implement JWT authentication',
+  currentModule: 'auth',
+})
+
+// Extract keywords
+const keywords = engine.extractKeywords('validate user token')
+console.log(keywords) // ['auth', 'token', 'validate']
+
+// Refine queries based on result count
+const refined = engine.suggestQueryRefinement('test', 100)
+console.log(refined) // 'more specific: test'
+```
+
+### Direct Search (O(1) Lookup)
+```typescript
+import { DirectSearchEngine } from '@getmikk/core'
+
+const searcher = new DirectSearchEngine(lock)
+
+// Find by exact name
+const byName = searcher.findByName('parseData')
+
+// Find by signature
+const bySig = searcher.findBySignature('parseData(s: string): Data')
+
+// Find in file
+const inFile = searcher.findInFile('src/parser.ts')
+
+// Find similar
+const similar = searcher.findSimilar('login')
+```
+
+---
+
 ## claude.md / AGENTS.md Generator
 
 Generates `claude.md` and `AGENTS.md` automatically during `mikk init` and `mikk analyze`. Every piece of content is derived from the AST-parsed lock file — never hand-authored, never stale.
@@ -98,3 +200,51 @@ Modules with zero functions are skipped entirely.
 ### Token estimation
 
 Uses a ~4 chars/token approximation. The generator stops adding sections the moment adding the next section would exceed the budget, so the output always fits within the specified window.
+
+---
+
+## Embedding Providers
+
+The package supports multiple embedding providers for semantic search:
+
+```typescript
+import { 
+  VocabularyEmbedder,    // Fast TF-IDF (always available)
+  LocalONNXEmbedder,    // Local ML (~22MB)
+  GeminiEmbedder,        // Google Gemini API
+  createEmbeddingProvider // Auto-select best
+} from '@getmikk/core'
+
+// Auto-selects: ONNX > Gemini > Vocabulary
+const provider = await createEmbeddingProvider()
+const embedding = await provider.embed('parse JSON data')
+```
+
+### CLI Search
+```bash
+# Natural language search
+mikk search "authentication middleware"
+
+# With limit
+mikk search "database queries" --limit 5
+```
+
+---
+
+## Error Handling
+```typescript
+import { 
+  SearchError, 
+  EmbeddingError,
+  formatError 
+} from '@getmikk/core'
+
+try {
+  const results = await search(query)
+} catch (error) {
+  if (error instanceof SearchError) {
+    console.error(`Search failed: ${error.message}`)
+  }
+  console.error(formatError(error))
+}
+```

@@ -1,8 +1,8 @@
 import * as fs from 'node:fs/promises'
 import * as path from 'node:path'
 import {
-    getParser, GraphBuilder, ImpactAnalyzer, LockCompiler, hashFile,
-    type ParsedFile, type DependencyGraph, type MikkLock, type MikkContract, type ImpactResult, type GraphEdge
+    LanguageRegistry, GraphBuilder, ImpactAnalyzer, LockCompiler, hashFile,
+    type ParsedFile, type DependencyGraph, type MikkLock, type MikkContract, type ImpactResult
 } from '@getmikk/core'
 import type { FileChangeEvent } from './types.js'
 
@@ -133,8 +133,10 @@ export class IncrementalAnalyzer {
         for (let attempt = 0; attempt < MAX_RETRIES; attempt++) {
             try {
                 const content = await fs.readFile(fullPath, 'utf-8')
-                const parser = getParser(changedFile)
-                const parsedFile = await parser.parse(changedFile, content)
+                const langDef = LanguageRegistry.getInstance().getForFile(changedFile)
+                if (!langDef) return null
+                
+                const parsedFile = await langDef.extractor.extract(changedFile, content)
 
                 try {
                     const postParseHash = await hashFile(fullPath)

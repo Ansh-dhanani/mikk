@@ -4,7 +4,7 @@
  */
 
 import type { MikkLock, MikkLockFunction } from '../contract/schema.js'
-import type { DependencyGraph, GraphEdge } from '../graph/types.js'
+import type { DependencyGraph } from '../graph/types.js'
 
 // ---------------------------------------------------------------------------
 // Types

@@ -7,6 +7,7 @@ import chalk from 'chalk'
 import { patchFileContent } from '../utils.js'
 
 type CoreModule = typeof import('@getmikk/core')
+type IntentEngineModule = typeof import('@getmikk/intent-engine')
 
 function findWorkspaceRoot(start: string): string | null {
     let current = path.resolve(start)
@@ -21,7 +22,7 @@ function findWorkspaceRoot(start: string): string | null {
     return null
 }
 
-async function resolveCoreModule(projectRoot: string): Promise<CoreModule> {
+export async function resolveCoreModule(projectRoot: string): Promise<CoreModule> {
     const workspaceRoot = findWorkspaceRoot(projectRoot)
     const candidates: string[] = []
     if (workspaceRoot) {
@@ -52,8 +53,8 @@ async function resolveCoreModule(projectRoot: string): Promise<CoreModule> {
                     return await import(candidate)
                 }
                 return await import(pathToFileURL(candidate).href)
-            } catch (err: any) {
-                lastError = err
+            } catch (err: unknown) {
+                lastError = err instanceof Error ? err : new Error(String(err))
             }
         }
 
@@ -62,12 +63,18 @@ async function resolveCoreModule(projectRoot: string): Promise<CoreModule> {
 
 export function registerAnalyzeCommand(program: Command) {
     program
-        .command('analyze')
-        .description('Re-analyze codebase and update lock file')
+        .command('analyze [path]')
+        .description('Re-analyze codebase and update lock + derived artifacts')
         .option('--strict-parsing', 'Fail if any files could not be parsed cleanly')
-        .action(async (options) => {
+        .addHelpText('after',
+            `\nExamples:\n` +
+            `  mikk analyze                   Analyze and update all artifacts\n` +
+            `  mikk analyze --strict-parsing  Use stricter parsing (faster but may miss code)\n` +
+            `  mikk analyze ./path/to/project  Analyze a specific project\n` +
+            `\nThis updates: mikk.lock.json, diagrams/, claude.md, AGENTS.md, .clinerules\n`)
+        .action(async (projectPath, options) => {
             const spinner = ora('Analyzing project...').start()
-            const projectRoot = process.cwd()
+            const projectRoot = projectPath || process.cwd()
 
             try {
                 const core = await resolveCoreModule(projectRoot)
@@ -85,7 +92,7 @@ export function registerAnalyzeCommand(program: Command) {
 
                 // Use contract's language for discovery, with fallback to detection
                 const detectedLang = contract.project.language || await detectProjectLanguage(projectRoot)
-                const language = detectedLang as any // TypeScript narrowing
+                const language = detectedLang as 'typescript' | 'javascript' | 'python' | 'go' | 'rust' | 'java' | 'kotlin' | 'swift' | 'csharp' | 'unknown'
                 const { patterns, ignore } = getDiscoveryPatterns(language)
                 const files = await discoverFiles(projectRoot, patterns, ignore)
 
@@ -192,25 +199,21 @@ export function registerAnalyzeCommand(program: Command) {
                 let claudeMd: string | undefined
                 let clinerules: string | undefined
 
-                spinner.text = 'Generating Mermaid diagrams...'
-                try {
-                    const { DiagramOrchestrator } = await import('@getmikk/diagram-generator')
-                    const orchestrator = new DiagramOrchestrator(contract, preparedLock, projectRoot)
-                    await orchestrator.generateAll()
-                } catch {
-                    // diagram package not available — skip silently
-                }
-
                 // Generate claude.md / AGENTS.md
                 spinner.text = 'Generating AI context files...'
                 try {
                     const { ClaudeMdGenerator, OpenClawRulesGenerator } = await import('@getmikk/ai-context')
                     const fs = await import('node:fs/promises')
-                    let pkgJson: any = {}
+                    let pkgJson: Record<string, unknown> = {}
                     try {
                         pkgJson = JSON.parse(await fs.readFile(path.join(projectRoot, 'package.json'), 'utf-8'))
                     } catch { /* no package.json */ }
-                    const meta = {
+                    const meta: {
+                        description?: string
+                        scripts?: Record<string, string>
+                        dependencies?: Record<string, string>
+                        devDependencies?: Record<string, string>
+                    } = {
                         description: pkgJson.description,
                         scripts: pkgJson.scripts,
                         dependencies: pkgJson.dependencies,
@@ -239,11 +242,32 @@ export function registerAnalyzeCommand(program: Command) {
                     await patchFileContent(path.join(projectRoot, '.clinerules'), clinerules)
                 }
 
+                // Generate embeddings for semantic search
+                const embSpinner = ora('Generating embeddings for semantic search...').start()
+                try {
+                    const { SemanticSearcher } = await import('@getmikk/intent-engine')
+                    if (await SemanticSearcher.isAvailable()) {
+                        const searcher = new SemanticSearcher(projectRoot)
+                        await searcher.index(preparedLock)
+                        embSpinner.succeed('Embeddings generated')
+                    } else {
+                        embSpinner.warn('Embeddings skipped (install @xenova/transformers for semantic search)')
+                    }
+                } catch (err) {
+                    const msg = err instanceof Error ? err.message : String(err)
+                    if (msg.includes('transformers') || msg.includes('Cannot find module')) {
+                        embSpinner.warn('Embeddings skipped (install @xenova/transformers for semantic search)')
+                    } else {
+                        embSpinner.warn(`Embeddings generation failed: ${msg}`)
+                    }
+                }
+
                 spinner.succeed(`Analyzed ${files.length} files, ${functionCount} functions`)
-            } catch (err: any) {
+            } catch (err: unknown) {
                 spinner.fail('Analysis failed')
-                console.error(chalk.red(err.message))
-                if (process.env.MIKK_DEBUG) console.error(err.stack)
+                const message = err instanceof Error ? err.message : String(err)
+                console.error(chalk.red(message))
+                if (process.env.MIKK_DEBUG && err instanceof Error) console.error(err.stack)
                 process.exit(1)
             }
         })

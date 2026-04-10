@@ -15,12 +15,18 @@ export function registerMcpCommand(program: Command) {
         .command('mcp')
         .description('Start the MCP server, or install it into your AI tool config')
         .option('-p, --project <path>', 'Project root directory', process.cwd())
+        .addHelpText('after',
+          `\nExamples:\n` +
+          `  mikk mcp start                    Start MCP server (stdio mode)\n` +
+          `  mikk mcp install                  Install into Claude Desktop, Cursor, VS Code\n` +
+          `  mikk mcp install --tool claude    Install only into Claude Desktop\n` +
+          `  mikk mcp install --dry-run        Preview what would be written\n`)
 
     // ── mikk mcp (default: start server) ─────────────────────────────────
     mcp
         .command('start', { isDefault: true })
         .description('Start the MCP (Model Context Protocol) server for AI assistants')
-        .action(async (_args: any, cmd: Command) => {
+        .action(async (_args: unknown, cmd: Command) => {
             // Collect options from current command and parent
             const opts = { ...cmd.parent?.opts(), ...cmd.opts() } as { project: string }
             const projectRoot = path.resolve(opts.project || process.cwd())
@@ -68,7 +74,7 @@ export function registerMcpCommand(program: Command) {
                     )
                 }
 
-                const mod = require(serverPath)
+                const mod = await import(serverPath)
                 
                 if (!mod.startStdioServer) {
                     throw new Error(`MCP server bundle at ${serverPath} is missing startStdioServer export.`)
@@ -76,8 +82,9 @@ export function registerMcpCommand(program: Command) {
                 
                 await mod.startStdioServer()
             } catch (err) {
-                console.error('\n  ✖ Failed to start Mikk MCP server:', (err as Error).message)
-                if ((err as Error).stack) console.error((err as Error).stack)
+                const message = err instanceof Error ? err.message : String(err)
+                console.error('\n  ✖ Failed to start Mikk MCP server:', message)
+                if (err instanceof Error && err.stack) console.error(err.stack)
                 process.exit(1)
             }
         })
@@ -88,7 +95,7 @@ export function registerMcpCommand(program: Command) {
         .description('Auto-install the Mikk MCP server into Claude Desktop, Cursor, or VS Code')
         .option('--tool <name>', 'Target tool: claude | cursor | vscode (defaults to all detected)')
         .option('--dry-run', 'Print what would be written without making changes')
-        .action((_args: any, cmd: Command) => {
+        .action((_args: unknown, cmd: Command) => {
             const opts = { ...cmd.parent?.opts(), ...cmd.opts() } as { project: string; tool?: string; dryRun?: boolean }
             installMcpConfig(opts.project, opts.tool, opts.dryRun ?? false)
         })
@@ -240,7 +247,7 @@ function buildMcpEntry(projectRoot: string): McpEntry {
     }
 }
 
-function parseJsonSafe(raw: string, configPath: string): Record<string, any> {
+function parseJsonSafe(raw: string, configPath: string): Record<string, unknown> {
     try {
         return JSON.parse(raw)
     } catch (err) {

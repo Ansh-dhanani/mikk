@@ -119,7 +119,7 @@ describe('ConflictDetector', () => {
             confidence: 0.8,
         }])
         // The "No direct DB access outside db/" constraint should fire
-        const dbConflict = result.conflicts.find(c =>
+        result.conflicts.find(c =>
             c.message.toLowerCase().includes('db') || c.message.toLowerCase().includes('restricted')
         )
         // This may or may not fire depending on exact matching — test the shape

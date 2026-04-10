@@ -3,7 +3,8 @@ import { ContextBuilder } from '../src/context-builder.js'
 import type { ContextQuery } from '../src/types.js'
 
 function makeFixture() {
-    const contract = {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const contract: any = {
         project: {
             name: 'mikk',
             language: 'typescript',
@@ -17,7 +18,7 @@ function makeFixture() {
             constraints: [],
             decisions: [],
         },
-    } as any
+    }
 
     const fnResolver = {
         id: 'fn:parser:resolver',
@@ -86,6 +87,7 @@ function makeFixture() {
         },
         routes: [],
         contextFiles: [],
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } as any
 
     return { contract, lock }

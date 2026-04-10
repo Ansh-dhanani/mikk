@@ -1,0 +1,12 @@
+[project]
+name = "polyglot-services"
+version = "0.1.0"
+edition = "2021"
+
+[build-system]
+requires = ["setuptools-rust"]
+
+[tool.mypy]
+python_version = "3.11"
+warn_return_any = true
+warn_unused_configs = true

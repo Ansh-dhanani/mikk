@@ -7,7 +7,13 @@ import { ContractReader, detectProjectLanguage, getDiscoveryPatterns } from '@ge
 export function registerWatchCommand(program: Command) {
     program
         .command('watch')
-        .description('Start live file watcher daemon')
+        .description('Watch for file changes and sync lock file automatically (daemon)')
+        .addHelpText('after',
+            `\nExamples:\n` +
+            `  mikk watch              Start the watcher daemon\n` +
+            `  mikk watch &            Run in background (Unix/macOS)\n` +
+            `\nThe watcher monitors file changes with 100ms debounce and auto-updates\n` +
+            `the lock file. Press Ctrl+C to stop.\n`)
         .action(async () => {
             const projectRoot = process.cwd()
 
@@ -45,8 +51,9 @@ export function registerWatchCommand(program: Command) {
                             console.log(chalk.yellow(`  ⚠ Sync drifted: ${event.data.reason}`))
                             break
                     }
-                } catch (err: any) {
-                    console.error(chalk.red(`  Watcher event error: ${err.message}`))
+                } catch (err: unknown) {
+                    const message = err instanceof Error ? err.message : String(err)
+                    console.error(chalk.red(`  Watcher event error: ${message}`))
                 }
             })
 
@@ -60,13 +67,15 @@ export function registerWatchCommand(program: Command) {
                     try {
                         await daemon.stop()
                         process.exit(0)
-                    } catch (err: any) {
-                        console.error(chalk.red(`Failed to stop watcher cleanly: ${err?.message ?? String(err)}`))
+                    } catch (err: unknown) {
+                        const message = err instanceof Error ? err.message : String(err)
+                        console.error(chalk.red(`Failed to stop watcher cleanly: ${message}`))
                         process.exit(1)
                     }
                 })
-            } catch (err: any) {
-                console.error(chalk.red(`Failed to start watcher: ${err.message}`))
+            } catch (err: unknown) {
+                const message = err instanceof Error ? err.message : String(err)
+                console.error(chalk.red(`Failed to start watcher: ${message}`))
                 process.exit(1)
             }
         })

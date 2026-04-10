@@ -188,7 +188,7 @@ export function tokenize(text: string): string[] {
 }
 
 /**
- * Build search tokens for a function — combines name, purpose, params, file path.
+ * Build search tokens for a function — combines name, purpose, params, file path, and body.
  * This gives BM25 rich content to index beyond just the function name.
  */
 export function buildFunctionTokens(fn: {
@@ -197,25 +197,22 @@ export function buildFunctionTokens(fn: {
     purpose?: string
     params?: { name: string; type: string }[]
     returnType?: string
+    body?: string
 }): string[] {
     const parts: string[] = []
 
-    // Function name tokens (highest signal)
     parts.push(...tokenize(fn.name))
     parts.push(...tokenize(fn.name))
-    parts.push(...tokenize(fn.name)) // Triple-weight the name
+    parts.push(...tokenize(fn.name))
     parts.push(`name_exact:${fn.name.toLowerCase()}`)
 
-    // File path tokens
     const filename = fn.file.split('/').pop() ?? fn.file
-    parts.push(...tokenize(filename.replace(/\.[^.]+$/, ''))) // Strip extension
+    parts.push(...tokenize(filename.replace(/\.[^.]+$/, '')))
 
-    // Purpose tokens
     if (fn.purpose) {
         parts.push(...tokenize(fn.purpose))
     }
 
-    // Parameter name tokens
     if (fn.params) {
         for (const p of fn.params) {
             parts.push(...tokenize(p.name))
@@ -223,10 +220,26 @@ export function buildFunctionTokens(fn: {
         }
     }
 
-    // Return type tokens
     if (fn.returnType) {
         parts.push(...tokenize(fn.returnType))
     }
 
+    if (fn.body) {
+        const cleanedBody = cleanCodeForTokens(fn.body)
+        const bodyTokens = tokenize(cleanedBody).slice(0, 50)
+        parts.push(...bodyTokens)
+    }
+
     return parts
+}
+
+function cleanCodeForTokens(code: string): string {
+    return code
+        .replace(/\/\*\*[\s\S]*?\*\//g, ' ')
+        .replace(/\/\/[^\n]*/g, ' ')
+        .replace(/#.*$/gm, ' ')
+        .replace(/['"`][^'"`]*['"`]/g, ' ')
+        .replace(/\d+/g, ' ')
+        .replace(/\s+/g, ' ')
+        .trim()
 }

@@ -268,22 +268,34 @@ Which files import which — useful for understanding data flow.
   <stats>
     <files>20</files>
     <functions>51</functions>
-    <modules>8</modules>
+    <modules>7</modules>
     <language>typescript</language>
   </stats>
 </repository_context>
 
 <modules>
+  <module id="fixtures-ts-express-api-cache">
+    <name>Caching</name>
+    <location>c:/users/ansh/desktop/web/mesh/benchmarks/fixtures/ts-express-api/src/cache/**</location>
+    <purpose>1 files, 0 functions</purpose>
+    <entry_points>
+      <function signature="invalidate(key) [c:/users/ansh/desktop/web/mesh/benchmarks/fixtures/ts-express-api/src/cache/memory-cache.ts:34]" purpose="Invalidate (key)" />
+    </entry_points>
+    <key_internal_functions>
+      <function name="set" callers="12" purpose="Set (key, value, ttlMs)" />
+      <function name="get" callers="6" purpose="Get (key)" />
+    </key_internal_functions>
+  </module>
   <module id="fixtures-ts-express-api-auth">
     <name>Authentication</name>
     <location>c:/users/ansh/desktop/web/mesh/benchmarks/fixtures/ts-express-api/src/auth/**</location>
     <purpose>4 files, 0 functions</purpose>
     <entry_points>
       <function signature="refreshToken(token) [c:/users/ansh/desktop/web/mesh/benchmarks/fixtures/ts-express-api/src/auth/jwt.ts:32]" purpose="Refresh token (token)" />
+      <function signature="purgeExpiredSessions(maxAgeMs) [c:/users/ansh/desktop/web/mesh/benchmarks/fixtures/ts-express-api/src/auth/session.ts:26]" purpose="Purge expired sessions (maxAgeMs)" />
       <function signature="decodeToken(token) [c:/users/ansh/desktop/web/mesh/benchmarks/fixtures/ts-express-api/src/auth/jwt.ts:24]" purpose="Decode token (token)" />
       <function signature="validatePasswordStrength(password) [c:/users/ansh/desktop/web/mesh/benchmarks/fixtures/ts-express-api/src/auth/password.ts:16]" purpose="Check password strength (password)" />
       <function signature="hasPermission(userRole, requiredRole) [c:/users/ansh/desktop/web/mesh/benchmarks/fixtures/ts-express-api/src/auth/roles.ts:7]" purpose="Check if permission (userRole, requiredRole)" />
-      <function signature="revokeSession(token) [c:/users/ansh/desktop/web/mesh/benchmarks/fixtures/ts-express-api/src/auth/session.ts:16]" purpose="Revoke session (token)" />
     </entry_points>
     <key_internal_functions>
       <function name="signToken" callers="2" purpose="Sign token (payload)" />
@@ -292,6 +304,7 @@ Which files import which — useful for understanding data flow.
       <function name="hashPassword" callers="1" purpose="Hash password (plain)" />
       <function name="comparePassword" callers="1" purpose="Compare password (plain, hash)" />
     </key_internal_functions>
+    <depends_on>Caching</depends_on>
   </module>
   <module id="fixtures-ts-express-api-db">
     <name>Database & Components</name>
@@ -320,7 +333,7 @@ Which files import which — useful for understanding data flow.
       <function name="updateUser" callers="1" purpose="Update user (id, updates)" />
       <function name="deleteUser" callers="1" purpose="Delete user (id)" />
     </key_internal_functions>
-    <depends_on>Authentication</depends_on>
+    <depends_on>Authentication, Caching</depends_on>
   </module>
   <module id="fixtures-ts-express-api-payments">
     <name>Payments</name>
@@ -336,19 +349,7 @@ Which files import which — useful for understanding data flow.
       <function name="refundInvoice" callers="1" purpose="Refund invoice (invoiceId)" />
       <function name="createPaymentIntent" callers="1" purpose="Create payment intent (amount, currency, userId)" />
     </key_internal_functions>
-    <depends_on>Authentication</depends_on>
-  </module>
-  <module id="fixtures-ts-express-api-cache">
-    <name>Caching</name>
-    <location>c:/users/ansh/desktop/web/mesh/benchmarks/fixtures/ts-express-api/src/cache/**</location>
-    <purpose>1 files, 0 functions</purpose>
-    <entry_points>
-      <function signature="get(key) [c:/users/ansh/desktop/web/mesh/benchmarks/fixtures/ts-express-api/src/cache/memory-cache.ts:21]" purpose="Get (key)" />
-      <function signature="invalidate(key) [c:/users/ansh/desktop/web/mesh/benchmarks/fixtures/ts-express-api/src/cache/memory-cache.ts:34]" purpose="Invalidate (key)" />
-    </entry_points>
-    <key_internal_functions>
-      <function name="set" callers="1" purpose="Set (key, value, ttlMs)" />
-    </key_internal_functions>
+    <depends_on>Authentication, Caching</depends_on>
   </module>
   <module id="fixtures-ts-express-api-utils">
     <name>Utils & API</name>
@@ -364,27 +365,22 @@ Which files import which — useful for understanding data flow.
     <key_internal_functions>
       <function name="isValidEmail" callers="1" purpose="Check if valid email (email)" />
     </key_internal_functions>
+    <depends_on>Caching</depends_on>
   </module>
   <module id="benchmarks-fixtures-ts-express-api">
     <name>Testing & API</name>
     <location>c:/users/ansh/desktop/web/mesh/benchmarks/fixtures/ts-express-api/**, c:/users/ansh/desktop/web/mesh/benchmarks/fixtures/ts-express-api/src/**</location>
     <purpose>2 files, 0 functions</purpose>
+    <entry_points>
+      <function signature="requireAuth(req, res, next) [c:/users/ansh/desktop/web/mesh/benchmarks/fixtures/ts-express-api/src/middleware/auth.ts:5]" purpose="Require auth (req, res, next)" />
+      <function signature="requestLogger(req, res, next) [c:/users/ansh/desktop/web/mesh/benchmarks/fixtures/ts-express-api/src/middleware/logger.ts:3]" purpose="Request logger (req, res, next)" />
+      <function signature="requireAdmin(req, res, next) [c:/users/ansh/desktop/web/mesh/benchmarks/fixtures/ts-express-api/src/middleware/auth.ts:22]" purpose="Require admin (req, res, next)" />
+      <function signature="errorHandler(err, req, res, next) [c:/users/ansh/desktop/web/mesh/benchmarks/fixtures/ts-express-api/src/middleware/error-handler.ts:3]" purpose="Error handler" />
+    </entry_points>
     <key_internal_functions>
       <function name="bootstrap" callers="1" purpose="Bootstrap" />
     </key_internal_functions>
-    <depends_on>Database & Components</depends_on>
-  </module>
-  <module id="fixtures-ts-express-api-middleware">
-    <name>API</name>
-    <location>c:/users/ansh/desktop/web/mesh/benchmarks/fixtures/ts-express-api/src/middleware/**</location>
-    <purpose>3 files, 0 functions</purpose>
-    <entry_points>
-      <function signature="requireAuth(req, res, next) [c:/users/ansh/desktop/web/mesh/benchmarks/fixtures/ts-express-api/src/middleware/auth.ts:5]" purpose="Require auth (req, res, next)" />
-      <function signature="requireAdmin(req, res, next) [c:/users/ansh/desktop/web/mesh/benchmarks/fixtures/ts-express-api/src/middleware/auth.ts:22]" purpose="Require admin (req, res, next)" />
-      <function signature="errorHandler(err, req, res, next) [c:/users/ansh/desktop/web/mesh/benchmarks/fixtures/ts-express-api/src/middleware/error-handler.ts:3]" purpose="Error handler" />
-      <function signature="requestLogger(req, res, next) [c:/users/ansh/desktop/web/mesh/benchmarks/fixtures/ts-express-api/src/middleware/logger.ts:3]" purpose="Request logger (req, res, next)" />
-    </entry_points>
-    <depends_on>Authentication</depends_on>
+    <depends_on>Database & Components, Authentication</depends_on>
   </module>
 </modules>
 
@@ -525,23 +521,19 @@ Which files import which — useful for understanding data flow.
 ### Testing & API
 - `C:/Users/Ansh/Desktop/web/Mesh/benchmarks/fixtures/ts-express-api/test-ast.js` → `node:fs`, `oxc-parser`
 - `C:/Users/Ansh/Desktop/web/Mesh/benchmarks/fixtures/ts-express-api/src/index.ts` → `express`, `./routes/auth`, `./routes/users`, `./routes/payments`, `./middleware/logger`, `./middleware/error-handler`, `./db/connection`
+- `C:/Users/Ansh/Desktop/web/Mesh/benchmarks/fixtures/ts-express-api/src/middleware/auth.ts` → `../auth/jwt`, `../auth/session`
+- `C:/Users/Ansh/Desktop/web/Mesh/benchmarks/fixtures/ts-express-api/src/routes/auth.ts` → `express`, `../users/service`, `../utils/validate`
+- `C:/Users/Ansh/Desktop/web/Mesh/benchmarks/fixtures/ts-express-api/src/routes/payments.ts` → `express`, `../middleware/auth`, `../payments/billing`
+- `C:/Users/Ansh/Desktop/web/Mesh/benchmarks/fixtures/ts-express-api/src/routes/users.ts` → `express`, `../middleware/auth`, `../users/service`
 
 ### Authentication
 - `C:/Users/Ansh/Desktop/web/Mesh/benchmarks/fixtures/ts-express-api/src/auth/jwt.ts` → `jsonwebtoken`
 - `C:/Users/Ansh/Desktop/web/Mesh/benchmarks/fixtures/ts-express-api/src/auth/password.ts` → `bcrypt`
 - `C:/Users/Ansh/Desktop/web/Mesh/benchmarks/fixtures/ts-express-api/src/auth/session.ts` → `./jwt`
 
-### API
-- `C:/Users/Ansh/Desktop/web/Mesh/benchmarks/fixtures/ts-express-api/src/middleware/auth.ts` → `../auth/jwt`, `../auth/session`
-
 ### Payments
 - `C:/Users/Ansh/Desktop/web/Mesh/benchmarks/fixtures/ts-express-api/src/payments/billing.ts` → `./stripe`, `../users/repository`
 - `C:/Users/Ansh/Desktop/web/Mesh/benchmarks/fixtures/ts-express-api/src/payments/stripe.ts` → `stripe`
-
-### API
-- `C:/Users/Ansh/Desktop/web/Mesh/benchmarks/fixtures/ts-express-api/src/routes/auth.ts` → `express`, `../users/service`, `../utils/validate`
-- `C:/Users/Ansh/Desktop/web/Mesh/benchmarks/fixtures/ts-express-api/src/routes/payments.ts` → `express`, `../middleware/auth`, `../payments/billing`
-- `C:/Users/Ansh/Desktop/web/Mesh/benchmarks/fixtures/ts-express-api/src/routes/users.ts` → `express`, `../middleware/auth`, `../users/service`
 
 ### Authentication
 - `C:/Users/Ansh/Desktop/web/Mesh/benchmarks/fixtures/ts-express-api/src/users/repository.ts` → `../auth/password`

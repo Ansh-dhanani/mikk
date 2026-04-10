@@ -2,6 +2,8 @@
  * Parser types — data shapes that flow through the entire Mikk system.
  */
 
+import type { ParsedFileLanguage } from '../utils/language-registry.js';
+
 /** A single parameter in a function signature */
 export interface ParsedParam {
   name: string;
@@ -38,6 +40,20 @@ export interface ParsedFunction {
   edgeCasesHandled: string[];
   errorHandling: { line: number; type: 'try-catch' | 'throw'; detail: string }[];
   detailedLines: { startLine: number; endLine: number; blockType: string }[];
+  decorators?: string[];
+}
+
+/** A single import specifier with alias support */
+export interface ImportSpecifier {
+  imported: string;
+  local: string;
+}
+
+/** A re-export statement (export { X } from './source') */
+export interface ReExport {
+  name: string;
+  source: string;
+  sourceResolved?: string;
 }
 
 /** A single import statement */
@@ -45,6 +61,7 @@ export interface ParsedImport {
   source: string;
   resolvedPath: string;
   names: string[];
+  specifiers?: ImportSpecifier[];
   isDefault: boolean;
   isDynamic: boolean;
 }
@@ -66,6 +83,7 @@ export interface ParsedVariable {
   isExported: boolean;
   isStatic?: boolean;
   purpose?: string;
+  decorators?: string[];
 }
 
 /** A parsed class */
@@ -116,13 +134,14 @@ export interface ParsedRoute {
 /** Everything extracted from a single file */
 export interface ParsedFile {
   path: string;            // normalized absolute path
-  language: 'python' | 'go' | 'typescript' | 'javascript' | 'java' | 'kotlin' | 'swift' | 'c' | 'cpp' | 'csharp' | 'rust' | 'php' | 'ruby' | 'unknown';
+  language: ParsedFileLanguage;
   functions: ParsedFunction[];
   classes: ParsedClass[];
   variables: ParsedVariable[];
   generics: ParsedGeneric[];
   imports: ParsedImport[];
   exports: ParsedExport[];
+  reexports?: ReExport[];
   routes: ParsedRoute[];
   calls: CallExpression[]; // module-level calls
   hash: string;

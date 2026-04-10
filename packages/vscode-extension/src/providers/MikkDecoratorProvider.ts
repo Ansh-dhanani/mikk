@@ -7,6 +7,7 @@ export class MikkDecoratorProvider {
         color: '#6b7280'
     });
 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     public static updateDecorations(editor: vscode.TextEditor, dataProvider: any) {
         if (!editor || !dataProvider) return;
 
@@ -17,6 +18,7 @@ export class MikkDecoratorProvider {
         }
 
         const currentFile = vscode.workspace.asRelativePath(editor.document.fileName);
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const fns = Object.values(lock.functions) as any[];
         const fileFns = fns.filter(f => f?.file === currentFile);
 

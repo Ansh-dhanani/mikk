@@ -12,7 +12,69 @@ import {
     type MikkContract, type MikkLock,
     type DependencyGraph, type GraphNode, type GraphEdge,
     BM25Index, buildFunctionTokens, reciprocalRankFusion, tokenize,
+    DirectSearchEngine,
 } from '@getmikk/core'
+
+const fileContentCache = new Map<string, string>()
+const MAX_CACHE_SIZE = 500
+const MAX_BODY_TOKENS = 50
+
+function safeMcpResult<T>(fn: () => T, errorMessage: string = 'Operation failed'): { isError?: boolean; error?: string } & T {
+    try {
+        return fn() as { isError?: boolean; error?: string } & T
+    } catch (err) {
+        return {
+            isError: true,
+            error: `${errorMessage}: ${err instanceof Error ? err.message : String(err)}`
+        } as { isError?: boolean; error?: string } & T
+    }
+}
+
+async function safeMcpResultAsync<T>(fn: () => Promise<T>, errorMessage: string = 'Operation failed'): Promise<{ isError?: boolean; error?: string } & T> {
+    try {
+        return await fn() as { isError?: boolean; error?: string } & T
+    } catch (err) {
+        return {
+            isError: true,
+            error: `${errorMessage}: ${err instanceof Error ? err.message : String(err)}`
+        } as { isError?: boolean; error?: string } & T
+    }
+}
+
+function isPathWithinProject(filePath: string, projectRoot: string): boolean {
+    const normalizedFile = path.normalize(filePath).replace(/\\/g, '/')
+    const normalizedRoot = path.normalize(projectRoot).replace(/\\/g, '/')
+    return normalizedFile.startsWith(normalizedRoot + '/') || normalizedFile === normalizedRoot
+}
+
+function cacheFileContent(fullPath: string, content: string): void {
+    if (fileContentCache.size >= MAX_CACHE_SIZE) {
+        const firstKey = fileContentCache.keys().next().value
+        if (firstKey) fileContentCache.delete(firstKey)
+    }
+    fileContentCache.set(fullPath, content)
+}
+
+function getFunctionBody(fn: { file: string; startLine: number; endLine: number }, projectRoot: string): string {
+    const fullPath = path.join(projectRoot, fn.file)
+    let content = fileContentCache.get(fullPath)
+    if (!content) {
+        try {
+            const rawContent = require('node:fs').readFileSync(fullPath, 'utf-8')
+            if (rawContent) {
+                cacheFileContent(fullPath, rawContent)
+                content = rawContent
+            }
+        } catch {
+            return ''
+        }
+    }
+    if (!content) return ''
+    const lines = content.split('\n')
+    const start = Math.max(0, fn.startLine - 1)
+    const end = Math.min(lines.length, fn.endLine)
+    return lines.slice(start, end).join('\n')
+}
 import { ContextBuilder, getProvider } from '@getmikk/ai-context'
 import { SemanticSearcher } from '@getmikk/intent-engine'
 import type { ContextQuery } from '@getmikk/ai-context'
@@ -30,7 +92,22 @@ interface CachedProject {
 }
 
 const projectCache = new Map<string, CachedProject>()
+const projectCacheOrder: string[] = []
+const MAX_PROJECT_CACHE = 10
 const CACHE_TTL_MS = 30_000 // 30 seconds
+
+function evictProjectCache(): void {
+    if (projectCache.size >= MAX_PROJECT_CACHE) {
+        const oldest = projectCacheOrder.shift()
+        if (oldest) projectCache.delete(oldest)
+    }
+}
+
+function touchProjectCache(projectRoot: string): void {
+    const idx = projectCacheOrder.indexOf(projectRoot)
+    if (idx > -1) projectCacheOrder.splice(idx, 1)
+    projectCacheOrder.push(projectRoot)
+}
 
 function invalidateCache(projectRoot: string): void {
     projectCache.delete(projectRoot)
@@ -493,7 +570,8 @@ export function registerTools(server: McpServer, projectRoot: string) {
             // --- BM25 matches (ranked by relevance) ---
             const bm25 = new BM25Index()
             for (const fn of allFunctions) {
-                bm25.addDocument(fn.id, buildFunctionTokens(fn))
+                const body = getFunctionBody(fn, projectRoot)
+                bm25.addDocument(fn.id, buildFunctionTokens({ ...fn, body }))
             }
             const bm25Matches = bm25.search(query, limit * 2)
 
@@ -527,6 +605,167 @@ export function registerTools(server: McpServer, projectRoot: string) {
             }
 
             return { content: [{ type: 'text' as const, text: JSON.stringify(response, null, 2) }] }
+        },
+    )
+
+    // TOOL: mikk_find_function
+
+    ; (server as any).tool(
+        'mikk_find_function',
+        'Direct O(1) lookup of a function by exact name. WHEN TO USE: When you know the exact function name and want instant results. AFTER THIS: Use mikk_get_function_detail for full details. FASTER than mikk_search_functions for exact matches.',
+        {
+            name: z.string().describe('Exact function name to find'),
+        },
+        async (args: any): Promise<any> => {
+            const { name } = args as any
+            const { lock, staleness } = await loadContractAndLock(projectRoot)
+            
+            const engine = new DirectSearchEngine(lock)
+            const fn = engine.getExactMatch(name)
+            
+            if (!fn) {
+                return { content: [{ type: 'text' as const, text: JSON.stringify({ 
+                    found: false, 
+                    suggestion: `Function "${name}" not found. Use mikk_search_functions to find similar names.`,
+                    warning: staleness 
+                }, null, 2) }] }
+            }
+            
+            return { content: [{ type: 'text' as const, text: JSON.stringify({
+                found: true,
+                function: {
+                    name: fn.name,
+                    file: fn.file,
+                    module: fn.moduleId,
+                    signature: fn.fullSignature,
+                    exported: fn.isExported,
+                    async: fn.isAsync,
+                    lines: `${fn.startLine}-${fn.endLine}`,
+                    purpose: fn.purpose || 'No description',
+                    params: fn.params.map(p => `${p.name}: ${p.type}${p.optional ? '?' : ''}`),
+                    returnType: fn.returnType,
+                    calls: fn.calls.map(c => c.name),
+                    keywords: fn.keywords.slice(0, 10),
+                },
+                warning: staleness
+            }, null, 2) }] }
+        },
+    )
+
+    // TOOL: mikk_find_by_signature
+
+    ; (server as any).tool(
+        'mikk_find_by_signature',
+        'Find function by signature (exact match). WHEN TO USE: When you have the full signature like "login(email: string): User". AFTER THIS: Use mikk_get_function_detail for source code.',
+        {
+            signature: z.string().describe('Function signature to match (e.g., "login(email: string): User")'),
+        },
+        async (args: any): Promise<any> => {
+            const { signature } = args as any
+            const { lock, staleness } = await loadContractAndLock(projectRoot)
+            
+            const engine = new DirectSearchEngine(lock)
+            const fn = engine.findBySignature(signature)
+            
+            if (!fn) {
+                return { content: [{ type: 'text' as const, text: JSON.stringify({
+                    found: false,
+                    suggestion: 'Signature not found. Try mikk_search_functions with partial name.',
+                    warning: staleness
+                }, null, 2) }] }
+            }
+            
+            return { content: [{ type: 'text' as const, text: JSON.stringify({
+                found: true,
+                function: {
+                    name: fn.name,
+                    file: fn.file,
+                    module: fn.moduleId,
+                    signature: fn.fullSignature,
+                    lines: `${fn.startLine}-${fn.endLine}`,
+                },
+                warning: staleness
+            }, null, 2) }] }
+        },
+    )
+
+    // TOOL: mikk_find_by_location
+
+    ; (server as any).tool(
+        'mikk_find_by_location',
+        'Find function at a specific file:line location. WHEN TO USE: When you have a file path and line number and want to know what function is there. AFTER THIS: Use mikk_get_function_detail for full details.',
+        {
+            file: z.string().describe('File path (relative to project root)'),
+            line: z.number().int().positive().describe('Line number'),
+        },
+        async (args: any): Promise<any> => {
+            const { file, line } = args as any
+            const { lock, staleness } = await loadContractAndLock(projectRoot)
+            
+            const normalizedFile = file.replace(/\\/g, '/').replace(/^\.\//, '')
+            const engine = new DirectSearchEngine(lock)
+            const fn = engine.findByLocation(normalizedFile, line)
+            
+            if (!fn) {
+                return { content: [{ type: 'text' as const, text: JSON.stringify({
+                    found: false,
+                    file: normalizedFile,
+                    line,
+                    suggestion: 'No function found at this location. Line may be outside function bounds or file not in lock.',
+                    warning: staleness
+                }, null, 2) }] }
+            }
+            
+            return { content: [{ type: 'text' as const, text: JSON.stringify({
+                found: true,
+                function: {
+                    name: fn.name,
+                    file: fn.file,
+                    module: fn.moduleId,
+                    lines: `${fn.startLine}-${fn.endLine}`,
+                    containsLine: line >= fn.startLine && line <= fn.endLine,
+                },
+                warning: staleness
+            }, null, 2) }] }
+        },
+    )
+
+    // TOOL: mikk_find_similar
+
+    ; (server as any).tool(
+        'mikk_find_similar',
+        'Find functions similar to a given function name (handles renames/refactors). WHEN TO USE: When you think a function was renamed or want to find related functions. AFTER THIS: Use mikk_get_function_detail on top matches.',
+        {
+            name: z.string().describe('Function name to find similar matches for'),
+            limit: z.number().optional().default(5).describe('Maximum number of results'),
+        },
+        async (args: any): Promise<any> => {
+            const { name, limit } = args as any
+            const { lock, staleness } = await loadContractAndLock(projectRoot)
+            
+            const engine = new DirectSearchEngine(lock)
+            const similar = engine.findSimilar({ name }, limit)
+            
+            if (similar.length === 0) {
+                return { content: [{ type: 'text' as const, text: JSON.stringify({
+                    found: false,
+                    suggestion: `No functions similar to "${name}" found.`,
+                    warning: staleness
+                }, null, 2) }] }
+            }
+            
+            return { content: [{ type: 'text' as const, text: JSON.stringify({
+                found: true,
+                query: name,
+                matches: similar.map(fn => ({
+                    name: fn.name,
+                    file: fn.file,
+                    module: fn.moduleId,
+                    signature: fn.fullSignature,
+                    similarity: 'high',
+                })),
+                warning: staleness
+            }, null, 2) }] }
         },
     )
 
@@ -1662,9 +1901,11 @@ export function registerTools(server: McpServer, projectRoot: string) {
              file: z.string().optional().describe('Scan a specific file only'),
              category: z.string().optional().describe('Filter by category: injection, secrets, xss, crypto, path-traversal, best-practice'),
          },
-         async (args: any) => {
-             const { severity, file, category } = args as any
-            const startTime = Date.now()
+          async (args) => {
+              const severity = args.severity as 'critical' | 'high' | 'medium' | 'low' | 'info' | undefined
+              const file = args.file as string | undefined
+              const category = args.category as string | undefined
+             const startTime = Date.now()
             const { lock } = await loadContractAndLock(projectRoot)
             const scanner = new SecurityScanner()
             const findings = []
@@ -1757,6 +1998,7 @@ async function loadContractAndLock(projectRoot: string) {
                 invalidateCache(projectRoot)
             } else if ((Date.now() - cached.cachedAt) < CACHE_TTL_MS) {
                 // Still within TTL and lock file unchanged - serve from cache
+                touchProjectCache(projectRoot)
                 return { contract: cached.contract, lock: cached.lock, staleness: cached.staleness }
             }
         } catch {
@@ -1803,17 +2045,19 @@ async function loadContractAndLock(projectRoot: string) {
     if (!staleness && functionCount >= 50 && callEdgeCount === 0) {
         staleness = 'WARNING: DEGRADED: lock has zero call edges. Blast radius may be underestimated. Run `mikk analyze` and verify parser extraction.'
     }
+    evictProjectCache()
     projectCache.set(projectRoot, {
         contract, lock, graph, staleness,
         cachedAt: Date.now(),
     })
+    touchProjectCache(projectRoot)
 
     return { contract, lock, staleness }
 }
 
 /**
  * Build a DependencyGraph from the lock file in O(n) time.
- * The lock already has fn.calls and fn.calledBy arrays we just wire them up.
+ * The lock already has fn.calls and fn.calledBy arrays we wire them up.
  */
 function buildGraphFromLock(lock: MikkLock): DependencyGraph {
     const nodes = new Map<string, GraphNode>()
@@ -1854,6 +2098,21 @@ function buildGraphFromLock(lock: MikkLock): DependencyGraph {
         })
     }
 
+    for (const cls of Object.values(lock.classes ?? {})) {
+        nodes.set(cls.id, {
+            id: cls.id,
+            type: 'class',
+            name: cls.name,
+            file: cls.file,
+            moduleId: cls.moduleId,
+            metadata: {
+                isExported: cls.isExported,
+                startLine: cls.startLine,
+                endLine: cls.endLine,
+            },
+        })
+    }
+
     for (const fn of Object.values(lock.functions)) {
         for (const calleeId of fn.calls) {
             if (!nodes.has(calleeId)) continue
@@ -1867,6 +2126,23 @@ function buildGraphFromLock(lock: MikkLock): DependencyGraph {
             const inE = inEdges.get(calleeId) ?? []
             inE.push(edge)
             inEdges.set(calleeId, inE)
+        }
+    }
+
+    for (const fn of Object.values(lock.functions)) {
+        for (const callerId of fn.calledBy ?? []) {
+            if (!nodes.has(fn.id)) continue
+            if (!nodes.has(callerId)) continue
+            const edge: GraphEdge = { from: callerId, to: fn.id, type: 'calls', confidence: 0.9 }
+            edges.push(edge)
+
+            const out = outEdges.get(callerId) ?? []
+            out.push(edge)
+            outEdges.set(callerId, out)
+
+            const inE = inEdges.get(fn.id) ?? []
+            inE.push(edge)
+            inEdges.set(fn.id, inE)
         }
     }
 

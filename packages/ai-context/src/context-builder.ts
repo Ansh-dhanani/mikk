@@ -1,8 +1,28 @@
 import type { MikkContract, MikkLock, MikkLockFunction } from '@getmikk/core'
-import { BM25Index } from '@getmikk/core'
+import { BM25Index, RichFunctionIndex } from '@getmikk/core'
 import type { AIContext, ContextQuery, ContextModule, ContextFunction } from './types.js'
 import * as fs from 'node:fs'
 import * as path from 'node:path'
+
+const FILE_EXT_REGEX = /\.(d\.ts|ts|tsx|js|jsx|py|go|java|rs|cs|cpp|c|php|rb)$/i
+
+function tokenizeFunction(fn: MikkLockFunction): string[] {
+    const tokens: string[] = []
+    const nameParts = fn.name.replace(/([a-z])([A-Z])/g, '$1 $2').split(/[-_]/)
+    tokens.push(...nameParts.filter(p => p.length >= 2))
+    if (fn.purpose) {
+        const purposeTokens = fn.purpose.toLowerCase().replace(/[^a-z0-9]/g, ' ').split(/\s+/)
+        tokens.push(...purposeTokens.filter(t => t.length >= 2))
+    }
+    const fileName = path.basename(fn.file).replace(FILE_EXT_REGEX, '')
+    const fileParts = fileName.replace(/([a-z])([A-Z])/g, '$1 $2').split(/[-_]/)
+    tokens.push(...fileParts.filter(p => p.length >= 2))
+    if (fn.moduleId) {
+        const modParts = fn.moduleId.split(/[-_]/)
+        tokens.push(...modParts.filter(p => p.length >= 2))
+    }
+    return tokens
+}
 
 // ---------------------------------------------------------------------------
 // Scoring weights — tune these to adjust what "relevant" means
@@ -257,7 +277,8 @@ function resolveSeeds(
     query: ContextQuery,
     contract: MikkContract,
     lock: MikkLock,
-    keywords: string[]
+    keywords: string[],
+    bm25Index?: BM25Index
 ): string[] {
     const strictMode = query.relevanceMode === 'strict'
     const seeds = new Set<string>()
@@ -288,21 +309,14 @@ function resolveSeeds(
 
     // 3. Keyword/BM25 match against function names and file paths
     if (seeds.size === 0) {
-        // Use inline BM25 scoring for seed finding
-        const index = new BM25Index()
-        for (const fn of Object.values(lock.functions)) {
-            const tokens: string[] = []
-            const nameParts = fn.name.replace(/([a-z])([A-Z])/g, '$1 $2').split(/[-_]/)
-            tokens.push(...nameParts.filter(p => p.length >= 2))
-            if (fn.purpose) {
-                const purposeTokens = fn.purpose.toLowerCase().replace(/[^a-z0-9]/g, ' ').split(/\s+/)
-                tokens.push(...purposeTokens.filter(t => t.length >= 2))
+        const index = bm25Index ?? (() => {
+            const newIndex = new BM25Index()
+            for (const fn of Object.values(lock.functions)) {
+                const tokens = tokenizeFunction(fn)
+                if (tokens.length > 0) newIndex.addDocument(fn.id, tokens)
             }
-            const fileName = path.basename(fn.file).replace(/\.(d\.ts|ts|tsx|js|jsx|py|go|java|rs|cs|cpp|c|php|rb)$/i, '')
-            const fileParts = fileName.replace(/([a-z])([A-Z])/g, '$1 $2').split(/[-_]/)
-            tokens.push(...fileParts.filter(p => p.length >= 2))
-            if (tokens.length > 0) index.addDocument(fn.id, tokens)
-        }
+            return newIndex
+        })()
         
         const bm25Results = index.search(keywords.join(' '), Math.min(50, Object.keys(lock.functions).length))
         const scoredSeeds = new Map<string, number>()
@@ -312,7 +326,6 @@ function resolveSeeds(
         
         for (const fn of Object.values(lock.functions)) {
             const bm25Score = scoredSeeds.get(fn.id) ?? 0
-            // Use BM25 score or keyword score (whichever is higher)
             const kwScore = keywordScore(fn, keywords).score
             if (bm25Score > 0 || kwScore >= WEIGHT.KEYWORD_PARTIAL) {
                 seeds.add(fn.id)
@@ -355,7 +368,6 @@ function resolveSeeds(
                 }
                 // Also check against context file basenames
                 if (seeds.size === 0) {
-                    const fnBase = path.basename(fn.file).toLowerCase()
                     for (const cfPath of contextFilePaths) {
                         for (const kw of keywords) {
                             if (cfPath.includes(kw) || kw.includes(cfPath.replace(/\.[^.]+$/, ''))) {
@@ -421,45 +433,112 @@ function resolveSeeds(
 
 export class ContextBuilder {
     private bm25Index: BM25Index
+    private richIndex: RichFunctionIndex
 
     constructor(
         private contract: MikkContract,
         private lock: MikkLock
     ) {
         this.bm25Index = this.buildBm25Index()
+        this.richIndex = this.buildRichIndex()
     }
 
     private buildBm25Index(): BM25Index {
         const index = new BM25Index()
         for (const fn of Object.values(this.lock.functions)) {
-            const tokens: string[] = []
-            
-            // Add function name tokens (split by underscore, camelCase)
-            const nameParts = fn.name.replace(/([a-z])([A-Z])/g, '$1 $2').split(/[-_]/)
-            tokens.push(...nameParts.filter(p => p.length >= 2))
-            
-            // Add purpose tokens
-            if (fn.purpose) {
-                const purposeTokens = fn.purpose.toLowerCase().replace(/[^a-z0-9]/g, ' ').split(/\s+/)
-                tokens.push(...purposeTokens.filter(t => t.length >= 2))
-            }
-            
-            // Add file name tokens (basename without extension)
-            const fileName = path.basename(fn.file).replace(/\.(d\.ts|ts|tsx|js|jsx|py|go|java|rs|cs|cpp|c|php|rb)$/i, '')
-            const fileParts = fileName.replace(/([a-z])([A-Z])/g, '$1 $2').split(/[-_]/)
-            tokens.push(...fileParts.filter(p => p.length >= 2))
-            
-            // Add module ID tokens
-            if (fn.moduleId) {
-                const modParts = fn.moduleId.split(/[-_]/)
-                tokens.push(...modParts.filter(p => p.length >= 2))
-            }
-            
+            const tokens = tokenizeFunction(fn)
             if (tokens.length > 0) {
                 index.addDocument(fn.id, tokens)
             }
         }
         return index
+    }
+
+    private buildRichIndex(): RichFunctionIndex {
+        const index = new RichFunctionIndex()
+        index.index(this.lock)
+        return index
+    }
+
+    /**
+     * Direct lookup of a function by exact name - O(1) using RichFunctionIndex
+     */
+    findFunctionByName(name: string): { id: string; name: string; file: string; signature: string } | null {
+        const fn = this.richIndex.getByExactName(name)
+        if (!fn) return null
+        return {
+            id: fn.id,
+            name: fn.name,
+            file: fn.file,
+            signature: fn.fullSignature,
+        }
+    }
+
+    /**
+     * Direct lookup of a function by location - O(n) but fast
+     */
+    findFunctionByLocation(file: string, line: number): { id: string; name: string; startLine: number; endLine: number } | null {
+        const fn = this.richIndex.findByLocation(file, line)
+        if (!fn) return null
+        return {
+            id: fn.id,
+            name: fn.name,
+            startLine: fn.startLine,
+            endLine: fn.endLine,
+        }
+    }
+
+    /**
+     * Get rich function data for a list of function IDs
+     */
+    getRichFunctions(functionIds: string[]): Array<{
+        id: string
+        name: string
+        file: string
+        signature: string
+        purpose: string
+        params: Array<{ name: string; type: string; optional: boolean }>
+        returnType: string
+        isExported: boolean
+        isAsync: boolean
+        calls: string[]
+        calledBy: string[]
+        keywords: string[]
+    }> {
+        return functionIds
+            .map(id => this.richIndex.get(id))
+            .filter((fn): fn is NonNullable<typeof fn> => fn !== undefined)
+            .map(fn => ({
+                id: fn.id,
+                name: fn.name,
+                file: fn.file,
+                signature: fn.fullSignature,
+                purpose: fn.purpose,
+                params: fn.params.map(p => ({ name: p.name, type: p.type, optional: p.optional })),
+                returnType: fn.returnType,
+                isExported: fn.isExported,
+                isAsync: fn.isAsync,
+                calls: fn.calls.map(c => c.name),
+                calledBy: fn.calledBy,
+                keywords: fn.keywords,
+            }))
+    }
+
+    /**
+     * Quick search using RichFunctionIndex (faster than BM25 for simple queries)
+     */
+    quickSearch(query: string, limit: number = 10): string[] {
+        const results = this.richIndex.searchText(query, limit)
+        return results.map(r => r.function.id)
+    }
+
+    /**
+     * Get call graph for a function
+     */
+    getCallGraph(functionId: string): { callers: string[]; callees: string[] } {
+        const callers = this.richIndex.getCallers(functionId).map(f => f.name)
+        const callees = this.richIndex.getCallees(functionId).map(f => f.name)
+        return { callers, callees }
     }
 
     /**
@@ -488,7 +567,7 @@ export class ContextBuilder {
         )
 
         // ── Step 1: Resolve seeds ──────────────────────────────────────────
-        const seeds = resolveSeeds(query, this.contract, this.lock, keywords)
+        const seeds = resolveSeeds(query, this.contract, this.lock, keywords, this.bm25Index)
         const seedSet = new Set(seeds)
 
         // ── Step 2: BFS proximity scores ──────────────────────────────────
@@ -658,7 +737,7 @@ export class ContextBuilder {
         const byModule = new Map<string, MikkLockFunction[]>()
         for (const fn of selected) {
             if (!byModule.has(fn.moduleId)) byModule.set(fn.moduleId, [])
-            byModule.get(fn.moduleId)!.push(fn)
+            byModule.get(fn.moduleId)?.push(fn)
         }
 
         const contextModules: ContextModule[] = []

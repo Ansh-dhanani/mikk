@@ -53,21 +53,40 @@ function parseConstraint(constraint: string): ParsedRule | null {
 export class BoundaryChecker {
     private rules: ParsedRule[]
     private moduleNames: Map<string, string>
+    private fileModuleMap: Map<string, string>
 
     constructor(private contract: MikkContract, private lock: MikkLock) {
         this.rules = contract.declared.constraints.map(parseConstraint).filter((r): r is ParsedRule => r !== null)
         this.moduleNames = new Map(contract.declared.modules.map(m => [m.id, m.name]))
+        
+        this.fileModuleMap = new Map()
+        for (const [filePath, fileData] of Object.entries(this.lock.files)) {
+            if (fileData.moduleId && fileData.moduleId !== 'unknown') {
+                this.fileModuleMap.set(filePath.toLowerCase(), fileData.moduleId)
+            }
+        }
+    }
+
+    private getModuleId(fn: any): string {
+        if (fn.moduleId && fn.moduleId !== 'unknown') return fn.moduleId
+        const normalized = (fn.file ?? '').replace(/\\/g, '/').toLowerCase()
+        return this.fileModuleMap.get(normalized) ?? 'unknown'
     }
 
     check(): BoundaryCheckResult {
         const violations: BoundaryViolation[] = []
+        const fnIndex = (this.lock as any).fnIndex ?? []
 
         for (const fn of Object.values(this.lock.functions)) {
-            if (fn.moduleId === 'unknown') continue
-            for (const calleeId of fn.calls) {
+            const fnModuleId = this.getModuleId(fn)
+            if (fnModuleId === 'unknown') continue
+            const calls = (fn.calls ?? []).map((c: any) => typeof c === 'number' ? fnIndex[c] : c).filter(Boolean)
+            for (const calleeId of calls) {
                 const callee = this.lock.functions[calleeId]
-                if (!callee || callee.moduleId === 'unknown' || fn.moduleId === callee.moduleId) continue
-                const v = this.checkCall(fn, callee)
+                if (!callee) continue
+                const calleeModuleId = this.getModuleId(callee)
+                if (calleeModuleId === 'unknown' || fnModuleId === calleeModuleId) continue
+                const v = this.checkCall(fn, callee, fnModuleId, calleeModuleId)
                 if (v) violations.push(v)
             }
         }
@@ -97,21 +116,21 @@ export class BoundaryChecker {
         const errorCount = unique.filter(v => v.severity === 'error').length
         const warnCount = unique.filter(v => v.severity === 'warning').length
         const summary = unique.length === 0
-            ? `All module boundaries respected (${fnCount} functions, ${fileCount} files checked)`
-            : `${errorCount} boundary error(s), ${warnCount} warning(s) found`
+            ? `All module boundaries respected (${fnCount} fns, ${fileCount} files checked)`
+            : `${errorCount} error(s), ${warnCount} warning(s) found`
 
         return { pass: errorCount === 0, violations: unique, summary }
     }
 
-    private checkCall(caller: MikkLockFunction, callee: MikkLockFunction): BoundaryViolation | null {
+    private checkCall(caller: any, callee: any, callerModuleId: string, calleeModuleId: string): BoundaryViolation | null {
         for (const rule of this.rules) {
-            if (rule.fromModuleId !== caller.moduleId) continue
+            if (rule.fromModuleId !== callerModuleId) continue
             const forbidden = rule.type === 'isolated' ? true
-                : rule.type === 'deny' ? rule.toModuleIds.includes(callee.moduleId)
-                : !rule.toModuleIds.includes(callee.moduleId)
+                : rule.type === 'deny' ? rule.toModuleIds.includes(calleeModuleId)
+                : !rule.toModuleIds.includes(calleeModuleId)
             if (forbidden) return {
-                from: { functionId: caller.id, functionName: caller.name, file: caller.file, moduleId: caller.moduleId, moduleName: this.moduleNames.get(caller.moduleId) ?? caller.moduleId },
-                to: { functionId: callee.id, functionName: callee.name, file: callee.file, moduleId: callee.moduleId, moduleName: this.moduleNames.get(callee.moduleId) ?? callee.moduleId },
+                from: { functionId: caller.id, functionName: caller.name, file: caller.file, moduleId: callerModuleId, moduleName: this.moduleNames.get(callerModuleId) ?? callerModuleId },
+                to: { functionId: callee.id, functionName: callee.name, file: callee.file, moduleId: calleeModuleId, moduleName: this.moduleNames.get(calleeModuleId) ?? calleeModuleId },
                 rule: rule.raw, severity: 'error'
             }
         }

@@ -1,7 +1,7 @@
 import type { Command } from 'commander'
-import * as path from 'node:path'
+import * as nodePath from 'node:path'
 import {
-    ContractReader, LockReader, ImpactAnalyzer,
+    LockReader,
     DeadCodeDetector,
     type MikkLock, type DependencyGraph, type GraphNode, type GraphEdge,
 } from '@getmikk/core'
@@ -12,6 +12,13 @@ export function registerDeadCodeCommand(program: Command) {
         .description('Detect dead code — functions with zero callers after multi-pass exemptions')
         .option('-m, --module <moduleId>', 'Filter to a specific module')
         .option('--json', 'Output raw JSON instead of formatted table')
+        .addHelpText('after',
+          `\nExamples:\n` +
+          `  mikk dead-code              List all dead code candidates\n` +
+          `  mikk dead-code --module cli   Filter to specific module\n` +
+          `  mikk dead-code --json         Machine-readable output\n` +
+          `\nDead code detection analyzes the call graph to find functions\n` +
+          `that are never referenced by other code.\n`)
         .action(async (opts: { module?: string; json?: boolean }) => {
             const projectRoot = process.cwd()
 
@@ -19,7 +26,7 @@ export function registerDeadCodeCommand(program: Command) {
             const lockReader = new LockReader()
             let lock: MikkLock
             try {
-                lock = await lockReader.read(path.join(projectRoot, 'mikk.lock.json'))
+                lock = await lockReader.read(nodePath.join(projectRoot, 'mikk.lock.json'))
             } catch {
                 console.error('❌ No mikk.lock.json found. Run `mikk analyze` first.')
                 process.exit(1)
@@ -92,7 +99,7 @@ function buildGraphFromLock(lock: MikkLock): DependencyGraph {
         nodes.set(fn.id, {
             id: fn.id,
             type: 'function',
-            label: fn.name,
+            name: fn.name,
             file: fn.file,
             moduleId: fn.moduleId,
             metadata: {
@@ -112,17 +119,30 @@ function buildGraphFromLock(lock: MikkLock): DependencyGraph {
         nodes.set(file.path, {
             id: file.path,
             type: 'file',
-            label: file.path.split('/').pop() || file.path,
+            name: file.path.split('/').pop() || file.path,
             file: file.path,
             moduleId: file.moduleId,
             metadata: {},
         })
     }
 
+    for (const cls of Object.values(lock.classes ?? {})) {
+        nodes.set(cls.id, {
+            id: cls.id,
+            type: 'class',
+            name: cls.name,
+            file: cls.file,
+            moduleId: cls.moduleId,
+            metadata: {
+                isExported: cls.isExported,
+            },
+        })
+    }
+
     for (const fn of Object.values(lock.functions)) {
-        for (const calleeId of fn.calls) {
+        for (const calleeId of fn.calls ?? []) {
             if (!nodes.has(calleeId)) continue
-            const edge: GraphEdge = { source: fn.id, target: calleeId, type: 'calls' }
+            const edge: GraphEdge = { from: fn.id, to: calleeId, type: 'calls', confidence: 1.0 }
             edges.push(edge)
 
             const out = outEdges.get(fn.id) ?? []
@@ -132,6 +152,22 @@ function buildGraphFromLock(lock: MikkLock): DependencyGraph {
             const inE = inEdges.get(calleeId) ?? []
             inE.push(edge)
             inEdges.set(calleeId, inE)
+        }
+    }
+
+    for (const fn of Object.values(lock.functions)) {
+        for (const callerId of fn.calledBy ?? []) {
+            if (!nodes.has(fn.id) || !nodes.has(callerId)) continue
+            const edge: GraphEdge = { from: callerId, to: fn.id, type: 'calls', confidence: 0.9 }
+            edges.push(edge)
+
+            const out = outEdges.get(callerId) ?? []
+            out.push(edge)
+            outEdges.set(callerId, out)
+
+            const inE = inEdges.get(fn.id) ?? []
+            inE.push(edge)
+            inEdges.set(fn.id, inE)
         }
     }
 

@@ -149,7 +149,7 @@ export class ConflictDetector {
             return null
         }
 
-        const [, _accessType, allowedPath] = match
+        const [, , allowedPath] = match
         const allowed = allowedPath.trim().replace(/[/\\*]*/g, '')
         const targetModule = intent.target.moduleId || ''
 

@@ -1,8 +1,9 @@
 import { describe, it, expect } from 'bun:test'
 import { DeadCodeDetector } from '../src/graph/dead-code-detector'
-import { buildTestGraph, mockFunction } from './helpers'
-import { GraphBuilder } from '../src/graph/graph-builder'
+import { buildTestGraph } from './helpers'
 import type { MikkLock } from '../src/contract/schema'
+
+const _GraphBuilder = { addNode: () => {}, addEdge: () => {}, build: () => new Map() }
 
 /** Helper to generate a dummy lock file from graph nodes for the detector */
 function generateDummyLock(graphNodes: Map<string, any>): MikkLock {

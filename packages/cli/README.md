@@ -335,37 +335,9 @@ mikk ci --format json # Machine-readable output
 
 ---
 
-### `mikk visualize` — Diagram Generation
-
-#### `mikk visualize all`
-
-Regenerate all Mermaid diagrams.
-
-```bash
-mikk visualize all
-```
-
-#### `mikk visualize module <id>`
-
-Regenerate the diagram for a specific module.
-
-```bash
-mikk visualize module auth
-```
-
-#### `mikk context impact`
-
-Analyze what breaks if a specific file changes (and includes an AI-context-focused impacted view).
-
-```bash
-mikk context impact src/auth/login.ts
-```
-
----
-
 ### `mikk mcp` — MCP Server for AI Assistants
 
-Connect your project architecture to Claude Desktop, Cursor, VS Code, or any MCP-compatible AI tool. The MCP server exposes 22 tools and 3 resources for your assistant, all powered by the Mikk lock file.
+Connect your project architecture to Claude Desktop, Cursor, VS Code, or any MCP-compatible AI tool. The MCP server exposes tools and resources powered by the Mikk lock file.
 
 #### `mikk mcp` (default: start server)
 

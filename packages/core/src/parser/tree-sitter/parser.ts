@@ -1,8 +1,10 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import * as path from 'node:path'
 import { TreeSitterResolver } from './resolver.js'
+import { LanguageRegistry } from '../language-registry.js'
 import { createRequire } from 'node:module'
 import { hashContent } from '../../hash/file-hasher.js'
-import { BaseParser } from '../base-parser.js'
+import { BaseExtractor } from '../base-extractor.js'
 import type { ParsedFile, ParsedFunction, ParsedClass, ParsedParam, ParsedImport, ParsedGeneric } from '../types.js'
 import * as Queries from './queries.js'
 
@@ -15,20 +17,106 @@ const _require = getRequire()
 let Parser: any = null
 let Language: any = null
 let initialized = false
-let initPromise: Promise<void> | null = null
+let initPromise: Promise<boolean> | null = null
 
-try {
-    const ParserModule = _require('web-tree-sitter')
-    Parser = ParserModule
-    if (ParserModule.init) {
-        initPromise = ParserModule.init().then(() => {
-            Language = ParserModule.Language
-            initialized = true
-        }).catch(() => { /* ignore */ })
-    } else if (ParserModule.default?.Language) {
-        Language = ParserModule.default.Language
+function isValidTreeSitterModule(module: any): boolean {
+    if (!module) return false
+    if (module.HEAP8 || module.HEAP16 || module.HEAP32) return false
+    const hasInit = typeof module.init === 'function'
+    const hasLanguage = typeof module.Language !== 'undefined'
+    const hasDefault = module.default?.Language
+    const isFunctionWithInit = typeof module === 'function' && module.prototype?.init
+    const isFunctionWithLanguage = typeof module === 'function' && module.prototype?.Language
+    return hasInit || hasLanguage || !!hasDefault || isFunctionWithInit || isFunctionWithLanguage
+}
+
+async function ensureInitialized(): Promise<boolean> {
+    if (initialized && Language) return true
+    
+    const attemptInit = async (): Promise<boolean> => {
+        try {
+            let ParserModule = _require('web-tree-sitter')
+            if (!ParserModule) return false
+            
+            if (typeof ParserModule === 'function') {
+                if (ParserModule.prototype?.Language) {
+                    Language = ParserModule.prototype.Language
+                    Parser = ParserModule
+                    initialized = true
+                    return true
+                }
+                if (ParserModule.prototype?.init) {
+                    await ParserModule.prototype.init()
+                    Language = ParserModule.prototype.Language
+                    Parser = ParserModule
+                    initialized = !!Language
+                    return initialized
+                }
+            }
+            
+            if (!isValidTreeSitterModule(ParserModule)) {
+                ParserModule = ParserModule?.default || ParserModule
+            }
+            
+            if (!isValidTreeSitterModule(ParserModule)) {
+                const moduleCache = _require.cache
+                const keys = Object.keys(moduleCache || {})
+                for (const key of keys) {
+                    if (key.includes('web-tree-sitter')) {
+                        delete moduleCache[key]
+                    }
+                }
+                ParserModule = _require('web-tree-sitter')
+                if (typeof ParserModule === 'function' && ParserModule.prototype?.Language) {
+                    Language = ParserModule.prototype.Language
+                    Parser = ParserModule
+                    initialized = true
+                    return true
+                }
+                if (!isValidTreeSitterModule(ParserModule)) {
+                    ParserModule = ParserModule?.default || ParserModule
+                }
+            }
+            
+            if (!isValidTreeSitterModule(ParserModule)) {
+                return false
+            }
+            
+            Parser = ParserModule
+            
+            if (typeof ParserModule.init === 'function') {
+                await ParserModule.init()
+                Language = ParserModule.Language
+                initialized = !!Language
+            } else if (ParserModule.default?.Language) {
+                Language = ParserModule.default.Language
+                initialized = true
+            } else if (ParserModule.Language) {
+                Language = ParserModule.Language
+                initialized = true
+            }
+            
+            return initialized && !!Language
+        } catch (err) {
+            console.warn('[tree-sitter] Initialization failed:', err)
+            return false
+        }
     }
-} catch { /* web-tree-sitter not installed */ }
+    
+    if (initPromise) {
+        await initPromise.catch(() => {})
+        if (!initialized && Language) {
+            initPromise = attemptInit()
+            const retryResult = await initPromise
+            return retryResult
+        }
+        return initialized && !!Language
+    }
+    
+    initPromise = attemptInit()
+    const result = await initPromise
+    return result
+}
 
 function isExportedByLanguage(ext: string, name: string, nodeText: string): boolean {
     switch (ext) {
@@ -119,7 +207,35 @@ function findAllChildren(node: any, predicate: (n: any) => boolean): any[] {
     return results
 }
 
-function extractGenericsFromNode(defNode: any, filePath: string): ParsedGeneric[] {
+function extractDecoratorsFromNode(defNode: any): string[] {
+    const decorators: string[] = []
+    if (!defNode?.children) return decorators
+    
+    for (const child of defNode.children) {
+        if (child.type === 'decorator' || child.type === 'attribute' || child.type === 'annotation') {
+            const nameNode = findFirstChild(child, n => 
+                n.type === 'identifier' || 
+                n.type === 'attribute' ||
+                n.type === 'decorator_target'
+            )
+            if (nameNode?.text) {
+                decorators.push(nameNode.text)
+            }
+        }
+        if (child.type === 'expression_statement') {
+            const innerChild = findFirstChild(child, n => n.type === 'decorator' || n.type === 'attribute')
+            if (innerChild) {
+                const nameNode = findFirstChild(innerChild, n => n.type === 'identifier')
+                if (nameNode?.text) {
+                    decorators.push(nameNode.text)
+                }
+            }
+        }
+    }
+    return decorators
+}
+
+function _extractGenericsFromNode(defNode: any, filePath: string): ParsedGeneric[] {
     const generics: ParsedGeneric[] = []
     if (!defNode) return generics
 
@@ -179,7 +295,7 @@ function assignCallsToFunctions(
     return unassigned
 }
 
-export class TreeSitterParser extends BaseParser {
+export class TreeSitterParser extends BaseExtractor {
     private parser: any = null
     private languages = new Map<string, any>()
     private nameCounter = new Map<string, number>()
@@ -190,10 +306,9 @@ export class TreeSitterParser extends BaseParser {
     }
 
     private async init() {
-        if (!this.parser) {
-            if (!Parser || !initPromise) return
-            await initPromise.catch(() => {})
-            if (!Language) return
+        if (this.parser) return
+        const ready = await ensureInitialized()
+        if (ready && Parser) {
             this.parser = new Parser()
         }
     }
@@ -203,39 +318,57 @@ export class TreeSitterParser extends BaseParser {
         return Boolean(this.parser)
     }
 
-    async parse(filePath: string, content: string): Promise<ParsedFile> {
-        this.nameCounter.clear()
+    async extract(filePath: string, content: string): Promise<ParsedFile> {
         await this.init()
-        const ext = path.extname(filePath).toLowerCase()
-
+        
         if (!this.parser) {
-            return this.buildEmptyFile(filePath, content, ext)
+            console.warn('[tree-sitter] Parser not initialized')
+            return this.buildEmptyFile(filePath, content, path.extname(filePath))
         }
 
+        const ext = path.extname(filePath).toLowerCase()
         const config = await this.getLanguageConfig(ext)
-
+        
         if (!config || !config.lang) {
+            console.warn('[tree-sitter] Language not available for', ext)
             return this.buildEmptyFile(filePath, content, ext)
         }
 
-        try {
-            return this.parseWithConfig(filePath, content, ext, config)
-        } catch (err) {
-            console.warn(`Parse error for ${filePath}:`, err)
-            return this.buildEmptyFile(filePath, content, ext)
-        }
+        const result = await this.parseWithConfig(filePath, content, ext, config)
+        
+        return result
     }
 
     private async parseWithConfig(filePath: string, content: string, ext: string, config: any): Promise<ParsedFile> {
         this.parser!.setLanguage(config.lang)
-        const tree = this.parser!.parse(content)
-        const query = config.lang.query(config.query)
         
+        let tree: any = null
+        try {
+            tree = this.parser!.parse(content)
+        } catch (parseErr) {
+            console.warn(`[tree-sitter] Parse failed for ${ext}:`, parseErr instanceof Error ? parseErr.message : String(parseErr))
+            return this.buildEmptyFile(filePath, content, ext)
+        }
+
+        let query: any = null
+        try {
+            query = config.lang.query(config.query)
+        } catch (queryErr) {
+            console.warn(`[tree-sitter] Query compilation failed for ${ext}:`, queryErr instanceof Error ? queryErr.message : String(queryErr))
+            return this.buildEmptyFile(filePath, content, ext)
+        }
+
         if (!query) {
             return this.buildEmptyFile(filePath, content, ext)
         }
 
-        const matches = query.matches(tree.rootNode)
+        let matches: any[] = []
+        try {
+            matches = query.matches(tree.rootNode)
+        } catch (matchErr) {
+            console.warn(`[tree-sitter] Query execution failed for ${ext}:`, matchErr instanceof Error ? matchErr.message : String(matchErr))
+            return this.buildEmptyFile(filePath, content, ext)
+        }
 
         const functions: ParsedFunction[] = []
         const classesMap = new Map<string, ParsedClass>()
@@ -321,7 +454,6 @@ export class TreeSitterParser extends BaseParser {
 
             // --- Generic types ---
             if (captures['generic.name'] || captures['generic.arg']) {
-                const genName = captures['generic.name']?.text || ''
                 const genArg = captures['generic.arg']?.text || ''
                 if (genArg && !generics.some(g => g.name === genArg)) {
                     generics.push({
@@ -361,6 +493,7 @@ export class TreeSitterParser extends BaseParser {
 
                     const returnType = extractReturnType(ext, defNode, nodeText)
                     const params = extractParamsFromNode(defNode)
+                    const decorators = extractDecoratorsFromNode(defNode)
 
                     functions.push({
                         id: fnId,
@@ -373,6 +506,7 @@ export class TreeSitterParser extends BaseParser {
                         isExported: exported,
                         isAsync,
                         calls: [],
+                        decorators: decorators.length > 0 ? decorators : undefined,
                         hash: hashContent(nodeText),
                         purpose: extractDocComment(content, startLine),
                         edgeCasesHandled: [],
@@ -402,10 +536,6 @@ export class TreeSitterParser extends BaseParser {
                         const clsId = `class:${filePath}:${clsName}`
 
                         if (!classesMap.has(clsId)) {
-                            const isEnum = type === 'definition.enum'
-                            const isStruct = type === 'definition.struct'
-                            const isUnion = type === 'definition.union'
-                            
                             classesMap.set(clsId, {
                                 id: clsId,
                                 name: clsName,
@@ -533,13 +663,25 @@ export class TreeSitterParser extends BaseParser {
                 baseDirs.add(path.join(parentDir, 'node_modules'))
                 
                 // Also check sibling directories in the parent for monorepo setups
-                // (e.g., metis and Mesh are siblings under the same parent)
+                // Also check subdirs like Mesh/packages/core/node_modules
                 try {
                     const fs = await import('node:fs')
                     const entries = fs.readdirSync(parentDir, { withFileTypes: true })
                     for (const entry of entries) {
                         if (entry.isDirectory() && entry.name !== path.basename(current)) {
                             baseDirs.add(path.join(parentDir, entry.name, 'node_modules'))
+                            // Also check for packages/*/node_modules patterns
+                            const subPath = path.join(parentDir, entry.name, 'packages')
+                            if (fs.existsSync(subPath)) {
+                                try {
+                                    const pkgEntries = fs.readdirSync(subPath, { withFileTypes: true })
+                                    for (const pkg of pkgEntries) {
+                                        if (pkg.isDirectory()) {
+                                            baseDirs.add(path.join(subPath, pkg.name, 'node_modules'))
+                                        }
+                                    }
+                                } catch { /* skip */ }
+                            }
                         }
                     }
                 } catch { /* skip */ }
@@ -550,9 +692,27 @@ export class TreeSitterParser extends BaseParser {
             const possiblePaths: string[] = []
             for (const baseDir of baseDirs) {
                 if (!baseDir) continue
-                possiblePaths.push(
-                    path.join(baseDir, 'node_modules/tree-sitter-wasms/out', `tree-sitter-${nameForFile}.wasm`),
-                )
+                const p = path.join(baseDir, 'node_modules/tree-sitter-wasms/out', `tree-sitter-${nameForFile}.wasm`)
+                possiblePaths.push(p)
+                
+                // Also check Mesh/packages/*/node_modules directly
+                const meshBase = path.join(baseDir, '..', 'Mesh', 'packages')
+                try {
+                    const fs = await import('node:fs')
+                    if (fs.existsSync(meshBase)) {
+                        const entries = fs.readdirSync(meshBase, { withFileTypes: true })
+                        for (const entry of entries) {
+                            if (entry.isDirectory()) {
+                                possiblePaths.push(path.join(meshBase, entry.name, 'node_modules', 'tree-sitter-wasms', 'out', `tree-sitter-${nameForFile}.wasm`))
+                            }
+                        }
+                    }
+                } catch { /* skip */ }
+            }
+            
+            if (process.env.MIKK_DEBUG) {
+                console.log('[tree-sitter] Searching for:', name)
+                console.log('[tree-sitter] Paths checked:', possiblePaths.slice(0, 5).map(p => p.slice(-50)))
             }
             
             let wasmPath = ''
@@ -623,6 +783,14 @@ export class TreeSitterParser extends BaseParser {
     }
 
     private async getLanguageConfig(ext: string) {
+        // Ensure parser is initialized first
+        await this.init()
+        
+        if (!this.parser) {
+            console.warn('[tree-sitter] Parser not initialized, returning null for', ext)
+            return null
+        }
+        
         switch (ext) {
             case '.py':
                 return { lang: await this.loadLang('python'), query: Queries.PYTHON_QUERIES }
@@ -631,8 +799,13 @@ export class TreeSitterParser extends BaseParser {
             case '.kt':
             case '.kts':
                 return { lang: await this.loadLang('kotlin'), query: Queries.KOTLIN_QUERIES }
+            case '.scala':
+            case '.sc':
+                return { lang: await this.loadLang('scala'), query: Queries.SCALA_QUERIES }
             case '.swift':
                 return { lang: await this.loadLang('swift'), query: Queries.SWIFT_QUERIES }
+            case '.dart':
+                return { lang: await this.loadLang('dart'), query: Queries.SWIFT_QUERIES }
             case '.c':
             case '.h':
                 return { lang: await this.loadLang('c'), query: Queries.C_QUERIES }
@@ -649,35 +822,169 @@ export class TreeSitterParser extends BaseParser {
                 return { lang: await this.loadLang('go'), query: Queries.GO_QUERIES }
             case '.rs':
                 return { lang: await this.loadLang('rust'), query: Queries.RUST_QUERIES }
+            case '.zig':
+                return { lang: await this.loadLang('zig'), query: Queries.ZIG_QUERIES }
             case '.php':
                 return { lang: await this.loadLang('php'), query: Queries.PHP_QUERIES }
             case '.rb':
                 return { lang: await this.loadLang('ruby'), query: Queries.RUBY_QUERIES }
+            case '.hs':
+                return { lang: await this.loadLang('haskell'), query: Queries.HASKELL_QUERIES }
+            case '.ex':
+            case '.exs':
+                return { lang: await this.loadLang('elixir'), query: Queries.ELIXIR_QUERIES }
+            case '.clj':
+            case '.cljs':
+            case '.cljc':
+                return { lang: await this.loadLang('clojure'), query: Queries.CLOJURE_QUERIES }
+            case '.fs':
+            case '.fsx':
+            case '.fsi':
+                return { lang: await this.loadLang('fsharp'), query: Queries.FSHARP_QUERIES }
+            case '.ml':
+            case '.mli':
+                return { lang: await this.loadLang('ocaml'), query: Queries.OCAML_QUERIES }
+            case '.pl':
+            case '.pm':
+                return { lang: await this.loadLang('perl'), query: Queries.PERL_QUERIES }
+            case '.r':
+            case '.R':
+                return { lang: await this.loadLang('r'), query: Queries.R_QUERIES }
+            case '.jl':
+                return { lang: await this.loadLang('julia'), query: Queries.JULIA_QUERIES }
+            case '.lua':
+                return { lang: await this.loadLang('lua'), query: Queries.LUA_QUERIES }
+            case '.sql':
+                return { lang: await this.loadLang('sql'), query: Queries.SQL_QUERIES }
+            case '.tf':
+                return { lang: await this.loadLang('hcl'), query: Queries.HCL_QUERIES }
+            case '.sh':
+            case '.bash':
+            case '.zsh':
+                return { lang: await this.loadLang('bash'), query: Queries.BASH_QUERIES }
             default:
                 return null
         }
     }
 }
 
+// Register Tree-sitter for all supported languages (22+ languages)
+const tsParser = new TreeSitterParser();
+const registry = LanguageRegistry.getInstance();
+
+const standardFeatures = {
+    hasTypeSystem: true,
+    hasGenerics: true,
+    hasMacros: false,
+    hasAnnotations: false,
+    hasPatternMatching: true,
+};
+
+const functionalFeatures = {
+    hasTypeSystem: true,
+    hasGenerics: true,
+    hasMacros: false,
+    hasAnnotations: false,
+    hasPatternMatching: false,
+};
+
+const scriptingFeatures = {
+    hasTypeSystem: false,
+    hasGenerics: false,
+    hasMacros: false,
+    hasAnnotations: false,
+    hasPatternMatching: false,
+};
+
+// All 22+ supported languages
+const languages: Array<{ name: string; extensions: string[]; features: typeof standardFeatures }> = [
+    // JVM Languages
+    { name: 'java', extensions: ['.java'], features: standardFeatures },
+    { name: 'kotlin', extensions: ['.kt', '.kts'], features: standardFeatures },
+    { name: 'scala', extensions: ['.scala', '.sc'], features: standardFeatures },
+    
+    // Apple Languages
+    { name: 'swift', extensions: ['.swift'], features: standardFeatures },
+    { name: 'dart', extensions: ['.dart'], features: standardFeatures },
+    
+    // C Family
+    { name: 'c', extensions: ['.c', '.h'], features: standardFeatures },
+    { name: 'cpp', extensions: ['.cpp', '.cc', '.cxx', '.hpp', '.hxx', '.hh'], features: standardFeatures },
+    { name: 'csharp', extensions: ['.cs'], features: standardFeatures },
+    
+    // Systems Languages
+    { name: 'rust', extensions: ['.rs'], features: standardFeatures },
+    { name: 'zig', extensions: ['.zig'], features: standardFeatures },
+    
+    // Web Languages
+    { name: 'php', extensions: ['.php'], features: standardFeatures },
+    { name: 'ruby', extensions: ['.rb'], features: scriptingFeatures },
+    
+    // Scripting Languages
+    { name: 'python', extensions: ['.py', '.pyw'], features: scriptingFeatures },
+    { name: 'lua', extensions: ['.lua'], features: scriptingFeatures },
+    
+    // Functional Languages
+    { name: 'haskell', extensions: ['.hs'], features: functionalFeatures },
+    { name: 'elixir', extensions: ['.ex', '.exs'], features: functionalFeatures },
+    { name: 'clojure', extensions: ['.clj', '.cljs', '.cljc'], features: functionalFeatures },
+    
+    // .NET Family
+    { name: 'fsharp', extensions: ['.fs', '.fsx', '.fsi'], features: standardFeatures },
+    
+    // ML Family
+    { name: 'ocaml', extensions: ['.ml', '.mli'], features: functionalFeatures },
+    
+    // Other Languages
+    { name: 'perl', extensions: ['.pl', '.pm'], features: scriptingFeatures },
+    { name: 'r', extensions: ['.r', '.R'], features: scriptingFeatures },
+    { name: 'julia', extensions: ['.jl'], features: scriptingFeatures },
+    
+    // Config/Special Purpose
+    { name: 'sql', extensions: ['.sql'], features: scriptingFeatures },
+    { name: 'terraform', extensions: ['.tf'], features: scriptingFeatures },
+    { name: 'shell', extensions: ['.sh', '.bash', '.zsh'], features: scriptingFeatures },
+];
+
+for (const lang of languages) {
+    registry.register({
+        ...lang,
+        treeSitterGrammar: `tree-sitter-${lang.name}`,
+        extractor: tsParser,
+        semanticFeatures: lang.features
+    });
+}
+
 function extensionToLanguage(ext: string): ParsedFile['language'] {
-    switch (ext) {
-        case '.py': return 'python'
-        case '.java': return 'java'
-        case '.kt':
-        case '.kts':
-            return 'kotlin'
-        case '.swift':
-            return 'swift'
-        case '.c': case '.h': return 'c'
-        case '.cpp': case '.cc': case '.hpp': return 'cpp'
-        case '.cxx': case '.hxx': case '.hh': return 'cpp'
-        case '.cs': return 'csharp'
-        case '.go': return 'go'
-        case '.rs': return 'rust'
-        case '.php': return 'php'
-        case '.rb': return 'ruby'
-        default: return 'unknown'
-    }
+    const langMap: Record<string, ParsedFile['language']> = {
+        '.py': 'python', '.pyw': 'python',
+        '.java': 'java',
+        '.kt': 'kotlin', '.kts': 'kotlin',
+        '.scala': 'scala', '.sc': 'scala',
+        '.swift': 'swift',
+        '.dart': 'dart',
+        '.c': 'c', '.h': 'c',
+        '.cpp': 'cpp', '.cc': 'cpp', '.cxx': 'cpp', '.hpp': 'cpp', '.hxx': 'cpp', '.hh': 'cpp',
+        '.cs': 'csharp',
+        '.rs': 'rust',
+        '.zig': 'rust',
+        '.php': 'php',
+        '.rb': 'ruby',
+        '.go': 'go',
+        '.hs': 'haskell',
+        '.ex': 'elixir', '.exs': 'elixir',
+        '.clj': 'clojure', '.cljs': 'clojure', '.cljc': 'clojure',
+        '.fs': 'csharp', '.fsx': 'csharp', '.fsi': 'csharp',
+        '.ml': 'ocaml', '.mli': 'ocaml',
+        '.pl': 'perl', '.pm': 'perl',
+        '.r': 'r', '.R': 'r',
+        '.jl': 'julia',
+        '.lua': 'lua',
+        '.sql': 'sql',
+        '.tf': 'terraform',
+        '.sh': 'shell', '.bash': 'shell', '.zsh': 'shell',
+    };
+    return langMap[ext] ?? 'unknown';
 }
 
 function extractReturnType(ext: string, defNode: any, nodeText: string): string {

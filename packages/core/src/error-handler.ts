@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 /**
  * Standardized Error Handling System
  * 
@@ -269,7 +270,7 @@ export function createFileNotFoundError(filePath: string): FileSystemError {
 /**
  * Create a file too large error
  */
-export function createFileTooLargeError(filePath: string, size: number, limit: number): FileSystemError {
+export function createFileTooLargeError(filePath: string, _size: number, _limit: number): FileSystemError {
     return new FileSystemError('FILE_TOO_LARGE', filePath)
 }
 

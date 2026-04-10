@@ -2,9 +2,8 @@ import * as path from 'node:path'
 import type { Command } from 'commander'
 import ora from 'ora'
 import chalk from 'chalk'
-import { ContractReader, LockReader, ContractWriter, discoverFiles, hashFile } from '@getmikk/core'
+import { ContractReader, LockReader, discoverFiles, hashFile } from '@getmikk/core'
 import { BoundaryChecker } from '@getmikk/core'
-import type { MikkContract, MikkLock } from '@getmikk/core'
 
 export function registerContractCommands(program: Command) {
     const contract = program
@@ -13,13 +12,21 @@ export function registerContractCommands(program: Command) {
 
     // ── mikk contract validate ───────────────────────────────────────────
     contract
-        .command('validate')
-        .description('Validate contract: check file drift AND boundary violations')
+        .command('validate [path]')
+        .description('Validate contract: check file drift AND boundary violations (compares lock vs filesystem)')
         .option('--boundaries-only', 'Skip drift check, only check module boundaries')
         .option('--drift-only', 'Skip boundary check, only check file drift')
         .option('--strict', 'Exit 1 on warnings as well as errors')
-        .action(async (options) => {
-            const projectRoot = process.cwd()
+        .addHelpText('after',
+            `\nExamples:\n` +
+            `  mikk contract validate              Check drift and boundaries\n` +
+            `  mikk contract validate --boundaries-only   Only check module boundaries\n` +
+            `  mikk contract validate --drift-only        Only check for new/modified/deleted files\n` +
+            `  mikk contract validate --strict           Exit 1 on warnings too\n` +
+            `  mikk contract validate ./path/to/project   Check a specific project\n` +
+            `\nNote: Drift check compares lock file against current filesystem, not git history.\n`)
+        .action(async (projectPath: string, options: any) => {
+            const projectRoot = projectPath || process.cwd()
 
             // Guard: mutually exclusive flags
             if (options.boundariesOnly && options.driftOnly) {
@@ -122,19 +129,20 @@ export function registerContractCommands(program: Command) {
                     process.exit(1)
                 }
 
-            } catch (err: any) {
-                console.error(chalk.red(`Validation failed: ${err.message}`))
-                if (process.env.MIKK_DEBUG) console.error(err.stack)
+            } catch (err: unknown) {
+                const message = err instanceof Error ? err.message : String(err)
+                console.error(chalk.red(`Validation failed: ${message}`))
+                if (process.env.MIKK_DEBUG && err instanceof Error) console.error(err.stack)
                 process.exit(1)
             }
         })
 
     // ── mikk contract show-boundaries ────────────────────────────────────
     contract
-        .command('show-boundaries')
+        .command('show-boundaries [path]')
         .description('Show all current cross-module calls (useful for writing constraints)')
-        .action(async () => {
-            const projectRoot = process.cwd()
+        .action(async (projectPath: string, options: any) => {
+            const projectRoot = projectPath || process.cwd()
             try {
                 const contractReader = new ContractReader()
                 const mikkContract = await contractReader.read(path.join(projectRoot, 'mikk.json'))
@@ -159,8 +167,9 @@ export function registerContractCommands(program: Command) {
                 console.log(chalk.dim('\n  Copy these into mikk.json constraints to enforce boundaries:'))
                 console.log(chalk.dim('  e.g., "module:cli cannot import module:db"\n'))
 
-            } catch (err: any) {
-                console.error(chalk.red(err.message))
+            } catch (err: unknown) {
+                const message = err instanceof Error ? err.message : String(err)
+                console.error(chalk.red(message))
                 process.exit(1)
             }
         })

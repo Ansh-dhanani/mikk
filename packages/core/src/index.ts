@@ -8,6 +8,7 @@ export * from './hash/index.js'
 export * from './search/index.js'
 export * from './cache/index.js'
 export * from './security/index.js'
+export * from './analysis/index.js'
 export * from './utils/errors.js'
 export * from './utils/logger.js'
 export { MikkError, ErrorHandler, ErrorBuilder, ErrorCategory, FileSystemError, ModuleLoadError, GraphError, TokenBudgetError, ValidationError, createDefaultErrorListener, createFileNotFoundError, createFileTooLargeError, createPermissionDeniedError, createModuleNotFoundError, createModuleLoadFailedError, createGraphBuildFailedError, createNodeNotFoundError, createTokenBudgetExceededError, createValidationError, isMikkError, getRootCause, toMikkError } from './error-handler.js'
@@ -18,6 +19,7 @@ export { minimatch } from './utils/minimatch.js'
 export { scoreFunctions, findFuzzyMatches, levenshtein, splitCamelCase, extractKeywords } from './utils/fuzzy-match.js'
 export { writeFileAtomic, writeJsonAtomic } from './utils/atomic-write.js'
 export type { AtomicWriteOptions } from './utils/atomic-write.js'
+export { normalizeSlashes, normalizePath, normalizePathQuiet, getPathKey, pathsEqual, isSubPath } from './utils/path.js'
 export {
 	runArtifactWriteTransaction,
 	recoverArtifactWriteTransactions,

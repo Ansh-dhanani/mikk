@@ -1,7 +1,9 @@
 import * as nodePath from 'node:path'
-import type { DependencyGraph, GraphNode, GraphEdge } from './types.js'
+import type { DependencyGraph, GraphEdge } from './types.js'
 import type { MikkLock } from '../contract/schema.js'
-import type { ParsedFile, ParsedFunction, ParsedClass, ParsedVariable, ParsedGeneric } from '../parser/types.js'
+import type { ParsedFile, ParsedFunction, ParsedClass, ParsedGeneric, ParsedVariable } from '../parser/types.js'
+import { GlobalSymbolTable } from './symbol-table.js'
+import { normalizePathQuiet } from '../utils/path.js'
 
 export const EDGE_WEIGHTS = {
     imports: 1.0,
@@ -14,25 +16,19 @@ export const EDGE_WEIGHTS = {
 
 /**
  * GraphBuilder — three-pass dependency graph construction.
- *
- * ID contract (must match oxc-parser.ts exactly):
- *   function:  fn:<absolute-posix-path>:<FunctionName>
- *   class:     class:<absolute-posix-path>:<ClassName>
- *   type/enum: type:<absolute-posix-path>:<Name> | enum:<absolute-posix-path>:<Name>
- *   variable:  var:<absolute-posix-path>:<Name>
- *   file:      <absolute-posix-path>  (no prefix)
- *
- * No case normalisation — paths and names keep their original case.
- * Lookups use exact string matching after posix-normalising separators.
+ * Now integrated with GlobalSymbolTable for high-precision resolution.
  */
 export class GraphBuilder {
     build(files: ParsedFile[]): DependencyGraph {
         const graph = this.createEmptyGraph()
         const edgeKeys = new Set<string>()
+        const symbolTable = new GlobalSymbolTable()
 
-        // Pass 1: Register all nodes
+        // Pass 1: Register all nodes & symbols
         for (const file of files) {
             this.addFileNode(graph, file)
+            symbolTable.register(file)
+            
             for (const fn of file.functions) this.addFunctionNode(graph, fn)
             for (const cls of file.classes ?? []) this.addClassNode(graph, cls)
             for (const gen of file.generics ?? []) this.addGenericNode(graph, gen)
@@ -46,19 +42,15 @@ export class GraphBuilder {
             this.addInheritanceEdges(graph, file, edgeKeys)
         }
 
-        // Pass 3: Behavioural edges (calls, accesses)
+        // Pass 3: Behavioural edges (Using Global Symbol Table)
         for (const file of files) {
-            this.addCallEdges(graph, file, edgeKeys)
+            this.addCallEdges(graph, file, symbolTable, edgeKeys)
         }
 
         this.buildAdjacencyMaps(graph)
         return graph
     }
 
-    /**
-     * Rebuild a lightweight DependencyGraph from a serialised lock file.
-     * Used for preflight checks without re-parsing the codebase.
-     */
     buildFromLock(lock: MikkLock): DependencyGraph {
         const graph = this.createEmptyGraph()
         const edgeKeys = new Set<string>()
@@ -94,7 +86,6 @@ export class GraphBuilder {
         // Edges from lock data
         for (const file of Object.values(lock.files)) {
             const fp = this.normPath(file.path)
-            // Import edges
             for (const imp of file.imports ?? []) {
                 if (!imp.resolvedPath) continue
                 const rp = this.normPath(imp.resolvedPath)
@@ -102,7 +93,6 @@ export class GraphBuilder {
                     this.pushEdge(graph, edgeKeys, { from: fp, to: rp, type: 'imports', confidence: 1.0, weight: EDGE_WEIGHTS.imports })
                 }
             }
-            // Containment: file → functions in this file
             for (const fn of Object.values(lock.functions)) {
                 if (this.normPath(fn.file) === fp) {
                     this.pushEdge(graph, edgeKeys, { from: fp, to: fn.id, type: 'contains', confidence: 1.0, weight: EDGE_WEIGHTS.contains })
@@ -110,7 +100,6 @@ export class GraphBuilder {
             }
         }
 
-        // Call edges
         for (const fn of Object.values(lock.functions)) {
             for (const calleeId of fn.calls) {
                 if (graph.nodes.has(calleeId)) {
@@ -123,21 +112,13 @@ export class GraphBuilder {
         return graph
     }
 
-    // -------------------------------------------------------------------------
-    // Helpers
-    // -------------------------------------------------------------------------
-
     private normPath(p: string): string {
-        return p.replace(/\\/g, '/').toLowerCase()
+        return normalizePathQuiet(p)
     }
 
     private createEmptyGraph(): DependencyGraph {
         return { nodes: new Map(), edges: [], outEdges: new Map(), inEdges: new Map() }
     }
-
-    // -------------------------------------------------------------------------
-    // Pass 1: Node Registration
-    // -------------------------------------------------------------------------
 
     private addFileNode(graph: DependencyGraph, file: ParsedFile): void {
         const p = this.normPath(file.path)
@@ -158,7 +139,7 @@ export class GraphBuilder {
                 params: fn.params, returnType: fn.returnType !== 'void' ? fn.returnType : undefined,
                 edgeCasesHandled: fn.edgeCasesHandled,
                 errorHandling: fn.errorHandling,
-                detailedLines: fn.detailedLines,
+                detailedLines: fn.detailedLines
             },
         })
     }
@@ -185,7 +166,6 @@ export class GraphBuilder {
             metadata: {
                 startLine: gen.startLine, endLine: gen.endLine,
                 isExported: gen.isExported, purpose: gen.purpose,
-                // Store the kind (interface/type/enum) in genericKind, NOT hash
                 genericKind: gen.type,
             },
         })
@@ -198,10 +178,6 @@ export class GraphBuilder {
             metadata: { startLine: v.line, isExported: v.isExported, purpose: v.purpose },
         })
     }
-
-    // -------------------------------------------------------------------------
-    // Pass 2: Structural Edges
-    // -------------------------------------------------------------------------
 
     private addImportEdges(graph: DependencyGraph, file: ParsedFile, edgeKeys: Set<string>): void {
         const src = this.normPath(file.path)
@@ -227,16 +203,9 @@ export class GraphBuilder {
                 this.pushEdge(graph, edgeKeys, { from: cls.id, to: prop.id, type: 'contains', confidence: 1.0, weight: EDGE_WEIGHTS.contains })
             }
         }
-        for (const gen of file.generics ?? []) {
-            this.pushEdge(graph, edgeKeys, { from: src, to: gen.id, type: 'contains', confidence: 1.0, weight: EDGE_WEIGHTS.contains })
-        }
-        for (const v of file.variables ?? []) {
-            this.pushEdge(graph, edgeKeys, { from: src, to: v.id, type: 'contains', confidence: 1.0, weight: EDGE_WEIGHTS.contains })
-        }
     }
 
     private addInheritanceEdges(graph: DependencyGraph, file: ParsedFile, edgeKeys: Set<string>): void {
-        // Build class name → id map from graph (already populated in Pass 1)
         const classNameToId = new Map<string, string>()
         for (const [, node] of graph.nodes) {
             if (node.type === 'class') classNameToId.set(node.name, node.id)
@@ -260,64 +229,12 @@ export class GraphBuilder {
         }
     }
 
-    // -------------------------------------------------------------------------
-    // Pass 3: Behavioural Edges (calls, accesses)
-    //
-    // Call resolution order (priority-first):
-    //   1. Named import: `import { foo } from './x'` → fn:<resolvedPath>:foo
-    //   2. Default import alias: `import jwt from './x'; jwt.verify()` → fn:<resolvedPath>:verify
-    //   3. Local function exact: same file, same name
-    //   4. Local class method: SomeClass.method in same file
-    //
-    // Confidence levels:
-    //   1.0  — local exact match (AST confirmed)
-    //   0.8  — named import match
-    //   0.6  — default-import method match
-    //   0.5  — dotted name stripped to simple name (receiver uncertain)
-    // -------------------------------------------------------------------------
-
-    private addCallEdges(graph: DependencyGraph, file: ParsedFile, edgeKeys: Set<string>): void {
+    private addCallEdges(graph: DependencyGraph, file: ParsedFile, symbolTable: GlobalSymbolTable, edgeKeys: Set<string>): void {
         const filePath = this.normPath(file.path)
 
-        // Build import lookup tables for this file
-        // key: the local name used in code (e.g. "verifyToken")
-        // value: the canonical graph node ID (e.g. "fn:/abs/path/jwt.ts:verifyToken")
-        const namedImportIds = new Map<string, string>()
-        // key: local alias (e.g. "jwt"), value: resolved absolute file path
-        const defaultImportPaths = new Map<string, string>()
-
-        for (const imp of file.imports) {
-            if (!imp.resolvedPath) continue
-            const resolvedPath = this.normPath(imp.resolvedPath)
-
-            for (const name of imp.names) {
-                const localName = name.toLowerCase()
-                if (imp.isDefault) {
-                    // `import jwt from './jwt'` → defaultImportPaths['jwt'] = '/abs/.../jwt.ts'
-                    defaultImportPaths.set(localName, resolvedPath)
-                } else {
-                    // `import { verifyToken } from './jwt'` → namedImportIds['verifyToken'] = 'fn:.../jwt.ts:verifytoken'
-                    const candidateId = `fn:${resolvedPath}:${localName}`
-                    if (graph.nodes.has(candidateId)) {
-                        namedImportIds.set(localName, candidateId)
-                    }
-                }
-            }
-        }
-
-        // Class name → class node ID for local method resolution
-        const localClassIds = new Map<string, string>()
-        for (const cls of file.classes ?? []) {
-            localClassIds.set(cls.name, cls.id)
-        }
-
-        // Collect all (sourceId, callName) pairs from every function and method
         const behaviors: Array<{ sourceId: string; calls: Array<{ name: string; type: string }> }> = [
-            // Module-level calls
             { sourceId: filePath, calls: file.calls ?? [] },
-            // Function-level calls
             ...file.functions.map(fn => ({ sourceId: fn.id, calls: fn.calls })),
-            // Class method calls
             ...(file.classes ?? []).flatMap(cls =>
                 cls.methods.map(m => ({ sourceId: m.id, calls: m.calls }))
             ),
@@ -325,77 +242,20 @@ export class GraphBuilder {
 
         for (const { sourceId, calls } of behaviors) {
             for (const call of calls) {
-                const callName = call.name
-                if (!callName || callName === 'super') continue
+                if (!call.name || call.name === 'super') continue
 
-                const normalizedCallName = callName.toLowerCase()
-                const hasDot = normalizedCallName.includes('.')
-                const simpleName = hasDot ? normalizedCallName.split('.').pop()! : normalizedCallName
-                const receiver = hasDot ? normalizedCallName.split('.')[0] : null
-                const isPropertyAccess = call.type === 'property'
-
-                // ── 1. Named import exact match ──────────────────────────
-                // Try full name first (e.g. "jwt.verify" mapped via named import of "verify")
-                const namedId = namedImportIds.get(normalizedCallName) ?? (receiver === null ? namedImportIds.get(simpleName) : undefined)
-                if (namedId) {
+                const targetId = symbolTable.resolve(call.name, filePath, file.imports)
+                if (targetId && targetId !== sourceId) {
                     this.pushEdge(graph, edgeKeys, {
-                        from: sourceId, to: namedId,
-                        type: isPropertyAccess ? 'accesses' : 'calls',
-                        confidence: 0.8, weight: EDGE_WEIGHTS.calls.exact,
+                        from: sourceId, to: targetId,
+                        type: call.type === 'property' ? 'accesses' : 'calls',
+                        confidence: 0.9, 
+                        weight: call.type === 'property' ? EDGE_WEIGHTS.accesses : EDGE_WEIGHTS.calls.exact,
                     })
-                    continue
                 }
-
-                // ── 2. Default import: receiver is the alias ─────────────
-                if (receiver && defaultImportPaths.has(receiver)) {
-                    const resolvedFile = defaultImportPaths.get(receiver)!
-                    const methodId = `fn:${resolvedFile}:${simpleName}`
-                    if (graph.nodes.has(methodId)) {
-                        this.pushEdge(graph, edgeKeys, {
-                            from: sourceId, to: methodId,
-                            type: isPropertyAccess ? 'accesses' : 'calls',
-                            confidence: 0.6, weight: EDGE_WEIGHTS.calls.method,
-                        })
-                        continue
-                    }
-                }
-
-                // ── 3. Local function exact match ────────────────────────
-                const localId = `fn:${filePath}:${simpleName}`
-                if (graph.nodes.has(localId) && localId !== sourceId) {
-                    this.pushEdge(graph, edgeKeys, {
-                        from: sourceId, to: localId,
-                        type: isPropertyAccess ? 'accesses' : 'calls',
-                        confidence: simpleName === callName ? 1.0 : 0.5,
-                        weight: simpleName === callName ? EDGE_WEIGHTS.calls.exact : EDGE_WEIGHTS.calls.fuzzy,
-                    })
-                    continue
-                }
-
-                // ── 4. Local class method: SomeClass.method ──────────────
-                if (receiver && localClassIds.has(receiver)) {
-                    // Method IDs are stored as fn:<file>:<ClassName>.<methodName>
-                    const classMethodId = `fn:${filePath}:${receiver}.${simpleName}`
-                    if (graph.nodes.has(classMethodId) && classMethodId !== sourceId) {
-                        this.pushEdge(graph, edgeKeys, {
-                            from: sourceId, to: classMethodId,
-                            type: isPropertyAccess ? 'accesses' : 'calls',
-                            confidence: 0.8, weight: EDGE_WEIGHTS.calls.method,
-                        })
-                        continue
-                    }
-                }
-
-                // Unresolved call — intentionally not added to graph.
-                // Callers can detect incomplete coverage by comparing
-                // fn.calls.length vs outgoing 'calls' edge count on fn.id.
             }
         }
     }
-
-    // -------------------------------------------------------------------------
-    // Edge helpers
-    // -------------------------------------------------------------------------
 
     private pushEdge(graph: DependencyGraph, edgeKeys: Set<string>, edge: GraphEdge): void {
         const key = `${edge.from}->${edge.to}:${edge.type}`

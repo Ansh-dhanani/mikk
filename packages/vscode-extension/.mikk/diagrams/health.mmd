@@ -3,9 +3,9 @@ graph TD
 
     packages_vscode_extension_webview["🟢 Dashboard<br/>Cohesion: 100%<br/>Coupling: 0<br/>Functions: 11"]
     packages_vscode_extension_providers["🟡 Providers<br/>Cohesion: 50%<br/>Coupling: 0<br/>Functions: 4"]
-    mesh_packages_vscode_extension["🔴 Providers & Dashboard<br/>Cohesion: 0%<br/>Coupling: 3<br/>Functions: 20"]
-    mesh_packages_vscode_extension -.-> packages_vscode_extension_webview
+    mesh_packages_vscode_extension["🟡 Providers & Dashboard<br/>Cohesion: 53%<br/>Coupling: 8<br/>Functions: 20"]
     mesh_packages_vscode_extension -.-> packages_vscode_extension_providers
+    mesh_packages_vscode_extension -.-> packages_vscode_extension_webview
 
     classDef healthy fill:#22c55e,stroke:#4ade80,color:#f0fdf4
     classDef warning fill:#f59e0b,stroke:#fbbf24,color:#1e293b
@@ -13,4 +13,4 @@ graph TD
 
     class packages_vscode_extension_webview healthy
     class packages_vscode_extension_providers warning
-    class mesh_packages_vscode_extension critical
+    class mesh_packages_vscode_extension warning

@@ -1,0 +1,8 @@
+{
+  "id": "mikk-v2",
+  "name": "Mikk",
+  "version": "1.3.0",
+  "description": "Mikk code graph",
+  "author": "Mikk",
+  "minAppVersion": "0.15.0"
+}

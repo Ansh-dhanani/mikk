@@ -6,10 +6,15 @@ import chalk from 'chalk'
 
 type UpdateChannel = 'stable' | 'latest' | 'version'
 
+function isValidVersion(version: string): boolean {
+    return /^[0-9]+\.[0-9]+\.[0-9]+(-[a-zA-Z0-9.]+)?$/.test(version)
+}
+
 function resolveTag(channel: UpdateChannel, specificVersion?: string): string {
     if (channel === 'stable') return 'latest'
     if (channel === 'latest') return 'next'
-    return specificVersion || 'latest'
+    if (specificVersion && isValidVersion(specificVersion)) return specificVersion
+    return 'latest'
 }
 
 function runCommand(command: string, args: string[]): Promise<number> {
@@ -45,6 +50,7 @@ export function registerUpdateCommand(program: Command) {
         .option('--version <x.y.z>', 'Specific version when channel=version')
         .option('--yes', 'Skip confirmation prompts')
         .action(async (options: { channel?: string; version?: string; yes?: boolean }) => {
+            try {
             let channel: UpdateChannel | undefined
             if (options.channel === 'stable' || options.channel === 'latest' || options.channel === 'version') {
                 channel = options.channel
@@ -101,5 +107,9 @@ export function registerUpdateCommand(program: Command) {
             }
 
             console.log(chalk.green('Mikk CLI updated successfully.'))
+            } catch (err) {
+                console.error(chalk.red('Update failed:'), err instanceof Error ? err.message : err)
+                process.exit(1)
+            }
         })
 }

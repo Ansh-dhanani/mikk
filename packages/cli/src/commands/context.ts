@@ -12,7 +12,7 @@ import { getProvider } from '@getmikk/ai-context'
 import type { ContextQuery } from '@getmikk/ai-context'
 
 /** Parse a numeric CLI option with validation */
-function parseIntOption(value: string, name: string, fallback: number): number {
+function parseIntOption(value: string, name: string, _fallback: number): number {
     const n = parseInt(value, 10)
     if (isNaN(n) || n < 0) {
         console.error(chalk.red(`Invalid value for --${name}: "${value}" (expected a positive integer)`))
@@ -24,11 +24,11 @@ function parseIntOption(value: string, name: string, fallback: number): number {
 export function registerContextCommands(program: Command) {
     const context = program
         .command('context')
-        .description('AI context commands')
+        .description('Query codebase using natural language for AI context generation')
 
     // ── mikk context query "..." ─────────────────────────────────────────
     context
-        .command('query <question>')
+        .command('query <question> [path]')
         .description('Ask an architecture question — returns graph-traced context')
         .option('--provider <name>', 'Output provider: claude | generic | compact', 'claude')
         .option('--hops <n>', 'Graph traversal depth (default 4)', '4')
@@ -43,8 +43,8 @@ export function registerContextCommands(program: Command) {
         .option('--no-callgraph', 'Omit call/calledBy edges from output')
         .option('--out <file>', 'Write context to a file instead of stdout')
         .option('--meta', 'Print meta diagnostics (seed count, tokens used, keywords)')
-        .action(async (question: string, options) => {
-            const projectRoot = process.cwd()
+        .action(async (question: string, projectPath: string, options: any) => {
+            const projectRoot = projectPath || process.cwd()
 
             try {
                 const { contract, lock } = await loadContractAndLock(projectRoot)
@@ -82,20 +82,22 @@ export function registerContextCommands(program: Command) {
                     console.log(finalOutput)
                 }
 
-            } catch (err: any) {
-                console.error(chalk.red(err.message))
+            } catch (err: unknown) {
+                const message = err instanceof Error ? err.message : String(err)
+                console.error(chalk.red(message))
                 process.exit(1)
             }
         })
 
     // ── mikk context impact <file> ───────────────────────────────────────
     context
-        .command('impact <file>')
+        .command('impact <file> [path]')
         .description('What breaks if this file changes?')
         .option('--provider <name>', 'Output provider: claude | generic | compact', 'claude')
         .option('--tokens <n>', 'Token budget (default 8000)', '8000')
-        .action(async (file: string, options) => {
-            const projectRoot = process.cwd()
+        .option('--meta', 'Print meta diagnostics')
+        .action(async (file: string, projectPath: string, options: any) => {
+            const projectRoot = projectPath || process.cwd()
 
             try {
                 // Load contract first — fail early if not initialized
@@ -173,18 +175,23 @@ export function registerContextCommands(program: Command) {
                 const { ctx } = buildContextWithOptionalFallback(builder, query, false)
                 const provider = getProvider(options.provider)
 
+                if (options.meta) {
+                    printMeta(ctx.meta, `impact: ${file}`)
+                }
+
                 console.log('\n' + chalk.bold('=== AI Context for impacted area ==='))
                 console.log(provider.formatContext(ctx))
 
-            } catch (err: any) {
-                console.error(chalk.red(err.message))
+            } catch (err: unknown) {
+                const message = err instanceof Error ? err.message : String(err)
+                console.error(chalk.red(message))
                 process.exit(1)
             }
         })
 
     // ── mikk context for "task" ──────────────────────────────────────────
     context
-        .command('for <task>')
+        .command('for <task> [path]')
         .description('Get AI context payload for a specific development task')
         .option('--provider <name>', 'Output provider: claude | generic | compact', 'claude')
         .option('--hops <n>', 'Graph traversal depth (default 4)', '4')
@@ -201,8 +208,8 @@ export function registerContextCommands(program: Command) {
         .option('--no-callgraph', 'Omit call/calledBy edges')
         .option('--out <file>', 'Write context to a file instead of stdout')
         .option('--meta', 'Print meta diagnostics')
-        .action(async (task: string, options) => {
-            const projectRoot = process.cwd()
+        .action(async (task: string, projectPath: string, options: any) => {
+            const projectRoot = projectPath || process.cwd()
 
             try {
                 const { contract, lock } = await loadContractAndLock(projectRoot)
@@ -245,18 +252,19 @@ export function registerContextCommands(program: Command) {
                     console.log(finalOutput)
                 }
 
-            } catch (err: any) {
-                console.error(chalk.red(err.message))
+            } catch (err: unknown) {
+                const message = err instanceof Error ? err.message : String(err)
+                console.error(chalk.red(message))
                 process.exit(1)
             }
         })
 
     // ── mikk context list ────────────────────────────────────────────────
     context
-        .command('list')
+        .command('list [path]')
         .description('List all modules and their function counts')
-        .action(async () => {
-            const projectRoot = process.cwd()
+        .action(async (projectPath: string, options: any) => {
+            const projectRoot = projectPath || process.cwd()
             try {
                 const { contract, lock } = await loadContractAndLock(projectRoot)
 
@@ -278,8 +286,9 @@ export function registerContextCommands(program: Command) {
                 const totalFiles = Object.keys(lock.files).length
                 console.log(chalk.dim(`\n  Total: ${totalFns} functions across ${totalFiles} files`))
 
-            } catch (err: any) {
-                console.error(chalk.red(err.message))
+            } catch (err: unknown) {
+                const message = err instanceof Error ? err.message : String(err)
+                console.error(chalk.red(message))
                 process.exit(1)
             }
         })

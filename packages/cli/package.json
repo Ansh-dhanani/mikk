@@ -25,6 +25,7 @@
     "lint": "bunx eslint --config ../../eslint.config.mjs ."
   },
   "dependencies": {
+    "@getmikk/intent-engine": "^2.0.12",
     "better-sqlite3": "^12.6.2",
     "chalk": "^5.4.0",
     "chokidar": "^4.0.0",
@@ -37,7 +38,6 @@
   "devDependencies": {
     "@getmikk/ai-context": "^2.0.12",
     "@getmikk/core": "^2.0.12",
-    "@getmikk/diagram-generator": "^2.0.12",
     "@getmikk/intent-engine": "^2.0.12",
     "@getmikk/watcher": "^2.0.12",
     "@types/node": "^22.0.0",
