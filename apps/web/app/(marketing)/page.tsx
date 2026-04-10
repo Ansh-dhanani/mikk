@@ -729,10 +729,10 @@ export default function Page() {
               )}
 
               {slide.subtitle ? (
-                  <div className="mx-auto mt-6 max-w-[52ch] text-[1.15rem] md:text-[1.35rem] leading-relaxed text-muted-foreground">
-                    {slide.subtitle}
-                  </div>
-                ) : null}
+                <div className="mx-auto mt-6 max-w-[52ch] text-[1.15rem] md:text-[1.35rem] leading-relaxed text-muted-foreground">
+                  {slide.subtitle}
+                </div>
+              ) : null}
 
               {slide.body ? <div className="mt-8">{slide.body}</div> : null}
             </motion.div>

@@ -34,7 +34,7 @@ export default tseslint.config(
       ...reactHooksPlugin.configs.recommended.rules,
       "react/react-in-jsx-scope": "off",
       "@typescript-eslint/no-explicit-any": "warn",
-      "@typescript-eslint/no-unused-vars": ["warn", { "argsIgnorePattern": "^_" }],
+      "@typescript-eslint/no-unused-vars": ["warn", { "argsIgnorePattern": "^_", "varsIgnorePattern": "^_" }],
       "no-control-regex": "off", // Allowed for ANSI stripping in CLI UI
       "@typescript-eslint/no-require-imports": "warn", // Allowing for now, but will migrate later
     },

@@ -3,10 +3,37 @@ graph LR
 
     subgraph packages_vscode_extension_webview["📦 Dashboard"]
         direction TB
-        internal["🔒 11 internal functions"]
+        subgraph public["🔓 Public API"]
+            fn_c__users_ansh_desktop_web_mesh_packages_vscode_extension_src_webview_dashboardpanel_ts_DashboardPanel_createOrShow["DashboardPanel.createOrShow"]
+            fn_c__users_ansh_desktop_web_mesh_packages_vscode_extension_src_webview_dashboardpanel_ts_DashboardPanel_update["DashboardPanel.update"]
+        end
+        subgraph internal["🔒 Internal"]
+            fn_c__users_ansh_desktop_web_mesh_packages_vscode_extension_src_webview_dashboardpanel_ts_DashboardPanel_constructor["DashboardPanel.constructor"]
+            fn_c__users_ansh_desktop_web_mesh_packages_vscode_extension_src_webview_dashboardpanel_ts_DashboardPanel__update["DashboardPanel._update"]
+            fn_c__users_ansh_desktop_web_mesh_packages_vscode_extension_src_webview_dashboardpanel_ts_DashboardPanel__notInitializedHtml["DashboardPanel._notInitializedHtml"]
+            fn_c__users_ansh_desktop_web_mesh_packages_vscode_extension_src_webview_dashboardpanel_ts_DashboardPanel_dispose["DashboardPanel.dispose"]
+            fn_c__users_ansh_desktop_web_mesh_packages_vscode_extension_src_webview_diagrampanel_ts_DiagramPanel_constructor["DiagramPanel.constructor"]
+            fn_c__users_ansh_desktop_web_mesh_packages_vscode_extension_src_webview_diagrampanel_ts_DiagramPanel_createOrShow["DiagramPanel.createOrShow"]
+            fn_c__users_ansh_desktop_web_mesh_packages_vscode_extension_src_webview_diagrampanel_ts_DiagramPanel__update["DiagramPanel._update"]
+            fn_c__users_ansh_desktop_web_mesh_packages_vscode_extension_src_webview_diagrampanel_ts_DiagramPanel_dispose["DiagramPanel.dispose"]
+            fn_c__users_ansh_desktop_web_mesh_packages_vscode_extension_src_webview_htmlbuilder_ts_getWebviewContent["getWebviewContent"]
+        end
     end
 
+    ext_fn_c__users_ansh_desktop_web_mesh_packages_vscode_extension_src_extension_ts_activate["activate<br/>(mesh-packages-vscode-extension)"] --> fn_c__users_ansh_desktop_web_mesh_packages_vscode_extension_src_webview_dashboardpanel_ts_DashboardPanel_createOrShow
+    ext_fn_c__users_ansh_desktop_web_mesh_packages_vscode_extension_src_extension_ts_activate["activate<br/>(mesh-packages-vscode-extension)"] --> fn_c__users_ansh_desktop_web_mesh_packages_vscode_extension_src_webview_dashboardpanel_ts_DashboardPanel_update
+    ext_fn_c__users_ansh_desktop_web_mesh_packages_vscode_extension_src_extension_ts_refresh["refresh<br/>(mesh-packages-vscode-extension)"] --> fn_c__users_ansh_desktop_web_mesh_packages_vscode_extension_src_webview_dashboardpanel_ts_DashboardPanel_update
 
     classDef publicApi fill:#22c55e,stroke:#4ade80,color:#f0fdf4
     classDef internalApi fill:#64748b,stroke:#94a3b8,color:#f1f5f9
-    class internal internalApi
+    class fn_c__users_ansh_desktop_web_mesh_packages_vscode_extension_src_webview_dashboardpanel_ts_DashboardPanel_createOrShow publicApi
+    class fn_c__users_ansh_desktop_web_mesh_packages_vscode_extension_src_webview_dashboardpanel_ts_DashboardPanel_update publicApi
+    class fn_c__users_ansh_desktop_web_mesh_packages_vscode_extension_src_webview_dashboardpanel_ts_DashboardPanel_constructor internalApi
+    class fn_c__users_ansh_desktop_web_mesh_packages_vscode_extension_src_webview_dashboardpanel_ts_DashboardPanel__update internalApi
+    class fn_c__users_ansh_desktop_web_mesh_packages_vscode_extension_src_webview_dashboardpanel_ts_DashboardPanel__notInitializedHtml internalApi
+    class fn_c__users_ansh_desktop_web_mesh_packages_vscode_extension_src_webview_dashboardpanel_ts_DashboardPanel_dispose internalApi
+    class fn_c__users_ansh_desktop_web_mesh_packages_vscode_extension_src_webview_diagrampanel_ts_DiagramPanel_constructor internalApi
+    class fn_c__users_ansh_desktop_web_mesh_packages_vscode_extension_src_webview_diagrampanel_ts_DiagramPanel_createOrShow internalApi
+    class fn_c__users_ansh_desktop_web_mesh_packages_vscode_extension_src_webview_diagrampanel_ts_DiagramPanel__update internalApi
+    class fn_c__users_ansh_desktop_web_mesh_packages_vscode_extension_src_webview_diagrampanel_ts_DiagramPanel_dispose internalApi
+    class fn_c__users_ansh_desktop_web_mesh_packages_vscode_extension_src_webview_htmlbuilder_ts_getWebviewContent internalApi

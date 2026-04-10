@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { MikkContractSchema, type MikkContract } from './schema.js'
 import { ContractNotFoundError } from '../utils/errors.js'
 import { readJsonSafe } from '../utils/json.js'

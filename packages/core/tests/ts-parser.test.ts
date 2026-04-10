@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeAll, afterAll } from 'bun:test'
 import * as path from 'node:path'
 import * as fs from 'node:fs/promises'
-import { OxcParser } from '../src/parser/oxc-parser'
+import { TypescriptExtractor } from '../src/parser/oxc-parser'
 
 describe('ts-parser config resolution', () => {
     const FIXTURE_DIR = path.join(process.cwd(), '.test-fixture-tsconfig')
@@ -37,7 +37,7 @@ describe('ts-parser config resolution', () => {
     })
 
     it('resolves compiler paths from tsconfig', async () => {
-        const parser = new OxcParser()
+        const parser = new TypescriptExtractor()
         
         const srcDir = path.join(FIXTURE_DIR, 'src', 'app')
         await fs.mkdir(srcDir, { recursive: true })
@@ -56,7 +56,7 @@ describe('ts-parser config resolution', () => {
         `)
 
         // Parse and resolve imports
-        const parsed = await parser.parse(filePath, await fs.readFile(filePath, 'utf-8'))
+        const parsed = await parser.extract(filePath, await fs.readFile(filePath, 'utf-8'))
         const resolved = (await parser.resolveImports([parsed], FIXTURE_DIR))[0]
 
         const impApp = resolved.imports.find(i => i.source === '@app/local')
@@ -71,10 +71,10 @@ describe('ts-parser config resolution', () => {
 })
 
 describe('TypeScriptParser Edge Cases & Fault Tolerance', () => {
-    const parser = new OxcParser()
+    const parser = new TypescriptExtractor()
 
     it('handles completely empty files', async () => {
-        const result = await parser.parse('src/empty.ts', '')
+        const result = await parser.extract('src/empty.ts', '')
         expect(result.functions).toHaveLength(0)
         expect(result.classes).toHaveLength(0)
         expect(result.language).toBe('typescript')
@@ -94,7 +94,7 @@ describe('TypeScriptParser Edge Cases & Fault Tolerance', () => {
             @Injectable()
             export class HalfClass implements {
         `
-        const result = await parser.parse('src/broken.ts', malformedCode)
+        const result = await parser.extract('src/broken.ts', malformedCode)
         expect(result.functions.length).toBeGreaterThanOrEqual(0)
         expect(result.classes.length).toBeGreaterThanOrEqual(0)
         expect(Array.isArray(result.imports)).toBe(true)
@@ -109,14 +109,14 @@ describe('TypeScriptParser Edge Cases & Fault Tolerance', () => {
              */
             // End of file
         `
-        const result = await parser.parse('src/docs.ts', commentsCode)
+        const result = await parser.extract('src/docs.ts', commentsCode)
         expect(result.functions).toHaveLength(0)
         expect(result.hash).toBeDefined()
     })
 
     it('parses Windows line endings consistently', async () => {
         const winCode = 'export function ping() {\r\n  return 1\r\n}\r\n'
-        const result = await parser.parse('src/win.ts', winCode)
+        const result = await parser.extract('src/win.ts', winCode)
         expect(result.functions.some(f => f.name === 'ping')).toBe(true)
     })
 })

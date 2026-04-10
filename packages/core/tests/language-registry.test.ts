@@ -47,10 +47,12 @@ describe('language-registry', () => {
     it('returns discovery extension sets for mixed JVM repos', () => {
         const javaDiscovery = getDiscoveryExtensions('java')
         expect(javaDiscovery).toContain('.java')
-        expect(javaDiscovery).toContain('.kt')
-        expect(javaDiscovery).toContain('.kts')
 
-        // Even though Java discovery includes Kotlin files, extension-to-language remains Kotlin.
+        const kotlinDiscovery = getDiscoveryExtensions('kotlin')
+        expect(kotlinDiscovery).toContain('.kt')
+        expect(kotlinDiscovery).toContain('.kts')
+
+        // Extension-to-language remains separate.
         expect(languageForExtension('.kt')).toBe('kotlin')
         expect(languageForExtension('.kts')).toBe('kotlin')
     })

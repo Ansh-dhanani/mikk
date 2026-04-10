@@ -104,9 +104,9 @@ describe('@getmikk/mcp-server - tool list', () => {
         await server.close()
     })
 
-    it('exposes exactly 24 tools', async () => {
+    it('exposes exactly 28 tools', async () => {
         const result = await client.listTools()
-        expect(result.tools).toHaveLength(24)
+        expect(result.tools).toHaveLength(28)
     })
 
     it('has the correct tool names', async () => {
@@ -115,6 +115,10 @@ describe('@getmikk/mcp-server - tool list', () => {
         expect(names).toEqual([
             'mikk_before_edit',
             'mikk_dead_code',
+            'mikk_find_by_location',
+            'mikk_find_by_signature',
+            'mikk_find_function',
+            'mikk_find_similar',
             'mikk_find_usages',
             'mikk_get_changes',
             'mikk_get_constraints',

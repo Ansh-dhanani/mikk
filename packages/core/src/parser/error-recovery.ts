@@ -1,6 +1,7 @@
-import type { ParsedFile, ParsedFunction, ParsedClass, ParsedImport, ParsedParam, CallExpression } from './types.js'
+import type { ParsedFile, ParsedFunction, ParsedClass, ParsedImport, ParsedParam } from './types.js'
 import * as path from 'node:path'
 import { hashContent } from '../hash/file-hasher.js'
+import { toParsedFileLanguage, type RegistryLanguage } from '../utils/language-registry.js'
 
 // ---------------------------------------------------------------------------
 // Error Recovery Engine — graceful degradation when parsing fails
@@ -64,7 +65,7 @@ export class ErrorRecoveryEngine {
       strategy: 'regex-recovery',
       parsed: {
         path: filePath,
-        language: language as ParsedFile['language'],
+        language: toParsedFileLanguage(language as RegistryLanguage),
         hash: hashContent(content),
         parsedAt: Date.now(),
         functions,
@@ -92,7 +93,7 @@ export class ErrorRecoveryEngine {
       strategy: 'minimal-fallback',
       parsed: {
         path: filePath,
-        language: language as ParsedFile['language'],
+        language: toParsedFileLanguage(language as RegistryLanguage),
         hash: hashContent(content),
         parsedAt: Date.now(),
         functions: [],
@@ -510,7 +511,7 @@ export class ErrorRecoveryEngine {
     lines: string[],
     functions: ParsedFunction[],
     classes: ParsedClass[],
-    imports: ParsedImport[]
+    _imports: ParsedImport[]
   ): void {
     const funcPatterns = [
       /function\s+(\w+)\s*\(/,

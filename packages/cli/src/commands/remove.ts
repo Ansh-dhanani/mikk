@@ -70,8 +70,8 @@ export function registerRemoveCommand(program: Command) {
                 try {
                     await rm(targetPath, { recursive: true, force: true })
                     removedCount++
-                } catch (e: any) {
-                    if (e.code !== 'ENOENT') {
+                } catch (e: unknown) {
+                    if (e instanceof Error && e.code !== 'ENOENT') {
                         errors.push(`Failed to remove ${item}: ${e.message}`)
                     }
                 }
@@ -82,8 +82,9 @@ export function registerRemoveCommand(program: Command) {
                 try {
                     const stripped = await stripMikkBlock(targetPath)
                     if (stripped) removedCount++
-                } catch (e: any) {
-                    errors.push(`Failed to strip ${item}: ${e.message}`)
+                } catch (e: unknown) {
+                    const message = e instanceof Error ? e.message : String(e)
+                    errors.push(`Failed to strip ${item}: ${message}`)
                 }
             }
 

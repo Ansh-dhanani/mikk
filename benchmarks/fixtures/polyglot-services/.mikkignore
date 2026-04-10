@@ -1,0 +1,14 @@
+target/
+dist/
+build/
+*.class
+*.o
+*.so
+*.dylib
+node_modules/
+.mikk/
+.mikkcache/
+.mikktemp/
+*.wasm
+*.lock
+.DS_Store

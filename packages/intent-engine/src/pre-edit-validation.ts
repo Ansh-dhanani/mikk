@@ -209,7 +209,7 @@ export class PreEditValidation {
     }
 
     /** Build a zero-impact result when no tracked functions exist. */
-    private emptyImpact(files: string[]): ImpactResult {
+    private emptyImpact(_files: string[]): ImpactResult {
         return {
             changed:        [],
             impacted:       [],
@@ -251,6 +251,7 @@ export class PreEditValidation {
         }
     }
 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     private buildRecommendations(intent: any, impact: ImpactResult, gates: any[], corrections: any): string[] {
         const recs: string[] = []
 
@@ -268,6 +269,7 @@ export class PreEditValidation {
 
         const warnings = gates.filter(g => g.severity === 'WARNING' && !g.canProceed)
         if (warnings.length > 0) {
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
             recs.push(`Address warnings: ${warnings.map((w: any) => w.gate).join(', ')}`)
         }
         if (corrections.issues.length > 0) {

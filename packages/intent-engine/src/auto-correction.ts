@@ -60,8 +60,8 @@ export class AutoCorrectionEngine {
                     } else {
                         failedFixes.push(`${file}:${issue.line} — ${issue.message}`)
                     }
-                } catch {
-                    failedFixes.push(`${file}:${issue.line} — ${issue.message}`)
+                } catch (err) {
+                    failedFixes.push(`${file}:${issue.line} — ${issue.message}: ${err instanceof Error ? err.message : String(err)}`)
                 }
             }
         }

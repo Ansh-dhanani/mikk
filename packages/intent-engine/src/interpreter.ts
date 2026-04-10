@@ -1,5 +1,5 @@
 import type { MikkContract, MikkLock } from '@getmikk/core'
-import { IntentSchema, type Intent } from './types.js'
+import type { Intent } from './types.js'
 
 /**
  * IntentInterpreter — parses a natural-language prompt into structured

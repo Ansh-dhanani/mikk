@@ -1,5 +1,4 @@
-import * as path from 'node:path'
-import type { DependencyGraph, ModuleCluster, GraphNode } from './types.js'
+import type { DependencyGraph, ModuleCluster } from './types.js'
 
 // ─── Domain keyword maps for semantic naming ────────────────────────
 // Each entry maps a human-readable domain label to keywords found in
@@ -227,7 +226,6 @@ export class ClusterDetector {
     private computeCouplingMatrix(files: string[]): Map<string, Map<string, number>> {
         const matrix = new Map<string, Map<string, number>>()
         const fileEdgeCounts = new Map<string, number>()
-        const pairCounts = new Map<string, number>()
 
         // Count total edges per file
         for (const fileId of files) {
@@ -450,7 +448,7 @@ export class ClusterDetector {
         }
 
         const result: ModuleCluster[] = []
-        for (const [baseDir, siblings] of byBaseDir) {
+        for (const siblings of byBaseDir.values()) {
             if (siblings.length <= 1) {
                 result.push(...siblings)
                 continue

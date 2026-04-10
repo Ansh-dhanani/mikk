@@ -16,9 +16,14 @@ export class FileWatcher {
 
     /** Start watching -- non-blocking */
     start(): void {
-        const excludesRegexes = this.config.exclude.map(
-            pattern => new RegExp(pattern.replace(/\*/g, '.*').replace(/\//g, '[\\\\/]'))
-        )
+        const excludesRegexes: RegExp[] = []
+        for (const pattern of this.config.exclude) {
+            try {
+                excludesRegexes.push(new RegExp(pattern.replace(/\*/g, '.*').replace(/\//g, '[\\\\/]')))
+            } catch {
+                console.warn(`[FileWatcher] Invalid exclude pattern: ${pattern}`)
+            }
+        }
         const includeExts = ['.ts', '.tsx', '.js', '.jsx', '.mjs', '.cjs', '.go']
 
         this.watcher = watch(this.config.projectRoot, {

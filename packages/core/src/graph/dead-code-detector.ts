@@ -1,19 +1,8 @@
 import type { DependencyGraph } from './types.js'
-import type { MikkLock } from '../contract/schema.js'
+import type { MikkLock, MikkLockClass } from '../contract/schema.js'
 
 // ─── Types ──────────────────────────────────────────────────────────
 
-/**
- * Confidence level for a dead code finding.
- *
- *  high   — zero callers, no dynamic patterns, no unresolved imports in the file.
- *           Safe to remove.
- *  medium — zero callers via graph, but the file has unresolved imports
- *           (some calls may not have been traced). Review before removing.
- *  low    — zero graph callers, but the function name or context suggests it
- *           may be used dynamically (generic names, lifecycle hooks, etc.).
- *           Do not remove without manual verification.
- */
 export type DeadCodeConfidence = 'high' | 'medium' | 'low'
 
 export interface DeadCodeEntry {
@@ -36,31 +25,51 @@ export interface DeadCodeResult {
 
 // ─── Exemption patterns ────────────────────────────────────────────
 
-/** Entry-point function names that are never "dead" even with 0 graph callers */
 const ENTRY_POINT_PATTERNS = [
     /^(main|bootstrap|start|init|setup|configure|register|mount)$/i,
     /^(app|server|index|mod|program)$/i,
     /Handler$/i,
     /Middleware$/i,
     /Controller$/i,
-    /^use[A-Z]/,       // React hooks
-    /^handle[A-Z]/,    // Event handlers
-    /^on[A-Z]/,        // Event listeners
+    /^use[A-Z]/,
+    /^handle[A-Z]/,
+    /^on[A-Z]/,
+    /Provider$/i,
+    /Provider$/,
+    /^Page$/i,
+    /^Layout$/i,
+    /^get[A-Z]/,
+    /^default$/i,
+    /Provider$/,
+    /^(getStaticProps|getServerSideProps|generateStaticParams)$/,
 ]
 
-/** Test function patterns */
 const TEST_PATTERNS = [
     /^(it|describe|test|beforeAll|afterAll|beforeEach|afterEach)$/,
     /\.test\./,
     /\.spec\./,
     /__test__/,
+    /_test_/,
+    /_spec_/,
 ]
 
-/**
- * Names that are commonly used via dynamic dispatch, string-keyed maps, or
- * framework injection. A function matching these patterns gets LOW confidence
- * even if no graph callers exist, because static analysis may have missed it.
- */
+const SCRIPT_PATTERNS = [
+    /\/scripts\//,
+    /\/benchmarks\//,
+    /\/fixtures\//,
+    /\.bench\./,
+    /\.benchmark\./,
+]
+
+const FRAMEWORK_ENTRY_PATTERNS = [
+    /\/app\//,
+    /\/pages\//,
+    /\/components\//,
+    /\.next\//,
+    /\.mjs$/,
+    /\.cjs$/,
+]
+
 const DYNAMIC_USAGE_PATTERNS = [
     /^addEventListener$/i,
     /^removeEventListener$/i,
@@ -71,29 +80,39 @@ const DYNAMIC_USAGE_PATTERNS = [
     /^componentWillUnmount$/i,
 ]
 
+const FRAMEWORK_PATTERNS = [
+    /^componentDidCatch$/i,
+    /^getDerivedStateFromError$/i,
+    /^getDerivedStateFromProps$/i,
+    /^render$/i,
+    /^shouldComponentUpdate$/i,
+    /^componentWillReceiveProps$/i,
+    /^componentWillUpdate$/i,
+    /^UNSAFE_/,
+    /^__\w+__$/,
+    /^\$\w+/,
+]
+
+const CONSTRUCTOR_PATTERNS = [
+    /^constructor$/i,
+    /^__construct$/i,
+    /^__init__$/i,
+    /^init$/i,
+    /^initialize$/i,
+]
+
+const CLASS_METHOD_PATTERNS = [
+    /\.constructor$/,
+    /^\w+\.\w+$/,
+]
+
 // ─── Detector ──────────────────────────────────────────────────────
 
-/**
- * DeadCodeDetector — walks the dependency graph to find functions with zero
- * incoming `calls` edges after applying multi-pass exemptions.
- *
- * Exemptions (function is NOT reported as dead):
- *   1. Exported symbols — may be consumed by external packages
- *   2. Entry point name patterns — main, handler, middleware, hooks, etc.
- *   3. Route handlers — detected via HTTP route registrations in the lock
- *   4. Test functions — describe, it, test, lifecycle hooks
- *   5. Constructors — called implicitly by `new`
- *   6. Called by an exported function in the same file (transitive liveness)
- *
- * Each dead entry includes a confidence level:
- *   high   — safe to remove
- *   medium — file has unresolved imports; verify before removing
- *   low    — dynamic usage patterns detected; manual review required
- */
 export class DeadCodeDetector {
     private routeHandlers: Set<string>
-    /** Files that have at least one unresolved import (empty resolvedPath) */
     private filesWithUnresolvedImports: Set<string>
+    private fnIndex: Map<number, string>
+    private allClasses: Map<string, MikkLockClass>
 
     constructor(
         private graph: DependencyGraph,
@@ -102,10 +121,37 @@ export class DeadCodeDetector {
         this.routeHandlers = new Set(
             (lock.routes ?? []).map(r => r.handler).filter(Boolean),
         )
-
-        // Pre-compute which files have unresolved imports so confidence can
-        // be lowered for all functions in those files without scanning per-function.
+        const rawFnIndex = (lock as any).fnIndex || []
+        this.fnIndex = new Map(rawFnIndex.map((id: string, idx: number) => [idx, id]))
         this.filesWithUnresolvedImports = this.buildUnresolvedImportFileSet()
+        this.allClasses = this.buildClassIndex()
+    }
+
+    private resolveFnData(id: string): { name: string; file: string; isExported?: boolean; moduleId?: string } {
+        const fn = this.lock.functions[id]
+        if (fn?.name && fn?.file) return fn
+        
+        const fullId = this.resolveId(id)
+        const resolvedFn = this.lock.functions[fullId]
+        if (resolvedFn?.name && resolvedFn?.file) return resolvedFn
+        
+        if (fullId.startsWith('fn:')) {
+            const parts = fullId.slice(3).split(':')
+            const file = parts.slice(0, -1).join(':')
+            const name = parts[parts.length - 1]
+            return { name, file }
+        }
+        
+        return { name: '', file: '' }
+    }
+
+    private resolveId(id: string): string {
+        if (this.lock.functions[id]) return id
+        const num = parseInt(id)
+        if (!isNaN(num)) {
+            return this.fnIndex.get(num) || id
+        }
+        return id
     }
 
     detect(): DeadCodeResult {
@@ -113,8 +159,14 @@ export class DeadCodeDetector {
         let totalFunctions = 0
         const byModule: DeadCodeResult['byModule'] = {}
 
-        for (const [id, fn] of Object.entries(this.lock.functions)) {
-            totalFunctions++
+        const functionIds = Object.keys(this.lock.functions)
+        totalFunctions = functionIds.length
+
+        for (const id of functionIds) {
+            const fn = this.lock.functions[id]
+            if (!fn) continue
+            
+            const fnData = this.resolveFnData(id)
             const moduleId = fn.moduleId ?? 'unknown'
 
             if (!byModule[moduleId]) {
@@ -122,21 +174,22 @@ export class DeadCodeDetector {
             }
             byModule[moduleId].total++
 
-            // Check for incoming call edges in the graph
-            const inEdges = this.graph.inEdges.get(id) || []
-            const hasCallers = inEdges.some(e => e.type === 'calls')
-            if (hasCallers) continue
+            const name = fnData.name
+            const file = fnData.file
+            const isExported = fn.isExported ?? false
 
-            if (this.isExempt(fn, id)) continue
+            if (this.isExempt(fn, id, name, file, isExported)) {
+                continue
+            }
 
-            const confidence = this.inferConfidence(fn)
+            const confidence = this.computeConfidence(fn, name, file)
             const entry: DeadCodeEntry = {
                 id,
-                name: fn.name,
-                file: fn.file,
+                name,
+                file,
                 moduleId,
                 type: 'function',
-                reason: this.inferReason(fn),
+                reason: this.computeReason(fn),
                 confidence,
             }
             dead.push(entry)
@@ -144,7 +197,6 @@ export class DeadCodeDetector {
             byModule[moduleId].items.push(entry)
         }
 
-        // Check classes
         if (this.lock.classes) {
             for (const [id, cls] of Object.entries(this.lock.classes)) {
                 const moduleId = cls.moduleId ?? 'unknown'
@@ -152,9 +204,11 @@ export class DeadCodeDetector {
                     byModule[moduleId] = { dead: 0, total: 0, items: [] }
                 }
 
+                if (cls.isExported) continue
+
                 const inEdges = this.graph.inEdges.get(id) || []
-                const hasCallers = inEdges.some(e => e.type === 'calls' || e.type === 'imports')
-                if (hasCallers || cls.isExported) continue
+                const hasImporters = inEdges.some(e => e.type === 'imports')
+                if (hasImporters) continue
 
                 const entry: DeadCodeEntry = {
                     id,
@@ -162,7 +216,7 @@ export class DeadCodeDetector {
                     file: cls.file,
                     moduleId,
                     type: 'class',
-                    reason: 'Class has no callers or importers and is not exported',
+                    reason: 'Class has no importers and is not exported',
                     confidence: this.filesWithUnresolvedImports.has(cls.file) ? 'medium' : 'high',
                 }
                 dead.push(entry)
@@ -182,81 +236,213 @@ export class DeadCodeDetector {
         }
     }
 
-    // ─── Private helpers ───────────────────────────────────────────
+    private isExempt(
+        fn: MikkLock['functions'][string],
+        id: string,
+        name: string,
+        file: string,
+        isExported: boolean,
+    ): boolean {
+        if (isExported) return true
+        if (this.hasGraphCallers(id, name, file)) return true
+        if (this.hasCalledByInLock(fn)) return true
+        if (ENTRY_POINT_PATTERNS.some(p => p.test(name))) return true
+        if (this.routeHandlers.has(name)) return true
+        if (TEST_PATTERNS.some(p => p.test(name) || p.test(file))) return true
+        if (SCRIPT_PATTERNS.some(p => p.test(file))) return true
+        if (CONSTRUCTOR_PATTERNS.some(p => p.test(name))) return true
+        if (FRAMEWORK_PATTERNS.some(p => p.test(name))) return true
+        if (this.isReactComponent(name)) return true
+        if (this.isCalledByExportedInSameFile(fn, id)) return true
+        if (this.isMethodOfUsedClass(fn, name, file)) return true
+        if (this.isFrameworkEntryPoint(file, name)) return true
+        if (this.isFrameworkEntry(file)) return true
 
-    private isExempt(fn: MikkLock['functions'][string], id: string): boolean {
-        if (fn.isExported) return true
-        if (ENTRY_POINT_PATTERNS.some(p => p.test(fn.name))) return true
-        if (this.routeHandlers.has(fn.name)) return true
-        if (TEST_PATTERNS.some(p => p.test(fn.name) || p.test(fn.file))) return true
-        if (fn.name === 'constructor' || fn.name === '__init__') return true
-        if (this.isCalledByExportedInSameFile(fn)) return true
         return false
     }
 
-    private isCalledByExportedInSameFile(fn: MikkLock['functions'][string]): boolean {
-        // Multi-pass transitive liveness: propagate liveness through the full calledBy
-        // chain until no new live functions are discovered.  A single-hop check misses
-        // patterns like: exportedFn → internalA → internalB (internalB is still live).
+    private hasGraphCallers(id: string, name: string, file: string): boolean {
+        const candidates = [
+            id,
+            name,
+            `fn:${file}:${name}`,
+            file + ':' + name,
+        ]
+        
+        for (const candidate of candidates) {
+            const inEdges = this.graph.inEdges.get(candidate)
+            if (inEdges?.some(e => e.type === 'calls')) return true
+        }
+
+        const fn = this.lock.functions[id]
+        if (fn?.calledBy?.length) return true
+
+        return false
+    }
+
+    private isReactComponent(name: string): boolean {
+        if (!name || name.length < 2) return false
+        if (!/^[A-Z]/.test(name)) return false
+        if (name.includes('.') || name.includes('/') || name.includes('\\')) return false
+        if (name.includes(':') || name.includes('#')) return false
+        if (/^[A-Z][a-z]/.test(name)) return true
+        if (/^[A-Z][A-Z]/.test(name)) return true
+        return false
+    }
+
+    private isCalledByExportedInSameFile(fn: MikkLock['functions'][string] | undefined, id: string): boolean {
+        if (!fn) return false
         const file = fn.file
+        if (!file) return false
+        
+        return this.isReachableFromExported(fn, id, file)
+    }
+
+    private hasCalledByInLock(fn: MikkLock['functions'][string]): boolean {
+        if (!fn.calledBy || fn.calledBy.length === 0) return false
+
+        for (const callerId of fn.calledBy) {
+            const caller = this.lock.functions[callerId]
+            if (!caller) continue
+            if (caller.isExported) return true
+            if (this.hasGraphCallers(callerId, caller.name, caller.file)) return true
+        }
+
+        return false
+    }
+
+    private isReachableFromExported(
+        startFn: MikkLock['functions'][string],
+        startId: string,
+        file: string,
+        requireExported: boolean = true
+    ): boolean {
         const visited = new Set<string>()
-        const queue: string[] = [fn.id]
+        const queue: string[] = [startId]
+        const maxDepth = 50
 
-        while (queue.length > 0) {
-            const currentId = queue.pop()!
-            if (visited.has(currentId)) continue
-            visited.add(currentId)
+        let depth = 0
+        while (queue.length > 0 && depth < maxDepth) {
+            const levelSize = queue.length
+            for (let i = 0; i < levelSize; i++) {
+                const currentId = queue.shift()!
+                if (visited.has(currentId)) continue
+                visited.add(currentId)
 
-            const current = this.lock.functions[currentId]
-            if (!current) continue
+                const current = this.lock.functions[currentId]
+                if (!current) continue
 
-            for (const callerId of current.calledBy) {
-                if (visited.has(callerId)) continue
-                const caller = this.lock.functions[callerId]
-                if (!caller) continue
-                // Only follow the chain within the same file
-                if (caller.file !== file) continue
-                // Found a live exported caller in the same file — the original fn is live
-                if (caller.isExported) return true
-                queue.push(callerId)
+                for (const callerId of current.calledBy || []) {
+                    if (visited.has(callerId)) continue
+                    const caller = this.lock.functions[callerId]
+                    if (!caller) continue
+                    if (caller.file !== file) {
+                        queue.push(callerId)
+                        continue
+                    }
+                    if (caller.isExported) return true
+                    if (!requireExported) return true
+                    queue.push(callerId)
+                }
+
+                const callerEdges = this.graph.inEdges.get(currentId) || []
+                for (const edge of callerEdges) {
+                    if (edge.type !== 'calls') continue
+                    if (visited.has(edge.from)) continue
+                    const caller = this.lock.functions[edge.from]
+                    if (!caller) continue
+                    if (caller.file !== file) {
+                        queue.push(edge.from)
+                        continue
+                    }
+                    if (caller.isExported) return true
+                    if (!requireExported) return true
+                    queue.push(edge.from)
+                }
             }
+            depth++
         }
         return false
     }
 
-    /**
-     * Assign a confidence level to a dead code finding.
-     *
-     * Priority (first match wins):
-     *  medium — lock.calledBy has entries that didn't become graph edges:
-     *           something references this function but resolution failed.
-     *  medium — file has unresolved imports: the graph may be incomplete.
-     *  low    — function name matches common dynamic-dispatch patterns.
-     *  high   — none of the above: safe to remove.
-     */
-    private inferConfidence(fn: MikkLock['functions'][string]): DeadCodeConfidence {
-        if (DYNAMIC_USAGE_PATTERNS.some(p => p.test(fn.name))) return 'low'
-        if (fn.calledBy.length > 0) return 'medium'
-        if (this.filesWithUnresolvedImports.has(fn.file)) return 'medium'
+    private isMethodOfUsedClass(fn: MikkLock['functions'][string], name: string, file: string): boolean {
+        const classInfo = this.allClasses.get(file)
+        if (!classInfo) return false
+
+        const inEdges = this.graph.inEdges.get(`class:${file}:${classInfo.name}`) || []
+        if (inEdges.length > 0) return true
+
+        for (const [clsId, cls] of Object.entries(this.lock.classes || {})) {
+            if (cls.file !== file) continue
+            const clsInEdges = this.graph.inEdges.get(clsId) || []
+            if (clsInEdges.length > 0) return true
+        }
+
+        return false
+    }
+
+    private buildClassIndex(): Map<string, MikkLockClass> {
+        const index = new Map<string, MikkLockClass>()
+        if (!this.lock.classes) return index
+
+        for (const [id, cls] of Object.entries(this.lock.classes)) {
+            index.set(cls.file, cls)
+        }
+        return index
+    }
+
+    private isFrameworkEntryPoint(file: string, name: string): boolean {
+        const frameworkExports = [
+            /^Page$/,
+            /^Layout$/,
+            /^default$/,
+            /^(getServerSideProps|getStaticProps|generateMetadata|generateViewport)$/,
+        ]
+
+        return frameworkExports.some(p => p.test(name))
+    }
+
+    private isFrameworkEntry(file: string): boolean {
+        return FRAMEWORK_ENTRY_PATTERNS.some(p => p.test(file))
+    }
+
+    private hasCalledByFromLock(fn: MikkLock['functions'][string]): boolean {
+        if (!fn.calledBy || fn.calledBy.length === 0) return false
+
+        for (const callerId of fn.calledBy) {
+            const caller = this.lock.functions[callerId]
+            if (!caller) continue
+
+            if (caller.isExported) return true
+            if (this.hasCallersFromGraph(callerId)) return true
+        }
+
+        return false
+    }
+
+    private hasCallersFromGraph(id: string): boolean {
+        const candidates = [id]
+        for (const candidate of candidates) {
+            const inEdges = this.graph.inEdges.get(candidate)
+            if (inEdges?.some(e => e.type === 'calls')) return true
+        }
+        return false
+    }
+
+    private computeConfidence(fn: MikkLock['functions'][string], name: string, file: string): DeadCodeConfidence {
+        if (DYNAMIC_USAGE_PATTERNS.some(p => p.test(name))) return 'low'
+        if (fn.calledBy?.length) return 'medium'
+        if (this.filesWithUnresolvedImports.has(file)) return 'medium'
         return 'high'
     }
 
-    private inferReason(fn: MikkLock['functions'][string]): string {
-        if (fn.calledBy.length === 0) {
-            return 'No callers found anywhere in the codebase'
+    private computeReason(fn: MikkLock['functions'][string]): string {
+        if (fn.calledBy?.length) {
+            return `${fn.calledBy.length} reference(s) in lock but no active call edges in graph`
         }
-        return `${fn.calledBy.length} reference(s) in lock but none resolved to active call edges`
+        return 'No callers found in graph'
     }
 
-    /**
-     * Build the set of file paths that have at least one import whose
-     * resolvedPath is empty. Used to downgrade confidence for all dead
-     * findings in those files, since the graph may be incomplete.
-     *
-     * We derive this from the lock's file entries. Each file entry stores
-     * its imports; any import with an empty resolvedPath (or no match in
-     * the graph nodes) indicates an unresolved dependency.
-     */
     private buildUnresolvedImportFileSet(): Set<string> {
         const result = new Set<string>()
         if (!this.lock.files) return result
@@ -266,7 +452,7 @@ export class DeadCodeDetector {
             for (const imp of imports) {
                 if (!imp.resolvedPath || imp.resolvedPath === '') {
                     result.add(filePath)
-                    break // One unresolved import is enough to flag the file
+                    break
                 }
             }
         }

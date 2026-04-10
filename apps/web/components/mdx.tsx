@@ -11,12 +11,9 @@ import { Accordion, Accordions } from "fumadocs-ui/components/accordion";
 import { ImageZoom } from "fumadocs-ui/components/image-zoom";
 import { InlineTOC } from "fumadocs-ui/components/inline-toc";
 
-export function getMDXComponents(components?: MDXComponents): MDXComponents {
+export function getMDXComponents(components?: Partial<MDXComponents>): MDXComponents {
   return {
-    // fumadocs-ui handles pre → CodeBlock, code, headings, links natively
     ...defaultMdxComponents,
-
-    // Additional fumadocs-ui components available in MDX files
     Callout,
     Cards,
     Card,
@@ -32,9 +29,8 @@ export function getMDXComponents(components?: MDXComponents): MDXComponents {
     Accordions,
     ImageZoom,
     InlineTOC,
-
     ...components,
-  } satisfies MDXComponents;
+  } as MDXComponents;
 }
 
 export const useMDXComponents = getMDXComponents;

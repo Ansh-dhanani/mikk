@@ -14,15 +14,38 @@ export type RegistryLanguage =
     | 'csharp'
     | 'c'
     | 'cpp'
+    | 'zig'
+    | 'elixir'
+    | 'haskell'
+    | 'scala'
+    | 'dart'
+    | 'lua'
+    | 'julia'
+    | 'clojure'
+    | 'fsharp'
+    | 'ocaml'
+    | 'perl'
+    | 'r'
+    | 'sql'
+    | 'terraform'
+    | 'shell'
+    | 'vue'
+    | 'svelte'
+    | 'jsx'
+    | 'tsx'
     | 'polyglot'
     | 'unknown'
 
-const OXC_EXTENSIONS = ['.ts', '.tsx', '.js', '.jsx', '.mjs', '.cjs'] as const
+const OXC_EXTENSIONS = ['.ts', '.tsx', '.js', '.jsx', '.mjs', '.cjs', '.vue', '.svelte'] as const
 const GO_EXTENSIONS = ['.go'] as const
 const TREE_SITTER_EXTENSIONS = [
     '.py', '.java', '.kt', '.kts', '.swift',
     '.c', '.h', '.cpp', '.cc', '.cxx', '.hpp', '.hxx', '.hh',
     '.cs', '.rs', '.php', '.rb',
+    '.zig', '.ex', '.exs', '.hs', '.scala', '.sc',
+    '.dart', '.lua', '.jl', '.clj', '.cljs', '.fs', '.fsx',
+    '.ml', '.mli', '.pl', '.pm', '.r', '.R', '.sql',
+    '.tf', '.sh', '.bash', '.zsh',
 ] as const
 
 const PARSER_EXTENSIONS: Record<Exclude<ParserKind, 'unknown'>, readonly string[]> = {
@@ -32,22 +55,41 @@ const PARSER_EXTENSIONS: Record<Exclude<ParserKind, 'unknown'>, readonly string[
 }
 
 const LANGUAGE_EXTENSIONS: Record<RegistryLanguage, readonly string[]> = {
-    typescript: ['.ts', '.tsx', '.js', '.jsx', '.mjs', '.cjs'],
-    javascript: ['.js', '.jsx', '.mjs', '.cjs', '.ts', '.tsx'],
-    python: ['.py'],
+    typescript: ['.ts', '.tsx', '.mts', '.cts', '.js', '.jsx', '.mjs', '.cjs'],
+    javascript: ['.js', '.jsx', '.mjs', '.cjs'],
+    vue: ['.vue'],
+    svelte: ['.svelte'],
+    jsx: ['.jsx'],
+    tsx: ['.tsx'],
+    python: ['.py', '.pyw'],
     go: ['.go'],
     rust: ['.rs'],
     kotlin: ['.kt', '.kts'],
-    java: ['.java', '.kt', '.kts'],
+    java: ['.java'],
     swift: ['.swift'],
     ruby: ['.rb'],
     php: ['.php'],
     csharp: ['.cs'],
     c: ['.c', '.h'],
     cpp: ['.cpp', '.cc', '.cxx', '.hpp', '.hxx', '.hh', '.h'],
+    zig: ['.zig'],
+    elixir: ['.ex', '.exs'],
+    haskell: ['.hs'],
+    scala: ['.scala', '.sc'],
+    dart: ['.dart'],
+    lua: ['.lua'],
+    julia: ['.jl'],
+    clojure: ['.clj', '.cljs', '.cljc'],
+    fsharp: ['.fs', '.fsx', '.fsi'],
+    ocaml: ['.ml', '.mli'],
+    perl: ['.pl', '.pm'],
+    r: ['.r', '.R'],
+    sql: ['.sql'],
+    terraform: ['.tf'],
+    shell: ['.sh', '.bash', '.zsh'],
     polyglot: [
         '.ts', '.tsx', '.js', '.jsx', '.mjs', '.cjs',
-        '.py',
+        '.py', '.vue', '.svelte',
         '.go',
         '.rs',
         '.java', '.kt', '.kts',
@@ -56,6 +98,10 @@ const LANGUAGE_EXTENSIONS: Record<RegistryLanguage, readonly string[]> = {
         '.php',
         '.cs',
         '.c', '.h', '.cpp', '.cc', '.cxx', '.hpp', '.hxx', '.hh',
+        '.zig', '.ex', '.exs', '.hs', '.scala', '.sc',
+        '.dart', '.lua', '.jl', '.clj', '.cljs', '.cljc',
+        '.fs', '.fsx', '.fsi', '.ml', '.mli', '.pl', '.pm',
+        '.r', '.R', '.sql', '.tf', '.sh', '.bash', '.zsh',
     ],
     unknown: ['.ts', '.tsx', '.js', '.jsx'],
 }
@@ -81,6 +127,38 @@ export function parserKindForExtension(ext: string): ParserKind {
 export function languageForExtension(ext: string): RegistryLanguage {
     return EXT_TO_LANGUAGE.get(ext.toLowerCase()) ?? 'unknown'
 }
+
+const VALID_PARSED_FILE_LANGUAGES = new Set([
+    // Mainstream Languages (22)
+    'javascript', 'typescript', 'python', 'java', 'csharp', 'cpp', 'c',
+    'php', 'ruby', 'swift', 'go', 'kotlin', 'rust', 'dart', 'scala',
+    'haskell', 'elixir', 'clojure', 'fsharp', 'ocaml', 'perl', 'r',
+    // Systems Languages
+    'zig',
+    // Scripting Languages
+    'lua', 'julia',
+    // Special Purpose
+    'sql', 'terraform', 'shell',
+    // Web Frameworks
+    'vue', 'svelte',
+    // Fallback
+    'unknown'
+])
+
+export function toParsedFileLanguage(lang: RegistryLanguage): ParsedFileLanguage {
+    return VALID_PARSED_FILE_LANGUAGES.has(lang)
+        ? lang as ParsedFileLanguage
+        : 'unknown'
+}
+
+export type ParsedFileLanguage = 
+    | 'javascript' | 'typescript' | 'python' | 'java' | 'csharp' | 'cpp' | 'c'
+    | 'php' | 'ruby' | 'swift' | 'go' | 'kotlin' | 'rust' | 'dart' | 'scala'
+    | 'haskell' | 'elixir' | 'clojure' | 'fsharp' | 'ocaml' | 'perl' | 'r'
+    | 'zig' | 'lua' | 'julia'
+    | 'sql' | 'terraform' | 'shell'
+    | 'vue' | 'svelte'
+    | 'unknown'
 
 export function getParserExtensions(kind: Exclude<ParserKind, 'unknown'>): readonly string[] {
     return PARSER_EXTENSIONS[kind]

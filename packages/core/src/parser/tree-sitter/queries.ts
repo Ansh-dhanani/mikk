@@ -66,9 +66,10 @@ export const JAVA_QUERIES = `
 `;
 
 export const KOTLIN_QUERIES = `
-(class_declaration name: (type_identifier) @name) @definition.class
-(object_declaration name: (type_identifier) @name) @definition.class
-(function_declaration name: (simple_identifier) @name) @definition.function
+; Kotlin uses type_identifier as child node, not as a named field
+(class_declaration (type_identifier) @name) @definition.class
+(object_declaration (type_identifier) @name) @definition.class
+(function_declaration (simple_identifier) @name) @definition.function
 (property_declaration (variable_declaration (simple_identifier) @name)) @definition.property
 (type_alias (type_identifier) @name) @definition.type
 (import_header (identifier) @import.source) @import
@@ -175,13 +176,11 @@ export const RUST_QUERIES = `
 
 export const PHP_QUERIES = `
 (namespace_definition name: (namespace_name) @name) @definition.namespace
-(class_declaration name: (name) @name) @definition.class
-(interface_declaration name: (name) @name) @definition.interface
-(trait_declaration name: (name) @name) @definition.trait
-(enum_declaration name: (name) @name) @definition.enum
-(function_definition name: (name) @name) @definition.function
-(method_declaration name: (name) @name) @definition.method
-(property_declaration (property_element (variable_name (name) @name))) @definition.property
+(class_declaration (name) @name) @definition.class
+(interface_declaration (name) @name) @definition.interface
+(trait_declaration (name) @name) @definition.trait
+(enum_declaration (name) @name) @definition.enum
+(method_declaration (name) @name) @definition.method
 (namespace_use_declaration (namespace_use_clause (qualified_name) @import.source)) @import
 (function_call_expression function: (name) @call.name) @call
 (member_call_expression name: (name) @call.name) @call
@@ -291,4 +290,101 @@ export const RAILS_ROUTE_QUERIES = `
   method: (identifier) @route.method
   arguments: (argument_list (string (string_content) @route.path)))
 ) @route.def
+`;
+
+// Scala queries - uses class_definition and function_definition
+export const SCALA_QUERIES = `
+(class_definition (identifier) @name) @definition.class
+(object_definition (identifier) @name) @definition.class
+(function_definition (identifier) @name) @definition.function
+(function_definition (identifier) @call.name) @call
+`;
+
+// Dart queries - reuse Swift queries  
+export const DART_QUERIES = SWIFT_QUERIES;
+
+// Zig queries - uses function_declaration
+export const ZIG_QUERIES = `
+(function_declaration (identifier) @name) @definition.function
+(variable_declaration (identifier) @name) @definition.const
+`;
+
+// Haskell queries
+export const HASKELL_QUERIES = `
+(class_declaration name: (type) @name) @definition.class
+(function_declaration name: (variable) @name) @definition.function
+(type_signature (variable) @name) @definition.function
+(import_statement (qualified_module) @import.source) @import
+(import_statement (module) @import.source) @import
+(call_expression (variable) @call.name) @call
+(call_expression (qualified_method) @call.name) @call
+`;
+
+// Elixir queries - uses call nodes for everything
+export const ELIXIR_QUERIES = `
+(call (identifier) @name) @definition.function
+(call (identifier) @call.name) @call
+`;
+
+// Clojure queries
+export const CLOJURE_QUERIES = `
+(namespaceDeclaration name: (symbol) @name) @definition.namespace
+(defn name: (symbol) @name) @definition.function
+(def name: (symbol) @name) @definition.var
+(require :refer (symbol) @import.source) @import
+`;
+
+// F# queries
+export const FSHARP_QUERIES = `
+(type_definition name: (type) @name) @definition.type
+(function_definition name: (identifier) @name) @definition.function
+(binding name: (identifier) @name) @definition.var
+(openStatement (identifier) @import.source) @import
+`;
+
+// OCaml queries - uses value_definition and value_name
+export const OCAML_QUERIES = `
+(value_definition (let_binding (value_name) @name)) @definition.function
+`;
+
+// Perl queries
+export const PERL_QUERIES = `
+(package_declaration name: (package) @name) @definition.package
+(subroutine_definition name: (identifier) @name) @definition.function
+`;
+
+// R queries
+export const R_QUERIES = `
+(function_definition name: (identifier) @name) @definition.function
+(assignment_left name: (identifier) @name) @definition.var
+`;
+
+// Julia queries
+export const JULIA_QUERIES = `
+(function_definition name: (identifier) @name) @definition.function
+(struct_definition name: (identifier) @name) @definition.struct
+(import_statement (identifier) @import.source) @import
+`;
+
+// Lua queries - uses function_definition_statement
+export const LUA_QUERIES = `
+(function_definition_statement (identifier) @name) @definition.function
+(variable_assignment (variable_list (identifier) @name)) @definition.var
+(local_variable_declaration (variable_list (identifier) @name)) @definition.local
+`;
+
+// SQL queries
+export const SQL_QUERIES = `
+(create_table (identifier) @name) @definition.table
+(create_index (identifier) @name) @definition.index
+`;
+
+// HCL (Terraform) queries - reuse generic
+export const HCL_QUERIES = `
+(block (identifier) @name) @definition.block
+`;
+
+// Bash/Shell queries
+export const BASH_QUERIES = `
+(function_definition name: (word) @name) @definition.function
 `;

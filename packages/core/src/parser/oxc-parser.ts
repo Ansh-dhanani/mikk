@@ -1,5 +1,6 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import path from 'node:path';
-import { BaseParser } from './base-parser.js';
+import { BaseExtractor } from './base-extractor.js';
 import { OxcResolver } from './oxc-resolver.js';
 import { hashContent } from '../hash/file-hasher.js';
 import type {
@@ -12,8 +13,10 @@ import type {
     ParsedParam,
     CallExpression,
     ParsedGeneric,
-    ParsedRoute
+    ParsedRoute,
+    ReExport
 } from './types.js';
+import { LanguageRegistry } from './language-registry.js';
 
 // ---------------------------------------------------------------------------
 // LineIndex — O(log n) byte-offset → 1-based line number
@@ -55,13 +58,13 @@ class LineIndex {
 // ---------------------------------------------------------------------------
 function makeAllocator(filePath: string): (prefix: string, name: string) => string {
     const counter = new Map<string, number>();
-    const normalizedPath = filePath.replace(/\\/g, '/');
+    const normalizedPath = filePath.replace(/\\/g, '/').toLowerCase();
     return (prefix: string, name: string): string => {
         const key = `${prefix}:${name}`;
         const count = (counter.get(key) ?? 0) + 1;
         counter.set(key, count);
         const suffix = count === 1 ? '' : `#${count}`;
-        return `${prefix}:${normalizedPath}:${name}${suffix}`.toLowerCase();
+        return `${prefix}:${normalizedPath}:${name}${suffix}`;
     };
 }
 
@@ -100,6 +103,23 @@ function resolvePropertyName(node: any): string | null {
         return node.value != null ? String(node.value) : node.raw ?? null;
     }
     return null;
+}
+
+function extractDecorators(node: any): string[] {
+    if (!node?.decorators?.length) return [];
+    return node.decorators.map((dec: any) => {
+        if (dec.expression?.type === 'Identifier') return dec.expression.name;
+        if (dec.expression?.type === 'CallExpression') {
+            const callee = dec.expression.callee;
+            if (callee?.type === 'Identifier') return callee.name;
+            if (callee?.type === 'MemberExpression') {
+                const obj = callee.object?.name ?? '';
+                const prop = callee.property?.name ?? '';
+                return obj ? `${obj}.${prop}` : prop;
+            }
+        }
+        return dec.expression?.name ?? dec.name ?? 'decorator';
+    });
 }
 
 function resolveObjectName(node: any): string | null {
@@ -249,6 +269,52 @@ function extractCalls(node: any, lineIndex: LineIndex): CallExpression[] {
 // ---------------------------------------------------------------------------
 // Parameter extraction
 // ---------------------------------------------------------------------------
+function extractTypeAnnotation(typeNode: any): string {
+    if (!typeNode) return 'any';
+    switch (typeNode.type) {
+        case 'TSStringKeyword': return 'string';
+        case 'TSNumberKeyword': return 'number';
+        case 'TSBooleanKeyword': return 'boolean';
+        case 'TSVoidKeyword': return 'void';
+        case 'TSNullKeyword': return 'null';
+        case 'TSUndefinedKeyword': return 'undefined';
+        case 'TSNeverKeyword': return 'never';
+        case 'TSAnyKeyword': return 'any';
+        case 'TSUnknownKeyword': return 'unknown';
+        case 'TSObjectKeyword': return 'object';
+        case 'TSSymbolKeyword': return 'symbol';
+        case 'TSBigIntKeyword': return 'bigint';
+        case 'TSTypeReference':
+            return typeNode.typeName?.name ?? 'unknown';
+        case 'TSArrayType':
+            return `${extractTypeAnnotation(typeNode.elementType)}[]`;
+        case 'TSTupleType':
+            return 'tuple';
+        case 'TSUnionType':
+            return (typeNode.types ?? []).map((t: any) => extractTypeAnnotation(t)).join(' | ');
+        case 'TSIntersectionType':
+            return (typeNode.types ?? []).map((t: any) => extractTypeAnnotation(t)).join(' & ');
+        case 'TSFunctionType':
+            return 'Function';
+        case 'TSConstructorType':
+            return 'new (...args: any[]) => any';
+        case 'TSParenthesizedType':
+            return extractTypeAnnotation(typeNode.typeAnnotation);
+        case 'TSConditionalType':
+            return 'conditional';
+        case 'TSMappedType':
+            return 'mapped';
+        case 'TSIndexedAccessType':
+            return 'indexed';
+        case 'TSLiteralType':
+            return String(typeNode.literal?.value ?? typeNode.literal?.raw ?? 'literal');
+        case 'Identifier':
+            return typeNode.name ?? 'any';
+        default:
+            return 'any';
+    }
+}
+
 function extractParams(params: any[]): ParsedParam[] {
     return params.map(p => {
         const normalized = normalizeParamNode(p);
@@ -256,13 +322,22 @@ function extractParams(params: any[]): ParsedParam[] {
         const name = describeParamPattern(pattern);
         const optional = !!normalized?.optional || pattern?.type === 'AssignmentPattern' || pattern?.type === 'RestElement';
         const hasDefault = pattern?.type === 'AssignmentPattern' || normalized?.defaultValue != null || normalized?.initializer != null;
+        const typeAnnotation = normalized?.typeAnnotation ?? pattern?.typeAnnotation;
         return {
             name,
-            type: 'any',
+            type: extractTypeAnnotation(typeAnnotation),
             optional,
             defaultValue: hasDefault ? 'default' : undefined,
         };
     });
+}
+
+function extractReturnType(returnType: any): string {
+    if (!returnType) return 'void';
+    if (returnType.typeAnnotation) {
+        return extractTypeAnnotation(returnType.typeAnnotation);
+    }
+    return extractTypeAnnotation(returnType);
 }
 
 // ---------------------------------------------------------------------------
@@ -274,25 +349,28 @@ function getSpan(node: any): { start: number; end: number } {
 }
 
 // ---------------------------------------------------------------------------
-// OxcParser
+// TypescriptExtractor (OXC-based)
 // ---------------------------------------------------------------------------
-export class OxcParser extends BaseParser {
-    public async parse(filePath: string, content: string): Promise<ParsedFile> {
+export class TypescriptExtractor extends BaseExtractor {
+    public async extract(filePath: string, content: string): Promise<ParsedFile> {
         const ext = path.extname(filePath).toLowerCase();
         const isTS = ['.ts', '.tsx', '.mts', '.cts'].includes(ext);
 
-        let ast: any;
-        try {
-            const { parseSync } = await import('oxc-parser');
-            const result = parseSync(filePath, content, {
-                sourceType: 'module',
-                lang: isTS ? 'ts' : 'js',
-            });
-            ast = result.program;
-        } catch {
-            // Return empty file on parse error — never crash the pipeline
-            return this.emptyFile(filePath, content, isTS);
-        }
+         let ast: any;
+         try {
+             const { parseSync } = await import('oxc-parser');
+             const lang = ext === '.jsx' ? 'jsx' : ext === '.tsx' ? 'tsx' : isTS ? 'ts' : 'js';
+              const result = parseSync(filePath, content, {
+                  sourceType: 'module',
+                  lang: lang,
+              });
+             ast = result.program;
+         } catch (err) {
+             const error = err instanceof Error ? err.message : String(err);
+             const preview = content.substring(0, 100).replace(/\n/g, ' ');
+             console.warn(`[mikk] Parse error in ${filePath}: ${error} (content: "${preview}...")`);
+             return this.emptyFile(filePath, content, isTS);
+         }
 
         const lineIndex = new LineIndex(content);
         const allocateId = makeAllocator(filePath);
@@ -304,6 +382,7 @@ export class OxcParser extends BaseParser {
         const generics: ParsedGeneric[] = [];
         const imports: ParsedImport[] = [];
         const exports: ParsedExport[] = [];
+        const reexports: ReExport[] = [];
         const moduleCalls: CallExpression[] = [];
         const routes: ParsedRoute[] = [];
 
@@ -316,18 +395,31 @@ export class OxcParser extends BaseParser {
                 case 'ImportDeclaration': {
                     if (node.importKind === 'type') break;
                     const names: string[] = [];
+                    const specifiers: Array<{ imported: string; local: string }> = [];
                     let isDefault = false;
                     for (const spec of node.specifiers ?? []) {
                         if (spec.importKind === 'type') continue;
                         if (spec.type === 'ImportDefaultSpecifier') {
                             isDefault = true;
+                            if (spec.local?.name) names.push(spec.local.name);
+                        } else if (spec.type === 'ImportSpecifier' || spec.type === 'ImportNamedSpecifier') {
+                            const imported = spec.imported?.name ?? spec.local?.name ?? '';
+                            const local = spec.local?.name ?? '';
+                            if (local) {
+                                names.push(local);
+                                if (imported !== local) {
+                                    specifiers.push({ imported, local });
+                                }
+                            }
+                        } else if (spec.type === 'ImportNamespaceSpecifier') {
+                            if (spec.local?.name) names.push(spec.local.name);
                         }
-                        if (spec.local?.name) names.push(spec.local.name);
                     }
                     imports.push({
                         source: node.source.value,
                         resolvedPath: '',
                         names,
+                        specifiers: specifiers.length > 0 ? specifiers : undefined,
                         isDefault,
                         isDynamic: false,
                     });
@@ -355,6 +447,7 @@ export class OxcParser extends BaseParser {
                     const name = node.id.name;
                     const span = getSpan(node);
                     const exported = isDirectlyExported(parent);
+                    const decorators = extractDecorators(node);
                     functions.push({
                         id: allocateId('fn', name),
                         name,
@@ -362,7 +455,7 @@ export class OxcParser extends BaseParser {
                         startLine: lineIndex.getLine(span.start),
                         endLine: lineIndex.getLine(span.end),
                         params: extractParams(node.params?.items ?? node.params ?? []),
-                        returnType: 'void',
+                        returnType: extractReturnType(node.returnType ?? node.signature?.returnType),
                         isExported: exported,
                         isAsync: !!node.async,
                         calls: extractCalls(node.body ?? node, lineIndex),
@@ -371,6 +464,7 @@ export class OxcParser extends BaseParser {
                         edgeCasesHandled: [],
                         errorHandling: [],
                         detailedLines: [],
+                        decorators: decorators.length > 0 ? decorators : undefined,
                     });
                     if (exported) exports.push({ name, type: 'function', file: normalizedFilePath });
                     break;
@@ -382,6 +476,7 @@ export class OxcParser extends BaseParser {
                     const name = node.id.name;
                     const span = getSpan(node);
                     const exported = isDirectlyExported(parent);
+                    const decorators = extractDecorators(node);
                     const methods: ParsedFunction[] = [];
                     const properties: ParsedVariable[] = [];
 
@@ -394,7 +489,9 @@ export class OxcParser extends BaseParser {
                                     null;
                             if (!mName) continue;
 
-                            if (member.type === 'MethodDefinition') {
+                            const memberDecorators = extractDecorators(member);
+                            const isMethod = member.type === 'MethodDefinition';
+                            if (isMethod) {
                                 const value = member.value;
                                 const mSpan = getSpan(member);
                                 methods.push({
@@ -404,7 +501,7 @@ export class OxcParser extends BaseParser {
                                     startLine: lineIndex.getLine(mSpan.start),
                                     endLine: lineIndex.getLine(mSpan.end),
                                     params: extractParams(value?.params?.items ?? value?.params ?? []),
-                                    returnType: 'any',
+                                    returnType: extractReturnType(value?.returnType ?? value?.signature?.returnType),
                                     isExported: exported,
                                     isAsync: !!value?.async,
                                     calls: extractCalls(value?.body ?? value ?? {}, lineIndex),
@@ -413,6 +510,7 @@ export class OxcParser extends BaseParser {
                                     edgeCasesHandled: [],
                                     errorHandling: [],
                                     detailedLines: [],
+                                    decorators: memberDecorators.length > 0 ? memberDecorators : undefined,
                                 });
                             } else {
                                 // PropertyDefinition
@@ -425,6 +523,7 @@ export class OxcParser extends BaseParser {
                                     line: lineIndex.getLine(pSpan.start),
                                     isExported: false,
                                     isStatic: !!member.static,
+                                    decorators: memberDecorators.length > 0 ? memberDecorators : undefined,
                                 };
                                 properties.push(propertyNode);
                                 variables.push(propertyNode);
@@ -444,6 +543,7 @@ export class OxcParser extends BaseParser {
                         isExported: exported,
                         hash: hashContent(JSON.stringify(node.body ?? {})),
                         purpose: '',
+                        decorators: decorators.length > 0 ? decorators : undefined,
                     });
                     if (exported) exports.push({ name, type: 'class', file: normalizedFilePath });
                     break;
@@ -598,13 +698,21 @@ export class OxcParser extends BaseParser {
 
                 // ── Named Exports ──────────────────────────────────────────
                 case 'ExportNamedDeclaration': {
-                    // Re-export specifiers: export { foo, bar }
+                    const source = node.source?.value;
+                    
                     for (const spec of node.specifiers ?? []) {
-                        if (spec.exported?.name) {
-                            exports.push({ name: spec.exported.name, type: 'variable', file: normalizedFilePath });
+                        const exportedName = spec.exported?.name ?? spec.local?.name;
+                        if (!exportedName) continue;
+                        
+                        if (source) {
+                            reexports.push({
+                                name: exportedName,
+                                source: source,
+                            });
+                        } else {
+                            exports.push({ name: exportedName, type: 'variable', file: normalizedFilePath });
                         }
                     }
-                    // Declaration is handled by the declaration's own case with parent context
                     break;
                 }
 
@@ -674,6 +782,7 @@ export class OxcParser extends BaseParser {
             generics,
             imports,
             exports,
+            reexports,
             routes,
             calls: moduleCalls,
             hash: hashContent(content),
@@ -707,3 +816,32 @@ export class OxcParser extends BaseParser {
         };
     }
 }
+
+// Register in the global registry
+LanguageRegistry.getInstance().register({
+    name: 'typescript',
+    extensions: ['.ts', '.tsx', '.mts', '.cts'],
+    treeSitterGrammar: '',
+    extractor: new TypescriptExtractor(),
+    semanticFeatures: {
+        hasTypeSystem: true,
+        hasGenerics: true,
+        hasMacros: false,
+        hasAnnotations: false,
+        hasPatternMatching: false
+    }
+});
+
+LanguageRegistry.getInstance().register({
+    name: 'javascript',
+    extensions: ['.js', '.jsx', '.mjs', '.cjs'],
+    treeSitterGrammar: '',
+    extractor: new TypescriptExtractor(), // OXC handles both
+    semanticFeatures: {
+        hasTypeSystem: false,
+        hasGenerics: false,
+        hasMacros: false,
+        hasAnnotations: false,
+        hasPatternMatching: false
+    }
+});

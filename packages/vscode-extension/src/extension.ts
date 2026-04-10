@@ -10,6 +10,7 @@ import { MikkDecoratorProvider } from './providers/MikkDecoratorProvider'
 
 interface MikkContract {
     project?: { name?: string; language?: string; description?: string }
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     declared: { modules: ContractModule[]; constraints: any[]; decisions: any[] }
 }
 interface ContractModule { id: string; name: string; description?: string; paths: string[]; entryFunctions?: string[] }
@@ -279,8 +280,8 @@ export function activate(context: vscode.ExtensionContext) {
                 const pos = new vscode.Position(Math.max(0, (line ?? 1) - 1), 0)
                 editor.selection = new vscode.Selection(pos, pos)
                 editor.revealRange(new vscode.Range(pos, pos), vscode.TextEditorRevealType.InCenter)
-            } catch (e: any) {
-                vscode.window.showErrorMessage(`Cannot open file: ${e.message}`)
+            } catch (e: unknown) {
+                vscode.window.showErrorMessage(`Cannot open file: ${e instanceof Error ? e.message : String(e)}`)
             }
         })
     )

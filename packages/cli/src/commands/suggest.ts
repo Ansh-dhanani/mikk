@@ -7,6 +7,7 @@ import {
     BoundaryChecker,
     DeadCodeDetector,
     type MikkLock,
+    type MikkContract,
     type DependencyGraph,
     type GraphNode,
     type GraphEdge,
@@ -16,12 +17,19 @@ import { panel, sq, gap } from '../ui.js'
 export function registerSuggestCommand(program: Command) {
     program
         .command('suggest')
-        .description('Show practical next steps for developers and AI agents')
+        .description('Show practical next steps based on current project state')
+        .addHelpText('after',
+          `\nExamples:\n` +
+          `  mikk suggest              See what to do next\n` +
+          `\nThis analyzes your project state and suggests relevant next steps,\n` +
+          `such as refreshing stale locks, fixing boundary violations, or\n` +
+          `reviewing dead code candidates.\n`)
         .action(async () => {
+            try {
             const projectRoot = process.cwd()
             const suggestions: string[] = []
 
-            let contract: any | null = null
+            let contract: MikkContract | null = null
             let lock: MikkLock | null = null
 
             try {
@@ -77,6 +85,10 @@ export function registerSuggestCommand(program: Command) {
 
             panel('mikk suggest — Practical Next Steps', suggestions)
             gap()
+            } catch (err) {
+                console.error(chalk.red('Suggest failed:'), err instanceof Error ? err.message : err)
+                process.exit(1)
+            }
         })
 }
 
@@ -102,9 +114,9 @@ function buildGraphFromLock(lock: MikkLock): DependencyGraph {
     }
 
     for (const fn of Object.values(lock.functions)) {
-        for (const calleeId of fn.calls) {
+        for (const calleeId of fn.calls ?? []) {
             if (!nodes.has(calleeId)) continue
-            const edge: GraphEdge = { from: fn.id, to: calleeId, type: 'calls', confidence: 1 }
+            const edge: GraphEdge = { from: fn.id, to: calleeId, type: 'calls', confidence: 1.0 }
             edges.push(edge)
 
             const out = outEdges.get(fn.id) ?? []
@@ -114,6 +126,22 @@ function buildGraphFromLock(lock: MikkLock): DependencyGraph {
             const incoming = inEdges.get(calleeId) ?? []
             incoming.push(edge)
             inEdges.set(calleeId, incoming)
+        }
+    }
+
+    for (const fn of Object.values(lock.functions)) {
+        for (const callerId of fn.calledBy ?? []) {
+            if (!nodes.has(fn.id) || !nodes.has(callerId)) continue
+            const edge: GraphEdge = { from: callerId, to: fn.id, type: 'calls', confidence: 0.9 }
+            edges.push(edge)
+
+            const out = outEdges.get(callerId) ?? []
+            out.push(edge)
+            outEdges.set(callerId, out)
+
+            const incoming = inEdges.get(fn.id) ?? []
+            incoming.push(edge)
+            inEdges.set(fn.id, incoming)
         }
     }
 

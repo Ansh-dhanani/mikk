@@ -1,7 +1,7 @@
 import { authMiddleware } from './auth/middleware'
 
 const app = {
-    use: (handler: any) => { },
+    use: (_handler: any) => { },
     listen: (port: number) => console.log(`Listening on ${port}`)
 }
 

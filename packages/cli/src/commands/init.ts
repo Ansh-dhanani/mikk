@@ -1,4 +1,5 @@
 import * as path from 'node:path'
+import fs from 'node:fs'
 import type { Command } from 'commander'
 import ora from 'ora'
 import chalk from 'chalk'
@@ -9,7 +10,6 @@ import {
     setupMikkDirectory, fileExists, generateMikkIgnore, updateGitIgnore,
     detectProjectLanguage, getDiscoveryPatterns,
     runArtifactWriteTransaction, recoverArtifactWriteTransactions,
-    type MikkContract
 } from '@getmikk/core'
 import { panel, kv, cols, gap, line, sq } from '../ui.js'
 import { patchFileContent } from '../utils.js'
@@ -17,9 +17,16 @@ import { patchFileContent } from '../utils.js'
 export function registerInitCommand(program: Command) {
     program
         .command('init')
-        .description('Initialize Mikk in this project')
+        .description('Initialize Mikk in this project (creates mikk.json, lock, AI context)')
         .option('--force', 'Overwrite existing mikk.json and lock file')
         .option('--strict-parsing', 'Fail if any files could not be parsed cleanly')
+        .option('--no-context', 'Skip context file discovery for faster init')
+        .addHelpText('after',
+          `\nExamples:\n` +
+          `  mikk init                  Initialize with auto-detected settings\n` +
+          `  mikk init --force         Re-initialize (overwrites existing files)\n` +
+          `  mikk init --no-context    Skip schema file discovery\n` +
+          `\nCreates: mikk.json, mikk.lock.json, .mikk/, claude.md, AGENTS.md, .clinerules\n`)
         .action(async (options) => {
             const projectRoot = process.cwd()
 
@@ -72,7 +79,7 @@ export function registerInitCommand(program: Command) {
                 spinner.text = `Found ${files.length} files (${language}). Parsing...`
 
                 // 2. Parse all files
-                const maybeCore = await import('@getmikk/core') as any
+                const maybeCore = await import('@getmikk/core') as { parseFilesWithDiagnostics?: unknown }
                 const parseWithDiagnostics = maybeCore.parseFilesWithDiagnostics as
                     | ((
                         filePaths: string[],
@@ -80,7 +87,7 @@ export function registerInitCommand(program: Command) {
                         reader: (fp: string) => Promise<string>,
                         options?: { strictParserPreflight?: boolean }
                     ) => Promise<{
-                        files: any[]
+                        files: unknown[]
                         diagnostics: Array<{ reason: string }>
                         summary: { diagnostics: number; fallbackFiles: number }
                     }>)
@@ -163,7 +170,7 @@ export function registerInitCommand(program: Command) {
 
                 // 5. Read package.json for project metadata
                 const fs = await import('node:fs/promises')
-                let pkgJson: any = {}
+                let pkgJson: Record<string, unknown> = {}
                 try {
                     const pkgRaw = await fs.readFile(path.join(projectRoot, 'package.json'), 'utf-8')
                     pkgJson = JSON.parse(pkgRaw)
@@ -176,22 +183,31 @@ export function registerInitCommand(program: Command) {
                     clusters, parsedFiles, projectName, pkgJson.description
                 )
 
-                // 7. Show detected modules
-
                 // 7. Discover context/schema files
-                const ctxSpinner = ora('Discovering schema & config files...').start()
-                const contextFiles = await discoverContextFiles(projectRoot)
-                ctxSpinner.stop()
-                if (contextFiles.length > 0) {
-                    const contextRows = contextFiles.map(cf => {
-                        const sizeKb = (cf.size / 1024).toFixed(1)
-                        const label = `${chalk.cyan(cf.type.padEnd(10))} ${chalk.dim(cf.path)}`
-                        return `${label} ${chalk.dim(`(${sizeKb} KB)`)}`
+                let contextFiles: Awaited<ReturnType<typeof discoverContextFiles>> = []
+                if (options.context !== false) {
+                    const ctxSpinner = ora('Discovering schema & config files...').start()
+                    contextFiles = await discoverContextFiles(projectRoot, {
+                        maxFiles: 20,
+                        onProgress: (current, total, file) => {
+                            ctxSpinner.text = `Discovering schema & config files... (${current}/${total})`
+                        },
                     })
-                    panel('Context & schema files', contextRows)
-                    gap()
+                    ctxSpinner.stop()
+                    if (contextFiles.length > 0) {
+                        const contextRows = contextFiles.map(cf => {
+                            const sizeKb = (cf.size / 1024).toFixed(1)
+                            const label = `${chalk.cyan(cf.type.padEnd(10))} ${chalk.dim(cf.path)}`
+                            return `${label} ${chalk.dim(`(${sizeKb} KB)`)}`
+                        })
+                        panel('Context & schema files', contextRows)
+                        gap()
+                    } else {
+                        console.log(chalk.dim('\nNo schema or config files detected.'))
+                        gap()
+                    }
                 } else {
-                    console.log(chalk.dim('\nNo schema or config files detected.'))
+                    console.log(chalk.dim('\nSkipping context file discovery (--no-context).'))
                     gap()
                 }
 
@@ -238,16 +254,6 @@ export function registerInitCommand(program: Command) {
                     },
                 ]
 
-                const diagSpinner = ora('Generating Mermaid diagrams...').start()
-                try {
-                    const { DiagramOrchestrator } = await import('@getmikk/diagram-generator')
-                    const orchestrator = new DiagramOrchestrator(contract, lock, projectRoot)
-                    await orchestrator.generateAll()
-                    diagSpinner.succeed('Diagrams generated')
-                } catch {
-                    diagSpinner.warn('Diagram generation skipped (package not available)')
-                }
-
                 // 10. Generate claude.md / AGENTS.md
                 const aiSpinner = ora('Generating AI context files...').start()
                 try {
@@ -278,11 +284,34 @@ export function registerInitCommand(program: Command) {
                     aiSpinner.warn('AI context generation skipped (package not available)')
                 }
 
+                // Generate embeddings for semantic search
+                const embSpinner = ora('Generating embeddings for semantic search...').start()
+                try {
+                    const { SemanticSearcher } = await import('@getmikk/intent-engine')
+                    if (await SemanticSearcher.isAvailable()) {
+                        const lockPath = path.join(projectRoot, 'mikk.lock.json')
+                        const lockContent = await fs.readFile(lockPath, 'utf-8')
+                        const lock = JSON.parse(lockContent)
+                        const searcher = new SemanticSearcher(projectRoot)
+                        await searcher.index(lock)
+                        embSpinner.succeed('Embeddings generated')
+                    } else {
+                        embSpinner.warn('Embeddings skipped (install @xenova/transformers for semantic search)')
+                    }
+                } catch (err) {
+                    const msg = err instanceof Error ? err.message : String(err)
+                    if (msg.includes('transformers') || msg.includes('Cannot find module')) {
+                        embSpinner.warn('Embeddings skipped (install @xenova/transformers for semantic search)')
+                    } else {
+                        embSpinner.warn(`Embeddings generation failed: ${msg}`)
+                    }
+                }
+
                 console.log(chalk.green('\n✓ Mikk initialized successfully'))
                 console.log(`  ${chalk.dim('.mikkignore')}         — edit this to exclude files from analysis`)
                 console.log(`  ${chalk.dim('mikk.json')}          — edit this to refine your architecture`)
                 console.log(`  ${chalk.dim('mikk.lock.json')}     — auto-generated, commit this`)
-                console.log(`  ${chalk.dim('.mikk/diagrams/')}    — Mermaid diagrams of your codebase`)
+                console.log(`  ${chalk.dim('.mikk/cache/')}        — cached data for faster operations`)
                 console.log(`  ${chalk.dim('claude.md')}          — AI context derived from lock file`)
                 console.log(`  ${chalk.dim('AGENTS.md')}          — same, for Codex/Copilot agents`)
                 console.log(`  ${chalk.dim('.clinerules')}        — auto-imported system instructions for Cline/OpenClaw agents`)
@@ -290,9 +319,10 @@ export function registerInitCommand(program: Command) {
                 console.log(`\n  ${chalk.dim('Next:')} Review mikk.json and refine module descriptions`)
                 console.log(`  ${chalk.dim('Run:')}  mikk contract validate to check for drift`)
 
-            } catch (err: any) {
-                console.error(chalk.red(`\nInitialization failed: ${err.message}`))
-                if (process.env.MIKK_DEBUG) console.error(err.stack)
+            } catch (err: unknown) {
+                const message = err instanceof Error ? err.message : String(err)
+                console.error(chalk.red(`\nInitialization failed: ${message}`))
+                if (process.env.MIKK_DEBUG && err instanceof Error) console.error(err.stack)
                 process.exit(1)
             }
         })

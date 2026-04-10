@@ -14,10 +14,16 @@ interface CheckResult {
 
 export function registerDoctorCommand(program: Command) {
     program
-        .command('doctor')
-        .description('Check project health: config files, lock freshness, dependencies')
-        .action(async () => {
-            const projectRoot = process.cwd()
+        .command('doctor [path]')
+        .description('Check project health: config files, lock freshness, parser runtime')
+        .addHelpText('after',
+          `\nExamples:\n` +
+          `  mikk doctor               Run all health checks\n` +
+          `  mikk doctor ./path/to/project   Check a specific project\n` +
+          `\nChecks: mikk.json, lock file, lock status, tsconfig, node_modules,\n` +
+          `.mikkignore, .mikk directory, and parser runtime availability.\n`)
+        .action(async (projectPath: string, options: any) => {
+            const projectRoot = projectPath || process.cwd()
             const checks: CheckResult[] = []
 
             // 1. mikk.json

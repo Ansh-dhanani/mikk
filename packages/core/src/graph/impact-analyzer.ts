@@ -1,3 +1,4 @@
+ 
 import type { DependencyGraph, ImpactResult, ClassifiedImpact } from './types.js'
 import { RiskEngine } from './risk-engine.js'
 import { ConfidenceEngine } from './confidence-engine.js'

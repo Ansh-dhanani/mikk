@@ -11,7 +11,13 @@ interface Change {
 export function registerDiffCommand(program: Command) {
     program
         .command('diff')
-        .description('Show what changed since last analysis')
+        .description('Show what changed since last analysis (compares lock vs current filesystem)')
+        .addHelpText('after',
+            `\nExamples:\n` +
+            `  mikk diff                    Show all changes since last analyze\n` +
+            `  mikk diff | head -20        Preview first 20 changes\n` +
+            `\nThis compares the lock file against your current filesystem.\n` +
+            `Run "mikk analyze" to update the lock file with your changes.\n`)
         .action(async () => {
             const projectRoot = process.cwd()
 
@@ -74,8 +80,9 @@ export function registerDiffCommand(program: Command) {
                 }
 
                 console.log(`\n${chalk.dim('Run "mikk analyze" to update the lock file')}`)
-            } catch (err: any) {
-                console.error(chalk.red(err.message))
+            } catch (err: unknown) {
+                const message = err instanceof Error ? err.message : String(err)
+                console.error(chalk.red(message))
                 process.exit(1)
             }
         })

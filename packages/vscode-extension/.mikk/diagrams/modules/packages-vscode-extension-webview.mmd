@@ -2,24 +2,27 @@
 graph TD
     subgraph mod_packages_vscode_extension_webview["📦 Module: Dashboard"]
         subgraph file_c__users_ansh_desktop_web_mesh_packages_vscode_extension_src_webview_dashboardpanel_ts["📄 dashboardpanel.ts"]
-            fn_c__users_ansh_desktop_web_mesh_packages_vscode_extension_src_webview_dashboardpanel_ts_dashboardpanel_constructor["⚡ DashboardPanel.constructor"]
-            fn_c__users_ansh_desktop_web_mesh_packages_vscode_extension_src_webview_dashboardpanel_ts_dashboardpanel_createorshow["⚡ DashboardPanel.createOrShow"]
-            fn_c__users_ansh_desktop_web_mesh_packages_vscode_extension_src_webview_dashboardpanel_ts_dashboardpanel_update["⚡ DashboardPanel.update"]
-            fn_c__users_ansh_desktop_web_mesh_packages_vscode_extension_src_webview_dashboardpanel_ts_dashboardpanel__update["⚡ DashboardPanel._update"]
-            fn_c__users_ansh_desktop_web_mesh_packages_vscode_extension_src_webview_dashboardpanel_ts_dashboardpanel__notinitializedhtml["⚡ DashboardPanel._notInitializedHtml"]
-            fn_c__users_ansh_desktop_web_mesh_packages_vscode_extension_src_webview_dashboardpanel_ts_dashboardpanel_dispose["⚡ DashboardPanel.dispose"]
+            fn_c__users_ansh_desktop_web_mesh_packages_vscode_extension_src_webview_dashboardpanel_ts_DashboardPanel_constructor["⚡ DashboardPanel.constructor"]
+            fn_c__users_ansh_desktop_web_mesh_packages_vscode_extension_src_webview_dashboardpanel_ts_DashboardPanel_createOrShow["λ DashboardPanel.createOrShow"]
+            fn_c__users_ansh_desktop_web_mesh_packages_vscode_extension_src_webview_dashboardpanel_ts_DashboardPanel_update["λ DashboardPanel.update"]
+            fn_c__users_ansh_desktop_web_mesh_packages_vscode_extension_src_webview_dashboardpanel_ts_DashboardPanel__update["λ DashboardPanel._update"]
+            fn_c__users_ansh_desktop_web_mesh_packages_vscode_extension_src_webview_dashboardpanel_ts_DashboardPanel__notInitializedHtml["⚡ DashboardPanel._notInitializedHtml"]
+            fn_c__users_ansh_desktop_web_mesh_packages_vscode_extension_src_webview_dashboardpanel_ts_DashboardPanel_dispose["⚡ DashboardPanel.dispose"]
         end
         subgraph file_c__users_ansh_desktop_web_mesh_packages_vscode_extension_src_webview_diagrampanel_ts["📄 diagrampanel.ts"]
-            fn_c__users_ansh_desktop_web_mesh_packages_vscode_extension_src_webview_diagrampanel_ts_diagrampanel_constructor["⚡ DiagramPanel.constructor"]
-            fn_c__users_ansh_desktop_web_mesh_packages_vscode_extension_src_webview_diagrampanel_ts_diagrampanel_createorshow["⚡ DiagramPanel.createOrShow"]
-            fn_c__users_ansh_desktop_web_mesh_packages_vscode_extension_src_webview_diagrampanel_ts_diagrampanel__update["⚡ DiagramPanel._update"]
-            fn_c__users_ansh_desktop_web_mesh_packages_vscode_extension_src_webview_diagrampanel_ts_diagrampanel_dispose["⚡ DiagramPanel.dispose"]
+            fn_c__users_ansh_desktop_web_mesh_packages_vscode_extension_src_webview_diagrampanel_ts_DiagramPanel_constructor["⚡ DiagramPanel.constructor"]
+            fn_c__users_ansh_desktop_web_mesh_packages_vscode_extension_src_webview_diagrampanel_ts_DiagramPanel_createOrShow["⚡ DiagramPanel.createOrShow"]
+            fn_c__users_ansh_desktop_web_mesh_packages_vscode_extension_src_webview_diagrampanel_ts_DiagramPanel__update["λ DiagramPanel._update"]
+            fn_c__users_ansh_desktop_web_mesh_packages_vscode_extension_src_webview_diagrampanel_ts_DiagramPanel_dispose["⚡ DiagramPanel.dispose"]
         end
         subgraph file_c__users_ansh_desktop_web_mesh_packages_vscode_extension_src_webview_htmlbuilder_ts["📄 htmlbuilder.ts"]
-            fn_c__users_ansh_desktop_web_mesh_packages_vscode_extension_src_webview_htmlbuilder_ts_getwebviewcontent["⚡ getWebviewContent"]
+            fn_c__users_ansh_desktop_web_mesh_packages_vscode_extension_src_webview_htmlbuilder_ts_getWebviewContent["λ getWebviewContent"]
         end
     end
 
+    fn_c__users_ansh_desktop_web_mesh_packages_vscode_extension_src_webview_dashboardpanel_ts_DashboardPanel_createOrShow --> fn_c__users_ansh_desktop_web_mesh_packages_vscode_extension_src_webview_dashboardpanel_ts_DashboardPanel__update
+    fn_c__users_ansh_desktop_web_mesh_packages_vscode_extension_src_webview_diagrampanel_ts_DiagramPanel_createOrShow --> fn_c__users_ansh_desktop_web_mesh_packages_vscode_extension_src_webview_diagrampanel_ts_DiagramPanel__update
+    fn_c__users_ansh_desktop_web_mesh_packages_vscode_extension_src_webview_diagrampanel_ts_DiagramPanel__update --> fn_c__users_ansh_desktop_web_mesh_packages_vscode_extension_src_webview_htmlbuilder_ts_getWebviewContent
 
     classDef default fill:#334155,stroke:#64748b,color:#e2e8f0,stroke-width:1px
     classDef external fill:#1e293b,stroke:#475569,color:#94a3b8,stroke-dasharray: 5 5

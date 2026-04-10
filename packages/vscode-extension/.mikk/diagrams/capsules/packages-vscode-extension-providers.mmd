@@ -3,18 +3,22 @@ graph LR
 
     subgraph packages_vscode_extension_providers["📦 Providers"]
         direction TB
+        subgraph public["🔓 Public API"]
+            fn_c__users_ansh_desktop_web_mesh_packages_vscode_extension_src_providers_mikkdecoratorprovider_ts_MikkDecoratorProvider_updateDecorations["MikkDecoratorProvider.updateDecorations"]
+        end
         subgraph internal["🔒 Internal"]
-            fn_c__users_ansh_desktop_web_mesh_packages_vscode_extension_src_providers_mikkcodelensprovider_ts_mikkcodelensprovider_constructor["MikkCodeLensProvider.constructor"]
-            fn_c__users_ansh_desktop_web_mesh_packages_vscode_extension_src_providers_mikkcodelensprovider_ts_mikkcodelensprovider_refresh["MikkCodeLensProvider.refresh"]
-            fn_c__users_ansh_desktop_web_mesh_packages_vscode_extension_src_providers_mikkcodelensprovider_ts_mikkcodelensprovider_providecodelenses["MikkCodeLensProvider.provideCodeLenses"]
-            fn_c__users_ansh_desktop_web_mesh_packages_vscode_extension_src_providers_mikkdecoratorprovider_ts_mikkdecoratorprovider_updatedecorations["MikkDecoratorProvider.updateDecorations"]
+            fn_c__users_ansh_desktop_web_mesh_packages_vscode_extension_src_providers_mikkcodelensprovider_ts_MikkCodeLensProvider_constructor["MikkCodeLensProvider.constructor"]
+            fn_c__users_ansh_desktop_web_mesh_packages_vscode_extension_src_providers_mikkcodelensprovider_ts_MikkCodeLensProvider_refresh["MikkCodeLensProvider.refresh"]
+            fn_c__users_ansh_desktop_web_mesh_packages_vscode_extension_src_providers_mikkcodelensprovider_ts_MikkCodeLensProvider_provideCodeLenses["MikkCodeLensProvider.provideCodeLenses"]
         end
     end
 
+    ext_fn_c__users_ansh_desktop_web_mesh_packages_vscode_extension_src_extension_ts_activate["activate<br/>(mesh-packages-vscode-extension)"] --> fn_c__users_ansh_desktop_web_mesh_packages_vscode_extension_src_providers_mikkdecoratorprovider_ts_MikkDecoratorProvider_updateDecorations
+    ext_fn_c__users_ansh_desktop_web_mesh_packages_vscode_extension_src_extension_ts_refresh["refresh<br/>(mesh-packages-vscode-extension)"] --> fn_c__users_ansh_desktop_web_mesh_packages_vscode_extension_src_providers_mikkdecoratorprovider_ts_MikkDecoratorProvider_updateDecorations
 
     classDef publicApi fill:#22c55e,stroke:#4ade80,color:#f0fdf4
     classDef internalApi fill:#64748b,stroke:#94a3b8,color:#f1f5f9
-    class fn_c__users_ansh_desktop_web_mesh_packages_vscode_extension_src_providers_mikkcodelensprovider_ts_mikkcodelensprovider_constructor internalApi
-    class fn_c__users_ansh_desktop_web_mesh_packages_vscode_extension_src_providers_mikkcodelensprovider_ts_mikkcodelensprovider_refresh internalApi
-    class fn_c__users_ansh_desktop_web_mesh_packages_vscode_extension_src_providers_mikkcodelensprovider_ts_mikkcodelensprovider_providecodelenses internalApi
-    class fn_c__users_ansh_desktop_web_mesh_packages_vscode_extension_src_providers_mikkdecoratorprovider_ts_mikkdecoratorprovider_updatedecorations internalApi
+    class fn_c__users_ansh_desktop_web_mesh_packages_vscode_extension_src_providers_mikkdecoratorprovider_ts_MikkDecoratorProvider_updateDecorations publicApi
+    class fn_c__users_ansh_desktop_web_mesh_packages_vscode_extension_src_providers_mikkcodelensprovider_ts_MikkCodeLensProvider_constructor internalApi
+    class fn_c__users_ansh_desktop_web_mesh_packages_vscode_extension_src_providers_mikkcodelensprovider_ts_MikkCodeLensProvider_refresh internalApi
+    class fn_c__users_ansh_desktop_web_mesh_packages_vscode_extension_src_providers_mikkcodelensprovider_ts_MikkCodeLensProvider_provideCodeLenses internalApi

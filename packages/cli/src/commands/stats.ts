@@ -5,16 +5,21 @@ import {
     ContractReader, LockReader, BoundaryChecker, DeadCodeDetector,
     type MikkLock, type DependencyGraph, type GraphNode, type GraphEdge,
 } from '@getmikk/core'
-import { panel, kv, infoBar, healthBar, blank, rule, gap, tw } from '../ui.js'
+import { panel, kv, infoBar, healthBar, gap, tw } from '../ui.js'
 
 export function registerStatsCommand(program: Command) {
     program
-        .command('stats')
-        .description('Show codebase health statistics')
+        .command('stats [path]')
+        .description('Show codebase health statistics (functions, modules, dead code, violations)')
         .option('--format <fmt>', 'Output format: text or json', 'text')
-        .action(async (opts) => {
-            const projectRoot = process.cwd()
-            const isJson = opts.format === 'json'
+        .addHelpText('after',
+          `\nExamples:\n` +
+          `  mikk stats              Show formatted statistics\n` +
+          `  mikk stats --format json   Machine-readable output\n` +
+          `  mikk stats ./path/to/project   Show stats for a specific project\n`)
+        .action(async (projectPath, options) => {
+            const projectRoot = projectPath || process.cwd()
+            const isJson = options.format === 'json'
 
             try {
                 const contractReader = new ContractReader()
@@ -119,9 +124,10 @@ export function registerStatsCommand(program: Command) {
                 }
 
                 gap()
-            } catch (err: any) {
-                if (isJson) console.log(JSON.stringify({ error: err.message }, null, 2))
-                else process.stderr.write(chalk.red(`\n  error  ${err.message}\n\n`))
+            } catch (err: unknown) {
+                const message = err instanceof Error ? err.message : String(err)
+                if (isJson) console.log(JSON.stringify({ error: message }, null, 2))
+                else process.stderr.write(chalk.red(`\n  error  ${message}\n\n`))
                 process.exit(1)
             }
         })
@@ -132,17 +138,30 @@ function buildGraphFromLock(lock: MikkLock): DependencyGraph {
     const edges: GraphEdge[] = []
     const outEdges = new Map<string, GraphEdge[]>()
     const inEdges = new Map<string, GraphEdge[]>()
+
     for (const fn of Object.values(lock.functions)) {
-        nodes.set(fn.id, { id: fn.id, type: 'function', label: fn.name, file: fn.file, moduleId: fn.moduleId, metadata: { startLine: fn.startLine, endLine: fn.endLine, isExported: fn.isExported } })
+        nodes.set(fn.id, { id: fn.id, type: 'function', name: fn.name, file: fn.file, moduleId: fn.moduleId, metadata: { startLine: fn.startLine, endLine: fn.endLine, isExported: fn.isExported } })
     }
+
     for (const fn of Object.values(lock.functions)) {
-        for (const calleeId of fn.calls) {
+        for (const calleeId of fn.calls ?? []) {
             if (!nodes.has(calleeId)) continue
-            const edge: GraphEdge = { source: fn.id, target: calleeId, type: 'calls' }
+            const edge: GraphEdge = { from: fn.id, to: calleeId, type: 'calls', confidence: 1.0 }
             edges.push(edge)
             const out = outEdges.get(fn.id) ?? []; out.push(edge); outEdges.set(fn.id, out)
             const inE = inEdges.get(calleeId) ?? []; inE.push(edge); inEdges.set(calleeId, inE)
         }
     }
+
+    for (const fn of Object.values(lock.functions)) {
+        for (const callerId of fn.calledBy ?? []) {
+            if (!nodes.has(fn.id) || !nodes.has(callerId)) continue
+            const edge: GraphEdge = { from: callerId, to: fn.id, type: 'calls', confidence: 0.9 }
+            edges.push(edge)
+            const out = outEdges.get(callerId) ?? []; out.push(edge); outEdges.set(callerId, out)
+            const inE = inEdges.get(fn.id) ?? []; inE.push(edge); inEdges.set(fn.id, inE)
+        }
+    }
+
     return { nodes, edges, outEdges, inEdges }
 }

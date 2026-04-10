@@ -9,13 +9,21 @@ import { panel, sq, gap } from '../ui.js'
 
 export function registerCiCommand(program: Command) {
     program
-        .command('ci')
-        .description('Check architectural constraints for CI pipelines. Exits non-zero on violations.')
+        .command('ci [path]')
+        .description('Check architectural constraints for CI pipelines (exits non-zero on violations)')
         .option('--strict', 'Also fail on dead code above threshold')
         .option('--dead-code-threshold <n>', 'Max allowed dead code percentage (default: 20)', '20')
         .option('--format <fmt>', 'Output format: text or json', 'text')
-        .action(async (opts) => {
-            const projectRoot = process.cwd()
+        .addHelpText('after',
+            `\nExamples:\n` +
+            `  mikk ci --strict                         Basic CI check (boundaries only)\n` +
+            `  mikk ci --strict --dead-code-threshold 15   Also check dead code (15% threshold)\n` +
+            `  mikk ci --strict --format json           JSON output for CI parsing\n` +
+            `  mikk ci ./path/to/project                 Check a specific project\n` +
+            `\nThis command is designed for CI/CD pipelines. Use "mikk contract validate"\n` +
+            `for interactive development workflows.\n`)
+        .action(async (projectPath: string, opts: any) => {
+            const projectRoot = projectPath || process.cwd()
             const isJson = opts.format === 'json'
 
             try {
@@ -27,7 +35,7 @@ export function registerCiCommand(program: Command) {
                 const checker = new BoundaryChecker(contract, lock)
                 const result = checker.check()
 
-                let deadCodeResult: any = null
+                let deadCodeResult: { deadCount: number; totalCount: number } | null = null
                 if (opts.strict) {
                     const graph = buildGraphFromLock(lock)
                     const detector = new DeadCodeDetector(graph, lock)
@@ -86,11 +94,12 @@ export function registerCiCommand(program: Command) {
                 }
 
                 if (!overallPass) process.exit(1)
-            } catch (err: any) {
+            } catch (err: unknown) {
+                const message = err instanceof Error ? err.message : String(err)
                 if (isJson) {
-                    console.log(JSON.stringify({ pass: false, error: err.message }, null, 2))
+                    console.log(JSON.stringify({ pass: false, error: message }, null, 2))
                 } else {
-                    process.stderr.write(chalk.red(`\n  error  ${err.message}\n\n`))
+                    process.stderr.write(chalk.red(`\n  error  ${message}\n\n`))
                 }
                 process.exit(1)
             }
@@ -102,17 +111,30 @@ function buildGraphFromLock(lock: MikkLock): DependencyGraph {
     const edges: GraphEdge[] = []
     const outEdges = new Map<string, GraphEdge[]>()
     const inEdges = new Map<string, GraphEdge[]>()
+
     for (const fn of Object.values(lock.functions)) {
-        nodes.set(fn.id, { id: fn.id, type: 'function', label: fn.name, file: fn.file, moduleId: fn.moduleId, metadata: { startLine: fn.startLine, endLine: fn.endLine, isExported: fn.isExported } })
+        nodes.set(fn.id, { id: fn.id, type: 'function', name: fn.name, file: fn.file, moduleId: fn.moduleId, metadata: { startLine: fn.startLine, endLine: fn.endLine, isExported: fn.isExported } })
     }
+
     for (const fn of Object.values(lock.functions)) {
-        for (const calleeId of fn.calls) {
+        for (const calleeId of fn.calls ?? []) {
             if (!nodes.has(calleeId)) continue
-            const edge: GraphEdge = { source: fn.id, target: calleeId, type: 'calls' }
+            const edge: GraphEdge = { from: fn.id, to: calleeId, type: 'calls', confidence: 1.0 }
             edges.push(edge)
             const out = outEdges.get(fn.id) ?? []; out.push(edge); outEdges.set(fn.id, out)
             const inE = inEdges.get(calleeId) ?? []; inE.push(edge); inEdges.set(calleeId, inE)
         }
     }
+
+    for (const fn of Object.values(lock.functions)) {
+        for (const callerId of fn.calledBy ?? []) {
+            if (!nodes.has(fn.id) || !nodes.has(callerId)) continue
+            const edge: GraphEdge = { from: callerId, to: fn.id, type: 'calls', confidence: 0.9 }
+            edges.push(edge)
+            const out = outEdges.get(callerId) ?? []; out.push(edge); outEdges.set(callerId, out)
+            const inE = inEdges.get(fn.id) ?? []; inE.push(edge); inEdges.set(fn.id, inE)
+        }
+    }
+
     return { nodes, edges, outEdges, inEdges }
 }

@@ -123,6 +123,7 @@ function capitalise(s: string): string {
  */
 export class LockCompiler {
     private projectRootPath: string | null = null
+    
     /** Main entry -- compile full lock from graph + contract + parsed files */
     compile(
         graph: DependencyGraph,
@@ -132,6 +133,7 @@ export class LockCompiler {
         projectRoot?: string
     ): MikkLock {
         this.projectRootPath = projectRoot ? nodePath.resolve(projectRoot) : null
+        
         const functions = this.compileFunctions(graph, contract)
         const classes = this.compileClasses(graph, contract)
         const generics = this.compileGenerics(graph, contract)
@@ -204,6 +206,11 @@ export class LockCompiler {
             const inEdges = graph.inEdges.get(id) || []
             const outEdges = graph.outEdges.get(id) || []
 
+            const params = metadata.params || []
+            const returnType = metadata.returnType || 'void'
+            const signatureHash = hashContent(`${displayName}(${params.map(p => p.type).join(',')}):${returnType}`)
+            const tokenVector = this.generateTokenVector(displayName, params, returnType, metadata.purpose)
+
             result[id] = {
                 id,
                 name: displayName,
@@ -214,24 +221,92 @@ export class LockCompiler {
                 calls: outEdges.filter(e => e.type === 'calls').map(e => e.to),
                 calledBy: inEdges.filter(e => e.type === 'calls').map(e => e.from),
                 moduleId: moduleId || 'unknown',
-                ...(metadata.params && metadata.params.length > 0
-                    ? { params: metadata.params }
-                    : {}),
+                ...(params.length > 0 ? { params } : {}),
                 ...(metadata.returnType ? { returnType: metadata.returnType } : {}),
                 ...(metadata.isAsync ? { isAsync: true } : {}),
                 ...(metadata.isExported ? { isExported: true } : {}),
                 purpose: metadata.purpose || inferPurpose(
                     displayName,
-                    metadata.params,
-                    metadata.returnType,
+                    params,
+                    returnType,
                     metadata.isAsync,
                 ),
                 edgeCasesHandled: metadata.edgeCasesHandled,
                 errorHandling: metadata.errorHandling,
+                signatureHash,
+                tokenVector,
             }
         }
 
         return result
+    }
+
+    private generateTokenVector(
+        name: string,
+        params: Array<{ name: string; type: string; optional?: boolean }>,
+        returnType: string,
+        purpose?: string
+    ): number[] {
+        const tokens: string[] = []
+
+        tokens.push(...name.match(/[A-Z][a-z]+|[a-z]+/g)?.map(t => t.toLowerCase()) || [])
+
+        for (const param of params) {
+            tokens.push(...param.name.match(/[A-Z][a-z]+|[a-z]+/g)?.map(t => t.toLowerCase()) || [])
+        }
+
+        tokens.push(...returnType.match(/[A-Z][a-z]+|[a-z]+/g)?.map(t => t.toLowerCase()) || [])
+
+        if (purpose) {
+            tokens.push(...purpose.match(/[a-z]{3,}/g)?.map(t => t.toLowerCase()) || [])
+        }
+
+        const vocabulary = this.buildVocabulary()
+        const vector = new Array(64).fill(0)
+
+        for (const token of tokens) {
+            if (vocabulary.has(token)) {
+                const idx = vocabulary.get(token)!
+                const hash = this.simpleHash(token)
+                vector[idx % 64] += hash
+            }
+        }
+
+        const magnitude = Math.sqrt(vector.reduce((sum, v) => sum + v * v, 0))
+        if (magnitude > 0) {
+            for (let i = 0; i < vector.length; i++) {
+                vector[i] /= magnitude
+            }
+        }
+
+        return vector
+    }
+
+    private buildVocabulary(): Map<string, number> {
+        const common = [
+            'get', 'set', 'add', 'remove', 'create', 'delete', 'update', 'find',
+            'load', 'save', 'parse', 'format', 'validate', 'check', 'handle',
+            'process', 'render', 'display', 'build', 'make', 'init', 'setup',
+            'config', 'user', 'auth', 'login', 'logout', 'token', 'data', 'file',
+            'path', 'config', 'options', 'params', 'args', 'error', 'result',
+            'async', 'promise', 'callback', 'event', 'handler', 'middleware',
+            'database', 'query', 'insert', 'update', 'delete', 'select', 'transaction',
+            'string', 'number', 'boolean', 'array', 'object', 'function', 'class',
+            'interface', 'type', 'enum', 'const', 'var', 'let', 'return', 'void',
+        ]
+
+        const vocab = new Map<string, number>()
+        common.forEach((word, idx) => vocab.set(word, idx))
+        return vocab
+    }
+
+    private simpleHash(str: string): number {
+        let hash = 0
+        for (let i = 0; i < str.length; i++) {
+            hash = ((hash << 5) - hash) + str.charCodeAt(i)
+            hash = hash & hash
+        }
+        return Math.abs(hash % 10)
     }
 
     private compileClasses(
@@ -321,15 +396,22 @@ export class LockCompiler {
     ): Record<string, MikkLock['modules'][string]> {
         const result: Record<string, MikkLock['modules'][string]> = {}
 
-        for (const module of contract.declared.modules) {
-            const moduleFiles = parsedFiles
-                .filter(f => this.fileMatchesModule(f.path, module.paths))
-                .map(f => f.path)
+        // Build a map for fast file lookups - O(1) instead of O(n) per module
+        const fileHashMap = new Map<string, string>()
+        for (const file of parsedFiles) {
+            fileHashMap.set(file.path, file.hash)
+        }
 
-            const fileHashes = moduleFiles.map(f => {
-                const parsed = parsedFiles.find(pf => pf.path === f)
-                return parsed?.hash ?? ''
-            })
+        for (const module of contract.declared.modules) {
+            const moduleFiles: string[] = []
+
+            for (const file of parsedFiles) {
+                if (this.fileMatchesModule(file.path, module.paths)) {
+                    moduleFiles.push(file.path)
+                }
+            }
+
+            const fileHashes = moduleFiles.map(f => fileHashMap.get(f) ?? '')
 
             result[module.id] = {
                 id: module.id,

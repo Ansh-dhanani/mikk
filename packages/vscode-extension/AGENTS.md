@@ -71,4 +71,103 @@ Which files import which — useful for understanding data flow.
 - `C:/Users/Ansh/Desktop/web/Mesh/packages/vscode-extension/src/webview/DashboardPanel.ts` → `[object Object]`
 - `C:/Users/Ansh/Desktop/web/Mesh/packages/vscode-extension/src/webview/DiagramPanel.ts` → `[object Object]`, `[object Object]`, `[object Object]`
 
+<!-- MIKK-START -->
 
+<repository_context>
+  <name>mikk</name>
+  <description>Deterministic AI context engine for your codebase. See your architecture, detect dead code, and get precise AI context.</description>
+  <stats>
+    <files>7</files>
+    <functions>35</functions>
+    <modules>3</modules>
+    <language>typescript</language>
+  </stats>
+</repository_context>
+
+<modules>
+<tech_stack>
+  <technology>esbuild</technology>
+</tech_stack>
+<commands>
+  <command>
+    <run>npm run build</run>
+    <executes>node esbuild.mjs</executes>
+  </command>
+  <command>
+    <run>npm run lint</run>
+    <executes>bunx eslint --config ../../eslint.config.mjs .</executes>
+  </command>
+</commands>
+  <module id="packages-vscode-extension-webview">
+    <name>Dashboard</name>
+    <location>c:/users/ansh/desktop/web/mesh/packages/vscode-extension/src/webview/**</location>
+    <purpose>3 files, 0 functions</purpose>
+    <entry_points>
+      <function signature="DiagramPanel.createOrShow(diagramPath) [c:/users/ansh/desktop/web/mesh/packages/vscode-extension/src/webview/diagrampanel.ts:16]" purpose="Diagram panel.create or show (diagramPath)" />
+      <function signature="DashboardPanel.constructor(panel, data) [c:/users/ansh/desktop/web/mesh/packages/vscode-extension/src/webview/dashboardpanel.ts:8]" purpose="Dashboard panel.constructor (panel, data)" />
+      <function signature="DashboardPanel._notInitializedHtml() [c:/users/ansh/desktop/web/mesh/packages/vscode-extension/src/webview/dashboardpanel.ts:221]" purpose="Dashboard panel. not initialized html" />
+      <function signature="DashboardPanel.dispose() [c:/users/ansh/desktop/web/mesh/packages/vscode-extension/src/webview/dashboardpanel.ts:241]" purpose="Dashboard panel.dispose" />
+      <function signature="DiagramPanel.constructor(panel, diagramText) [c:/users/ansh/desktop/web/mesh/packages/vscode-extension/src/webview/diagrampanel.ts:10]" purpose="Diagram panel.constructor (panel, diagramText)" />
+    </entry_points>
+    <key_internal_functions>
+      <function name="DashboardPanel.update" callers="3" purpose="Dashboard panel.update (data)" />
+      <function name="DashboardPanel.createOrShow" callers="2" purpose="Dashboard panel.create or show (extensionUri, data)" />
+      <function name="DashboardPanel._update" callers="2" purpose="Dashboard panel. update (data)" />
+      <function name="DiagramPanel._update" callers="2" purpose="Diagram panel. update (diagramText)" />
+      <function name="getWebviewContent" callers="1" purpose="Get webview content" />
+    </key_internal_functions>
+  </module>
+  <module id="packages-vscode-extension-providers">
+    <name>Providers</name>
+    <location>c:/users/ansh/desktop/web/mesh/packages/vscode-extension/src/providers/**</location>
+    <purpose>2 files, 0 functions</purpose>
+    <entry_points>
+      <function signature="MikkCodeLensProvider.constructor(dataProvider) [c:/users/ansh/desktop/web/mesh/packages/vscode-extension/src/providers/mikkcodelensprovider.ts:7]" purpose="Mikk code lens provider.constructor (dataProvider)" />
+      <function signature="MikkCodeLensProvider.refresh() [c:/users/ansh/desktop/web/mesh/packages/vscode-extension/src/providers/mikkcodelensprovider.ts:9]" purpose="Mikk code lens provider.refresh" />
+      <function signature="MikkCodeLensProvider.provideCodeLenses(document, token) [c:/users/ansh/desktop/web/mesh/packages/vscode-extension/src/providers/mikkcodelensprovider.ts:13]" purpose="Mikk code lens provider.provide code lenses (document, token)" />
+    </entry_points>
+    <key_internal_functions>
+      <function name="MikkDecoratorProvider.updateDecorations" callers="3" purpose="Mikk decorator provider.update decorations (editor, dataProvider)" />
+    </key_internal_functions>
+  </module>
+  <module id="mesh-packages-vscode-extension">
+    <name>Providers & Dashboard</name>
+    <location>c:/users/ansh/desktop/web/mesh/packages/vscode-extension/src/**</location>
+    <purpose>1 files, 0 functions</purpose>
+    <entry_points>
+      <function signature="activate(context) [c:/users/ansh/desktop/web/mesh/packages/vscode-extension/src/extension.ts:176]" purpose="Activate (context)" />
+      <function signature="deactivate() [c:/users/ansh/desktop/web/mesh/packages/vscode-extension/src/extension.ts:292]" purpose="Deactivate" />
+      <function signature="MikkDataProvider.setRoot(root) [c:/users/ansh/desktop/web/mesh/packages/vscode-extension/src/extension.ts:38]" purpose="Mikk data provider.set root (root)" />
+      <function signature="MikkDataProvider.getRoot() [c:/users/ansh/desktop/web/mesh/packages/vscode-extension/src/extension.ts:44]" purpose="Mikk data provider.get root" />
+      <function signature="MikkDataProvider.reload() [c:/users/ansh/desktop/web/mesh/packages/vscode-extension/src/extension.ts:46]" purpose="Mikk data provider.reload" />
+    </entry_points>
+    <key_internal_functions>
+      <function name="updateStatusBar" callers="4" purpose="Update status bar (bar, data)" />
+      <function name="refresh" callers="3" purpose="Refresh" />
+      <function name="findRoot" callers="2" purpose="Find root (startPath)" />
+      <function name="updateContext" callers="2" purpose="Update context (editor)" />
+      <function name="runInTerminal" callers="2" purpose="Run in terminal (cmd)" />
+    </key_internal_functions>
+    <depends_on>Providers, Dashboard</depends_on>
+  </module>
+</modules>
+
+## File Import Graph
+
+Which files import which — useful for understanding data flow.
+
+### unknown
+- `C:/Users/Ansh/Desktop/web/Mesh/packages/vscode-extension/esbuild.mjs` → `esbuild`
+
+### Providers & Dashboard
+- `C:/Users/Ansh/Desktop/web/Mesh/packages/vscode-extension/src/extension.ts` → `vscode`, `node:path`, `node:fs`, `./webview/DashboardPanel`, `./providers/MikkCodeLensProvider`, `./providers/MikkDecoratorProvider`
+
+### Dashboard
+- `C:/Users/Ansh/Desktop/web/Mesh/packages/vscode-extension/src/webview/DashboardPanel.ts` → `vscode`
+- `C:/Users/Ansh/Desktop/web/Mesh/packages/vscode-extension/src/webview/DiagramPanel.ts` → `vscode`, `node:fs`, `./htmlBuilder`
+
+### Providers
+- `C:/Users/Ansh/Desktop/web/Mesh/packages/vscode-extension/src/providers/MikkCodeLensProvider.ts` → `vscode`
+- `C:/Users/Ansh/Desktop/web/Mesh/packages/vscode-extension/src/providers/MikkDecoratorProvider.ts` → `vscode`
+
+<!-- MIKK-END -->

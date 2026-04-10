@@ -75,10 +75,10 @@ One root hash comparison = instant full drift detection. Persisted in SQLite wit
 
 Compiles a `DependencyGraph` + `MikkContract` + parsed files into a `MikkLock`. The lock file is the single source of truth for all MCP tools and CLI commands.
 
-Lock format v1.7.0:
-- Integer-based function index (`fnIndex`) — call graph edges stored as integer references, not repeated strings
-- Compact JSON output — no pretty-printing
-- Backward-compatible hydration for older formats
+Lock format:
+- Integer-based function index (`fnIndex`) — call graph edges stored as integer references
+- Compact JSON output
+- Backward-compatible hydration
 
 ### ContractReader / ContractWriter / LockReader
 

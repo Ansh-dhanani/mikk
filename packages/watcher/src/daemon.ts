@@ -1,9 +1,9 @@
 import * as path from 'node:path'
 import * as fs from 'node:fs/promises'
 import {
-    GraphBuilder, LockCompiler, LockReader, ContractReader,
+    GraphBuilder, LockReader, ContractReader,
     parseFiles, readFileContent, discoverFiles, logger,
-    type DependencyGraph, type MikkLock, type MikkContract
+    type MikkLock, type MikkContract
 } from '@getmikk/core'
 import { FileWatcher } from './file-watcher.js'
 import { IncrementalAnalyzer } from './incremental-analyzer.js'
@@ -44,56 +44,57 @@ export class WatcherDaemon {
     }
 
     async start(): Promise<void> {
-        // Write PID file for single-instance enforcement
-        await this.writePidFile()
+        try {
+            await this.writePidFile()
 
-        // Load existing contract and lock
-        const contractReader = new ContractReader()
-        const lockReader = new LockReader()
-        const contractPath = path.join(this.config.projectRoot, 'mikk.json')
-        const lockPath = path.join(this.config.projectRoot, 'mikk.lock.json')
+            const contractReader = new ContractReader()
+            const lockReader = new LockReader()
+            const contractPath = path.join(this.config.projectRoot, 'mikk.json')
+            const lockPath = path.join(this.config.projectRoot, 'mikk.lock.json')
 
-        this.contract = await contractReader.read(contractPath)
-        this.lock = await lockReader.read(lockPath)
+            this.contract = await contractReader.read(contractPath)
+            this.lock = await lockReader.read(lockPath)
 
-        // Parse all files to populate the analyzer
-        const filePaths = await discoverFiles(this.config.projectRoot)
-        const parsedFiles = await parseFiles(filePaths, this.config.projectRoot, (fp) =>
-            readFileContent(fp)
-        )
-        const graph = new GraphBuilder().build(parsedFiles)
+            const filePaths = await discoverFiles(this.config.projectRoot)
+            const parsedFiles = await parseFiles(filePaths, this.config.projectRoot, (fp) =>
+                readFileContent(fp)
+            )
+            const graph = new GraphBuilder().build(parsedFiles)
 
-        this.analyzer = new IncrementalAnalyzer(graph, this.lock, this.contract, this.config.projectRoot)
+            this.analyzer = new IncrementalAnalyzer(graph, this.lock, this.contract, this.config.projectRoot)
 
-        // Add all parsed files to the analyzer
-        for (const file of parsedFiles) {
-            this.analyzer.addParsedFile(file)
+            for (const file of parsedFiles) {
+                this.analyzer.addParsedFile(file)
+            }
+
+            const initialHashes = new Map<string, string>()
+            for (const file of parsedFiles) {
+                if (file.hash) {
+                    initialHashes.set(file.path.replace(/\\/g, '/'), file.hash)
+                }
+            }
+            this.watcher.seedHashes(initialHashes)
+
+            this.watcher.on(async (event: WatcherEvent) => {
+                if (event.type === 'file:changed') {
+                    this.enqueueChange(event.data)
+                }
+                for (const handler of this.handlers) {
+                    try {
+                        await handler(event)
+                    } catch (err) {
+                        console.error('[WatcherDaemon] Handler error:', err)
+                    }
+                }
+            })
+
+            this.watcher.start()
+            await this.writeSyncState({ status: 'clean', lastUpdated: Date.now() })
+            logger.info('Mikk watcher started', { watching: this.config.include })
+        } catch (err) {
+            logger.error('Failed to start watcher', { error: err instanceof Error ? err.message : String(err) })
+            throw err
         }
-
-        // Seed the file watcher's hash store with initial hashes so the first
-        // change to any file can be properly deduplicated by content.
-        const initialHashes = new Map<string, string>()
-        for (const file of parsedFiles) {
-            if (file.hash) {
-                initialHashes.set(file.path.replace(/\\/g, '/'), file.hash)
-            }
-        }
-        this.watcher.seedHashes(initialHashes)
-
-        // Subscribe to file changes with debouncing
-        this.watcher.on(async (event: WatcherEvent) => {
-            if (event.type === 'file:changed') {
-                this.enqueueChange(event.data)
-            }
-            // Forward events to external handlers
-            for (const handler of this.handlers) {
-                handler(event)
-            }
-        })
-
-        this.watcher.start()
-        await this.writeSyncState({ status: 'clean', lastUpdated: Date.now() })
-        logger.info('Mikk watcher started', { watching: this.config.include })
     }
 
     async stop(): Promise<void> {
@@ -110,16 +111,26 @@ export class WatcherDaemon {
     // ─── Debounce & Batch Processing ──────────────────────────────
 
     private enqueueChange(event: FileChangeEvent): void {
+        const MAX_PENDING_EVENTS = 1000
+        if (this.pendingEvents.length >= MAX_PENDING_EVENTS) {
+            this.pendingEvents.shift()
+        }
         this.pendingEvents.push(event)
 
-        // Reset the debounce timer
-        if (this.debounceTimer) clearTimeout(this.debounceTimer)
+        // Cancel any pending flush and schedule new one
+        if (this.debounceTimer) {
+            clearTimeout(this.debounceTimer)
+            this.debounceTimer = null
+        }
+        const delay = this.config.debounceMs || 100
         this.debounceTimer = setTimeout(() => {
+            this.debounceTimer = null
             this.flushPendingEvents()
-        }, this.config.debounceMs || 100)
+        }, delay)
     }
 
     private async flushPendingEvents(): Promise<void> {
+        // Prevent concurrent flushes with atomic flag
         if (this.processing || this.pendingEvents.length === 0) return
         this.processing = true
 
@@ -145,11 +156,11 @@ export class WatcherDaemon {
                 status: 'clean',
                 lastUpdated: Date.now(),
             })
-        } catch (err: any) {
+        } catch (err: unknown) {
             await this.writeSyncState({
                 status: 'drifted',
                 lastUpdated: Date.now(),
-                error: err.message,
+                error: err instanceof Error ? err.message : String(err),
             })
         } finally {
             this.processing = false
@@ -203,16 +214,17 @@ export class WatcherDaemon {
                 mode: result.mode,
                 impactedNodes: result.impactResult.impacted.length,
             })
-        } catch (err: any) {
+        } catch (err: unknown) {
+            const errorMessage = err instanceof Error ? err.message : String(err)
             logger.error('Failed to analyze file changes', {
                 files: events.map(e => e.path),
-                error: err.message,
+                error: errorMessage,
             })
             for (const handler of this.handlers) {
                 handler({
                     type: 'sync:drifted',
                     data: {
-                        reason: err.message,
+                        reason: errorMessage,
                         affectedModules: events.flatMap(e => e.affectedModuleIds),
                     },
                 })

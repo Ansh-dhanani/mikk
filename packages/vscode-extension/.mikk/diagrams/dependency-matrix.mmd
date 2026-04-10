@@ -5,7 +5,7 @@ graph LR
     packages_vscode_extension_providers["Providers<br/>4 fn"]
     mesh_packages_vscode_extension["Providers & Dashboard<br/>20 fn"]
 
-    mesh_packages_vscode_extension -.->|1| packages_vscode_extension_webview
-    mesh_packages_vscode_extension -.->|2| packages_vscode_extension_providers
+    mesh_packages_vscode_extension -->|4| packages_vscode_extension_providers
+    mesh_packages_vscode_extension -->|4| packages_vscode_extension_webview
 
     classDef default fill:#334155,stroke:#64748b,color:#e2e8f0

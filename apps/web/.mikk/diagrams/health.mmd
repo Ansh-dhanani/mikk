@@ -1,30 +1,56 @@
 %%{init: {"theme": "base", "themeVariables": {"primaryColor": "#1e293b", "primaryTextColor": "#e2e8f0", "lineColor": "#64748b", "secondaryColor": "#334155", "tertiaryColor": "#475569", "background": "#0f172a", "mainBkg": "#1e293b", "nodeBorder": "#475569"}}}%%
 graph TD
 
-    providers["🟢 Providers<br/>Cohesion: 100%<br/>Coupling: 0<br/>Functions: 5"]
-    components["🟡 Components<br/>Cohesion: 100%<br/>Coupling: 0<br/>Functions: 190"]
-    source_config["🟡 Config<br/>Cohesion: 50%<br/>Coupling: 0<br/>Functions: 0"]
-    app["🟡 Layout (App)<br/>Cohesion: 50%<br/>Coupling: 0<br/>Functions: 2"]
-    lib["🟡 Utils<br/>Cohesion: 50%<br/>Coupling: 0<br/>Functions: 3"]
-    app_docs["🟡 Layout (App Docs)<br/>Cohesion: 50%<br/>Coupling: 0<br/>Functions: 1"]
-    components_animated_icons["🟡 Components (Components Animated Icons)<br/>Cohesion: 50%<br/>Coupling: 0<br/>Functions: 0"]
+    apps_web_providers["🟢 Providers<br/>Cohesion: 100%<br/>Coupling: 0<br/>Functions: 9"]
+    app_api_analyze_repo["🟢 API<br/>Cohesion: 100%<br/>Coupling: 0<br/>Functions: 4"]
+    app_api_feedback["🟢 API & Blog<br/>Cohesion: 100%<br/>Coupling: 0<br/>Functions: 4"]
+    app_api_mikk_query["🟢 API<br/>Cohesion: 100%<br/>Coupling: 0<br/>Functions: 3"]
+    web_app_playground["🟡 Layout<br/>Cohesion: 40%<br/>Coupling: 6<br/>Functions: 4"]
+    web_app__marketing_["🔴 Layout<br/>Cohesion: 0%<br/>Coupling: 7<br/>Functions: 8"]
+    mesh_apps_web["🟡 Config & API<br/>Cohesion: 100%<br/>Coupling: 1<br/>Functions: 228"]
+    apps_web_lib["🟡 Utils<br/>Cohesion: 50%<br/>Coupling: 0<br/>Functions: 0"]
+    app_api_chat["🟡 API<br/>Cohesion: 50%<br/>Coupling: 0<br/>Functions: 0"]
+    app_api_lock["🟡 API<br/>Cohesion: 50%<br/>Coupling: 0<br/>Functions: 0"]
+    components_kibo_ui_contribution_graph["🟡 Navigation<br/>Cohesion: 50%<br/>Coupling: 0<br/>Functions: 0"]
+    apps_web_components["🟡 Components<br/>Cohesion: 50%<br/>Coupling: 0<br/>Functions: 0"]
+    web_components_landing["🟡 Components & CLI<br/>Cohesion: 50%<br/>Coupling: 0<br/>Functions: 0"]
+    apps_web_app["🟡 Layout & API<br/>Cohesion: 50%<br/>Coupling: 0<br/>Functions: 0"]
+    web_components_ui["🟡 Navigation & Components<br/>Cohesion: 50%<br/>Coupling: 0<br/>Functions: 0"]
+    web_app_docs["🟡 Layout<br/>Cohesion: 50%<br/>Coupling: 0<br/>Functions: 0"]
+    web_components_animated_icons["🟡 Components<br/>Cohesion: 50%<br/>Coupling: 0<br/>Functions: 0"]
     app_api_search["🟡 API<br/>Cohesion: 50%<br/>Coupling: 0<br/>Functions: 0"]
-    components_base_ui["🟡 Providers (Components Base Ui)<br/>Cohesion: 50%<br/>Coupling: 0<br/>Functions: 0"]
-    components_kibo_ui_image_zoom["🟢 Media & Components<br/>Cohesion: 100%<br/>Coupling: 0<br/>Functions: 15"]
-    components_ui["🟡 Navigation & Components<br/>Cohesion: 50%<br/>Coupling: 0<br/>Functions: 0"]
+    app_docs__slug_["🟡 Layout<br/>Cohesion: 50%<br/>Coupling: 0<br/>Functions: 0"]
+    components_base_ui["🟡 Components<br/>Cohesion: 50%<br/>Coupling: 0<br/>Functions: 0"]
+    components_kibo_ui_image_zoom["🟡 Media<br/>Cohesion: 50%<br/>Coupling: 0<br/>Functions: 0"]
+    components_kibo_ui_marquee["🟡 Components<br/>Cohesion: 50%<br/>Coupling: 0<br/>Functions: 0"]
+    web_app__marketing_ -.-> mesh_apps_web
+    web_app_playground -.-> mesh_apps_web
+    web_app__marketing_ -.-> apps_web_providers
+    mesh_apps_web -.-> apps_web_providers
 
     classDef healthy fill:#22c55e,stroke:#4ade80,color:#f0fdf4
     classDef warning fill:#f59e0b,stroke:#fbbf24,color:#1e293b
     classDef critical fill:#ef4444,stroke:#f87171,color:#fef2f2
 
-    class providers healthy
-    class components warning
-    class source_config warning
-    class app warning
-    class lib warning
-    class app_docs warning
-    class components_animated_icons warning
+    class apps_web_providers healthy
+    class app_api_analyze_repo healthy
+    class app_api_feedback healthy
+    class app_api_mikk_query healthy
+    class web_app_playground warning
+    class web_app__marketing_ critical
+    class mesh_apps_web warning
+    class apps_web_lib warning
+    class app_api_chat warning
+    class app_api_lock warning
+    class components_kibo_ui_contribution_graph warning
+    class apps_web_components warning
+    class web_components_landing warning
+    class apps_web_app warning
+    class web_components_ui warning
+    class web_app_docs warning
+    class web_components_animated_icons warning
     class app_api_search warning
+    class app_docs__slug_ warning
     class components_base_ui warning
-    class components_kibo_ui_image_zoom healthy
-    class components_ui warning
+    class components_kibo_ui_image_zoom warning
+    class components_kibo_ui_marquee warning

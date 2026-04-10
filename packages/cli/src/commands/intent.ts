@@ -7,8 +7,14 @@ import { ContractReader, LockReader } from '@getmikk/core'
 export function registerIntentCommand(program: Command) {
     program
         .command('intent <prompt>')
-        .description('Full preflight — interpret, suggest, confirm')
+        .description('Full preflight check — interpret intent, suggest changes, detect conflicts')
         .option('--json', 'Output raw JSON result')
+        .addHelpText('after',
+          `\nExamples:\n` +
+          `  mikk intent "Rename auth to authentication module"\n` +
+          `  mikk intent "Add rate limiting to payments" --json\n` +
+          `\nThis runs a preflight check before making architectural changes.\n` +
+          `It analyzes impact, detects conflicts, and suggests implementation steps.\n`)
         .action(async (prompt: string, options) => {
             const projectRoot = process.cwd()
             const spinner = ora('Running preflight pipeline...').start()
@@ -114,9 +120,10 @@ export function registerIntentCommand(program: Command) {
                 console.log(`  ${finalStatus}`)
                 console.log()
 
-            } catch (err: any) {
+            } catch (err: unknown) {
                 spinner.fail('Preflight failed')
-                console.error(chalk.red(err.message))
+                const message = err instanceof Error ? err.message : String(err)
+                console.error(chalk.red(message))
                 process.exit(1)
             }
         })

@@ -1,7 +1,7 @@
 import type { MikkContract, MikkLock, MikkLockFunction } from '@getmikk/core'
 import * as fs from 'node:fs'
 import * as path from 'node:path'
-import { countTokens, estimateFileTokens } from './token-counter.js'
+import { countTokens } from './token-counter.js'
 
 /** Default token budget for claude.md — generous but still bounded */
 const DEFAULT_TOKEN_BUDGET = 12000
@@ -135,7 +135,6 @@ export class ClaudeMdGenerator {
 
     private generateSummary(): string {
         const lines: string[] = []
-        const moduleCount = this.contract.declared.modules.length
         const functionCount = Object.keys(this.lock.functions).length
         const fileCount = Object.keys(this.lock.files).length
 
@@ -586,21 +585,17 @@ export class ClaudeMdGenerator {
                 // (Next.js handlers can be `export async function GET` → fn: or `export const GET =` → const:)
                 const methods: string[] = []
                 const HTTP_VERBS = ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'HEAD', 'OPTIONS']
-                for (const [fnId, fn] of Object.entries(this.lock.functions)) {
+                for (const fn of Object.values(this.lock.functions)) {
                     if (fn.file === filePath && fn.isExported && HTTP_VERBS.includes(fn.name)) {
                         methods.push(fn.name)
                     }
                 }
-                if (this.lock.generics) {
-                    for (const [gId, g] of Object.entries(this.lock.generics)) {
-                        // Direct match: this generic is in this file
-                        if (g.file === filePath && g.isExported && HTTP_VERBS.includes(g.name)) {
-                            if (!methods.includes(g.name)) methods.push(g.name)
-                        }
-                        // alsoIn match: deduped generics list the same verb in other files
-                        if (g.isExported && HTTP_VERBS.includes(g.name) && g.alsoIn?.includes(filePath)) {
-                            if (!methods.includes(g.name)) methods.push(g.name)
-                        }
+                for (const g of Object.values(this.lock.generics ?? {})) {
+                    if (g.file === filePath && g.isExported && HTTP_VERBS.includes(g.name)) {
+                        if (!methods.includes(g.name)) methods.push(g.name)
+                    }
+                    if (g.isExported && HTTP_VERBS.includes(g.name) && g.alsoIn?.includes(filePath)) {
+                        if (!methods.includes(g.name)) methods.push(g.name)
                     }
                 }
 

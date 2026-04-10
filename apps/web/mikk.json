@@ -5,135 +5,180 @@
     "description": "",
     "language": "typescript",
     "entryPoints": [
-      "components/kibo-ui/image-zoom/index.tsx",
-      "components/kibo-ui/marquee/index.tsx",
-      "components/kibo-ui/contribution-graph/index.tsx"
+      "C:/Users/Ansh/Desktop/web/Mesh/apps/web/components/kibo-ui/contribution-graph/index.tsx",
+      "C:/Users/Ansh/Desktop/web/Mesh/apps/web/components/kibo-ui/image-zoom/index.tsx",
+      "C:/Users/Ansh/Desktop/web/Mesh/apps/web/components/kibo-ui/marquee/index.tsx"
     ]
   },
   "declared": {
     "modules": [
       {
-        "id": "providers",
+        "id": "apps-web-providers",
         "name": "Providers",
-        "description": "Root layout; Theme provider; Is typing target",
+        "description": "3 files, 0 functions",
         "intent": "",
         "paths": [
-          "providers/**"
-        ],
-        "entryFunctions": [
-          "RootLayout",
-          "providers",
-          "ThemeProvider"
-        ]
-      },
-      {
-        "id": "components",
-        "name": "Components",
-        "description": "Code block command; ── tiny copy button that grabs text from the sibling <pre...; ── code block figure shell — adds copy button overlay ──",
-        "intent": "",
-        "paths": [
-          "components/**",
-          "components/ui/**",
-          "components/animated-icons/**",
-          "components/base/ui/**"
-        ],
-        "entryFunctions": [
-          "CodeBlockCommand",
-          "CodeBlockFigure",
-          "CodeCollapsibleWrapper",
-          "CodeTabs",
-          "CollapsibleList",
-          "CommandMenu",
-          "ConsentManagerClient",
-          "ConsentManager",
-          "copyToClipboardWithEvent",
-          "CopyButton",
-          "CopyMarkdownButton",
-          "Header",
-          "Markdown",
-          "MDX",
-          "getMDXComponents",
-          "NotFound",
-          "SearchDialog",
-          "Sidebar",
-          "MobileSidebarTrigger",
-          "TOC",
-          "Button",
-          "Collapsible",
-          "CollapsibleTrigger",
-          "CollapsibleContent",
-          "CollapsibleWithContext",
-          "CollapsibleChevronsIcon",
-          "Kbd",
-          "KbdGroup",
-          "Separator",
-          "Tabs",
-          "TabsList",
-          "TabsIndicator",
-          "TabsTrigger",
-          "TabsContent"
-        ]
-      },
-      {
-        "id": "source.config",
-        "name": "Config",
-        "description": "1 files, 0 functions",
-        "intent": "",
-        "paths": [
-          "/**"
+          "c:/users/ansh/desktop/web/mesh/apps/web/providers/**"
         ],
         "entryFunctions": []
       },
       {
-        "id": "app",
-        "name": "Layout (App)",
-        "description": "Root layout; Page",
+        "id": "app-api-analyze-repo",
+        "name": "API",
+        "description": "1 files, 0 functions",
         "intent": "",
         "paths": [
-          "app/**"
+          "c:/users/ansh/desktop/web/mesh/apps/web/app/api/analyze-repo/**"
         ],
-        "entryFunctions": [
-          "RootLayout",
-          "Page"
-        ]
+        "entryFunctions": []
       },
       {
-        "id": "lib",
-        "name": "Utils",
-        "description": "Track event; Base options; Cn",
+        "id": "app-api-feedback",
+        "name": "API & Blog",
+        "description": "1 files, 0 functions",
         "intent": "",
         "paths": [
-          "lib/**"
+          "c:/users/ansh/desktop/web/mesh/apps/web/app/api/feedback/**"
         ],
-        "entryFunctions": [
-          "trackEvent",
-          "baseOptions",
-          "cn"
-        ]
+        "entryFunctions": []
       },
       {
-        "id": "app-docs",
-        "name": "Layout (App Docs)",
-        "description": "Docs layout; Page; Generate static params",
+        "id": "app-api-mikk-query",
+        "name": "API",
+        "description": "1 files, 0 functions",
         "intent": "",
         "paths": [
-          "app/docs/**",
-          "app/docs/[[...slug]]/**"
+          "c:/users/ansh/desktop/web/mesh/apps/web/app/api/mikk-query/**"
         ],
-        "entryFunctions": [
-          "DocsLayout",
-          "Page",
-          "generateStaticParams",
-          "generateMetadata"
-        ]
+        "entryFunctions": []
       },
       {
-        "id": "components-animated-icons",
-        "name": "Components (Components Animated Icons)",
+        "id": "web-app-playground",
+        "name": "Layout",
+        "description": "1 files, 0 functions",
+        "intent": "",
+        "paths": [
+          "c:/users/ansh/desktop/web/mesh/apps/web/app/playground/**"
+        ],
+        "entryFunctions": []
+      },
+      {
+        "id": "web-app--marketing-",
+        "name": "Layout",
         "description": "2 files, 0 functions",
         "intent": "",
         "paths": [
-          "components/animated-icons/**"
+          "c:/users/ansh/desktop/web/mesh/apps/web/app/(marketing)/**"
+        ],
+        "entryFunctions": []
+      },
+      {
+        "id": "mesh-apps-web",
+        "name": "Config & API",
+        "description": "5 files, 0 functions",
+        "intent": "",
+        "paths": [
+          "c:/users/ansh/desktop/web/mesh/apps/web/**"
+        ],
+        "entryFunctions": []
+      },
+      {
+        "id": "apps-web-lib",
+        "name": "Utils",
+        "description": "7 files, 0 functions",
+        "intent": "",
+        "paths": [
+          "c:/users/ansh/desktop/web/mesh/apps/web/lib/**"
+        ],
+        "entryFunctions": []
+      },
+      {
+        "id": "app-api-chat",
+        "name": "API",
+        "description": "1 files, 0 functions",
+        "intent": "",
+        "paths": [
+          "c:/users/ansh/desktop/web/mesh/apps/web/app/api/chat/**"
+        ],
+        "entryFunctions": []
+      },
+      {
+        "id": "app-api-lock",
+        "name": "API",
+        "description": "1 files, 0 functions",
+        "intent": "",
+        "paths": [
+          "c:/users/ansh/desktop/web/mesh/apps/web/app/api/lock/**"
+        ],
+        "entryFunctions": []
+      },
+      {
+        "id": "components-kibo-ui-contribution-graph",
+        "name": "Navigation",
+        "description": "1 files, 0 functions",
+        "intent": "",
+        "paths": [
+          "c:/users/ansh/desktop/web/mesh/apps/web/components/kibo-ui/contribution-graph/**"
+        ],
+        "entryFunctions": []
+      },
+      {
+        "id": "apps-web-components",
+        "name": "Components",
+        "description": "20 files, 0 functions",
+        "intent": "",
+        "paths": [
+          "c:/users/ansh/desktop/web/mesh/apps/web/components/**"
+        ],
+        "entryFunctions": []
+      },
+      {
+        "id": "web-components-landing",
+        "name": "Components & CLI",
+        "description": "2 files, 0 functions",
+        "intent": "",
+        "paths": [
+          "c:/users/ansh/desktop/web/mesh/apps/web/components/landing/**"
+        ],
+        "entryFunctions": []
+      },
+      {
+        "id": "apps-web-app",
+        "name": "Layout & API",
+        "description": "3 files, 0 functions",
+        "intent": "",
+        "paths": [
+          "c:/users/ansh/desktop/web/mesh/apps/web/app/**"
+        ],
+        "entryFunctions": []
+      },
+      {
+        "id": "web-components-ui",
+        "name": "Navigation & Components",
+        "description": "25 files, 0 functions",
+        "intent": "",
+        "paths": [
+          "c:/users/ansh/desktop/web/mesh/apps/web/components/ui/**"
+        ],
+        "entryFunctions": []
+      },
+      {
+        "id": "web-app-docs",
+        "name": "Layout",
+        "description": "1 files, 0 functions",
+        "intent": "",
+        "paths": [
+          "c:/users/ansh/desktop/web/mesh/apps/web/app/docs/**"
+        ],
+        "entryFunctions": []
+      },
+      {
+        "id": "web-components-animated-icons",
+        "name": "Components",
+        "description": "3 files, 0 functions",
+        "intent": "",
+        "paths": [
+          "c:/users/ansh/desktop/web/mesh/apps/web/components/animated-icons/**"
         ],
         "entryFunctions": []
       },
@@ -143,173 +188,49 @@
         "description": "1 files, 0 functions",
         "intent": "",
         "paths": [
-          "app/api/search/**"
+          "c:/users/ansh/desktop/web/mesh/apps/web/app/api/search/**"
+        ],
+        "entryFunctions": []
+      },
+      {
+        "id": "app-docs--slug-",
+        "name": "Layout",
+        "description": "1 files, 0 functions",
+        "intent": "",
+        "paths": [
+          "c:/users/ansh/desktop/web/mesh/apps/web/app/docs/[[...slug]]/**"
         ],
         "entryFunctions": []
       },
       {
         "id": "components-base-ui",
-        "name": "Providers (Components Base Ui)",
-        "description": "Tooltip provider; Tooltip root; Tooltip",
+        "name": "Components",
+        "description": "2 files, 0 functions",
         "intent": "",
         "paths": [
-          "components/base/ui/**"
+          "c:/users/ansh/desktop/web/mesh/apps/web/components/base/ui/**"
         ],
-        "entryFunctions": [
-          "TooltipProvider",
-          "TooltipRoot",
-          "Tooltip",
-          "TooltipTrigger",
-          "TooltipContent"
-        ]
+        "entryFunctions": []
       },
       {
         "id": "components-kibo-ui-image-zoom",
-        "name": "Media & Components",
-        "description": "primarily contribution, marquee, image operations across 3 files",
+        "name": "Media",
+        "description": "1 files, 0 functions",
         "intent": "",
         "paths": [
-          "components/kibo-ui/image-zoom/**",
-          "components/kibo-ui/marquee/**",
-          "components/kibo-ui/contribution-graph/**"
+          "c:/users/ansh/desktop/web/mesh/apps/web/components/kibo-ui/image-zoom/**"
         ],
-        "entryFunctions": [
-          "ImageZoom",
-          "Marquee",
-          "MarqueeContent",
-          "MarqueeFade",
-          "MarqueeItem",
-          "ContributionGraph",
-          "ContributionGraphBlock",
-          "ContributionGraphCalendar",
-          "ContributionGraphFooter",
-          "ContributionGraphTotalCount",
-          "ContributionGraphLegend"
-        ]
+        "entryFunctions": []
       },
       {
-        "id": "components-ui",
-        "name": "Navigation & Components",
-        "description": "Breadcrumb; Breadcrumb list; Breadcrumb item",
+        "id": "components-kibo-ui-marquee",
+        "name": "Components",
+        "description": "1 files, 0 functions",
         "intent": "",
         "paths": [
-          "components/ui/**"
+          "c:/users/ansh/desktop/web/mesh/apps/web/components/kibo-ui/marquee/**"
         ],
-        "entryFunctions": [
-          "Breadcrumb",
-          "BreadcrumbList",
-          "BreadcrumbItem",
-          "BreadcrumbLink",
-          "BreadcrumbPage",
-          "BreadcrumbSeparator",
-          "BreadcrumbEllipsis",
-          "Button",
-          "Command",
-          "CommandDialog",
-          "CommandInput",
-          "CommandList",
-          "CommandEmpty",
-          "CommandGroup",
-          "CommandSeparator",
-          "CommandItem",
-          "CommandShortcut",
-          "ContextMenu",
-          "ContextMenuTrigger",
-          "ContextMenuGroup",
-          "ContextMenuPortal",
-          "ContextMenuSub",
-          "ContextMenuRadioGroup",
-          "ContextMenuSubTrigger",
-          "ContextMenuSubContent",
-          "ContextMenuContent",
-          "ContextMenuItem",
-          "ContextMenuCheckboxItem",
-          "ContextMenuRadioItem",
-          "ContextMenuLabel",
-          "ContextMenuSeparator",
-          "ContextMenuShortcut",
-          "Dialog",
-          "DialogTrigger",
-          "DialogPortal",
-          "DialogClose",
-          "DialogOverlay",
-          "DialogContent",
-          "DialogHeader",
-          "DialogFooter",
-          "DialogTitle",
-          "DialogDescription",
-          "DropdownMenu",
-          "DropdownMenuPortal",
-          "DropdownMenuTrigger",
-          "DropdownMenuContent",
-          "DropdownMenuGroup",
-          "DropdownMenuItem",
-          "DropdownMenuCheckboxItem",
-          "DropdownMenuRadioGroup",
-          "DropdownMenuRadioItem",
-          "DropdownMenuLabel",
-          "DropdownMenuSeparator",
-          "DropdownMenuShortcut",
-          "DropdownMenuSub",
-          "DropdownMenuSubTrigger",
-          "DropdownMenuSubContent",
-          "FormField",
-          "useFormField",
-          "FormItem",
-          "FormLabel",
-          "FormControl",
-          "FormDescription",
-          "FormMessage",
-          "InputGroup",
-          "InputGroupAddon",
-          "InputGroupButton",
-          "InputGroupText",
-          "InputGroupInput",
-          "InputGroupTextarea",
-          "Input",
-          "Label",
-          "NavigationMenu",
-          "NavigationMenuList",
-          "NavigationMenuItem",
-          "NavigationMenuTrigger",
-          "NavigationMenuContent",
-          "NavigationMenuViewport",
-          "NavigationMenuLink",
-          "NavigationMenuIndicator",
-          "ScrollArea",
-          "ScrollBar",
-          "ScrollArea",
-          "ScrollBar",
-          "Sheet",
-          "SheetTrigger",
-          "SheetClose",
-          "SheetContent",
-          "SheetHeader",
-          "SheetFooter",
-          "SheetTitle",
-          "SheetDescription",
-          "Toaster",
-          "Table",
-          "TableHeader",
-          "TableBody",
-          "TableRow",
-          "TableHead",
-          "TableCell",
-          "Tabs",
-          "TabsList",
-          "TabsTrigger",
-          "TabsContent",
-          "Tag",
-          "Textarea",
-          "TooltipProvider",
-          "Tooltip",
-          "TooltipTrigger",
-          "TooltipContent",
-          "Prose",
-          "ProseMono",
-          "Code",
-          "Heading"
-        ]
+        "entryFunctions": []
       }
     ],
     "constraints": [],
@@ -318,5 +239,16 @@
   "overwrite": {
     "mode": "never",
     "requireConfirmation": true
+  },
+  "policies": {
+    "maxRiskScore": 70,
+    "maxImpactNodes": 10,
+    "protectedModules": [
+      "auth",
+      "security",
+      "billing"
+    ],
+    "enforceStrictBoundaries": true,
+    "requireReasoningForCritical": true
   }
 }

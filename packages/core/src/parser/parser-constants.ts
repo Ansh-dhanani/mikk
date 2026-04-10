@@ -72,6 +72,7 @@ export function stripJsonComments(raw: string): string {
  * Parse JSON config files while tolerating JSON5 comments.
  * Falls back to the raw content if comment stripping breaks URLs.
  */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export function parseJsonWithComments<T = any>(raw: string): T {
     const stripped = stripJsonComments(raw)
     try {
