@@ -1,6 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
 import { readFile } from "fs/promises";
-import { join } from "path";
+import { join, isAbsolute, normalize } from "path";
+
+function isSafePath(targetPath: string, basePath: string): boolean {
+  const normalizedTarget = normalize(targetPath);
+  const normalizedBase = normalize(basePath);
+  return normalizedTarget.startsWith(normalizedBase);
+}
 
 export async function GET(request: NextRequest) {
   try {
@@ -8,13 +14,30 @@ export async function GET(request: NextRequest) {
     const repoPath = searchParams.get("repoPath");
     
     let lockFilePath: string;
+    const cwd = process.cwd();
+    const allowedBasePaths = [
+      join(cwd, "public", "demo"),
+      cwd,
+      join(cwd, ".."),
+    ];
     
     if (repoPath === "demo") {
-      lockFilePath = join(process.cwd(), "public", "demo", "mikk.lock.json");
+      lockFilePath = join(cwd, "public", "demo", "mikk.lock.json");
     } else if (repoPath) {
-      lockFilePath = join(repoPath, "mikk.lock.json");
+      if (!isAbsolute(repoPath)) {
+        lockFilePath = join(cwd, repoPath, "mikk.lock.json");
+      } else {
+        const isAllowed = allowedBasePaths.some(base => isSafePath(repoPath, base));
+        if (!isAllowed) {
+          return NextResponse.json(
+            { error: "Invalid repoPath: must be relative or within allowed directories" },
+            { status: 400 }
+          );
+        }
+        lockFilePath = join(repoPath, "mikk.lock.json");
+      }
     } else {
-      lockFilePath = join(process.cwd(), "..", "..", "mikk.lock.json");
+      lockFilePath = join(cwd, "..", "..", "mikk.lock.json");
     }
     
     console.log("[lock] Reading from:", lockFilePath);

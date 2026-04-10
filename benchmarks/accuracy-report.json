@@ -1,3 +1,17 @@
-﻿{"accuracy":98,"testsPassed":12,"testsTotal":12,"timestamp":"
-2026-04-08T22:32:28.9184777+05:30
-","findings":{"fileCountAccuracy":95,"functionCountAccuracy":100,"routeDetectionAccuracy":100,"moduleDetectionAccuracy":89,"asyncDetectionAccuracy":100,"exportDetectionAccuracy":95,"callGraphAccuracy":100,"allCommandsWorking":true,"mcpServerTimeout":true}}
+{
+  "accuracy": 98,
+  "testsPassed": 12,
+  "testsTotal": 12,
+  "timestamp": "2026-04-08T22:32:28.9184777+05:30",
+  "findings": {
+    "fileCountAccuracy": 95,
+    "functionCountAccuracy": 100,
+    "routeDetectionAccuracy": 100,
+    "moduleDetectionAccuracy": 89,
+    "asyncDetectionAccuracy": 100,
+    "exportDetectionAccuracy": 95,
+    "callGraphAccuracy": 100,
+    "allCommandsWorking": true,
+    "mcpServerTimeout": true
+  }
+}
