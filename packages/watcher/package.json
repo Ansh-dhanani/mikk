@@ -27,7 +27,7 @@
     "lint": "bunx eslint --config ../../eslint.config.mjs ."
   },
   "dependencies": {
-    "@getmikk/core": "^2.0.11",
+    "@getmikk/core": "workspace:*",
     "chokidar": "^4.0.0"
   },
   "devDependencies": {

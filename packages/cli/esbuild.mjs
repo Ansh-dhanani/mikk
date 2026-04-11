@@ -12,10 +12,11 @@ await esbuild.build({
   target: 'node18',
   sourcemap: true,
   banner: { js: '#!/usr/bin/env node' },
-  // Do NOT set packages: 'external' — we bundle @getmikk/* packages in
-  // so the CLI works as a single self-contained binary after npm install.
-  // Only truly native/large/optional deps are kept external.
   external: [
+    '@getmikk/core',
+    '@getmikk/ai-context',
+    '@getmikk/intent-engine',
+    '@getmikk/watcher',
     '@xenova/transformers', 
     'oxc-parser', 
     'oxc-resolver', 

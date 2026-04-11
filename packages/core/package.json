@@ -33,6 +33,7 @@
     "eslint": "^9.39.2"
   },
   "dependencies": {
+    "@google/generative-ai": "^0.21.0",
     "better-sqlite3": "^12.6.2",
     "fast-glob": "^3.3.0",
     "tree-sitter-wasms": "^0.1.13",
