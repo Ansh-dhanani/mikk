@@ -209,7 +209,8 @@ export class LockCompiler {
             const params = metadata.params || []
             const returnType = metadata.returnType || 'void'
             const signatureHash = hashContent(`${displayName}(${params.map(p => p.type).join(',')}):${returnType}`)
-            const tokenVector = this.generateTokenVector(displayName, params, returnType, metadata.purpose)
+            // Token vector generation is slow - skip for now, semantic search uses embeddings anyway
+            // const tokenVector = this.generateTokenVector(displayName, params, returnType, metadata.purpose)
 
             result[id] = {
                 id,
@@ -234,13 +235,13 @@ export class LockCompiler {
                 edgeCasesHandled: metadata.edgeCasesHandled,
                 errorHandling: metadata.errorHandling,
                 signatureHash,
-                tokenVector,
             }
         }
 
         return result
     }
 
+    /** @deprecated Token vectors are no longer generated - semantic search uses embeddings instead */
     private generateTokenVector(
         name: string,
         params: Array<{ name: string; type: string; optional?: boolean }>,
@@ -395,19 +396,46 @@ export class LockCompiler {
         parsedFiles: ParsedFile[]
     ): Record<string, MikkLock['modules'][string]> {
         const result: Record<string, MikkLock['modules'][string]> = {}
-
-        // Build a map for fast file lookups - O(1) instead of O(n) per module
+        
+        // Build file hash map
         const fileHashMap = new Map<string, string>()
         for (const file of parsedFiles) {
             fileHashMap.set(file.path, file.hash)
         }
-
+        
+        // Pre-compute normalized paths for all files (do once)
+        const filePathCache = parsedFiles.map(f => ({
+            path: f.path,
+            normalizedRelative: getModuleMatchPath(f.path, this.projectRootPath).replace(/\\/g, '/').toLowerCase(),
+            normalizedAbsolute: f.path.replace(/\\/g, '/').toLowerCase(),
+            isVendor: this.isVendorPath(f.path)
+        }))
+        
+        // For each module, find matching files
         for (const module of contract.declared.modules) {
             const moduleFiles: string[] = []
-
-            for (const file of parsedFiles) {
-                if (this.fileMatchesModule(file.path, module.paths)) {
-                    moduleFiles.push(file.path)
+            
+            // Pre-compute normalized patterns for this module
+            const normalizedProjectRoot = this.projectRootPath
+                ? this.projectRootPath.replace(/\\/g, '/').toLowerCase()
+                : null
+            const patterns = module.paths.map(p => {
+                const np = p.replace(/\\/g, '/').toLowerCase()
+                return normalizedProjectRoot && np.startsWith(`${normalizedProjectRoot}/`)
+                    ? np.slice(normalizedProjectRoot.length + 1)
+                    : np
+            })
+            
+            // Check each file against this module's patterns
+            for (let i = 0; i < filePathCache.length; i++) {
+                const f = filePathCache[i]
+                if (f.isVendor) continue
+                
+                for (const pattern of patterns) {
+                    if (minimatch(f.normalizedRelative, pattern) || minimatch(f.normalizedAbsolute, pattern)) {
+                        moduleFiles.push(f.path)
+                        break // found match, no need to check more patterns
+                    }
                 }
             }
 

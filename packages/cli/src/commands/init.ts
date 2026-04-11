@@ -195,11 +195,16 @@ export function registerInitCommand(program: Command) {
                     })
                     ctxSpinner.stop()
                     if (contextFiles.length > 0) {
-                        const contextRows = contextFiles.map(cf => {
+                        const maxRows = 10
+                        const displayFiles = contextFiles.slice(0, maxRows)
+                        const contextRows = displayFiles.map(cf => {
                             const sizeKb = (cf.size / 1024).toFixed(1)
                             const label = `${chalk.cyan(cf.type.padEnd(10))} ${chalk.dim(cf.path)}`
                             return `${label} ${chalk.dim(`(${sizeKb} KB)`)}`
                         })
+                        if (contextFiles.length > maxRows) {
+                            contextRows.push(chalk.dim(`... and ${contextFiles.length - maxRows} more`))
+                        }
                         panel('Context & schema files', contextRows)
                         gap()
                     } else {
@@ -212,6 +217,7 @@ export function registerInitCommand(program: Command) {
                 }
 
                 // 8. Compile lock file
+                console.log(chalk.dim('\n- Compiling lock file...'))
                 const compiler = new LockCompiler()
                 const lock = compiler.compile(graph, contract, parsedFiles, contextFiles, projectRoot)
                 lock.syncState.parseDiagnostics = {
@@ -223,6 +229,7 @@ export function registerInitCommand(program: Command) {
                 const functionCount = Object.keys(lock.functions).length
 
                 // 9. Write everything to disk
+                console.log(chalk.dim('- Writing artifacts...'))
                 const lockReader = new LockReader()
                 const lockPath = path.join(projectRoot, 'mikk.lock.json')
                 const preparedLock = await lockReader.prepareForWrite(lock, lockPath)
@@ -255,7 +262,8 @@ export function registerInitCommand(program: Command) {
                 ]
 
                 // 10. Generate claude.md / AGENTS.md
-                const aiSpinner = ora('Generating AI context files...').start()
+                console.log(chalk.dim('\n- Generating AI context files...'))
+                const aiSpinner = ora('').start()
                 try {
                     const { ClaudeMdGenerator, OpenClawRulesGenerator } = await import('@getmikk/ai-context')
                     const meta = {
@@ -265,7 +273,7 @@ export function registerInitCommand(program: Command) {
                         devDependencies: pkgJson.devDependencies,
                     }
                     const mdGenerator = new ClaudeMdGenerator(contract, preparedLock, undefined, meta, projectRoot, (progress) => {
-                        aiSpinner.text = `Generating AI context files... ${progress}%`
+                        aiSpinner.text = `Generating AI context... ${progress}%`
                     })
                     const claudeMd = mdGenerator.generate()
                     artifactWrites.push({
@@ -280,14 +288,15 @@ export function registerInitCommand(program: Command) {
                     await patchFileContent(path.join(projectRoot, 'AGENTS.md'), claudeMd)
                     await patchFileContent(path.join(projectRoot, '.clinerules'), clinerules)
 
-                    aiSpinner.succeed('AI context files patched successfully')
+                    aiSpinner.succeed('AI context generated')
                 } catch {
                     await runArtifactWriteTransaction(projectRoot, 'init-artifacts', artifactWrites)
                     aiSpinner.warn('AI context generation skipped (package not available)')
                 }
 
                 // Generate embeddings for semantic search
-                const embSpinner = ora('Generating embeddings for semantic search...').start()
+                console.log(chalk.dim('- Generating embeddings for semantic search...'))
+                const embSpinner = ora('').start()
                 try {
                     const { SemanticSearcher } = await import('@getmikk/intent-engine')
                     if (await SemanticSearcher.isAvailable()) {
