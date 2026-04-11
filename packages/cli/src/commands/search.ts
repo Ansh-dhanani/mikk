@@ -627,6 +627,7 @@ ${chalk.bold('Semantic Search Providers:')}
                 const bodyResult = await getFunctionBody(fn, projectRoot, maxLines)
                 if (bodyResult.body) {
                     const lines = bodyResult.lines
+                    console.log(chalk.dim('─'.repeat(50)))
                     for (let j = 0; j < Math.min(lines.length, topN > 0 ? maxLines : 8); j++) {
                         console.log(`   ${lines[j]}`)
                     }
