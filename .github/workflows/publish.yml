@@ -12,7 +12,6 @@ on:
           - all
           - core
           - intent-engine
-          - diagram-generator
           - watcher
           - ai-context
           - cli
@@ -71,7 +70,6 @@ jobs:
         run: |
           echo "core=$(node -p "require('./packages/core/package.json').version")" >> $GITHUB_OUTPUT
           echo "intent_engine=$(node -p "require('./packages/intent-engine/package.json').version")" >> $GITHUB_OUTPUT
-          echo "diagram_generator=$(node -p "require('./packages/diagram-generator/package.json').version")" >> $GITHUB_OUTPUT
           echo "watcher=$(node -p "require('./packages/watcher/package.json').version")" >> $GITHUB_OUTPUT
           echo "ai_context=$(node -p "require('./packages/ai-context/package.json').version")" >> $GITHUB_OUTPUT
           echo "cli=$(node -p "require('./packages/cli/package.json').version")" >> $GITHUB_OUTPUT
@@ -100,7 +98,6 @@ jobs:
           }
           bump core              packages/core
           bump intent-engine     packages/intent-engine
-          bump diagram-generator packages/diagram-generator
           bump watcher           packages/watcher
           bump ai-context        packages/ai-context
           bump cli               packages/cli
@@ -132,7 +129,6 @@ jobs:
           }
           check core              packages/core              @getmikk/core
           check intent-engine     packages/intent-engine     @getmikk/intent-engine
-          check diagram-generator packages/diagram-generator @getmikk/diagram-generator
           check watcher           packages/watcher           @getmikk/watcher
           check ai-context        packages/ai-context        @getmikk/ai-context
           check cli               packages/cli               @getmikk/cli
@@ -148,7 +144,6 @@ jobs:
         run: |
           CORE_V=$(node -p "require('./packages/core/package.json').version")
           IE_V=$(node -p "require('./packages/intent-engine/package.json').version")
-          DG_V=$(node -p "require('./packages/diagram-generator/package.json').version")
           W_V=$(node -p "require('./packages/watcher/package.json').version")
           AC_V=$(node -p "require('./packages/ai-context/package.json').version")
           fix_workspace() {
@@ -156,13 +151,11 @@ jobs:
             sed -i \
               -e "s|\"@getmikk/core\": \"workspace:\*\"|\"@getmikk/core\": \"^$CORE_V\"|g" \
               -e "s|\"@getmikk/intent-engine\": \"workspace:\*\"|\"@getmikk/intent-engine\": \"^$IE_V\"|g" \
-              -e "s|\"@getmikk/diagram-generator\": \"workspace:\*\"|\"@getmikk/diagram-generator\": \"^$DG_V\"|g" \
               -e "s|\"@getmikk/watcher\": \"workspace:\*\"|\"@getmikk/watcher\": \"^$W_V\"|g" \
               -e "s|\"@getmikk/ai-context\": \"workspace:\*\"|\"@getmikk/ai-context\": \"^$AC_V\"|g" \
               "$file"
           }
           fix_workspace packages/intent-engine
-          fix_workspace packages/diagram-generator
           fix_workspace packages/watcher
           fix_workspace packages/ai-context
           fix_workspace packages/cli
@@ -178,7 +171,6 @@ jobs:
           }
           dry core              packages/core
           dry intent-engine     packages/intent-engine
-          dry diagram-generator packages/diagram-generator
           dry watcher           packages/watcher
           dry ai-context        packages/ai-context
           dry cli               packages/cli
@@ -216,13 +208,6 @@ jobs:
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
-      - name: Publish @getmikk/diagram-generator
-        id: pub_diagram_generator
-        if: ${{ inputs.package == 'all' || inputs.package == 'diagram-generator' }}
-        run: cd packages/diagram-generator && npm publish --access public
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
-
       - name: Publish @getmikk/watcher
         id: pub_watcher
         if: ${{ inputs.package == 'all' || inputs.package == 'watcher' }}
@@ -250,7 +235,6 @@ jobs:
           always() &&
           (steps.pub_core.outcome == 'failure'           || steps.pub_core.outcome == 'skipped') &&
           (steps.pub_intent_engine.outcome == 'failure'  || steps.pub_intent_engine.outcome == 'skipped') &&
-          (steps.pub_diagram_generator.outcome == 'failure' || steps.pub_diagram_generator.outcome == 'skipped') &&
           (steps.pub_watcher.outcome == 'failure'        || steps.pub_watcher.outcome == 'skipped') &&
           (steps.pub_ai_context.outcome == 'failure'     || steps.pub_ai_context.outcome == 'skipped') &&
           (steps.pub_cli.outcome == 'failure'            || steps.pub_cli.outcome == 'skipped')
@@ -275,7 +259,6 @@ jobs:
           }
           restore packages/core              "${{ steps.prev.outputs.core }}"
           restore packages/intent-engine     "${{ steps.prev.outputs.intent_engine }}"
-          restore packages/diagram-generator "${{ steps.prev.outputs.diagram_generator }}"
           restore packages/watcher           "${{ steps.prev.outputs.watcher }}"
           restore packages/ai-context        "${{ steps.prev.outputs.ai_context }}"
           restore packages/cli               "${{ steps.prev.outputs.cli }}"
@@ -300,7 +283,6 @@ jobs:
           (
             steps.pub_core.outcome == 'failure' ||
             steps.pub_intent_engine.outcome == 'failure' ||
-            steps.pub_diagram_generator.outcome == 'failure' ||
             steps.pub_watcher.outcome == 'failure' ||
             steps.pub_ai_context.outcome == 'failure' ||
             steps.pub_cli.outcome == 'failure'
@@ -308,7 +290,6 @@ jobs:
           (
             steps.pub_core.outcome == 'success' ||
             steps.pub_intent_engine.outcome == 'success' ||
-            steps.pub_diagram_generator.outcome == 'success' ||
             steps.pub_watcher.outcome == 'success' ||
             steps.pub_ai_context.outcome == 'success' ||
             steps.pub_cli.outcome == 'success'
@@ -339,7 +320,6 @@ jobs:
 
           echo "| \`@getmikk/core\`              | \`$(node -p "require('./packages/core/package.json').version")\` | $(status ${{ steps.pub_core.outcome }}) |" >> $GITHUB_STEP_SUMMARY
           echo "| \`@getmikk/intent-engine\`     | \`$(node -p "require('./packages/intent-engine/package.json').version")\` | $(status ${{ steps.pub_intent_engine.outcome }}) |" >> $GITHUB_STEP_SUMMARY
-          echo "| \`@getmikk/diagram-generator\` | \`$(node -p "require('./packages/diagram-generator/package.json').version")\` | $(status ${{ steps.pub_diagram_generator.outcome }}) |" >> $GITHUB_STEP_SUMMARY
           echo "| \`@getmikk/watcher\`           | \`$(node -p "require('./packages/watcher/package.json').version")\` | $(status ${{ steps.pub_watcher.outcome }}) |" >> $GITHUB_STEP_SUMMARY
           echo "| \`@getmikk/ai-context\`        | \`$(node -p "require('./packages/ai-context/package.json').version")\` | $(status ${{ steps.pub_ai_context.outcome }}) |" >> $GITHUB_STEP_SUMMARY
           echo "| \`@getmikk/cli\`               | \`$(node -p "require('./packages/cli/package.json').version")\` | $(status ${{ steps.pub_cli.outcome }}) |" >> $GITHUB_STEP_SUMMARY
