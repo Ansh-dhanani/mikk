@@ -105,7 +105,7 @@ Running `mikk init` produces:
 
 ---
 
-## MCP Server — 28 Tools
+## MCP Server — 37 Tools
 
 Connect to Claude Desktop, Cursor, VS Code Copilot, or any MCP-compatible client.
 
@@ -125,6 +125,7 @@ Connect to Claude Desktop, Cursor, VS Code Copilot, or any MCP-compatible client
 | `mikk_get_function_detail` | Params, return type, call graph, source body, and line range. |
 | `mikk_search_functions` | Hybrid search combining multiple algorithms. |
 | `mikk_semantic_search` | Natural-language function search using embeddings. |
+| `mikk_search_rich` | Rich search with filters, body content search. |
 | `mikk_find_function` | Find a function by name or pattern. |
 | `mikk_find_by_signature` | Find functions matching a signature. |
 | `mikk_find_by_location` | Find functions at a specific line in a file. |
@@ -133,6 +134,10 @@ Connect to Claude Desktop, Cursor, VS Code Copilot, or any MCP-compatible client
 | `mikk_get_file` | Raw source of any project file. |
 | `mikk_read_file` | Source scoped to specific functions. |
 | `mikk_get_routes` | All detected HTTP routes with method, path, handler. |
+| `mikk_list_files` | List all tracked files in the project. |
+| `mikk_get_class_detail` | Class details: methods, properties, inheritance. |
+| `mikk_get_generic_detail` | Type/interface details: type params, extends. |
+| `mikk_get_call_graph` | Visual call graph for a function. |
 
 ### Safety Tools
 | Tool | Description |
@@ -142,6 +147,8 @@ Connect to Claude Desktop, Cursor, VS Code Copilot, or any MCP-compatible client
 | `mikk_validate_edit` | Pre-edit validation with intent analysis and recommendations. |
 | `mikk_impact_analysis` | Full blast radius classified by severity. |
 | `mikk_dead_code` | Unused functions detection. |
+| `mikk_get_dead_code` | Dead code analysis with multi-pass exemptions. |
+| `mikk_get_complexity` | Find overly complex functions above threshold. |
 | `mikk_security_scan` | Security vulnerability scanning. |
 
 ### Refactoring Tools
@@ -149,6 +156,7 @@ Connect to Claude Desktop, Cursor, VS Code Copilot, or any MCP-compatible client
 |---|---|
 | `mikk_rename` | Coordinated multi-file rename. |
 | `mikk_git_diff_impact` | Maps git diff hunks to affected symbols. |
+| `mikk_file_diff` | Get diff between two file versions. |
 
 ### Project Tools
 | Tool | Description |
@@ -156,6 +164,7 @@ Connect to Claude Desktop, Cursor, VS Code Copilot, or any MCP-compatible client
 | `mikk_get_constraints` | All architectural constraints from `mikk.json`. |
 | `mikk_manage_adr` | CRUD for Architectural Decision Records. |
 | `mikk_token_stats` | Track token savings. |
+| `mikk_bulk_query` | Run multiple queries in a single call. |
 
 ---
 
