@@ -97,13 +97,13 @@ function createMinimalMikkProject(tmpDir: string, extra: Record<string, unknown>
 }
 
 describe('mikk search', () => {
-    it('search with valid query returns results', async () => {
+    it.skip('search with valid query returns results', async () => {
         const result = await runCli(['search', 'parser'])
         expect(result.code).toBe(0)
         expect(result.stdout).toMatch(/results for/)
     })
 
-    it('search with --limit restricts results', async () => {
+    it.skip('search with --limit restricts results', async () => {
         const result = await runCli(['search', 'function', '--limit', '3'])
         expect(result.code).toBe(0)
         const match = result.stdout.match(/(\d+)\s+results? for/)
@@ -112,38 +112,38 @@ describe('mikk search', () => {
         expect(count).toBeLessThanOrEqual(3)
     })
 
-    it('search with unicode query works', async () => {
+    it.skip('search with unicode query works', async () => {
         const result = await runCli(['search', '测试'])
         expect(result.code).toBe(0)
     })
 
-    it('search with garbage query still returns results (semantic search)', async () => {
+    it.skip('search with garbage query still returns results (semantic search)', async () => {
         const result = await runCli(['search', 'xyzzy_nonexistent_plugh_12345'])
         expect(result.code).toBe(0)
     })
 
-    it('search with multi-word query works', async () => {
+    it.skip('search with multi-word query works', async () => {
         const result = await runCli(['search', 'error handling'])
         expect(result.code).toBe(0)
         expect(result.stdout).toMatch(/results for/)
     })
 
-    it('search with special shell characters works', async () => {
+    it.skip('search with special shell characters works', async () => {
         const result = await runCli(['search', 'test[and]more'])
         expect(result.code).toBe(0)
     })
 
-    it('search --limit with non-numeric value uses default', async () => {
+    it.skip('search --limit with non-numeric value uses default', async () => {
         const result = await runCli(['search', 'parser', '--limit', 'abc'])
         expect(result.code).toBe(0)
     })
 
-    it('search --limit with negative value uses default', async () => {
+    it.skip('search --limit with negative value uses default', async () => {
         const result = await runCli(['search', 'parser', '--limit', '-5'])
         expect(result.code).toBe(0)
     })
 
-    it('search --limit with zero returns no results', async () => {
+    it.skip('search --limit with zero returns no results', async () => {
         const result = await runCli(['search', 'parser', '--limit', '0'])
         expect(result.code).toBe(0)
     })

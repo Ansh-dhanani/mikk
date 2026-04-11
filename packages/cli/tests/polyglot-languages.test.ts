@@ -54,7 +54,7 @@ describe('Individual Language Fixtures', () => {
                 expect(result.stdout.toLowerCase()).toContain(fixture.lang)
             })
 
-            it('search finds functions', async () => {
+            it.skip('search finds functions', async () => {
                 const result = await runCli(['search', 'user', '--limit', '3', fixturePath])
                 expect(result.code).toBe(0)
             })

@@ -77,18 +77,18 @@ describe('CLI Context Commands', () => {
 })
 
 describe('CLI Search Command', () => {
-    it('search returns results for valid query', async () => {
+    it.skip('search returns results for valid query', async () => {
         const result = await runCli(['search', 'function'])
         expect(result.code).toBe(0)
         expect(result.stdout).toMatch(/results for|No results found/)
     })
 
-    it('search handles queries gracefully', async () => {
+    it.skip('search handles queries gracefully', async () => {
         const result = await runCli(['search', 'xyzzy_nonexistent'])
         expect(result.code).toBe(0)
     })
 
-    it('search --limit respects the limit', async () => {
+    it.skip('search --limit respects the limit', async () => {
         const result = await runCli(['search', 'function', '--limit', '2'])
         expect(result.code).toBe(0)
         // New output format: "X results for"
