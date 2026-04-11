@@ -6,6 +6,7 @@ import type { DependencyGraph } from '../graph/types.js'
 export interface DirectQuery {
     find?: string
     name?: string
+    text?: string   // Full-text search across name + purpose
     exact?: string
     startsWith?: string
     contains?: string
@@ -83,7 +84,8 @@ export class DirectSearchEngine {
     search(query: DirectQuery): RichFunction[] {
         const searchQuery: SearchQuery = {}
         
-        if (query.name) searchQuery.nameContains = query.name
+        if (query.name) searchQuery.name = query.name  // Use 'name' field directly
+        if (query.text) searchQuery.text = query.text
         if (query.exact) searchQuery.exactName = query.exact
         if (query.startsWith) searchQuery.nameStartsWith = query.startsWith
         if (query.contains) searchQuery.nameContains = query.contains

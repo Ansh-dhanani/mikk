@@ -596,12 +596,36 @@ export class RichFunctionIndex {
         let candidateIds: Set<string> | null = null
         const matchReasons: string[] = []
 
-        if (query.name) {
-            const ids = this.byName.get(query.name.toLowerCase())
-            if (ids) {
-                candidateIds = new Set(ids)
-                matchReasons.push(`name match: ${query.name}`)
+        // Handle name query - split into words and search each
+        if (query.name || query.nameContains) {
+            const nameQuery = (query.name || query.nameContains!).toLowerCase()
+            const words = nameQuery.split(/\s+/).filter(w => w.length > 0)
+            
+            // Require ALL words to match in function name (strict AND logic)
+            const allMatchIds: string[] = []
+            
+            for (const fn of this.functions.values()) {
+                const fnNameLower = fn.name.toLowerCase()
+                let allWordsMatch = true
+                
+                for (const word of words) {
+                    if (!fnNameLower.includes(word)) {
+                        allWordsMatch = false
+                        break
+                    }
+                }
+                
+                if (allWordsMatch) {
+                    allMatchIds.push(fn.id)
+                }
             }
+            
+            // Only return results if ALL words match
+            if (allMatchIds.length > 0) {
+                candidateIds = new Set(allMatchIds)
+                matchReasons.push(`name: ${nameQuery}`)
+            }
+            // If no matches, don't fall back - return empty
         }
 
         if (query.exactName) {
@@ -777,18 +801,65 @@ export class RichFunctionIndex {
 
         if (query.text) {
             const tokens = query.text.toLowerCase().split(/\s+/).filter(t => t.length >= 2)
-            const tokenMatches = tokens.map(token => this.textIndex.get(token) || new Set())
             
-            const matchingIds = [...this.functions.keys()].filter(id => {
-                return tokenMatches.every(set => set.has(id))
-            })
-            
-            if (candidateIds) {
-                candidateIds = new Set([...candidateIds].filter(id => matchingIds.includes(id)))
-            } else {
-                candidateIds = new Set(matchingIds)
+            if (tokens.length > 0) {
+                // Get name-based matches (from byName index)
+                const nameMatches = new Set<string>()
+                for (const token of tokens) {
+                    // Exact name match
+                    const exactIds = this.byName.get(token)
+                    if (exactIds) exactIds.forEach(id => nameMatches.add(id))
+                    // Partial name match (contains)
+                    for (const [name, ids] of this.byName.entries()) {
+                        if (name.includes(token)) ids.forEach(id => nameMatches.add(id))
+                    }
+                }
+                
+                // Get text-based matches (from textIndex) - use OR logic
+                const textMatches = new Set<string>()
+                for (const token of tokens) {
+                    const tokenMatch = this.textIndex.get(token)
+                    if (tokenMatch) tokenMatch.forEach(id => textMatches.add(id))
+                    // Also partial match
+                    for (const [indexedToken, ids] of this.textIndex.entries()) {
+                        if (indexedToken.includes(token) || token.includes(indexedToken)) {
+                            ids.forEach(id => textMatches.add(id))
+                        }
+                    }
+                }
+                
+                // Combine name + text matches (OR logic)
+                let matchingIds: string[] = []
+                const allMatches = new Set<string>([...nameMatches, ...textMatches])
+                
+                // If we have matches, score them by how many query tokens they match
+                if (allMatches.size > 0) {
+                    const matchScores = new Map<string, number>()
+                    for (const id of allMatches) {
+                        const fn = this.functions.get(id)
+                        if (!fn) continue
+                        let score = 0
+                        const fnText = (fn.name + ' ' + (fn.purpose || '')).toLowerCase()
+                        for (const token of tokens) {
+                            if (fn.name.toLowerCase().includes(token)) score += 2
+                            if (fnText.includes(token)) score += 1
+                        }
+                        matchScores.set(id, score)
+                    }
+                    matchingIds = [...matchScores.entries()]
+                        .sort((a, b) => b[1] - a[1])
+                        .map(([id]) => id)
+                }
+                
+                if (matchingIds.length > 0) {
+                    if (candidateIds) {
+                        candidateIds = new Set([...candidateIds].filter(id => matchingIds.includes(id)))
+                    } else {
+                        candidateIds = new Set(matchingIds)
+                    }
+                    matchReasons.push(`text search: ${query.text} (${matchingIds.length} matches)`)
+                }
             }
-            matchReasons.push(`text search: ${query.text}`)
         }
 
         if (query.calls) {
@@ -843,22 +914,51 @@ export class RichFunctionIndex {
             } else {
                 candidateIds = new Set(matching)
             }
-            matchReasons.push(`maxParams: ${query.maxParams}`)
+                matchReasons.push(`maxParams: ${query.maxParams}`)
         }
 
-        if (!candidateIds) {
-            candidateIds = new Set(this.functions.keys())
+        // Only return results if we actually matched something
+        // Do NOT fallback to returning all functions
+        if (!candidateIds || candidateIds.size === 0) {
+            return []
         }
 
         const results: SearchResult[] = []
+        
+        // For text search, track match quality for scoring
+        let textMatchQuality: Map<string, number> | undefined
+        if (query.text) {
+            textMatchQuality = new Map()
+            const tokens = query.text.toLowerCase().split(/\s+/).filter(t => t.length >= 2)
+            for (const fn of this.functions.values()) {
+                let matchCount = 0
+                const fnText = (fn.name + ' ' + fn.purpose).toLowerCase()
+                for (const token of tokens) {
+                    if (fnText.includes(token)) matchCount++
+                }
+                if (matchCount > 0) {
+                    textMatchQuality.set(fn.id, matchCount / tokens.length)
+                }
+            }
+        }
+        
         for (const id of candidateIds) {
             const fn = this.functions.get(id)
             if (!fn) continue
             
             let score = 1.0
             
+            // Exact name match gets highest score
             if (query.name && fn.name.toLowerCase() === query.name.toLowerCase()) {
+                score *= 3.0
+            }
+            // Name contains query gets boost
+            else if (query.name && fn.name.toLowerCase().includes(query.name.toLowerCase())) {
                 score *= 2.0
+            }
+            // Text search match quality
+            if (textMatchQuality && textMatchQuality.has(fn.id)) {
+                score *= (1 + textMatchQuality.get(fn.id)!)
             }
             if (query.isExported !== undefined && fn.isExported === query.isExported) {
                 score *= 1.5

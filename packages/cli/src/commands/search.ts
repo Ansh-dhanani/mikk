@@ -504,9 +504,12 @@ ${chalk.bold('Semantic Search Providers:')}
                 const fn = engine.getExactMatch(query)
                 if (fn) results = [{ name: fn.name, file: fn.file, fn, score: 1.0 }]
             } else {
-                // Direct/BM25 search for direct and hybrid modes
-                const directResults = engine.search({ name: query })
-                for (const fn of directResults.slice(0, limit * 2)) {
+                // Direct search - require exact name match
+                const nameResults = engine.search({ name: query })
+                
+                // Only use name results - no fallback
+                // If no matches, fuzzy search will handle it
+                for (const fn of nameResults.slice(0, limit * 2)) {
                     results.push({ name: fn.name, file: fn.file, fn, score: 1.0 })
                 }
 
