@@ -1,17 +1,14 @@
-﻿<?php
+<?php
 
 class User {
     public $id;
-    public $
-ame;
+    public $name;
     public $email;
     
-    public function __construct($id, $
-ame, $email) {
-        $	his->id = $id;
-        $	his->name = $
-ame;
-        $	his->email = $email;
+    public function __construct($id, $name, $email) {
+        $this->id = $id;
+        $this->name = $name;
+        $this->email = $email;
     }
 }
 
@@ -20,9 +17,7 @@ class UserService {
         return null;
     }
     
-    public function createUser($
-ame, $email) {
-        return new User(1, $
-ame, $email);
+    public function createUser($name, $email) {
+        return new User(1, $name, $email);
     }
 }

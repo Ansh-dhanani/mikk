@@ -5,7 +5,7 @@
     "description": "A project with code in 22+ programming languages for testing Mikk parser support",
     "language": "polyglot",
     "entryPoints": [
-      "C:/Users/Ansh/Desktop/web/Mesh/benchmarks/fixtures/polyglot-services/src/main.go"
+      "src/main.go"
     ]
   },
   "declared": {
@@ -16,7 +16,7 @@
         "description": "6 files, 0 functions",
         "intent": "",
         "paths": [
-          "c:/users/ansh/desktop/web/mesh/benchmarks/fixtures/polyglot-services/src/**"
+          "src/**"
         ],
         "entryFunctions": []
       }
