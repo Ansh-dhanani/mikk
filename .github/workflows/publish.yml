@@ -120,7 +120,8 @@ jobs:
             local name=$3
             if [ "${{ inputs.package }}" = "all" ] || [ "${{ inputs.package }}" = "$pkg" ]; then
               local v=$(node -p "require('./$dir/package.json').version")
-              if npm view "$name@$v" version 2>/dev/null | grep -q "$v"; then
+              local published=$(npm view "$name@$v" version 2>/dev/null | tr -d '\n\r' || true)
+              if [ "$published" = "$v" ]; then
                 echo "❌ $name@$v already published. Aborting."
                 exit 1
               fi
