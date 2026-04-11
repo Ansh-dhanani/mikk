@@ -1,6 +1,6 @@
 {
   "name": "@getmikk/obsidian-plugin",
-  "version": "2.0.17",
+  "version": "2.0.18",
   "description": "Mikk Graph View - Interactive graph visualization for Obsidian with full lock.json details",
   "main": "main.js",
   "scripts": {
