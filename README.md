@@ -105,7 +105,7 @@ Running `mikk init` produces:
 
 ---
 
-## MCP Server Tools
+## MCP Server — 23 Tools
 
 Connect to Claude Desktop, Cursor, VS Code Copilot, or any MCP-compatible client.
 
