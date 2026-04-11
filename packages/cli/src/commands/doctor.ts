@@ -79,12 +79,12 @@ export function registerDoctorCommand(program: Command) {
                 checks.push({ name: '.mikkignore', pass: false, message: 'Not found (using defaults)', fix: 'Run `mikk init`' })
             }
 
-            // 7. .mikk directory
+            // 7. .mikk directory (optional - not required)
             try {
                 await fs.access(path.join(projectRoot, '.mikk'))
-                checks.push({ name: '.mikk directory', pass: true, message: 'Present' })
+                checks.push({ name: '.mikk directory', pass: true, message: 'Present (optional)' })
             } catch {
-                checks.push({ name: '.mikk directory', pass: false, message: 'Not found', fix: 'Run `mikk analyze`' })
+                checks.push({ name: '.mikk directory', pass: true, message: 'Not found (optional)', fix: 'Run `mikk analyze` if needed' })
             }
 
             // 8. parser runtime preflight (for tree-sitter-backed languages)

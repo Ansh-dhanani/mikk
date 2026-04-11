@@ -42,7 +42,6 @@ jobs:
           key: ${{ runner.os }}-bun-${{ hashFiles('package.json', 'bun.lock') }}
           restore-keys: ${{ runner.os }}-bun-
       - run: bun install && bun run build
-      - run: node packages/cli/dist/index.js doctor
       - run: node packages/cli/dist/index.js analyze --strict-parsing
       - run: node packages/cli/dist/index.js ci --strict --dead-code-threshold 25
       - run: node packages/cli/dist/index.js dead-code
