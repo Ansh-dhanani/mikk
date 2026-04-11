@@ -3,7 +3,7 @@ import fs from 'node:fs'
 import { Command } from 'commander'
 import ora from 'ora'
 import chalk from 'chalk'
-import { LockReader, DirectSearchEngine } from '@getmikk/core'
+import { LockReader, DirectSearchEngine, type MikkLockFunction } from '@getmikk/core'
 import { SemanticSearcher } from '@getmikk/intent-engine'
 
 const DEFAULT_MAX_BODY_LINES = 50
@@ -17,12 +17,12 @@ interface BodyMatch {
 interface SearchResult {
     name: string
     file: string
-    fn: any
+    fn: MikkLockFunction
     score: number
     matches?: BodyMatch[]
 }
 
-async function getFunctionBody(fn: { file: string; startLine: number; endLine: number }, projectRoot: string, maxLines: number): Promise<{ body: string; lines: string[]; originalLines: number }> {
+async function getFunctionBody(fn: { file: string; startLine: number; endLine: number }, projectRoot: string, _maxLines: number): Promise<{ body: string; lines: string[]; originalLines: number }> {
     try {
         const fnFile = fn.file.replace(/\\/g, '/')
         const fullPath = path.isAbsolute(fnFile) ? fnFile : path.join(projectRoot, fnFile)
@@ -142,8 +142,8 @@ function fuzzyScore(query: string, target: string): number {
     return 0
 }
 
-function fuzzySearch(query: string, functions: any[]): Array<{ fn: any; score: number }> {
-    const results: Array<{ fn: any; score: number }> = []
+function fuzzySearch(query: string, functions: MikkLockFunction[]): Array<{ fn: MikkLockFunction; score: number }> {
+    const results: Array<{ fn: MikkLockFunction; score: number }> = []
     
     for (const fn of functions) {
         let maxScore = 0
@@ -441,7 +441,9 @@ ${chalk.bold('Semantic Search Providers:')}
                         if (body && body.toLowerCase().includes(query.toLowerCase())) {
                             bodySearchResults.push(fn)
                         }
-                    } catch {}
+                    } catch {
+                        // Skip files that can't be read
+                    }
                 }))
             }
             spinner.stop()
@@ -488,7 +490,7 @@ ${chalk.bold('Semantic Search Providers:')}
                     continue
                 }
 
-                const { body, startLine } = await getFunctionBody(fn, projectRoot, 0)
+                const { body } = await getFunctionBody(fn, projectRoot, 0)
                 const matches = searchInBody(body, query, fn.startLine)
                 
                 if (matches.length > 0) {

@@ -726,7 +726,9 @@
         "entryFunctions": []
       }
     ],
-    "constraints": [],
+    "constraints": [
+      "module:fixtures-ts-express-api-auth cannot import module:mesh-apps-web"
+    ],
     "decisions": []
   },
   "overwrite": {

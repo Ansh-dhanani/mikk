@@ -21,7 +21,6 @@ import { registerContextCommands } from './commands/context.js'
 import { registerIntentCommand } from './commands/intent.js'
 import { registerMcpCommand } from './commands/mcp.js'
 import { registerDeadCodeCommand } from './commands/dead-code.js'
-import { registerCiCommand } from './commands/ci.js'
 import { registerDoctorCommand } from './commands/doctor.js'
 import { registerStatsCommand } from './commands/stats.js'
 import { registerEmbeddingsCommand } from './commands/embeddings.js'
@@ -29,6 +28,7 @@ import { registerRemoveCommand } from './commands/remove.js'
 import { registerSuggestCommand } from './commands/suggest.js'
 import { registerUpdateCommand } from './commands/update.js'
 import { registerSearchCommand } from './commands/search.js'
+import { registerCiCommand } from './commands/ci.js'
 import { banner, sq, gap } from './ui.js'
 
 declare const __MIKK_VERSION__: string
@@ -54,7 +54,6 @@ if (process.argv.length <= 2) {
         ['analyze',   'Re-analyze after code changes'],
         ['watch',     'Live watcher daemon — incremental, debounced'],
         ['diff',      'Files changed since last analysis'],
-        ['ci',        'Architecture gate — exits non-zero on violations'],
         ['stats',     'Codebase health dashboard'],
         ['doctor',    'Project diagnostic check'],
         ['update',    'Update CLI (stable/latest/specific version)'],
@@ -92,10 +91,10 @@ registerDiffCommand(program)
 registerWatchCommand(program)
 registerContractCommands(program)
 registerContextCommands(program)
+registerCiCommand(program)
 registerIntentCommand(program)
 registerMcpCommand(program)
 registerDeadCodeCommand(program)
-registerCiCommand(program)
 registerDoctorCommand(program)
 registerStatsCommand(program)
 registerEmbeddingsCommand(program)

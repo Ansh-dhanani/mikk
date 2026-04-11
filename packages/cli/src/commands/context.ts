@@ -4,8 +4,7 @@ import type { Command } from 'commander'
 import chalk from 'chalk'
 import ora from 'ora'
 import {
-    ContractReader, LockReader, ImpactAnalyzer,
-    GraphBuilder, parseFiles, readFileContent, discoverFiles,
+    ContractReader, LockReader,
 } from '@getmikk/core'
 import { ContextBuilder } from '@getmikk/ai-context'
 import { getProvider } from '@getmikk/ai-context'
@@ -109,158 +108,200 @@ export function registerContextCommands(program: Command) {
             try {
                 const { contract, lock } = await loadContractAndLock(projectRoot)
 
-                const spinner = ora('Building dependency graph for impact analysis...').start()
-                const files = await discoverFiles(projectRoot)
-                const parsedFiles = await parseFiles(
-                    files, projectRoot, (fp) => readFileContent(fp)
-                )
-                const graph = new GraphBuilder().build(parsedFiles)
-                spinner.succeed('Graph built')
+                const spinner = ora('Analyzing impact...').start()
 
-                const analyzer = new ImpactAnalyzer(graph)
+                const searchLower = target.toLowerCase()
+                let targetId: string | null = null
+                let targetEntity: any = null
+                let targetType: 'function' | 'class' | 'generic' = 'function'
 
-                // Find the target (file, function, or module)
-                const normalizedTarget = target.replace(/\\/g, '/')
-                let targetNodes = [...graph.nodes.values()].filter(n => 
-                    n.file === normalizedTarget || 
-                    n.id === normalizedTarget ||
-                    n.name === target ||
-                    (n.file.includes(normalizedTarget) || n.file.split('/').pop() === target)
-                )
-
-                if (targetNodes.length === 0) {
-                    // Try matching by function name
-                    targetNodes = [...graph.nodes.values()].filter(n => 
-                        n.name?.toLowerCase().includes(target.toLowerCase())
-                    )
-                }
-
-                if (targetNodes.length === 0) {
-                    console.log(chalk.yellow(`\nNo nodes found matching "${target}"`))
-                    console.log(chalk.dim('  Tip: use relative path, function name, or module id'))
-                    return
-                }
-
-                // Get the primary target node
-                const primaryNode = targetNodes[0]
-                const changedNodeId = primaryNode.id
-                const result = analyzer.analyze([changedNodeId])
-
-                // Output format based on flags
-                if (options.json) {
-                    console.log(JSON.stringify({
-                        target: target,
-                        targetType: primaryNode.type,
-                        targetFile: primaryNode.file,
-                        changed: result.changed,
-                        impacted: result.impacted,
-                        depth: result.depth,
-                        confidence: result.confidence,
-                        riskScore: result.riskScore,
-                        modules: [...new Set(result.impacted.map(id => graph.nodes.get(id)?.moduleId).filter(Boolean))],
-                        entryPoints: result.entryPoints,
-                        critical: result.classified?.critical?.length || 0,
-                        high: result.classified?.high?.length || 0,
-                        medium: result.classified?.medium?.length || 0,
-                        low: result.classified?.low?.length || 0
-                    }, null, 2))
-                    return
-                }
-
-                // Display impact summary
-                const maxShow = Math.min(result.impacted.length, parseInt(options.maxImpact) || 50)
-                
-                console.log(chalk.bold(`\n💥 Impact Analysis: ${target}`))
-                console.log(chalk.dim(`   Type: ${primaryNode.type} | File: ${primaryNode.file}\n`))
-                
-                // Key metrics
-                console.log(`  ${chalk.cyan('Metrics:')}`)
-                console.log(`    ${chalk.dim('Changed:')}     ${result.changed.length} node(s)`)
-                console.log(`    ${chalk.dim('Impacted:')}   ${result.impacted.length} node(s)`)
-                console.log(`    ${chalk.dim('Depth:')}     ${result.depth} level(s)`)
-                console.log(`    ${chalk.dim('Confidence:')} ${(result.confidence * 100).toFixed(0)}%`)
-                if (result.riskScore !== undefined) {
-                    console.log(`    ${chalk.dim('Risk:')}      ${result.riskScore.toFixed(2)}`)
-                }
-
-                // Show modules if requested
-                if (options.modules) {
-                    const affectedModules = [...new Set(
-                        result.impacted
-                            .map(id => graph.nodes.get(id)?.moduleId)
-                            .filter(Boolean)
-                    )]
-                    console.log(`\n  ${chalk.cyan('Affected Modules:')}`)
-                    for (const mod of affectedModules.slice(0, 20)) {
-                        const count = result.impacted.filter(id => graph.nodes.get(id)?.moduleId === mod).length
-                        console.log(`    ${chalk.yellow('▸')} ${mod} (${count} impacts)`)
-                    }
-                    if (affectedModules.length > 20) {
-                        console.log(chalk.dim(`    ... and ${affectedModules.length - 20} more`))
+                // Search functions
+                const fnEntries = Object.entries(lock.functions || {})
+                for (const [fnId, fn] of fnEntries) {
+                    if (fn.name && fn.name.toLowerCase() === searchLower) {
+                        targetId = fnId
+                        targetEntity = fn
+                        targetType = 'function'
+                        break
                     }
                 }
-
-                // Show files only
-                if (options.files) {
-                    const affectedFiles = [...new Set(
-                        result.impacted
-                            .map(id => graph.nodes.get(id)?.file)
-                            .filter(Boolean)
-                    )]
-                    console.log(`\n  ${chalk.cyan('Affected Files:')}`)
-                    for (const file of affectedFiles.slice(0, maxShow)) {
-                        const displayFile = file.length > 60 ? '...' + file.slice(-57) : file
-                        console.log(`    ${chalk.yellow('▸')} ${displayFile}`)
-                    }
-                    if (affectedFiles.length > maxShow) {
-                        console.log(chalk.dim(`    ... and ${affectedFiles.length - maxShow} more`))
-                    }
-                }
-                // Show functions only
-                else if (options.functions) {
-                    console.log(`\n  ${chalk.cyan('Affected Functions:')}`)
-                    for (const id of result.impacted.slice(0, maxShow)) {
-                        const node = graph.nodes.get(id)
-                        if (node?.type === 'function') {
-                            console.log(`    ${chalk.yellow('→')} ${node.name} ${chalk.dim(`(${node.file.split('/').pop()})`)}`)
+                if (!targetId) {
+                    for (const [fnId, fn] of fnEntries) {
+                        if (fn.name && fn.name.toLowerCase().includes(searchLower)) {
+                            targetId = fnId
+                            targetEntity = fn
+                            targetType = 'function'
+                            break
                         }
                     }
-                    if (result.impacted.length > maxShow) {
-                        console.log(chalk.dim(`    ... and ${result.impacted.length - maxShow} more`))
-                    }
                 }
-                // Default: show all impacted items with details
-                else {
-                    console.log(`\n  ${chalk.cyan('Impacted Items:')}`)
-                    for (const id of result.impacted.slice(0, maxShow)) {
-                        const node = graph.nodes.get(id)
-                        const typeTag = node?.type === 'function' ? 'fn' : 
-                                       node?.type === 'class' ? 'class' : 'file'
-                        const depthInfo = options.depth ? ` [d${result.allImpacted?.find(i => i.nodeId === id)?.depth || 0}]` : ''
-                        const riskInfo = options.risk && result.allImpacted ? 
-                            ` ${chalk.yellow(result.allImpacted.find(i => i.nodeId === id)?.risk || '')}` : ''
-                        console.log(`    ${chalk.yellow('→')} ${node?.name || id} ${chalk.dim(`<${typeTag}>`)}${depthInfo}${riskInfo}`)
+
+                // Search classes if not found
+                if (!targetId && lock.classes) {
+                    const classEntries = Object.entries(lock.classes)
+                    for (const [clsId, cls] of classEntries) {
+                        if (cls.name && cls.name.toLowerCase() === searchLower) {
+                            targetId = clsId
+                            targetEntity = cls
+                            targetType = 'class'
+                            break
+                        }
                     }
-                    if (result.impacted.length > maxShow) {
-                        console.log(chalk.dim(`    ... and ${result.impacted.length - maxShow} more`))
+                    if (!targetId) {
+                        for (const [clsId, cls] of classEntries) {
+                            if (cls.name && cls.name.toLowerCase().includes(searchLower)) {
+                                targetId = clsId
+                                targetEntity = cls
+                                targetType = 'class'
+                                break
+                            }
+                        }
                     }
                 }
 
-                // Show risk breakdown if requested
-                if (options.risk && result.classified) {
-                    console.log(`\n  ${chalk.cyan('Risk Breakdown:')}`)
-                    if (result.classified.critical?.length) {
-                        console.log(`    ${chalk.red('●')} CRITICAL: ${result.classified.critical.length}`)
+                // Search generics if not found
+                if (!targetId && lock.generics) {
+                    const genEntries = Object.entries(lock.generics)
+                    for (const [genId, gen] of genEntries) {
+                        if (gen.name && gen.name.toLowerCase() === searchLower) {
+                            targetId = genId
+                            targetEntity = gen
+                            targetType = 'generic'
+                            break
+                        }
                     }
-                    if (result.classified.high?.length) {
-                        console.log(`    ${chalk.yellow('●')} HIGH: ${result.classified.high.length}`)
+                    if (!targetId) {
+                        for (const [genId, gen] of genEntries) {
+                            if (gen.name && gen.name.toLowerCase().includes(searchLower)) {
+                                targetId = genId
+                                targetEntity = gen
+                                targetType = 'generic'
+                                break
+                            }
+                        }
                     }
-                    if (result.classified.medium?.length) {
-                        console.log(`    ${chalk.blue('●')} MEDIUM: ${result.classified.medium.length}`)
+                }
+
+                // If still not found, try to match as file path (like MCP tool)
+                if (!targetId || !targetEntity) {
+                    const normalizedTarget = target.replace(/\\/g, '/')
+                    const fnEntries = Object.entries(lock.functions || {})
+                    
+                    // Find all functions in matching file
+                    const fileFunctions: Array<{id: string, fn: any, type: string}> = []
+                    
+                    for (const [fnId, fn] of fnEntries) {
+                        if (fn.file && fn.file.includes(normalizedTarget)) {
+                            fileFunctions.push({ id: fnId, fn, type: 'function' })
+                        }
                     }
-                    if (result.classified.low?.length) {
-                        console.log(`    ${chalk.green('●')} LOW: ${result.classified.low.length}`)
+                    
+                    if (fileFunctions.length > 0) {
+                        targetId = fileFunctions[0].id
+                        targetEntity = { 
+                            name: `File: ${target}`,
+                            file: fileFunctions[0].fn.file,
+                            functions: fileFunctions.map(f => f.id)
+                        }
+                        targetType = 'function'
                     }
+                }
+
+                if (!targetId || !targetEntity) {
+                    spinner.fail('Target not found')
+                    console.log(chalk.yellow(`\nNo function/class/generic found matching "${target}"`))
+                    return
+                }
+
+                // BFS traversal to find all impacted with depth tracking
+                const maxDepth = parseInt(options.depth as string) || 10
+                const impacted = new Map<string, number>() // id -> depth
+                const visited = new Set<string>()
+                
+                // Handle both single function and file-based targets
+                const startIds = targetEntity.functions 
+                    ? targetEntity.functions 
+                    : [targetId]
+                
+                const toVisit: { id: string; depth: number }[] = startIds.map(id => ({ id, depth: 0 }))
+
+                while (toVisit.length > 0) {
+                    const { id, depth } = toVisit.shift()!
+                    if (visited.has(id) || depth > maxDepth) continue
+                    visited.add(id)
+
+                    const fn = lock.functions?.[id]
+                    if (fn?.calls) {
+                        for (const callId of fn.calls) {
+                            if (!visited.has(callId)) {
+                                impacted.set(callId, depth + 1)
+                                toVisit.push({ id: callId, depth: depth + 1 })
+                            }
+                        }
+                    }
+                }
+
+                // Format impacted results
+                const impactedFns = [...impacted.entries()].map(([id, depth]) => {
+                    const fn = lock.functions?.[id]
+                    if (!fn) return null
+                    const parts = id.split(':')
+                    return { ...fn, depth, type: 'function' }
+                }).filter(Boolean)
+
+                // Also find impacted classes (functions that call methods on classes)
+                // For now, show class callers if target is a class
+                const impactedClasses: any[] = []
+                if (targetType === 'class' && lock.functions) {
+                    for (const [fnId, fn] of Object.entries(lock.functions)) {
+                        if (fn.calls?.some((c: string) => c.startsWith('class:'))) {
+                            impactedClasses.push({ ...fn, type: 'function' })
+                        }
+                    }
+                }
+
+                spinner.succeed(`Found ${impactedFns.length} impacted functions`)
+
+                // Display results
+                console.log(chalk.bold(`\n💥 Impact Analysis: ${target}`))
+                console.log(chalk.dim(`   Type: ${targetType}, File: ${targetEntity.file?.split('/').pop()}\n`))
+
+                const directCalls = targetEntity.calls?.length || 0
+                const totalImpact = impactedFns.length
+                console.log(`  ${chalk.cyan('Metrics:')}`)
+                console.log(`    ${chalk.dim('Direct calls:')}     ${directCalls}`)
+                console.log(`    ${chalk.dim('Total impacted:')}  ${totalImpact}`)
+
+                if (options.files) {
+                    const uniqueFiles = [...new Set(impactedFns.map(f => f.file))]
+                    console.log(`\n  ${chalk.cyan('Affected Files:')}`)
+                    const maxShow = Math.min(uniqueFiles.length, parseInt(options.maxImpact) || 50)
+                    for (const file of uniqueFiles.slice(0, maxShow)) {
+                        console.log(`    ${chalk.yellow('▸')} ${file.split('/').pop()}`)
+                    }
+                    if (uniqueFiles.length > maxShow) {
+                        console.log(chalk.dim(`    ... and ${uniqueFiles.length - maxShow} more`))
+                    }
+                } else {
+                    console.log(`\n  ${chalk.cyan('Impacted Functions:')}`)
+                    const maxShow = Math.min(impactedFns.length, parseInt(options.maxImpact) || 50)
+                    for (const fn of impactedFns.slice(0, maxShow)) {
+                        const depthIndicator = fn.depth <= 2 ? chalk.green('●') : fn.depth <= 5 ? chalk.yellow('○') : chalk.red('○')
+                        console.log(`    ${chalk.yellow('→')} ${fn.name} ${chalk.dim(`(${fn.file?.split('/').pop()})`)} ${depthIndicator} depth ${fn.depth}`)
+                    }
+                    if (impactedFns.length > maxShow) {
+                        console.log(chalk.dim(`    ... and ${impactedFns.length - maxShow} more`))
+                    }
+                }
+
+                if (options.json) {
+                    console.log(JSON.stringify({
+                        target,
+                        targetType,
+                        targetFile: targetEntity.file,
+                        directCalls,
+                        impacted: impactedFns.map(f => ({ name: f.name, file: f.file, depth: f.depth }))
+                    }, null, 2))
                 }
 
             } catch (err: unknown) {

@@ -104,9 +104,9 @@ describe('@getmikk/mcp-server - tool list', () => {
         await server.close()
     })
 
-    it('exposes exactly 28 tools', async () => {
+    it('exposes exactly 37 tools', async () => {
         const result = await client.listTools()
-        expect(result.tools).toHaveLength(28)
+        expect(result.tools).toHaveLength(37)
     })
 
     it('has the correct tool names', async () => {
@@ -114,28 +114,37 @@ describe('@getmikk/mcp-server - tool list', () => {
         const names = result.tools.map(t => t.name).sort()
         expect(names).toEqual([
             'mikk_before_edit',
+            'mikk_bulk_query',
             'mikk_dead_code',
+            'mikk_file_diff',
             'mikk_find_by_location',
             'mikk_find_by_signature',
             'mikk_find_function',
             'mikk_find_similar',
             'mikk_find_usages',
+            'mikk_get_call_graph',
             'mikk_get_changes',
+            'mikk_get_class_detail',
+            'mikk_get_complexity',
             'mikk_get_constraints',
+            'mikk_get_dead_code',
             'mikk_get_file',
             'mikk_get_function_detail',
+            'mikk_get_generic_detail',
             'mikk_get_module_detail',
             'mikk_get_project_overview',
             'mikk_get_routes',
             'mikk_get_session_context',
             'mikk_git_diff_impact',
             'mikk_impact_analysis',
+            'mikk_list_files',
             'mikk_list_modules',
             'mikk_manage_adr',
             'mikk_query_context',
             'mikk_read_file',
             'mikk_rename',
             'mikk_search_functions',
+            'mikk_search_rich',
             'mikk_security_scan',
             'mikk_semantic_search',
             'mikk_test_tool',

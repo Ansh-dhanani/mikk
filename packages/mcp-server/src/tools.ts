@@ -75,6 +75,11 @@ function getFunctionBody(fn: { file: string; startLine: number; endLine: number 
     const end = Math.min(lines.length, fn.endLine)
     return lines.slice(start, end).join('\n')
 }
+
+function sanitizeMermaidId(id: string): string {
+    return id.replace(/[^a-zA-Z0-9_]/g, '_').replace(/^[0-9]/, '_$&')
+}
+
 import { ContextBuilder, getProvider } from '@getmikk/ai-context'
 import { SemanticSearcher } from '@getmikk/intent-engine'
 import type { ContextQuery } from '@getmikk/ai-context'
@@ -197,7 +202,8 @@ function isTrackedByLock(lock: MikkLock, projectRoot: string, resolvedPath: stri
 // Singleton per projectRoot - pipeline load is ~1-2s, must not repeat per request
 const semanticSearchers = new Map<string, SemanticSearcher>()
 
-/** Quick-hash a file by reading first 8KB for fast drift detection */
+/**
+ * Quick-hash a file by reading first 8KB for fast drift detection */
 async function quickHashFile(filePath: string): Promise<string> {
     let handle: Awaited<ReturnType<typeof fs.open>> | null = null
     try {
@@ -386,7 +392,8 @@ export function registerTools(server: McpServer, projectRoot: string) {
                 projectRoot,
             }
 
-            const builder = new ContextBuilder(contract, lock)
+            // Pass projectRoot so ContextBuilder can properly hydrate lock functions
+            const builder = new ContextBuilder(contract, lock, projectRoot)
             let ctx = builder.build(query)
             let fallbackUsed = false
             if (autoFallback !== false && strict && ctx.modules.length === 0) {
@@ -1973,6 +1980,606 @@ export function registerTools(server: McpServer, projectRoot: string) {
                 scanDuration: Date.now() - startTime,
                 filesScanned: filesToScan.length,
                 note: filtered.length > 50 ? `Showing first 50 of ${filtered.length} findings` : undefined,
+            }
+
+            return { content: [{ type: 'text' as const, text: JSON.stringify(response, null, 2) }] }
+        },
+    )
+
+
+    // TOOL: mikk_get_class_detail
+
+    ; (server as any).tool(
+        'mikk_get_class_detail',
+        'Get detailed info about a class: methods, properties, inheritance, implementations, decorators. WHEN TO USE: When working with classes or need to understand OOP structure. AFTER THIS: Use mikk_get_function_detail for specific methods.',
+        {
+            name: z.string().describe('Class name to search for (e.g., "GraphBuilder", "AuthService")'),
+        },
+        async (args: any): Promise<any> => {
+            const { name } = args as any
+            const { lock, staleness } = await loadContractAndLock(projectRoot)
+
+            // Search by key (id) since classes don't have explicit name field
+            const searchLower = name.toLowerCase()
+            let clsId: string | null = null
+            let cls: any = null
+
+            for (const [id, c] of Object.entries(lock.classes || {})) {
+                if (id.toLowerCase().includes(searchLower) || (c as any).purpose?.toLowerCase().includes(searchLower)) {
+                    clsId = id
+                    cls = c
+                    break
+                }
+            }
+
+            if (!cls) {
+                return {
+                    content: [{ type: 'text' as const, text: `Class "${name}" not found. Classes in lock: ${Object.keys(lock.classes || {}).slice(0, 5).join(', ')}` }],
+                    isError: true,
+                }
+            }
+
+            const response = {
+                class: {
+                    id: clsId,
+                    name: clsId?.split(':').pop() || clsId,
+                    file: (cls as any).file,
+                    module: (cls as any).moduleId,
+                    lines: (cls as any).lines,
+                    isExported: (cls as any).isExported,
+                    extends: (cls as any).extends,
+                    implements: (cls as any).implements,
+                    typeParameters: (cls as any).typeParameters,
+                    purpose: (cls as any).purpose,
+                },
+                methodCount: (cls as any).methods?.length || 0,
+                warning: staleness,
+            }
+
+            return { content: [{ type: 'text' as const, text: JSON.stringify(response, null, 2) }] }
+        },
+    )
+
+
+    // TOOL: mikk_get_generic_detail
+
+    ; (server as any).tool(
+        'mikk_get_generic_detail',
+        'Get detailed info about a type/interface/generic: type parameters, fields, extends clauses. WHEN TO USE: When working with TypeScript types, interfaces, or generics. AFTER THIS: Use mikk_get_function_detail for functions using this type.',
+        {
+            name: z.string().describe('Generic/type name to search for (e.g., "Result", "UserConfig")'),
+        },
+        async (args: any): Promise<any> => {
+            const { name } = args as any
+            const { lock, staleness } = await loadContractAndLock(projectRoot)
+
+            const searchLower = name.toLowerCase()
+            let genId: string | null = null
+            let gen: any = null
+
+            for (const [id, g] of Object.entries(lock.generics || {})) {
+                if (id.toLowerCase().includes(searchLower) || (g as any).purpose?.toLowerCase().includes(searchLower)) {
+                    genId = id
+                    gen = g
+                    break
+                }
+            }
+
+            if (!gen) {
+                return {
+                    content: [{ type: 'text' as const, text: `Generic/type "${name}" not found.` }],
+                    isError: true,
+                }
+            }
+
+            const response = {
+                generic: {
+                    id: genId,
+                    name: genId?.split(':').pop() || genId,
+                    type: (gen as any).type,
+                    file: (gen as any).file,
+                    module: (gen as any).moduleId,
+                    lines: (gen as any).lines,
+                    isExported: (gen as any).isExported,
+                    typeParameters: (gen as any).typeParameters,
+                    extends: (gen as any).extends,
+                    purpose: (gen as any).purpose,
+                },
+                warning: staleness,
+            }
+
+            return { content: [{ type: 'text' as const, text: JSON.stringify(response, null, 2) }] }
+        },
+    )
+
+
+    // TOOL: mikk_get_dead_code
+
+    ; (server as any).tool(
+        'mikk_get_dead_code',
+        'Find unused/unreachable functions - dead code analysis with multi-pass exemptions. WHEN TO USE: To identify code that can be removed. Shows exemptions and why functions might be flagged.',
+        {
+            moduleId: z.string().optional().describe('Filter to specific module'),
+            minComplexity: z.number().optional().default(0).describe('Minimum complexity to include'),
+            includeExported: z.boolean().optional().default(true).describe('Include exported functions'),
+            limit: z.number().optional().default(50).describe('Max results to return'),
+        },
+        async (args: any): Promise<any> => {
+            const { moduleId, minComplexity, includeExported, limit } = args as any
+            const { lock, staleness } = await loadContractAndLock(projectRoot)
+
+            // Build quick graph for dead code detection
+            const graph = buildGraphFromLock(lock)
+            const { DeadCodeDetector } = await import('@getmikk/core')
+            const detector = new DeadCodeDetector(graph, lock)
+            const result = detector.detect()
+
+            let deadFunctions = result.deadFunctions || []
+            
+            // Apply filters
+            if (moduleId) {
+                deadFunctions = deadFunctions.filter(f => f.moduleId === moduleId)
+            }
+            if (minComplexity > 0) {
+                deadFunctions = deadFunctions.filter(f => (f.complexity || 1) >= minComplexity)
+            }
+            if (!includeExported) {
+                deadFunctions = deadFunctions.filter(f => !f.isExported)
+            }
+
+            const response = {
+                summary: {
+                    totalFunctions: Object.keys(lock.functions).length,
+                    deadCount: deadFunctions.length,
+                    percentage: Math.round((deadFunctions.length / Object.keys(lock.functions).length) * 100),
+                },
+                deadFunctions: deadFunctions.slice(0, limit).map(f => ({
+                    name: f.name,
+                    file: f.file,
+                    module: f.moduleId,
+                    complexity: f.complexity || 1,
+                    isExported: f.isExported,
+                    purpose: f.purpose,
+                })),
+                warning: staleness,
+            }
+
+            return { content: [{ type: 'text' as const, text: JSON.stringify(response, null, 2) }] }
+        },
+    )
+
+
+    // TOOL: mikk_get_complexity
+
+    ; (server as any).tool(
+        'mikk_get_complexity',
+        'Get cyclomatic complexity data for functions. Helps identify overly complex code that might need refactoring. WHEN TO USE: Before refactoring or to identify technical debt.',
+        {
+            moduleId: z.string().optional().describe('Filter to specific module'),
+            minComplexity: z.number().optional().default(5).describe('Minimum complexity threshold'),
+            limit: z.number().optional().default(30).describe('Max results to return'),
+        },
+        async (args: any): Promise<any> => {
+            const { moduleId, minComplexity, limit } = args as any
+            const { lock, staleness } = await loadContractAndLock(projectRoot)
+
+            const allFunctions = Object.values(lock.functions)
+                .filter(f => (f.complexity || 1) >= minComplexity)
+                .filter(f => !moduleId || f.moduleId === moduleId)
+                .sort((a, b) => (b.complexity || 1) - (a.complexity || 1))
+                .slice(0, limit)
+
+            const complexityDistribution = {
+                critical: allFunctions.filter(f => (f.complexity || 1) >= 20).length,
+                high: allFunctions.filter(f => (f.complexity || 1) >= 15 && (f.complexity || 1) < 20).length,
+                medium: allFunctions.filter(f => (f.complexity || 1) >= 10 && (f.complexity || 1) < 15).length,
+                low: allFunctions.filter(f => (f.complexity || 1) >= minComplexity && (f.complexity || 1) < 10).length,
+            }
+
+            const response = {
+                summary: {
+                    totalAnalyzed: Object.keys(lock.functions).length,
+                    overThreshold: allFunctions.length,
+                    distribution: complexityDistribution,
+                },
+                functions: allFunctions.map(f => ({
+                    name: f.name,
+                    file: f.file,
+                    module: f.moduleId,
+                    complexity: f.complexity || 1,
+                    lines: f.endLine - f.startLine + 1,
+                    errorHandling: (f.errorHandling || []).length,
+                })),
+                warning: staleness,
+            }
+
+            return { content: [{ type: 'text' as const, text: JSON.stringify(response, null, 2) }] }
+        },
+    )
+
+
+    // TOOL: mikk_search_rich
+
+    ; (server as any).tool(
+        'mikk_search_rich',
+        'Rich search with multiple filters: name, module, file, exported status, async, return type. Also searches function body content. WHEN TO USE: For complex queries that need multiple filters. More powerful than mikk_search_functions. Tip: use searchBody=true to search inside function source code.',
+        {
+            query: z.string().optional().describe('Search query for name/purpose'),
+            moduleId: z.string().optional().describe('Filter by module ID'),
+            file: z.string().optional().describe('Filter by file path (partial match)'),
+            exported: z.boolean().optional().describe('Filter by export status'),
+            async: z.boolean().optional().describe('Filter by async functions'),
+            returnType: z.string().optional().describe('Filter by return type (partial match)'),
+            searchBody: z.boolean().optional().default(false).describe('Search inside function source code (slower but more accurate)'),
+            limit: z.number().optional().default(20).describe('Max results'),
+        },
+        async (args: any): Promise<any> => {
+            const { query, moduleId, file, exported, async: isAsync, returnType, searchBody, limit } = args as any
+            const { lock, staleness } = await loadContractAndLock(projectRoot)
+            const functions = Object.values(lock.functions)
+            
+            // Build BM25 index for scoring
+            const { BM25Index, buildFunctionTokens } = await import('@getmikk/core')
+            const bm25 = new BM25Index()
+            functions.forEach((fn, i) => {
+                bm25.addDocument(String(i), buildFunctionTokens(fn))
+            })
+
+            // Helper to get function body from file
+            async function getFunctionBody(fn: any): Promise<string> {
+                if (!fn.file || !fn.lines) return ''
+                try {
+                    const absPath = path.isAbsolute(fn.file) ? fn.file : path.join(projectRoot, fn.file.replace(/\\/g, '/'))
+                    const content = await fs.readFile(absPath, 'utf-8')
+                    const lines = content.split('\n')
+                    const start = Math.max(0, (fn.lines[0] || 1) - 1)
+                    const end = Math.min(lines.length, fn.lines[1] || 50)
+                    return lines.slice(start, end).join('\n')
+                } catch {
+                    return ''
+                }
+            }
+
+            let results = functions
+
+            // Apply filters
+            if (query) {
+                const q = query.toLowerCase()
+                if (searchBody) {
+                    // Search name, purpose, AND actual body
+                    results = await Promise.all(results.map(async (fn) => {
+                        const nameMatch = fn.name?.toLowerCase().includes(q)
+                        const purposeMatch = fn.purpose?.toLowerCase().includes(q)
+                        const body = await getFunctionBody(fn)
+                        const bodyMatch = body.toLowerCase().includes(q)
+                        return { fn, match: nameMatch || purposeMatch || bodyMatch, body }
+                    })).then(arr => arr.filter(r => r.match).map(r => ({ ...r.fn, _body: r.body })))
+                } else {
+                    results = results.filter(f => {
+                        const nameMatch = f.name?.toLowerCase().includes(q)
+                        const purposeMatch = f.purpose?.toLowerCase().includes(q)
+                        return nameMatch || purposeMatch
+                    })
+                }
+            }
+            if (moduleId) {
+                results = results.filter(f => f.moduleId === moduleId)
+            }
+            if (file) {
+                const f = file.toLowerCase()
+                results = results.filter(fn => fn.file?.toLowerCase().includes(f))
+            }
+            if (exported !== undefined) {
+                results = results.filter(f => f.isExported === exported)
+            }
+            if (isAsync !== undefined) {
+                results = results.filter(f => f.isAsync === isAsync)
+            }
+            if (returnType) {
+                const rt = returnType.toLowerCase()
+                results = results.filter(f => f.returnType?.toLowerCase().includes(rt))
+            }
+
+            // Score results with BM25
+            const scoredResults = results.map(fn => {
+                const idx = functions.indexOf(fn)
+                const bm25Score = bm25.search(query || '', 1).find(r => parseInt(r.id) === idx)?.score || 0
+                // Boost exact name matches
+                const exactNameBonus = fn.name?.toLowerCase() === query?.toLowerCase() ? 10 : 0
+                return { fn, score: bm25Score + exactNameBonus }
+            }).sort((a, b) => b.score - a.score)
+
+            const response = {
+                query,
+                searchBody,
+                total: scoredResults.length,
+                results: scoredResults.slice(0, limit).map(r => ({
+                    name: r.fn.name,
+                    file: r.fn.file,
+                    module: r.fn.moduleId,
+                    startLine: r.fn.lines?.[0],
+                    endLine: r.fn.lines?.[1],
+                    isExported: r.fn.isExported,
+                    isAsync: r.fn.isAsync,
+                    params: r.fn.params,
+                    returnType: r.fn.returnType,
+                    purpose: r.fn.purpose,
+                    score: Math.round(r.score * 100) / 100,
+                })),
+                warning: staleness,
+            }
+
+            return { content: [{ type: 'text' as const, text: JSON.stringify(response, null, 2) }] }
+        },
+    )
+
+
+    // TOOL: mikk_file_diff
+
+    ; (server as any).tool(
+        'mikk_file_diff',
+        'Compare two files or show changes between lock state and current filesystem. WHEN TO USE: To see what changed in a file without git.',
+        {
+            file: z.string().describe('File path to check'),
+            compareWith: z.string().optional().describe('Compare with another file path'),
+        },
+        async (args: any): Promise<any> => {
+            const { file, compareWith } = args as any
+            const { lock, staleness } = await loadContractAndLock(projectRoot)
+
+            const absPath = path.isAbsolute(file) ? file : path.join(projectRoot, file)
+            const resolved = path.resolve(absPath)
+            const rootResolved = path.resolve(projectRoot)
+
+            if (!resolved.startsWith(rootResolved + path.sep) && resolved !== rootResolved) {
+                return { content: [{ type: 'text', text: 'Access denied: outside project root' }], isError: true }
+            }
+
+            try {
+                const currentContent = await fs.readFile(resolved, 'utf-8')
+                const currentLines = currentContent.split('\n').length
+
+                // Get lock state if tracked
+                const relPath = path.relative(rootResolved, resolved).replace(/\\/g, '/')
+                const lockFile = lock.files[relPath]
+
+                const response = {
+                    file: relPath,
+                    currentLines,
+                    lockLines: lockFile ? lockFile.lineCount : null,
+                    lockHash: lockFile?.hash || null,
+                    modified: lockFile ? lockFile.hash !== await quickHashFile(resolved) : true,
+                    lockStatus: lockFile ? 'tracked' : 'not tracked',
+                    staleness,
+                }
+
+                // If comparing with another file
+                if (compareWith) {
+                    const comparePath = path.isAbsolute(compareWith) ? compareWith : path.join(projectRoot, compareWith)
+                    const compareResolved = path.resolve(comparePath)
+                    if (compareResolved.startsWith(rootResolved + path.sep) || compareResolved === rootResolved) {
+                        try {
+                            const compareContent = await fs.readFile(compareResolved, 'utf-8')
+                            response['compareWith'] = {
+                                file: path.relative(rootResolved, compareResolved).replace(/\\/g, '/'),
+                                lines: compareContent.split('\n').length,
+                            }
+                        } catch {
+                            // ignore
+                        }
+                    }
+                }
+
+                return { content: [{ type: 'text' as const, text: JSON.stringify(response, null, 2) }] }
+            } catch (err: any) {
+                return { content: [{ type: 'text' as const, text: `Error: ${err.message}` }], isError: true }
+            }
+        },
+    )
+
+
+    // TOOL: mikk_get_call_graph
+
+    ; (server as any).tool(
+        'mikk_get_call_graph',
+        'Generate Mermaid diagram of call graph for a function or module. WHEN TO USE: To visualize how code flows. Great for documentation or understanding complex logic.',
+        {
+            target: z.string().describe('Function name or module ID'),
+            type: z.enum(['function', 'module']).optional().default('function').describe('Target type'),
+            depth: z.number().optional().default(3).describe('Graph depth'),
+            direction: z.enum(['callers', 'callees', 'both']).optional().default('both').describe('Graph direction'),
+        },
+        async (args: any): Promise<any> => {
+            const { target, type, depth, direction } = args as any
+            const { lock, staleness } = await loadContractAndLock(projectRoot)
+
+            let functionIds: string[] = []
+
+            if (type === 'function') {
+                const fn = Object.values(lock.functions).find(
+                    f => f.name === target || f.name.endsWith(`.${target}`) || (f.id ?? '').includes(target),
+                )
+                if (fn) functionIds = [fn.id]
+            } else {
+                functionIds = Object.keys(lock.functions).filter(id => lock.functions[id].moduleId === target)
+            }
+
+            if (functionIds.length === 0) {
+                return { content: [{ type: 'text', text: `Target "${target}" not found` }], isError: true }
+            }
+
+            const visited = new Set<string>()
+            const nodes = new Set<string>()
+            const edges: string[] = []
+
+            const traverse = (fnId: string, currentDepth: number) => {
+                if (currentDepth > depth || visited.has(fnId)) return
+                visited.add(fnId)
+
+                const fn = lock.functions[fnId]
+                if (!fn) return
+
+                const label = fn.name.split(':').pop() || fnId
+                nodes.add(`    ${sanitizeMermaidId(fnId)}["${label}"]`)
+
+                if (direction === 'callees' || direction === 'both') {
+                    for (const callId of fn.calls || []) {
+                        if (!visited.has(callId)) {
+                            edges.push(`    ${sanitizeMermaidId(fnId)} --> ${sanitizeMermaidId(callId)}`)
+                            traverse(callId, currentDepth + 1)
+                        }
+                    }
+                }
+
+                if (direction === 'callers' || direction === 'both') {
+                    for (const callerId of fn.calledBy || []) {
+                        if (!visited.has(callerId)) {
+                            edges.push(`    ${sanitizeMermaidId(callerId)} --> ${sanitizeMermaidId(fnId)}`)
+                            traverse(callerId, currentDepth + 1)
+                        }
+                    }
+                }
+            }
+
+            for (const fnId of functionIds) {
+                traverse(fnId, 0)
+            }
+
+            const mermaidCode = `flowchart TD\n${[...nodes].join('\n')}\n${edges.join('\n')}`
+            const label = type === 'function' ? `Call Graph: ${target}` : `Module: ${target}`
+
+            const response = {
+                label,
+                target,
+                type,
+                depth,
+                direction,
+                mermaid: mermaidCode,
+                nodeCount: nodes.size,
+                edgeCount: edges.length,
+                hint: 'Copy the mermaid code into a markdown file or Mermaid Live Editor to visualize',
+                warning: staleness,
+            }
+
+            return { content: [{ type: 'text' as const, text: JSON.stringify(response, null, 2) }] }
+        },
+    )
+
+
+    // TOOL: mikk_bulk_query
+
+    ; (server as any).tool(
+        'mikk_bulk_query',
+        'Batch query multiple functions at once. Much more efficient than making multiple calls. WHEN TO USE: When you need details on many functions in one go.',
+        {
+            functions: z.array(z.string()).describe('Array of function names to query'),
+            includeBody: z.boolean().optional().default(false).describe('Include function body code'),
+            includeCallGraph: z.boolean().optional().default(true).describe('Include call graph'),
+        },
+        async (args: any): Promise<any> => {
+            const { functions, includeBody, includeCallGraph } = args as any
+            const { lock, staleness } = await loadContractAndLock(projectRoot)
+
+            const results: any[] = []
+            const notFound: string[] = []
+
+            for (const fnName of functions) {
+                const fn = Object.values(lock.functions).find(
+                    f => f.name === fnName || f.name.endsWith(`.${fnName}`) || (f.id ?? '').includes(fnName),
+                )
+
+                if (!fn) {
+                    notFound.push(fnName)
+                    continue
+                }
+
+                let body = ''
+                if (includeBody) {
+                    body = getFunctionBody(fn, projectRoot)
+                }
+
+                const result: any = {
+                    name: fn.name,
+                    file: fn.file,
+                    module: fn.moduleId,
+                    startLine: fn.startLine,
+                    endLine: fn.endLine,
+                    isExported: fn.isExported,
+                    isAsync: fn.isAsync,
+                    params: fn.params,
+                    returnType: fn.returnType,
+                    purpose: fn.purpose,
+                }
+
+                if (includeBody && body) {
+                    result.body = body
+                }
+
+                if (includeCallGraph) {
+                    result.calls = (fn.calls || []).map((id: string) => lock.functions[id]?.name).filter(Boolean)
+                    result.calledBy = (fn.calledBy || []).map((id: string) => lock.functions[id]?.name).filter(Boolean)
+                }
+
+                results.push(result)
+            }
+
+            const response = {
+                requested: functions.length,
+                found: results.length,
+                notFound,
+                functions: results,
+                warning: staleness,
+            }
+
+            return { content: [{ type: 'text' as const, text: JSON.stringify(response, null, 2) }] }
+        },
+    )
+
+
+    // TOOL: mikk_list_files
+
+    ; (server as any).tool(
+        'mikk_list_files',
+        'List all tracked files with filtering. Shows file metadata: language, imports, exports, line count.',
+        {
+            moduleId: z.string().optional().describe('Filter by module'),
+            language: z.string().optional().describe('Filter by language (typescript, javascript, python, etc.)'),
+            hasImports: z.boolean().optional().describe('Filter files with imports'),
+            hasExports: z.boolean().optional().describe('Filter files with exports'),
+            limit: z.number().optional().default(50).describe('Max results'),
+        },
+        async (args: any): Promise<any> => {
+            const { moduleId, language, hasImports, hasExports, limit } = args as any
+            const { lock, staleness } = await loadContractAndLock(projectRoot)
+
+            let files = Object.values(lock.files)
+
+            if (moduleId) {
+                files = files.filter(f => f.moduleId === moduleId)
+            }
+            if (language) {
+                const l = language.toLowerCase()
+                files = files.filter(f => f.language?.toLowerCase() === l)
+            }
+            if (hasImports !== undefined) {
+                files = files.filter(f => hasImports ? (f.imports?.length ?? 0) > 0 : (f.imports?.length ?? 0) === 0)
+            }
+            if (hasExports !== undefined) {
+                files = files.filter(f => hasExports ? (f.exports?.length ?? 0) > 0 : (f.exports?.length ?? 0) === 0)
+            }
+
+            const response = {
+                total: files.length,
+                files: files.slice(0, limit).map(f => ({
+                    path: f.path,
+                    module: f.moduleId,
+                    language: f.language,
+                    imports: f.imports?.slice(0, 5),
+                    importCount: f.imports?.length ?? 0,
+                    exportCount: f.exports?.length ?? 0,
+                    lineCount: f.lineCount,
+                })),
+                warning: staleness,
             }
 
             return { content: [{ type: 'text' as const, text: JSON.stringify(response, null, 2) }] }
