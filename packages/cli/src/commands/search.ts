@@ -222,7 +222,8 @@ export function registerSearchCommand(program: Command) {
     .option('--json', 'Output as JSON')
     
     // Body search
-    .option('-b, --body', 'Include function bodies')
+    .option('-b, --body', 'Include function bodies in output')
+    .option('--search-body', 'Also search inside function bodies (slow for large codebases)')
     .option('--in <names>', 'Search IN function bodies (comma-separated)')
     .option('--in-any', 'Match in ANY of the --in functions')
     .option('--in-all', 'Match in ALL of the --in functions (default)')
@@ -324,15 +325,28 @@ ${chalk.bold('Semantic Search Providers:')}
 
         const lock = await new LockReader().read(lockPath)
         const lockFunctions = lock.functions
+        const lockClasses = lock.classes || {}
+        const lockGenerics = lock.generics || {}
+        
+        // Combine all searchable items: functions, classes, generics
         const allFunctions = Object.values(lockFunctions)
+        const allClasses = Object.values(lockClasses)
+        const allGenerics = Object.values(lockGenerics)
+        
+        // For unified search, map everything to a common format
+        const allItems = [
+            ...allFunctions.map(f => ({ ...f, itemType: 'function' })),
+            ...allClasses.map(c => ({ ...c, itemType: 'class', name: c.name, purpose: c.purpose || '' })),
+            ...allGenerics.map(g => ({ ...g, itemType: 'generic', name: g.name, purpose: g.purpose || '' }))
+        ]
 
         // List modules
         if (options.listModules) {
             const modules = Object.values(lock.modules || {})
             const moduleStats = modules.map(mod => {
                 const fns = allFunctions.filter(f => f.moduleId === mod.id)
-                const types = Object.values(lock.generics || {}).filter(g => g.moduleId === mod.id)
-                const classes = Object.values(lock.classes || {}).filter(c => c.moduleId === mod.id)
+                const types = allGenerics.filter(g => g.moduleId === mod.id)
+                const classes = allClasses.filter(c => c.moduleId === mod.id)
                 return { id: mod.id, files: mod.files?.length || 0, functions: fns.length, types: types.length, classes: classes.length }
             }).sort((a, b) => b.functions - a.functions)
 
@@ -384,8 +398,8 @@ ${chalk.bold('Semantic Search Providers:')}
             return
         }
 
-        // Build filtered function list
-        let filtered = allFunctions
+        // Build filtered list - search across all items (functions, classes, generics)
+        let filtered = allItems
 
         for (const modId of moduleFilters) {
             filtered = filtered.filter(f => f.moduleId.includes(modId) || modId.includes(f.moduleId))
@@ -409,6 +423,36 @@ ${chalk.bold('Semantic Search Providers:')}
 
         if (options.returns) {
             filtered = filtered.filter(f => f.returnType?.toLowerCase().includes(options.returns.toLowerCase()))
+        }
+
+        // Search inside function bodies (new feature)
+        const searchInBodies = options.searchBody === true
+        if (searchInBodies && query) {
+            const bodySearchResults: typeof filtered = []
+            const spinner = ora('Searching function bodies...').start()
+            
+            // Process in batches to show progress
+            const batchSize = 50
+            for (let i = 0; i < filtered.length; i += batchSize) {
+                const batch = filtered.slice(i, i + batchSize)
+                await Promise.all(batch.map(async (fn) => {
+                    try {
+                        const { body } = await getFunctionBody(fn, projectRoot, 0)
+                        if (body && body.toLowerCase().includes(query.toLowerCase())) {
+                            bodySearchResults.push(fn)
+                        }
+                    } catch {}
+                }))
+            }
+            spinner.stop()
+            
+            // Use body search results instead
+            if (bodySearchResults.length > 0) {
+                filtered = bodySearchResults
+            } else {
+                console.log(chalk.yellow(`\nNo functions found containing "${query}" in body`))
+                return
+            }
         }
 
         for (const param of paramFilters) {
