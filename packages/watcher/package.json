@@ -1,6 +1,6 @@
 {
   "name": "@getmikk/watcher",
-  "version": "2.0.15",
+  "version": "2.0.16",
   "publishConfig": {
     "access": "public",
     "registry": "https://registry.npmjs.org/"
@@ -27,7 +27,7 @@
     "lint": "bunx eslint --config ../../eslint.config.mjs ."
   },
   "dependencies": {
-    "@getmikk/core": "workspace:*",
+    "@getmikk/core": "^2.0.16",
     "chokidar": "^4.0.0"
   },
   "devDependencies": {

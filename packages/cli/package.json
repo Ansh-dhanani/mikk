@@ -1,6 +1,6 @@
 {
   "name": "@getmikk/cli",
-  "version": "2.0.15",
+  "version": "2.0.16",
   "publishConfig": {
     "access": "public",
     "registry": "https://registry.npmjs.org/"
@@ -25,10 +25,10 @@
     "lint": "bunx eslint --config ../../eslint.config.mjs ."
   },
   "dependencies": {
-    "@getmikk/ai-context": "workspace:*",
-    "@getmikk/core": "workspace:*",
-    "@getmikk/intent-engine": "workspace:*",
-    "@getmikk/watcher": "workspace:*",
+    "@getmikk/ai-context": "^2.0.16",
+    "@getmikk/core": "^2.0.16",
+    "@getmikk/intent-engine": "^2.0.16",
+    "@getmikk/watcher": "^2.0.16",
     "better-sqlite3": "^12.6.2",
     "chalk": "^5.4.0",
     "chokidar": "^4.0.0",
