@@ -91,16 +91,22 @@ export function registerContextCommands(program: Command) {
 
     // ── mikk context impact <file> ───────────────────────────────────────
     context
-        .command('impact <file> [path]')
-        .description('What breaks if this file changes?')
+        .command('impact <target> [path]')
+        .description('What breaks if this file/function/module changes?')
         .option('--provider <name>', 'Output provider: claude | generic | compact', 'claude')
         .option('--tokens <n>', 'Token budget (default 8000)', '8000')
         .option('--meta', 'Print meta diagnostics')
-        .action(async (file: string, projectPath: string, options: any) => {
+        .option('-f, --files', 'Show only affected files')
+        .option('--functions', 'Show only affected functions')
+        .option('--modules', 'Show affected modules')
+        .option('--depth', 'Show dependency depth per node')
+        .option('--risk', 'Show risk assessment')
+        .option('-j, --json', 'Output as JSON')
+        .option('--max-impact <n>', 'Maximum impacts to show', '50')
+        .action(async (target: string, projectPath: string, options: any) => {
             const projectRoot = projectPath || process.cwd()
 
             try {
-                // Load contract first — fail early if not initialized
                 const { contract, lock } = await loadContractAndLock(projectRoot)
 
                 const spinner = ora('Building dependency graph for impact analysis...').start()
@@ -113,74 +119,149 @@ export function registerContextCommands(program: Command) {
 
                 const analyzer = new ImpactAnalyzer(graph)
 
-                // Find nodes in the specified file — prefer exact match, fall back to substring
-                const normalizedFile = file.replace(/\\/g, '/')
-                let fileNodes = [...graph.nodes.values()].filter(n => n.file === normalizedFile)
-                if (fileNodes.length === 0) {
-                    // Fallback: substring match on basename to avoid false positives
-                    const basename = normalizedFile.split('/').pop() || normalizedFile
-                    fileNodes = [...graph.nodes.values()].filter(n => {
-                        const nodeName = n.file.split('/').pop() || n.file
-                        return nodeName === basename
-                    })
+                // Find the target (file, function, or module)
+                const normalizedTarget = target.replace(/\\/g, '/')
+                let targetNodes = [...graph.nodes.values()].filter(n => 
+                    n.file === normalizedTarget || 
+                    n.id === normalizedTarget ||
+                    n.name === target ||
+                    (n.file.includes(normalizedTarget) || n.file.split('/').pop() === target)
+                )
+
+                if (targetNodes.length === 0) {
+                    // Try matching by function name
+                    targetNodes = [...graph.nodes.values()].filter(n => 
+                        n.name?.toLowerCase().includes(target.toLowerCase())
+                    )
                 }
-                if (fileNodes.length === 0) {
-                    console.log(chalk.yellow(`No nodes found matching "${file}"`))
-                    console.log(chalk.dim('  Tip: use the relative path from project root, e.g. src/lib/auth.ts'))
+
+                if (targetNodes.length === 0) {
+                    console.log(chalk.yellow(`\nNo nodes found matching "${target}"`))
+                    console.log(chalk.dim('  Tip: use relative path, function name, or module id'))
                     return
                 }
 
-                // Only pass the FILE node to impact analyzer (not all functions/classes inside)
-                const fileNode = fileNodes.find(n => n.id === n.file || !n.id.includes(':'))
-                const changedNodeId = fileNode ? fileNode.id : fileNodes[0].id
+                // Get the primary target node
+                const primaryNode = targetNodes[0]
+                const changedNodeId = primaryNode.id
                 const result = analyzer.analyze([changedNodeId])
 
-                // Print impact summary
-                console.log(chalk.bold(`\n💥 Impact Analysis: ${file}\n`))
-                console.log(`  ${chalk.dim('Changed nodes:')}  ${result.changed.length}`)
-                console.log(`  ${chalk.dim('Impacted nodes:')} ${result.impacted.length}`)
-                console.log(`  ${chalk.dim('Depth:')}          ${result.depth}`)
-                console.log(`  ${chalk.dim('Confidence:')}     ${result.confidence}`)
+                // Output format based on flags
+                if (options.json) {
+                    console.log(JSON.stringify({
+                        target: target,
+                        targetType: primaryNode.type,
+                        targetFile: primaryNode.file,
+                        changed: result.changed,
+                        impacted: result.impacted,
+                        depth: result.depth,
+                        confidence: result.confidence,
+                        riskScore: result.riskScore,
+                        modules: [...new Set(result.impacted.map(id => graph.nodes.get(id)?.moduleId).filter(Boolean))],
+                        entryPoints: result.entryPoints,
+                        critical: result.classified?.critical?.length || 0,
+                        high: result.classified?.high?.length || 0,
+                        medium: result.classified?.medium?.length || 0,
+                        low: result.classified?.low?.length || 0
+                    }, null, 2))
+                    return
+                }
 
-                if (result.impacted.length > 0) {
-                    console.log(`\n  ${chalk.bold('Impacted functions:')}`)
-                    for (const id of result.impacted.slice(0, 25)) {
+                // Display impact summary
+                const maxShow = Math.min(result.impacted.length, parseInt(options.maxImpact) || 50)
+                
+                console.log(chalk.bold(`\n💥 Impact Analysis: ${target}`))
+                console.log(chalk.dim(`   Type: ${primaryNode.type} | File: ${primaryNode.file}\n`))
+                
+                // Key metrics
+                console.log(`  ${chalk.cyan('Metrics:')}`)
+                console.log(`    ${chalk.dim('Changed:')}     ${result.changed.length} node(s)`)
+                console.log(`    ${chalk.dim('Impacted:')}   ${result.impacted.length} node(s)`)
+                console.log(`    ${chalk.dim('Depth:')}     ${result.depth} level(s)`)
+                console.log(`    ${chalk.dim('Confidence:')} ${(result.confidence * 100).toFixed(0)}%`)
+                if (result.riskScore !== undefined) {
+                    console.log(`    ${chalk.dim('Risk:')}      ${result.riskScore.toFixed(2)}`)
+                }
+
+                // Show modules if requested
+                if (options.modules) {
+                    const affectedModules = [...new Set(
+                        result.impacted
+                            .map(id => graph.nodes.get(id)?.moduleId)
+                            .filter(Boolean)
+                    )]
+                    console.log(`\n  ${chalk.cyan('Affected Modules:')}`)
+                    for (const mod of affectedModules.slice(0, 20)) {
+                        const count = result.impacted.filter(id => graph.nodes.get(id)?.moduleId === mod).length
+                        console.log(`    ${chalk.yellow('▸')} ${mod} (${count} impacts)`)
+                    }
+                    if (affectedModules.length > 20) {
+                        console.log(chalk.dim(`    ... and ${affectedModules.length - 20} more`))
+                    }
+                }
+
+                // Show files only
+                if (options.files) {
+                    const affectedFiles = [...new Set(
+                        result.impacted
+                            .map(id => graph.nodes.get(id)?.file)
+                            .filter(Boolean)
+                    )]
+                    console.log(`\n  ${chalk.cyan('Affected Files:')}`)
+                    for (const file of affectedFiles.slice(0, maxShow)) {
+                        const displayFile = file.length > 60 ? '...' + file.slice(-57) : file
+                        console.log(`    ${chalk.yellow('▸')} ${displayFile}`)
+                    }
+                    if (affectedFiles.length > maxShow) {
+                        console.log(chalk.dim(`    ... and ${affectedFiles.length - maxShow} more`))
+                    }
+                }
+                // Show functions only
+                else if (options.functions) {
+                    console.log(`\n  ${chalk.cyan('Affected Functions:')}`)
+                    for (const id of result.impacted.slice(0, maxShow)) {
                         const node = graph.nodes.get(id)
-                        console.log(`    ${chalk.yellow('→')} ${node?.name ?? id} ${chalk.dim(`(${node?.file ?? ''})`)}`)
+                        if (node?.type === 'function') {
+                            console.log(`    ${chalk.yellow('→')} ${node.name} ${chalk.dim(`(${node.file.split('/').pop()})`)}`)
+                        }
                     }
-                    if (result.impacted.length > 25) {
-                        console.log(chalk.dim(`    ... and ${result.impacted.length - 25} more`))
-                    }
-                }
-
-                // Also build AI context focused on the impacted set
-                let focusFiles = [file]
-                if (result.impacted.length === 0) {
-                    const normalizedTarget = file.replace(/\\/g, '/')
-                    const importers = Object.values(lock.files)
-                        .filter(f => f.imports?.some(imp => imp.resolvedPath === normalizedTarget))
-                        .map(f => f.path)
-                    if (importers.length > 0) {
-                        focusFiles = [...focusFiles, ...importers]
+                    if (result.impacted.length > maxShow) {
+                        console.log(chalk.dim(`    ... and ${result.impacted.length - maxShow} more`))
                     }
                 }
-
-                const query: ContextQuery = {
-                    task: `Understanding the impact of changes in ${file}`,
-                    focusFiles,
-                    tokenBudget: parseIntOption(options.tokens, 'tokens', 8000),
-                    maxHops: 3,
+                // Default: show all impacted items with details
+                else {
+                    console.log(`\n  ${chalk.cyan('Impacted Items:')}`)
+                    for (const id of result.impacted.slice(0, maxShow)) {
+                        const node = graph.nodes.get(id)
+                        const typeTag = node?.type === 'function' ? 'fn' : 
+                                       node?.type === 'class' ? 'class' : 'file'
+                        const depthInfo = options.depth ? ` [d${result.allImpacted?.find(i => i.nodeId === id)?.depth || 0}]` : ''
+                        const riskInfo = options.risk && result.allImpacted ? 
+                            ` ${chalk.yellow(result.allImpacted.find(i => i.nodeId === id)?.risk || '')}` : ''
+                        console.log(`    ${chalk.yellow('→')} ${node?.name || id} ${chalk.dim(`<${typeTag}>`)}${depthInfo}${riskInfo}`)
+                    }
+                    if (result.impacted.length > maxShow) {
+                        console.log(chalk.dim(`    ... and ${result.impacted.length - maxShow} more`))
+                    }
                 }
-                const builder = new ContextBuilder(contract, lock)
-                const { ctx } = buildContextWithOptionalFallback(builder, query, false)
-                const provider = getProvider(options.provider)
 
-                if (options.meta) {
-                    printMeta(ctx.meta, `impact: ${file}`)
+                // Show risk breakdown if requested
+                if (options.risk && result.classified) {
+                    console.log(`\n  ${chalk.cyan('Risk Breakdown:')}`)
+                    if (result.classified.critical?.length) {
+                        console.log(`    ${chalk.red('●')} CRITICAL: ${result.classified.critical.length}`)
+                    }
+                    if (result.classified.high?.length) {
+                        console.log(`    ${chalk.yellow('●')} HIGH: ${result.classified.high.length}`)
+                    }
+                    if (result.classified.medium?.length) {
+                        console.log(`    ${chalk.blue('●')} MEDIUM: ${result.classified.medium.length}`)
+                    }
+                    if (result.classified.low?.length) {
+                        console.log(`    ${chalk.green('●')} LOW: ${result.classified.low.length}`)
+                    }
                 }
-
-                console.log('\n' + chalk.bold('=== AI Context for impacted area ==='))
-                console.log(provider.formatContext(ctx))
 
             } catch (err: unknown) {
                 const message = err instanceof Error ? err.message : String(err)
