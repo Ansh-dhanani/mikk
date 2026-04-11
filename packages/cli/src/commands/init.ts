@@ -292,7 +292,9 @@ export function registerInitCommand(program: Command) {
                         const lockPath = path.join(projectRoot, 'mikk.lock.json')
                         const lockContent = await fs.readFile(lockPath, 'utf-8')
                         const lock = JSON.parse(lockContent)
-                        const searcher = new SemanticSearcher(projectRoot)
+                        const searcher = new SemanticSearcher(projectRoot, (progress) => {
+                            embSpinner.text = `Generating embeddings for semantic search... ${progress}%`
+                        })
                         await searcher.index(lock)
                         embSpinner.succeed('Embeddings generated')
                     } else {

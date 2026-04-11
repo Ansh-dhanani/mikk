@@ -43,7 +43,9 @@ export function registerEmbeddingsCommand(program: Command) {
                     process.exit(1)
                 }
 
-                const searcher = new SemanticSearcher(projectRoot)
+                const searcher = new SemanticSearcher(projectRoot, (progress) => {
+                    spinner.text = `Generating embeddings... ${progress}%`
+                })
                 
                 if (!options.force) {
                     spinner.text = 'Checking cache...'

@@ -247,7 +247,9 @@ export function registerAnalyzeCommand(program: Command) {
                 try {
                     const { SemanticSearcher } = await import('@getmikk/intent-engine')
                     if (await SemanticSearcher.isAvailable()) {
-                        const searcher = new SemanticSearcher(projectRoot)
+                        const searcher = new SemanticSearcher(projectRoot, (progress) => {
+                            embSpinner.text = `Generating embeddings for semantic search... ${progress}%`
+                        })
                         await searcher.index(preparedLock)
                         embSpinner.succeed('Embeddings generated')
                     } else {

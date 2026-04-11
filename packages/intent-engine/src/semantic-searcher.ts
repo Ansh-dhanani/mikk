@@ -41,7 +41,7 @@ export class SemanticSearcher {
     private pipeline: any = null
     private cache: EmbeddingCache | null = null
 
-    constructor(private readonly projectRoot: string) {
+    constructor(private readonly projectRoot: string, private readonly onProgress?: (percent: number) => void) {
         this.cachePath = path.join(projectRoot, '.mikk', 'embeddings.json')
     }
 
@@ -97,11 +97,15 @@ export class SemanticSearcher {
         await this.ensurePipeline()
         const embeddings: Record<string, number[]> = {}
         const BATCH = 64
+        const total = fns.length
         for (let i = 0; i < fns.length; i += BATCH) {
             const batch = texts.slice(i, i + BATCH)
             const output = await this.pipeline(batch, { pooling: 'mean', normalize: true })
             for (let j = 0; j < batch.length; j++) {
                 embeddings[fns[i + j].id] = Array.from(output[j].data as Float32Array)
+            }
+            if (this.onProgress) {
+                this.onProgress(Math.round(((i + BATCH) / total) * 100))
             }
         }
 
