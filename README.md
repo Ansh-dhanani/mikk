@@ -105,7 +105,7 @@ Running `mikk init` produces:
 
 ---
 
-## MCP Server — 23 Tools
+## MCP Server — 28 Tools
 
 Connect to Claude Desktop, Cursor, VS Code Copilot, or any MCP-compatible client.
 
@@ -125,6 +125,10 @@ Connect to Claude Desktop, Cursor, VS Code Copilot, or any MCP-compatible client
 | `mikk_get_function_detail` | Params, return type, call graph, source body, and line range. |
 | `mikk_search_functions` | Hybrid search combining multiple algorithms. |
 | `mikk_semantic_search` | Natural-language function search using embeddings. |
+| `mikk_find_function` | Find a function by name or pattern. |
+| `mikk_find_by_signature` | Find functions matching a signature. |
+| `mikk_find_by_location` | Find functions at a specific line in a file. |
+| `mikk_find_similar` | Find semantically similar functions. |
 | `mikk_find_usages` | Every function that calls a specific function. |
 | `mikk_get_file` | Raw source of any project file. |
 | `mikk_read_file` | Source scoped to specific functions. |
@@ -133,6 +137,7 @@ Connect to Claude Desktop, Cursor, VS Code Copilot, or any MCP-compatible client
 ### Safety Tools
 | Tool | Description |
 |---|---|
+| `mikk_test_tool` | A simple test tool that returns a static message. |
 | `mikk_before_edit` | Call before editing. Returns blast radius and constraint violations. |
 | `mikk_validate_edit` | Pre-edit validation with intent analysis and recommendations. |
 | `mikk_impact_analysis` | Full blast radius classified by severity. |
