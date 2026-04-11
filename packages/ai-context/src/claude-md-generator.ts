@@ -32,7 +32,8 @@ export class ClaudeMdGenerator {
         private lock: MikkLock,
         private tokenBudget: number = DEFAULT_TOKEN_BUDGET,
         meta?: ProjectMeta,
-        private projectRoot?: string
+        private projectRoot?: string,
+        private onProgress?: (percent: number) => void
     ) {
         this.meta = meta || {}
     }
@@ -43,11 +44,13 @@ export class ClaudeMdGenerator {
         let usedTokens = 0
 
         // --- Tier 1: Summary (always included) ----------------------
+        this.onProgress?.(5)
         const summary = this.generateSummary()
         sections.push(summary)
         usedTokens += countTokens(summary)
 
         // --- Tech stack & conventions (always included if detectable) ---
+        this.onProgress?.(10)
         const techSection = this.generateTechStackSection()
         if (techSection) {
             sections.push(techSection)
@@ -55,6 +58,7 @@ export class ClaudeMdGenerator {
         }
 
         // --- Build / test / run commands -----------------------------
+        this.onProgress?.(15)
         const commandsSection = this.generateCommandsSection()
         if (commandsSection) {
             sections.push(commandsSection)
@@ -63,6 +67,7 @@ export class ClaudeMdGenerator {
 
         // --- Tier 2: Module details (if budget allows) --------------
         // Skip modules with zero functions — they waste AI tokens
+        this.onProgress?.(20)
         const modules = this.getModulesSortedByDependencyOrder()
             .filter(m => {
                 const fnCount = Object.values(this.lock.functions)
@@ -70,8 +75,9 @@ export class ClaudeMdGenerator {
                 return fnCount > 0
             })
 
-        for (const module of modules) {
-            const moduleSection = this.generateModuleSection(module.id)
+        const totalModules = modules.length
+        for (let i = 0; i < modules.length; i++) {
+            const moduleSection = this.generateModuleSection(modules[i].id)
             const tokens = countTokens(moduleSection)
             if (usedTokens + tokens > this.tokenBudget) {
                 sections.push('\n  <!-- Full details truncated due to context budget -->\n')
@@ -79,11 +85,15 @@ export class ClaudeMdGenerator {
             }
             sections.push(moduleSection)
             usedTokens += tokens
+            // Progress: 20% to 70% based on modules processed
+            this.onProgress?.(20 + Math.round((i / totalModules) * 50))
         }
+        this.onProgress?.(70)
 
         sections.push('</modules>\n')
 
         // --- Context files: schemas, data models, config ---------
+        this.onProgress?.(75)
         const contextSection = this.generateContextFilesSection()
         if (contextSection) {
             const ctxTokens = countTokens(contextSection)
@@ -94,6 +104,7 @@ export class ClaudeMdGenerator {
         }
 
         // --- File import graph per module ----------------------------
+        this.onProgress?.(80)
         const importSection = this.generateImportGraphSection()
         if (importSection) {
             const impTokens = countTokens(importSection)
@@ -104,6 +115,7 @@ export class ClaudeMdGenerator {
         }
 
         // --- HTTP Routes (Express + Next.js) -------------------------
+        this.onProgress?.(85)
         const routesSection = this.generateRoutesSection()
         if (routesSection) {
             const routeTokens = countTokens(routesSection)
@@ -114,6 +126,7 @@ export class ClaudeMdGenerator {
         }
 
         // --- Tier 3: Constraints & decisions ------------------------
+        this.onProgress?.(90)
         const constraintsSection = this.generateConstraintsSection()
         const constraintTokens = countTokens(constraintsSection)
         if (usedTokens + constraintTokens <= this.tokenBudget) {

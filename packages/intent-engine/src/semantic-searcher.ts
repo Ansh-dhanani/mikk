@@ -152,10 +152,16 @@ export class SemanticSearcher {
         }).filter((r): r is SemanticMatch => r !== null)
     }
 
-    private async ensurePipeline() {
+    private async ensurePipeline(progressMsg?: string) {
         if (this.pipeline) return
+        if (progressMsg && this.onProgress) {
+            this.onProgress(0)
+        }
         const { pipeline } = await import('@xenova/transformers')
         this.pipeline = await pipeline('feature-extraction', SemanticSearcher.MODEL)
+        if (this.onProgress) {
+            this.onProgress(5)
+        }
     }
 }
 

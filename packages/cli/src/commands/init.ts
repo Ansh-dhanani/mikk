@@ -264,7 +264,9 @@ export function registerInitCommand(program: Command) {
                         dependencies: pkgJson.dependencies,
                         devDependencies: pkgJson.devDependencies,
                     }
-                    const mdGenerator = new ClaudeMdGenerator(contract, preparedLock, undefined, meta, projectRoot)
+                    const mdGenerator = new ClaudeMdGenerator(contract, preparedLock, undefined, meta, projectRoot, (progress) => {
+                        aiSpinner.text = `Generating AI context files... ${progress}%`
+                    })
                     const claudeMd = mdGenerator.generate()
                     artifactWrites.push({
                         targetPath: path.join(projectRoot, 'claude.md'),
@@ -317,7 +319,7 @@ export function registerInitCommand(program: Command) {
                 console.log(`  ${chalk.dim('claude.md')}          — AI context derived from lock file`)
                 console.log(`  ${chalk.dim('AGENTS.md')}          — same, for Codex/Copilot agents`)
                 console.log(`  ${chalk.dim('.clinerules')}        — auto-imported system instructions for Cline/OpenClaw agents`)
-                console.log(`\n  ${chalk.dim('Stats:')} ${files.length} files, ${functionCount} functions, ${clusters.length} modules`)
+                console.log(`\n  ${chalk.dim('Stats:')} ${files.length} files, ${parsedFunctionCount} functions, ${clusters.length} modules`)
                 console.log(`\n  ${chalk.dim('Next:')} Review mikk.json and refine module descriptions`)
                 console.log(`  ${chalk.dim('Run:')}  mikk contract validate to check for drift`)
 
