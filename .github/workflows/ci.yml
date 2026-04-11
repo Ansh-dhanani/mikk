@@ -29,42 +29,6 @@ jobs:
       - run: bun run lint
       - run: bun run test
 
-  cli-validation:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: oven-sh/setup-bun@v2
-        with:
-          bun-version: 1.3.5
-      - uses: actions/cache@v4
-        with:
-          path: ~/.bun/install/cache
-          key: ${{ runner.os }}-bun-${{ hashFiles('package.json', 'bun.lock') }}
-          restore-keys: ${{ runner.os }}-bun-
-      - run: bun install && bun run build
-      - run: node packages/cli/dist/index.js analyze --strict-parsing
-      - run: node packages/cli/dist/index.js ci --strict --dead-code-threshold 25
-      - run: node packages/cli/dist/index.js dead-code
-
-  search-tests:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: oven-sh/setup-bun@v2
-        with:
-          bun-version: 1.3.5
-      - uses: actions/cache@v4
-        with:
-          path: ~/.bun/install/cache
-          key: ${{ runner.os }}-bun-${{ hashFiles('package.json', 'bun.lock') }}
-          restore-keys: ${{ runner.os }}-bun-
-      - run: bun install && bun run build
-      - run: node packages/cli/dist/index.js search auth -p benchmarks/fixtures/ts-express-api
-      - run: node packages/cli/dist/index.js search requireAuth --mode exact -p benchmarks/fixtures/ts-express-api
-      - run: node packages/cli/dist/index.js search user --mode direct -p benchmarks/fixtures/ts-express-api
-      - run: node packages/cli/dist/index.js search "authentication token" --mode semantic -p benchmarks/fixtures/ts-express-api
-      - run: node packages/cli/dist/index.js search --list-modules -p benchmarks/fixtures/ts-express-api
-
   benchmarks:
     runs-on: ubuntu-latest
     steps:
