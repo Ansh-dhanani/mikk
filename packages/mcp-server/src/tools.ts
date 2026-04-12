@@ -2651,6 +2651,18 @@ export function registerTools(server: McpServer, projectRoot: string) {
                 { id: 'webhook_url', pattern: /(?:webhook[_-]?url\s*[=:]\s*['"`](https?:\/\/[^'"`]+)['"`]/i, severity: 'medium', label: 'Webhook URL', envVar: 'WEBHOOK_URL' },
                 // Passwords in config
                 { id: 'config_password', pattern: /(?:password\s*:\s*['"`]([^'"`]{6,})['"`]/i, severity: 'high', label: 'Password in config', envVar: 'PASSWORD', needsContext: ['password', 'pwd'] },
+
+                // === PII DETECTION ===
+                { id: 'email_address', pattern: /[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/, severity: 'medium', label: 'Email Address', envVar: 'EMAIL', needsContext: ['email', 'mail', 'contact'] },
+                { id: 'phone_us', pattern: /(?:\+1[-.]?)?\(?[0-9]{3}\)?[-. ]?[0-9]{3}[-. ]?[0-9]{4}/, severity: 'medium', label: 'Phone Number', envVar: 'PHONE', needsContext: ['phone', 'tel', 'mobile'] },
+                { id: 'ssn', pattern: /\b\d{3}-\d{2}-\d{4}\b/, severity: 'high', label: 'SSN', envVar: 'SSN' },
+                { id: 'credit_card', pattern: /\b(?:\d{4}[- ]?){3}\d{4}\b/, severity: 'high', label: 'Credit Card', envVar: 'CARD_NUMBER', needsContext: ['card', 'credit'] },
+
+                // === VULNERABILITY DETECTION ===
+                { id: 'sql_injection', pattern: /`SELECT.*\$\{.*\}`/i, severity: 'critical', label: 'SQL Injection', envVar: 'SQL_VULN' },
+                { id: 'eval_usage', pattern: /\beval\s*\(/, severity: 'critical', label: 'Dangerous eval()', envVar: 'CODE_EXEC' },
+                { id: 'react_xss', pattern: /dangerouslySetInnerHTML\s*=\s*\{\s*\{\s*__html/, severity: 'high', label: 'React XSS', envVar: 'XSS_VULN' },
+                { id: 'cors_wildcard', pattern: /Access-Control-Allow-Origin\s*['":]*\s*['"]?\*['"]?/i, severity: 'high', label: 'CORS Wildcard', envVar: 'CORS_VULN' },
             ]
 
             const severityOrder = { critical: 4, high: 3, medium: 2 }
