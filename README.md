@@ -77,11 +77,10 @@ Or use the auto-installer: `mikk mcp install`
 - `mikk.json` — your architecture contract (modules, constraints, ADRs)
 - `mikk.lock.json` — full codebase snapshot (functions, files, call edges, hashes)
 - `claude.md` / `AGENTS.md` — token-budgeted AI context files, auto-regenerated on `mikk analyze`
-- `.mikk/diagrams/` — Mermaid diagrams (architecture, health, dependency matrix, module capsules, impact)
 
 ---
 
-## MCP Server — 40 Tools
+## MCP Server — 37 Tools
 
 Connect to Claude Desktop, Cursor, VS Code Copilot, or any MCP-compatible client.
 
@@ -96,9 +95,9 @@ Connect to Claude Desktop, Cursor, VS Code Copilot, or any MCP-compatible client
 ### Planning Tools
 | Tool | Description |
 |---|---|
-| `mikk_change_plan` | **One-shot pre-flight.** Scope + impact + constraints + risk in a single call. Start every complex task here. |
+| `mikk_change_plan` | **One-shot pre-flight.** Scope + impact + constraints + risk in a single call. |
 | `mikk_scope_check` | Minimal set of files to touch for a task. The inverse of impact analysis. |
-| `mikk_explain_risk` | Human-readable breakdown of why a function has a high risk score, with hot paths and recommendations. |
+| `mikk_explain_risk` | Human-readable breakdown of why a function has a high risk score. |
 
 ### Navigation Tools
 | Tool | Description |
@@ -121,19 +120,23 @@ Connect to Claude Desktop, Cursor, VS Code Copilot, or any MCP-compatible client
 | `mikk_list_files` | All tracked files with metadata (language, imports, exports, line count). |
 | `mikk_get_class_detail` | Class details: methods, properties, inheritance, decorators. |
 | `mikk_get_generic_detail` | Type/interface details: type parameters, extends clauses. |
-| `mikk_get_call_graph` | Mermaid call graph for a function or module. |
+| `mikk_get_call_graph` | Call graph for a function or module. |
 | `mikk_bulk_query` | Batch multiple function detail queries in one call. |
 
 ### Safety Tools
 | Tool | Description |
 |---|---|
 | `mikk_before_edit` | **Call before editing.** Blast radius, exported functions at risk, constraint violations, circular deps. |
-| `mikk_validate_edit` | Pre-edit validation with intent analysis, 6 safety gates, and auto-correction suggestions. |
 | `mikk_impact_analysis` | Full blast radius classified by severity (critical / high / medium / low). |
 | `mikk_dead_code` | Dead functions with multi-pass exemptions (exports, entry points, route handlers, tests). |
-| `mikk_get_dead_code` | Dead code with filters: module, complexity, exported status. |
 | `mikk_get_complexity` | Functions above a cyclomatic complexity threshold. |
-| `mikk_security_scan` | Scan for hardcoded secrets, injection, weak crypto, path traversal, command injection. |
+| `mikk_get_constraints` | All architectural constraints and ADRs from `mikk.json`. |
+
+### Security Tools
+| Tool | Description |
+|---|---|
+| `mikk_secrets_scan` | Scan for hardcoded secrets, injection, weak crypto, path traversal. |
+| `mikk_secrets_replace` | Auto-extract secrets to process.env references. |
 
 ### Refactoring Tools
 | Tool | Description |
@@ -141,13 +144,6 @@ Connect to Claude Desktop, Cursor, VS Code Copilot, or any MCP-compatible client
 | `mikk_rename` | Coordinated multi-file rename plan — all call sites and import locations. |
 | `mikk_git_diff_impact` | Map git diff hunks to affected symbols. |
 | `mikk_file_diff` | Drift between lock state and current filesystem for a file. |
-
-### Project Tools
-| Tool | Description |
-|---|---|
-| `mikk_get_constraints` | All architectural constraints and ADRs from `mikk.json`. |
-| `mikk_manage_adr` | CRUD for Architectural Decision Records. ADRs surface in every `mikk_query_context` response. |
-| `mikk_test_tool` | Smoke test — verifies MCP connection is alive. |
 
 ---
 
@@ -188,7 +184,7 @@ Define module boundaries and rules in `mikk.json`:
 ## CLI Reference
 
 ```bash
-mikk init                      # Full scan — graph, lock, diagrams, claude.md
+mikk init                      # Full scan — graph, lock, claude.md
 mikk init --strict-parsing    # Fail if parser diagnostics are detected
 mikk analyze                   # Re-analyze after code changes
 mikk analyze --strict-parsing  # CI-friendly parse completeness enforcement
@@ -256,11 +252,10 @@ mikk remove                   # Uninstall and delete artifacts
 |---|---|
 | `@getmikk/core` | AST parsing, dependency graph, BM25 search, Merkle hashing, boundary checker, risk/confidence engines |
 | `@getmikk/cli` | CLI commands |
-| `@getmikk/mcp-server` | 40 MCP tools, project cache with mtime-based invalidation |
+| `@getmikk/mcp-server` | 37 MCP tools, project cache with mtime-based invalidation |
 | `@getmikk/ai-context` | BFS context builder, token budgeting, `claude.md` generation |
 | `@getmikk/intent-engine` | Pre-edit validation, 6 safety gates, decision engine, auto-correction, semantic search |
 | `@getmikk/watcher` | Incremental file watcher daemon with atomic lock writes |
-| `@getmikk/diagram-generator` | 7 Mermaid diagram types with cohesion/coupling metrics |
 | `@getmikk/vscode-extension` | Status bar, dead code view, impact analysis inline |
 
 ---

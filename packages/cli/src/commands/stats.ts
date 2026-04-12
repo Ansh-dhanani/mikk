@@ -10,7 +10,7 @@ import { panel, kv, infoBar, healthBar, gap, tw } from '../ui.js'
 export function registerStatsCommand(program: Command) {
     program
         .command('stats [path]')
-        .description('Show codebase health statistics (functions, modules, dead code, violations)')
+        .description('Codebase health (functions, modules, dead code %)')
         .option('--format <fmt>', 'Output format: text or json', 'text')
         .addHelpText('after',
           `\nExamples:\n` +

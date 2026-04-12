@@ -211,7 +211,7 @@ export function registerSearchCommand(program: Command) {
   program
     .command('search [query...]', { isDefault: false })
     .alias('s')
-    .description('Powerful search with filters, body search, and suggestions')
+    .description('Find functions by name (exact, fuzzy, body search)')
     .option('-p, --path <path>', 'Project path')
     
     // Output options

@@ -18,7 +18,7 @@ description: Complete schema reference for the mikk.json architecture contract f
       required: true,
     },
     project: {
-      description: "Project metadata used for generated artifacts (claude.md, AGENTS.md, diagrams).",
+      description: "Project metadata used for generated artifacts (claude.md, AGENTS.md).",
       type: "object",
       required: true,
     },
@@ -60,11 +60,11 @@ description: Complete schema reference for the mikk.json architecture contract f
       required: true,
     },
     framework: {
-      description: "Optional framework hint used for diagram labels.",
+      description: "Optional framework hint used for AI context labels.",
       type: "string",
     },
     entryPoints: {
-      description: "Optional list of entry point file paths for flow diagrams.",
+      description: "Optional list of entry point file paths for context.",
       type: "string[]",
     },
   }}
@@ -80,12 +80,12 @@ description: Complete schema reference for the mikk.json architecture contract f
       required: true,
     },
     name: {
-      description: "Human-readable module name used in diagrams and AI context.",
+      description: "Human-readable module name used in AI context.",
       type: "string",
       required: true,
     },
     description: {
-      description: "Module description used as context for AI queries and diagram tooltips.",
+      description: "Module description used as context for AI queries.",
       type: "string",
       required: true,
     },

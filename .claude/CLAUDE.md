@@ -35,10 +35,9 @@ Mikk is a Turborepo monorepo:
 
 - `packages/core` — Parser (TS Compiler API + Go regex), graph builder, hash, contracts
 - `packages/mcp-server` — MCP tools and resources
-- `packages/cli` — CLI commands (init, analyze, ci, watch, visualize)
+- `packages/cli` — CLI commands (init, analyze, ci, watch)
 - `packages/ai-context` — Context builder with token budgeting
 - `packages/intent-engine` — Semantic search + conflict detection
-- `packages/diagram-generator` — 7 Mermaid diagram types
 - `packages/watcher` — Live file watch daemon
 - `packages/vscode-extension` — VS Code integration
 

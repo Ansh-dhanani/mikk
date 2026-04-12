@@ -3,7 +3,10 @@
   "mcp": {
     "mikk": {
       "type": "local",
-      "command": ["npx", "-y", "@getmikk/cli", "mcp", "start"]
+      "command": ["bun", "run", "packages/mcp-server/src/stdio.ts"],
+      "env": {
+        "MIKK_PROJECT_ROOT": "."
+      }
     }
   }
 }

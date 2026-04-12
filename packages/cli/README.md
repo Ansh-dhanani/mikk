@@ -5,7 +5,7 @@
 [![npm](https://img.shields.io/npm/v/@getmikk/cli)](https://www.npmjs.com/package/@getmikk/cli)
 [![License: Apache-2.0](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](../../LICENSE)
 
-`@getmikk/cli` wires together the entire Mikk ecosystem — parsing, graph building, Merkle hashing, diagram generation, AI context, intent pre-flight, MCP server — into a single developer workflow.
+`@getmikk/cli` wires together the entire Mikk ecosystem — parsing, graph building, Merkle hashing, AI context, intent pre-flight, MCP server — into a single developer workflow.
 
 > Part of [Mikk](../../README.md) — live architectural context for your AI agent.
 
@@ -32,7 +32,6 @@ Scans all source files, builds the dependency graph, detects modules, and writes
 
 - `mikk.json` — architecture contract
 - `mikk.lock.json` — full codebase snapshot
-- `.mikk/diagrams/` — 7 Mermaid diagrams
 - `claude.md` + `AGENTS.md` — AI context files
 
 ---

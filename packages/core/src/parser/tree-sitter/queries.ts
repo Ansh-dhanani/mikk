@@ -300,24 +300,20 @@ export const SCALA_QUERIES = `
 (function_definition (identifier) @call.name) @call
 `;
 
-// Dart queries - reuse Swift queries  
-export const DART_QUERIES = SWIFT_QUERIES;
+export const DART_QUERIES = `
+(class_definition name: (type_identifier) @name) @definition.class
+(method_declaration name: (identifier) @name) @definition.method
+(function_declaration name: (identifier) @name) @definition.function
+(constructor_declaration name: (identifier) @name) @definition.constructor
+(import_directive source: (string_literal) @import.source) @import
+(method_invocation name: (identifier) @call.name) @call
+(function_invocation name: (identifier) @call.name) @call
+`;
 
 // Zig queries - uses function_declaration
 export const ZIG_QUERIES = `
 (function_declaration (identifier) @name) @definition.function
 (variable_declaration (identifier) @name) @definition.const
-`;
-
-// Haskell queries
-export const HASKELL_QUERIES = `
-(class_declaration name: (type) @name) @definition.class
-(function_declaration name: (variable) @name) @definition.function
-(type_signature (variable) @name) @definition.function
-(import_statement (qualified_module) @import.source) @import
-(import_statement (module) @import.source) @import
-(call_expression (variable) @call.name) @call
-(call_expression (qualified_method) @call.name) @call
 `;
 
 // Elixir queries - uses call nodes for everything
@@ -326,44 +322,9 @@ export const ELIXIR_QUERIES = `
 (call (identifier) @call.name) @call
 `;
 
-// Clojure queries
-export const CLOJURE_QUERIES = `
-(namespaceDeclaration name: (symbol) @name) @definition.namespace
-(defn name: (symbol) @name) @definition.function
-(def name: (symbol) @name) @definition.var
-(require :refer (symbol) @import.source) @import
-`;
-
-// F# queries
-export const FSHARP_QUERIES = `
-(type_definition name: (type) @name) @definition.type
-(function_definition name: (identifier) @name) @definition.function
-(binding name: (identifier) @name) @definition.var
-(openStatement (identifier) @import.source) @import
-`;
-
 // OCaml queries - uses value_definition and value_name
 export const OCAML_QUERIES = `
 (value_definition (let_binding (value_name) @name)) @definition.function
-`;
-
-// Perl queries
-export const PERL_QUERIES = `
-(package_declaration name: (package) @name) @definition.package
-(subroutine_definition name: (identifier) @name) @definition.function
-`;
-
-// R queries
-export const R_QUERIES = `
-(function_definition name: (identifier) @name) @definition.function
-(assignment_left name: (identifier) @name) @definition.var
-`;
-
-// Julia queries
-export const JULIA_QUERIES = `
-(function_definition name: (identifier) @name) @definition.function
-(struct_definition name: (identifier) @name) @definition.struct
-(import_statement (identifier) @import.source) @import
 `;
 
 // Lua queries - uses function_definition_statement
@@ -373,18 +334,25 @@ export const LUA_QUERIES = `
 (local_variable_declaration (variable_list (identifier) @name)) @definition.local
 `;
 
-// SQL queries
-export const SQL_QUERIES = `
-(create_table (identifier) @name) @definition.table
-(create_index (identifier) @name) @definition.index
-`;
-
-// HCL (Terraform) queries - reuse generic
-export const HCL_QUERIES = `
-(block (identifier) @name) @definition.block
-`;
-
 // Bash/Shell queries
 export const BASH_QUERIES = `
 (function_definition name: (word) @name) @definition.function
+`;
+
+// CSS queries
+export const CSS_QUERIES = `
+(tag_name) @definition.tag
+(class_name) @definition.class
+(id_name) @definition.id
+(property_name) @definition.property
+(at_keyword) @definition.at-rule
+`;
+
+// JSON queries (simple key-value)
+export const JSON_QUERIES = `
+(string) @definition.key
+(number) @definition.value
+(true) @definition.value
+(false) @definition.value
+(null) @definition.value
 `;

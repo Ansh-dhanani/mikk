@@ -36,6 +36,8 @@
     "ora": "^8.0.0",
     "oxc-parser": "^0.121.0",
     "oxc-resolver": "^11.19.1",
+    "web-tree-sitter": "^0.20.8",
+    "tree-sitter-wasms": "^0.1.13",
     "zod": "^3.22.0"
   },
   "devDependencies": {

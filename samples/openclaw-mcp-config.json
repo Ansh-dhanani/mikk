@@ -1,0 +1,12 @@
+{
+  "mcp": {
+    "servers": {
+      "mikk": {
+        "command": "bun",
+        "args": ["run", "packages/mcp-server/src/stdio.ts"],
+        "description": "Mikk AI Agent - project intelligence, secrets detection, code analysis",
+        "transport": "stdio"
+      }
+    }
+  }
+}

@@ -17,7 +17,7 @@ import { patchFileContent } from '../utils.js'
 export function registerInitCommand(program: Command) {
     program
         .command('init')
-        .description('Initialize Mikk in this project (creates mikk.json, lock, AI context)')
+        .description('First-time setup. Creates: mikk.json, lock, claude.md, AGENTS.md')
         .option('--force', 'Overwrite existing mikk.json and lock file')
         .option('--strict-parsing', 'Fail if any files could not be parsed cleanly')
         .option('--no-context', 'Skip context file discovery for faster init')

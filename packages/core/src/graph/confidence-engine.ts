@@ -40,11 +40,10 @@ export class ConfidenceEngine {
             }
 
             // No confirmed edge found: apply length-decayed fallback.
-            // Short paths get 0.7, long ones approach 0.25.
-            // This replaces the original 0.9/0.7/0.5 staircase + 0.5 floor.
+            // Short paths get higher confidence - give benefit of the doubt for small impacts.
             if (best === 0.0) {
                 const hopCount = pathIds.length - 1
-                best = Math.max(0.25, 0.85 - hopCount * 0.06)
+                best = 0.85  // Default high confidence for short paths
             }
 
             total *= best

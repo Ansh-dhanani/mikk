@@ -7,116 +7,209 @@ import { hashContent } from '../../hash/file-hasher.js'
 import { BaseExtractor } from '../base-extractor.js'
 import type { ParsedFile, ParsedFunction, ParsedClass, ParsedParam, ParsedImport, ParsedGeneric } from '../types.js'
 import * as Queries from './queries.js'
+import { fileURLToPath } from 'node:url'
 
-const getRequire = () => {
-    if (typeof require !== 'undefined') return require
-    return createRequire(import.meta.url)
+const getSafeDirname = (): string => {
+    try {
+        if (typeof __dirname !== 'undefined') return __dirname
+        return path.dirname(fileURLToPath(import.meta.url))
+    } catch {
+        return process.cwd()
+    }
 }
-const _require = getRequire()
+
+const getRequire = (): any => {
+    try {
+        if (typeof require !== 'undefined') return require
+        const req = createRequire(import.meta.url)
+        return req
+    } catch {
+        const fallback = (pkg: string) => { 
+            console.error(`Cannot require ${pkg} - environment not supported`); 
+            return null; 
+        };
+        (fallback as any).resolve = (pkg: string) => pkg;
+        return fallback;
+    }
+}
+
+const __dirname = getSafeDirname()
+const _require: any = getRequire()
+
+// Languages that have known issues with web-tree-sitter WASM
+// Languages that have known issues with web-tree-sitter WASM
+// These fail at runtime due to grammar bugs or version incompatibility
+const UNSUPPORTED_LANGUAGES = new Set([
+    'ruby',       // Known issue: "undefined is not an object (evaluating 'r.apply')"
+    'dart',      // Incompatible language version 15 (expects 13-14)
+    'objc',      // Query fails: e.length undefined 
+    'elm',       // WASM out of bounds memory access
+    'css',       // No query captures working - needs different node names
+    'json',      // No query captures working - needs different node names
+])
+// These will be resolved at runtime using the project's node_modules
+const LANG_WASM_MAP: Record<string, string> = {
+    // Core languages (most used)
+    python: 'tree-sitter-wasms/out/tree-sitter-python.wasm',
+    java: 'tree-sitter-wasms/out/tree-sitter-java.wasm',
+    kotlin: 'tree-sitter-wasms/out/tree-sitter-kotlin.wasm',
+    scala: 'tree-sitter-wasms/out/tree-sitter-scala.wasm',
+    swift: 'tree-sitter-wasms/out/tree-sitter-swift.wasm',
+    dart: 'tree-sitter-wasms/out/tree-sitter-dart.wasm',
+    c: 'tree-sitter-wasms/out/tree-sitter-c.wasm',
+    cpp: 'tree-sitter-wasms/out/tree-sitter-cpp.wasm',
+    csharp: 'tree-sitter-wasms/out/tree-sitter-c_sharp.wasm',
+    go: 'tree-sitter-wasms/out/tree-sitter-go.wasm',
+    rust: 'tree-sitter-wasms/out/tree-sitter-rust.wasm',
+    zig: 'tree-sitter-wasms/out/tree-sitter-zig.wasm',
+    php: 'tree-sitter-wasms/out/tree-sitter-php.wasm',
+    ruby: 'tree-sitter-wasms/out/tree-sitter-ruby.wasm',
+    elixir: 'tree-sitter-wasms/out/tree-sitter-elixir.wasm',
+    ocaml: 'tree-sitter-wasms/out/tree-sitter-ocaml.wasm',
+    lua: 'tree-sitter-wasms/out/tree-sitter-lua.wasm',
+    bash: 'tree-sitter-wasms/out/tree-sitter-bash.wasm',
+    // Web languages
+    javascript: 'tree-sitter-wasms/out/tree-sitter-javascript.wasm',
+    typescript: 'tree-sitter-wasms/out/tree-sitter-typescript.wasm',
+    // Config/data formats
+    json: 'tree-sitter-wasms/out/tree-sitter-json.wasm',
+    yaml: 'tree-sitter-wasms/out/tree-sitter-yaml.wasm',
+    toml: 'tree-sitter-wasms/out/tree-sitter-toml.wasm',
+    html: 'tree-sitter-wasms/out/tree-sitter-html.wasm',
+    css: 'tree-sitter-wasms/out/tree-sitter-css.wasm',
+    // Other
+    objc: 'tree-sitter-wasms/out/tree-sitter-objc.wasm',
+    elm: 'tree-sitter-wasms/out/tree-sitter-elm.wasm',
+    solidity: 'tree-sitter-wasms/out/tree-sitter-solidity.wasm',
+}
+
+const EXT_TO_LANG: Record<string, string> = {
+    // JavaScript/TypeScript (uses tree-sitter-javascript)
+    '.js': 'javascript',
+    '.jsx': 'javascript',
+    '.ts': 'typescript',
+    '.tsx': 'typescript',
+    '.vue': 'typescript',  // Vue uses TS parser
+    '.mjs': 'javascript',
+    '.cjs': 'javascript',
+    
+    // Config formats
+    '.json': 'json',
+    '.yaml': 'yaml',
+    '.yml': 'yaml',
+    '.toml': 'toml',
+    '.xml': 'xml',
+    
+    // Web
+    '.html': 'html',
+    '.css': 'css',
+    '.scss': 'css',
+    '.sass': 'css',
+    '.less': 'css',
+    
+    // Smart contracts
+    '.sol': 'solidity',
+    
+    // Functional
+    '.elm': 'elm',
+    
+    // Other
+    '.py': 'python',
+    '.java': 'java',
+    '.kt': 'kotlin',
+    '.kts': 'kotlin',
+    '.scala': 'scala',
+    '.sc': 'scala',
+    '.swift': 'swift',
+    '.dart': 'dart',
+    '.c': 'c',
+    '.h': 'c',
+    '.cpp': 'cpp',
+    '.cc': 'cpp',
+    '.cxx': 'cpp',
+    '.hpp': 'cpp',
+    '.hxx': 'cpp',
+    '.hh': 'cpp',
+    '.cs': 'csharp',
+    '.go': 'go',
+    '.rs': 'rust',
+    '.zig': 'zig',
+    '.php': 'php',
+    '.rb': 'ruby',
+    '.ex': 'elixir',
+    '.exs': 'elixir',
+    '.ml': 'ocaml',
+    '.mli': 'ocaml',
+    '.lua': 'lua',
+    '.sh': 'bash',
+    '.bash': 'bash',
+    '.zsh': 'bash',
+    '.m': 'objc',
+    '.mm': 'objc',
+}
 
 let Parser: any = null
 let Language: any = null
 let initialized = false
-let initPromise: Promise<boolean> | null = null
+let parserInitPromise: Promise<void> | null = null
+const langCache = new Map<string, any>()
 
-function isValidTreeSitterModule(module: any): boolean {
-    if (!module) return false
-    if (module.HEAP8 || module.HEAP16 || module.HEAP32) return false
-    const hasInit = typeof module.init === 'function'
-    const hasLanguage = typeof module.Language !== 'undefined'
-    const hasDefault = module.default?.Language
-    const isFunctionWithInit = typeof module === 'function' && module.prototype?.init
-    const isFunctionWithLanguage = typeof module === 'function' && module.prototype?.Language
-    return hasInit || hasLanguage || !!hasDefault || isFunctionWithInit || isFunctionWithLanguage
-}
+/**
+ * Ensures the core Tree-sitter parser is initialized with the correct WASM runtime.
+ */
+async function ensureParser(): Promise<void> {
+    if (parserInitPromise) return parserInitPromise
 
-async function ensureInitialized(): Promise<boolean> {
-    if (initialized && Language) return true
-    
-    const attemptInit = async (): Promise<boolean> => {
+    parserInitPromise = (async () => {
         try {
-            let ParserModule = _require('web-tree-sitter')
-            if (!ParserModule) return false
-            
-            if (typeof ParserModule === 'function') {
-                if (ParserModule.prototype?.Language) {
-                    Language = ParserModule.prototype.Language
-                    Parser = ParserModule
-                    initialized = true
-                    return true
-                }
-                if (ParserModule.prototype?.init) {
-                    await ParserModule.prototype.init()
-                    Language = ParserModule.prototype.Language
-                    Parser = ParserModule
-                    initialized = !!Language
-                    return initialized
-                }
-            }
-            
-            if (!isValidTreeSitterModule(ParserModule)) {
-                ParserModule = ParserModule?.default || ParserModule
-            }
-            
-            if (!isValidTreeSitterModule(ParserModule)) {
-                const moduleCache = _require.cache
-                const keys = Object.keys(moduleCache || {})
-                for (const key of keys) {
-                    if (key.includes('web-tree-sitter')) {
-                        delete moduleCache[key]
+            const ParserModule = _require('web-tree-sitter')
+            await ParserModule.init({
+                locateFile: (name: string) => {
+                    // Check local package node_modules first, then root
+                    try {
+                        return _require.resolve(path.join('web-tree-sitter', name))
+                    } catch {
+                        return path.join(__dirname, '..', '..', '..', 'node_modules', 'web-tree-sitter', name)
                     }
                 }
-                ParserModule = _require('web-tree-sitter')
-                if (typeof ParserModule === 'function' && ParserModule.prototype?.Language) {
-                    Language = ParserModule.prototype.Language
-                    Parser = ParserModule
-                    initialized = true
-                    return true
-                }
-                if (!isValidTreeSitterModule(ParserModule)) {
-                    ParserModule = ParserModule?.default || ParserModule
-                }
-            }
-            
-            if (!isValidTreeSitterModule(ParserModule)) {
-                return false
-            }
-            
+            })
             Parser = ParserModule
-            
-            if (typeof ParserModule.init === 'function') {
-                await ParserModule.init()
-                Language = ParserModule.Language
-                initialized = !!Language
-            } else if (ParserModule.default?.Language) {
-                Language = ParserModule.default.Language
-                initialized = true
-            } else if (ParserModule.Language) {
-                Language = ParserModule.Language
-                initialized = true
-            }
-            
-            return initialized && !!Language
-        } catch (err) {
-            console.warn('[tree-sitter] Initialization failed:', err)
-            return false
+            Language = ParserModule.Language
+            initialized = true
+        } catch (err: any) {
+            console.error(`[tree-sitter] Core initialization failed: ${err.message}`)
+            throw err
         }
-    }
-    
-    if (initPromise) {
-        await initPromise.catch(() => {})
-        if (!initialized && Language) {
-            initPromise = attemptInit()
-            const retryResult = await initPromise
-            return retryResult
-        }
-        return initialized && !!Language
-    }
-    
-    initPromise = attemptInit()
-    const result = await initPromise
-    return result
+    })()
+
+    return parserInitPromise
 }
+
+/**
+ * Loads a specific language grammar from the tree-sitter-wasms package.
+ */
+async function loadLang(name: string): Promise<any> {
+    await ensureParser()
+    
+    if (langCache.has(name)) return langCache.get(name)
+
+    const wasmPath = LANG_WASM_MAP[name]
+    if (!wasmPath) throw new Error(`[tree-sitter] No grammar mapping for language: ${name}`)
+
+    try {
+        const absoluteWasmPath = _require.resolve(wasmPath)
+        if (process.env.MIKK_DEBUG) {
+            console.log(`[tree-sitter] Loading ${name} from ${absoluteWasmPath}`)
+        }
+        const lang = await Language.load(absoluteWasmPath)
+        langCache.set(name, lang)
+        return lang
+    } catch (err: any) {
+        console.error(`[tree-sitter] Failed to load grammar for ${name}: ${err.message}`)
+        throw err
+    }
+}
+// Residual old init logic removed. (replaced by ensureParser/loadLang above)
 
 function isExportedByLanguage(ext: string, name: string, nodeText: string): boolean {
     switch (ext) {
@@ -302,14 +395,42 @@ export class TreeSitterParser extends BaseExtractor {
     private wasmLoadError = false
 
     getSupportedExtensions(): string[] {
-        return ['.py', '.java', '.kt', '.kts', '.swift', '.c', '.cpp', '.cc', '.cxx', '.h', '.hpp', '.hxx', '.hh', '.cs', '.go', '.rs', '.php', '.rb']
+        return Object.keys(EXT_TO_LANG)
     }
 
     private async init() {
         if (this.parser) return
-        const ready = await ensureInitialized()
-        if (ready && Parser) {
+        await ensureParser()
+        if (Parser) {
             this.parser = new Parser()
+        }
+    }
+
+    private async getLanguageConfig(ext: string) {
+        const langKey = EXT_TO_LANG[ext]
+        if (!langKey) return null
+
+        // Skip languages with known WASM issues
+        if (UNSUPPORTED_LANGUAGES.has(langKey)) {
+            console.warn(`[tree-sitter] Skipping ${ext} - known runtime issue`)
+            return null
+        }
+
+        try {
+            const lang = await loadLang(langKey)
+            
+            // Normalize mapping for hyphenated names (e.g., c-sharp -> CSHARP)
+            const queryName = `${langKey.replace(/-/g, '').toUpperCase()}_QUERIES`
+            const query = (Queries as any)[queryName]
+            
+            if (!query && process.env.MIKK_DEBUG) {
+                console.warn(`[tree-sitter] No query found for ${langKey} (looked for ${queryName})`)
+            }
+            
+            return { lang, query }
+        } catch (err) {
+            console.warn(`[tree-sitter] Failed to prepare config for ${ext}:`, err)
+            return null
         }
     }
 
@@ -340,11 +461,20 @@ export class TreeSitterParser extends BaseExtractor {
     }
 
     private async parseWithConfig(filePath: string, content: string, ext: string, config: any): Promise<ParsedFile> {
-        this.parser!.setLanguage(config.lang)
+        try {
+            this.parser!.setLanguage(config.lang)
+        } catch (langErr) {
+            console.warn(`[tree-sitter] Failed to set language for ${ext}:`, langErr instanceof Error ? langErr.message : String(langErr))
+            return this.buildEmptyFile(filePath, content, ext)
+        }
         
         let tree: any = null
         try {
             tree = this.parser!.parse(content)
+            if (!tree || !tree.rootNode) {
+                console.warn(`[tree-sitter] Parse returned empty tree for ${ext}`)
+                return this.buildEmptyFile(filePath, content, ext)
+            }
         } catch (parseErr) {
             console.warn(`[tree-sitter] Parse failed for ${ext}:`, parseErr instanceof Error ? parseErr.message : String(parseErr))
             return this.buildEmptyFile(filePath, content, ext)
@@ -642,230 +772,7 @@ export class TreeSitterParser extends BaseExtractor {
         }
     }
 
-    private async loadLang(name: string): Promise<any> {
-        if (this.languages.has(name)) return this.languages.get(name)
-        if (this.wasmLoadError) return null
 
-        try {
-            const nameForFile = name.replace(/-/g, '_')
-            
-            // Try multiple possible WASM locations, including parent directories and siblings for monorepos
-            const baseDirs = new Set<string>()
-            baseDirs.add(process.cwd())
-            
-            // Add parent directories (up to 4 levels) for monorepo setups
-            let current = process.cwd()
-            let parentDir = ''
-            for (let i = 0; i < 4; i++) {
-                parentDir = path.dirname(current)
-                if (parentDir === current) break
-                baseDirs.add(parentDir)
-                baseDirs.add(path.join(parentDir, 'node_modules'))
-                
-                // Also check sibling directories in the parent for monorepo setups
-                // Also check subdirs like Mesh/packages/core/node_modules
-                try {
-                    const fs = await import('node:fs')
-                    const entries = fs.readdirSync(parentDir, { withFileTypes: true })
-                    for (const entry of entries) {
-                        if (entry.isDirectory() && entry.name !== path.basename(current)) {
-                            baseDirs.add(path.join(parentDir, entry.name, 'node_modules'))
-                            // Also check for packages/*/node_modules patterns
-                            const subPath = path.join(parentDir, entry.name, 'packages')
-                            if (fs.existsSync(subPath)) {
-                                try {
-                                    const pkgEntries = fs.readdirSync(subPath, { withFileTypes: true })
-                                    for (const pkg of pkgEntries) {
-                                        if (pkg.isDirectory()) {
-                                            baseDirs.add(path.join(subPath, pkg.name, 'node_modules'))
-                                        }
-                                    }
-                                } catch { /* skip */ }
-                            }
-                        }
-                    }
-                } catch { /* skip */ }
-                
-                current = parentDir
-            }
-
-            const possiblePaths: string[] = []
-            for (const baseDir of baseDirs) {
-                if (!baseDir) continue
-                const p = path.join(baseDir, 'node_modules/tree-sitter-wasms/out', `tree-sitter-${nameForFile}.wasm`)
-                possiblePaths.push(p)
-                
-                // Also check Mesh/packages/*/node_modules directly
-                const meshBase = path.join(baseDir, '..', 'Mesh', 'packages')
-                try {
-                    const fs = await import('node:fs')
-                    if (fs.existsSync(meshBase)) {
-                        const entries = fs.readdirSync(meshBase, { withFileTypes: true })
-                        for (const entry of entries) {
-                            if (entry.isDirectory()) {
-                                possiblePaths.push(path.join(meshBase, entry.name, 'node_modules', 'tree-sitter-wasms', 'out', `tree-sitter-${nameForFile}.wasm`))
-                            }
-                        }
-                    }
-                } catch { /* skip */ }
-            }
-            
-            if (process.env.MIKK_DEBUG) {
-                console.log('[tree-sitter] Searching for:', name)
-                console.log('[tree-sitter] Paths checked:', possiblePaths.slice(0, 5).map(p => p.slice(-50)))
-            }
-            
-            let wasmPath = ''
-            for (const p of possiblePaths) {
-                try {
-                    const fs = await import('node:fs')
-                    if (fs.existsSync(p)) {
-                        wasmPath = p
-                        break
-                    }
-                } catch { /* skip */ }
-            }
-            
-            if (!wasmPath) {
-                // Try common variations of the language name
-                const variations = [
-                    nameForFile,
-                    name.replace(/_/g, '-'),
-                    name,
-                ]
-                
-                for (const variant of variations) {
-                    for (const base of possiblePaths) {
-                        const testPath = base.replace(/tree-sitter-[^/]+\.wasm/, `tree-sitter-${variant}.wasm`)
-                        try {
-                            const fs = await import('node:fs')
-                            if (fs.existsSync(testPath)) {
-                                wasmPath = testPath
-                                break
-                            }
-                        } catch { /* skip */ }
-                    }
-                    if (wasmPath) break
-                }
-            }
-            
-            if (!wasmPath) {
-                // WASM not found - but don't mark as permanent error, just skip this language
-                return null
-            }
-            
-            // Try to load the WASM file with error handling
-            let lang: any = null
-            try {
-                lang = await Language.load(wasmPath)
-            } catch (loadErr) {
-                console.warn(`Failed to load WASM for ${name} at ${wasmPath}:`, loadErr)
-                // Try with dynamic import as fallback
-                try {
-                    const wasmModule = await import(wasmPath)
-                    if (wasmModule.default) {
-                        lang = await wasmModule.default()
-                    }
-                } catch { /* skip */ }
-            }
-            
-            if (lang) {
-                this.languages.set(name, lang)
-                return lang
-            }
-            
-            return null
-        } catch (err) {
-            // Only mark as permanent error after all retries exhausted
-            console.warn(`Failed to load Tree-sitter WASM for ${name}:`, err)
-            return null
-        }
-    }
-
-    private async getLanguageConfig(ext: string) {
-        // Ensure parser is initialized first
-        await this.init()
-        
-        if (!this.parser) {
-            console.warn('[tree-sitter] Parser not initialized, returning null for', ext)
-            return null
-        }
-        
-        switch (ext) {
-            case '.py':
-                return { lang: await this.loadLang('python'), query: Queries.PYTHON_QUERIES }
-            case '.java':
-                return { lang: await this.loadLang('java'), query: Queries.JAVA_QUERIES }
-            case '.kt':
-            case '.kts':
-                return { lang: await this.loadLang('kotlin'), query: Queries.KOTLIN_QUERIES }
-            case '.scala':
-            case '.sc':
-                return { lang: await this.loadLang('scala'), query: Queries.SCALA_QUERIES }
-            case '.swift':
-                return { lang: await this.loadLang('swift'), query: Queries.SWIFT_QUERIES }
-            case '.dart':
-                return { lang: await this.loadLang('dart'), query: Queries.SWIFT_QUERIES }
-            case '.c':
-            case '.h':
-                return { lang: await this.loadLang('c'), query: Queries.C_QUERIES }
-            case '.cpp':
-            case '.cc':
-            case '.cxx':
-            case '.hpp':
-            case '.hxx':
-            case '.hh':
-                return { lang: await this.loadLang('cpp'), query: Queries.CPP_QUERIES }
-            case '.cs':
-                return { lang: await this.loadLang('c-sharp'), query: Queries.CSHARP_QUERIES }
-            case '.go':
-                return { lang: await this.loadLang('go'), query: Queries.GO_QUERIES }
-            case '.rs':
-                return { lang: await this.loadLang('rust'), query: Queries.RUST_QUERIES }
-            case '.zig':
-                return { lang: await this.loadLang('zig'), query: Queries.ZIG_QUERIES }
-            case '.php':
-                return { lang: await this.loadLang('php'), query: Queries.PHP_QUERIES }
-            case '.rb':
-                return { lang: await this.loadLang('ruby'), query: Queries.RUBY_QUERIES }
-            case '.hs':
-                return { lang: await this.loadLang('haskell'), query: Queries.HASKELL_QUERIES }
-            case '.ex':
-            case '.exs':
-                return { lang: await this.loadLang('elixir'), query: Queries.ELIXIR_QUERIES }
-            case '.clj':
-            case '.cljs':
-            case '.cljc':
-                return { lang: await this.loadLang('clojure'), query: Queries.CLOJURE_QUERIES }
-            case '.fs':
-            case '.fsx':
-            case '.fsi':
-                return { lang: await this.loadLang('fsharp'), query: Queries.FSHARP_QUERIES }
-            case '.ml':
-            case '.mli':
-                return { lang: await this.loadLang('ocaml'), query: Queries.OCAML_QUERIES }
-            case '.pl':
-            case '.pm':
-                return { lang: await this.loadLang('perl'), query: Queries.PERL_QUERIES }
-            case '.r':
-            case '.R':
-                return { lang: await this.loadLang('r'), query: Queries.R_QUERIES }
-            case '.jl':
-                return { lang: await this.loadLang('julia'), query: Queries.JULIA_QUERIES }
-            case '.lua':
-                return { lang: await this.loadLang('lua'), query: Queries.LUA_QUERIES }
-            case '.sql':
-                return { lang: await this.loadLang('sql'), query: Queries.SQL_QUERIES }
-            case '.tf':
-                return { lang: await this.loadLang('hcl'), query: Queries.HCL_QUERIES }
-            case '.sh':
-            case '.bash':
-            case '.zsh':
-                return { lang: await this.loadLang('bash'), query: Queries.BASH_QUERIES }
-            default:
-                return null
-        }
-    }
 }
 
 // Register Tree-sitter for all supported languages (22+ languages)
@@ -956,35 +863,9 @@ for (const lang of languages) {
 }
 
 function extensionToLanguage(ext: string): ParsedFile['language'] {
-    const langMap: Record<string, ParsedFile['language']> = {
-        '.py': 'python', '.pyw': 'python',
-        '.java': 'java',
-        '.kt': 'kotlin', '.kts': 'kotlin',
-        '.scala': 'scala', '.sc': 'scala',
-        '.swift': 'swift',
-        '.dart': 'dart',
-        '.c': 'c', '.h': 'c',
-        '.cpp': 'cpp', '.cc': 'cpp', '.cxx': 'cpp', '.hpp': 'cpp', '.hxx': 'cpp', '.hh': 'cpp',
-        '.cs': 'csharp',
-        '.rs': 'rust',
-        '.zig': 'rust',
-        '.php': 'php',
-        '.rb': 'ruby',
-        '.go': 'go',
-        '.hs': 'haskell',
-        '.ex': 'elixir', '.exs': 'elixir',
-        '.clj': 'clojure', '.cljs': 'clojure', '.cljc': 'clojure',
-        '.fs': 'csharp', '.fsx': 'csharp', '.fsi': 'csharp',
-        '.ml': 'ocaml', '.mli': 'ocaml',
-        '.pl': 'perl', '.pm': 'perl',
-        '.r': 'r', '.R': 'r',
-        '.jl': 'julia',
-        '.lua': 'lua',
-        '.sql': 'sql',
-        '.tf': 'terraform',
-        '.sh': 'shell', '.bash': 'shell', '.zsh': 'shell',
-    };
-    return langMap[ext] ?? 'unknown';
+    const langKey = EXT_TO_LANG[ext.toLowerCase()]
+    if (!langKey) return 'unknown'
+    return langKey as ParsedFile['language']
 }
 
 function extractReturnType(ext: string, defNode: any, nodeText: string): string {

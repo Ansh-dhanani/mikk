@@ -1,6 +1,7 @@
 import * as path from 'node:path'
 import * as fs from 'node:fs'
 import * as os from 'node:os'
+import { pathToFileURL } from 'node:url'
 import { createRequire } from 'node:module'
 import type { Command } from 'commander'
 
@@ -74,7 +75,7 @@ export function registerMcpCommand(program: Command) {
                     )
                 }
 
-                const mod = await import(serverPath)
+                const mod = await import(pathToFileURL(serverPath).href)
                 
                 if (!mod.startStdioServer) {
                     throw new Error(`MCP server bundle at ${serverPath} is missing startStdioServer export.`)
@@ -260,21 +261,21 @@ function parseJsonSafe(raw: string, configPath: string): Record<string, unknown>
 }
 
 function patchClaudeConfig(existing: string, _projectRoot: string, configPath: string, entry: McpEntry): string {
-    const config = parseJsonSafe(existing, configPath)
+    const config = parseJsonSafe(existing, configPath) as any
     config.mcpServers ??= {}
     config.mcpServers['mikk'] = entry
     return JSON.stringify(config, null, 2)
 }
 
 function patchCursorConfig(existing: string, _projectRoot: string, configPath: string, entry: McpEntry): string {
-    const config = parseJsonSafe(existing, configPath)
+    const config = parseJsonSafe(existing, configPath) as any
     config.mcpServers ??= {}
     config.mcpServers['mikk'] = entry
     return JSON.stringify(config, null, 2)
 }
 
 function patchVSCodeConfig(existing: string, _projectRoot: string, configPath: string, entry: McpEntry): string {
-    const config = parseJsonSafe(existing, configPath)
+    const config = parseJsonSafe(existing, configPath) as any
     config.servers ??= {}
     config.servers['mikk'] = {
         type: 'stdio',

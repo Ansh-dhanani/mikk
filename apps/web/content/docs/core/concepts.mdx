@@ -264,23 +264,16 @@ The engine checks both `outEdges` and `inEdges` when resolving path connections,
 
 ---
 
-## Architecture Diagrams
+## AI Context Files
 
-Mikk generates 7 Mermaid diagram types in `.mikk/diagrams/`:
+Mikk generates two AI context files that give your AI agents architecture-aware context:
 
-| Diagram | What it shows |
-|---------|--------------|
-| `main.mmd` | Full architecture — all modules and inter-module dependencies |
-| `health.mmd` | Module health: cohesion %, coupling score, function count, health indicator |
-| `dependency-matrix.mmd` | Which modules depend on which |
-| `flows/[entry].mmd` | Entry-point call flow |
-| `modules/[id].mmd` | Per-module internal call graph |
-| `capsules/[id].mmd` | Per-module public API surface |
-| `impact/[file].mmd` | Blast radius for a specific change |
+| File | For | Contents |
+|------|-----|----------|
+| `claude.md` | Claude Desktop/Cursor | Modules, functions, call graph, routes |
+| `AGENTS.md` | OpenCode/OpenClaw/Copilot | Same content with different formatting |
 
-Cohesion = ratio of internal to total calls. Coupling = count of external calls + cross-module imports.
-
-```bash
-mikk visualize all                    # regenerate all diagram types
-mikk visualize module auth            # specific module only
-```
+Key differences from RAG:
+- **Graph-traced**: Follows call edges from relevant functions
+- **Token-budgeted**: Respects your token limit
+- **Auto-updated**: Regenerates on `mikk analyze`

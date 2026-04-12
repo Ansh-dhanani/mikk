@@ -10,7 +10,7 @@ import { panel, sq, gap } from '../ui.js'
 export function registerCiCommand(program: Command) {
     program
         .command('ci [path]')
-        .description('Check project health for CI pipelines (exits non-zero on issues)')
+        .description('CI check: exit 1 if drift/dead code/boundaries')
         .option('--strict', 'Also check dead code and complexity thresholds')
         .option('--dead-code-threshold <n>', 'Max allowed dead code % (default: 20)', '20')
         .option('--complexity-threshold <n>', 'Max function complexity (default: 15)', '15')

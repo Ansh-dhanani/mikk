@@ -15,7 +15,7 @@ interface CheckResult {
 export function registerDoctorCommand(program: Command) {
     program
         .command('doctor [path]')
-        .description('Check project health: config files, lock freshness, parser runtime')
+        .description('Project health (config, lock, parser ready?)')
         .addHelpText('after',
           `\nExamples:\n` +
           `  mikk doctor               Run all health checks\n` +

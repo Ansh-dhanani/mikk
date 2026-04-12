@@ -7,14 +7,11 @@
 <repository_context>
   <name>mikk</name>
   <stats>
-    <files>274</files>
-    <functions>1450</functions>
-    <modules>8</modules>
+    <files>284</files>
+    <functions>1453</functions>
+    <modules>9</modules>
     <language>typescript</language>
   </stats>
-  <critical_constraints>
-    <constraint>module:fixtures-ts-express-api-auth cannot import module:mesh-apps-web</constraint>
-  </critical_constraints>
 </repository_context>
 
 <modules>
@@ -45,38 +42,38 @@
     <location>c:/users/ansh/desktop/web/mesh/**</location>
     <purpose>1 files, 0 functions</purpose>
     <entry_points>
+      <function signature="ContextBuilder.build(query) [c:/users/ansh/desktop/web/mesh/packages/ai-context/src/context-builder.ts:555]" purpose="Context builder.build (query)" />
+      <function signature="activate(context) [c:/users/ansh/desktop/web/mesh/packages/vscode-extension/src/extension.ts:177]" purpose="Activate (context)" />
       <function signature="async main() [c:/users/ansh/desktop/web/mesh/benchmarks/fixtures/test-project/evaluate-all-mcp-tools-via-config.js:216]" purpose="Main" />
-      <function signature="async loadContractAndLock(projectRoot) [c:/users/ansh/desktop/web/mesh/packages/mcp-server/src/tools.ts:3008]" purpose="Load contract and lock (projectRoot)" />
+      <function signature="async loadContractAndLock(projectRoot) [c:/users/ansh/desktop/web/mesh/packages/mcp-server/src/tools/shared.ts:298]" purpose="Load contract and lock (projectRoot)" />
       <function signature="async main() [c:/users/ansh/desktop/web/mesh/benchmarks/fixtures/test-project/evaluate-all-mcp-tools.js:106]" purpose="Main" />
-      <function signature="getFunctionBody(fn, projectRoot) [c:/users/ansh/desktop/web/mesh/packages/mcp-server/src/tools.ts:58]" purpose="Get function body (fn, projectRoot)" />
-      <function signature="IntentInterpreter.findMatchingFunctions(prompt) [c:/users/ansh/desktop/web/mesh/packages/intent-engine/src/interpreter.ts:145]" purpose="Intent interpreter.find matching functions (prompt)" />
     </entry_points>
     <key_internal_functions>
-      <function name="get" callers="178" purpose="Get (key)" />
-      <function name="set" callers="169" purpose="Set (key, value, ttlMs)" />
+      <function name="get" callers="179" purpose="Get (key)" />
+      <function name="set" callers="171" purpose="Set (key, value, ttlMs)" />
+      <function name="LockReader.read" callers="21" purpose="Lock reader.read (lockPath)" />
+      <function name="ContractReader.read" callers="17" purpose="Contract reader.read (contractPath)" />
       <function name="SemanticSearcher.isAvailable" callers="10" purpose="Semantic searcher.is available" />
-      <function name="calculateLatencyStats" callers="4" purpose="Calculate latency stats (values)" />
-      <function name="startStdioServer" callers="4" purpose="Start stdio server" />
     </key_internal_functions>
-    <depends_on>Storage & Authentication, CLI & Utils, Providers, Config & API, Authentication</depends_on>
+    <depends_on>Utils, CLI & Utils, Config & API, Dashboard, Providers & Storage, Blog & Storage, Authentication</depends_on>
   </module>
-  <module id="mesh-packages-core">
-    <name>Storage & Authentication</name>
-    <location>c:/users/ansh/desktop/web/mesh/packages/core/src/**</location>
-    <purpose>3 files, 0 functions</purpose>
+  <module id="packages-core-utils">
+    <name>Utils</name>
+    <location>c:/users/ansh/desktop/web/mesh/packages/core/src/utils/**</location>
+    <purpose>10 files, 0 functions</purpose>
     <entry_points>
-      <function signature="async TypescriptExtractor.extract(filePath, content) [c:/users/ansh/desktop/web/mesh/packages/core/src/parser/oxc-parser.ts:355]" purpose="Typescript extractor.extract (filePath, content)" />
-      <function signature="async TreeSitterParser.parseWithConfig(filePath, content, ext, config) [c:/users/ansh/desktop/web/mesh/packages/core/src/parser/tree-sitter/parser.ts:342]" purpose="Tree sitter parser.parse with config" />
-      <function signature="LockCompiler.compileModules(contract, parsedFiles) [c:/users/ansh/desktop/web/mesh/packages/core/src/contract/lock-compiler.ts:394]" purpose="Lock compiler.compile modules (contract, parsedFiles)" />
-      <function signature="ErrorHandler.wrap(fn, errorCode, context) [c:/users/ansh/desktop/web/mesh/packages/core/src/error-handler.ts:186]" purpose="Error handler.wrap (fn, errorCode, context)" />
-      <function signature="async FunctionBodyExtractor.extractBody(fn, options) [c:/users/ansh/desktop/web/mesh/packages/core/src/parser/function-body-extractor.ts:28]" purpose="Function body extractor.extract body (fn, options)" />
+      <function signature="async runArtifactWriteTransaction(projectRoot, name, writes, options) [c:/users/ansh/desktop/web/mesh/packages/core/src/utils/artifact-transaction.ts:54]" purpose="Run artifact write transaction" />
+      <function signature="async discoverContextFiles(projectRoot, options) [c:/users/ansh/desktop/web/mesh/packages/core/src/utils/fs.ts:198]" purpose="Discover context files (projectRoot, options)" />
+      <function signature="scoreFunctions(prompt, lock, maxResults) [c:/users/ansh/desktop/web/mesh/packages/core/src/utils/fuzzy-match.ts:28]" purpose="Score functions (prompt, lock, maxResults)" />
+      <function signature="getDiscoveryPatterns(language) [c:/users/ansh/desktop/web/mesh/packages/core/src/utils/fs.ts:373]" purpose="Get discovery patterns (language)" />
+      <function signature="findFuzzyMatches(searchTerm, lock, maxResults) [c:/users/ansh/desktop/web/mesh/packages/core/src/utils/fuzzy-match.ts:58]" purpose="Find fuzzy matches (searchTerm, lock, maxResults)" />
     </entry_points>
     <key_internal_functions>
-      <function name="log" callers="103" purpose="Log (level, message, data)" />
-      <function name="isVendorPath" callers="7" purpose="Check if vendor path (filePath)" />
+      <function name="log" callers="101" purpose="Log (level, message, data)" />
       <function name="writeFileAtomic" callers="7" purpose="Write file atomic (targetPath, content, options)" />
-      <function name="LockReader.read" callers="6" purpose="Lock reader.read (lockPath)" />
-      <function name="hashFile" callers="6" purpose="Hash file (filePath)" />
+      <function name="normalizePathQuiet" callers="6" purpose="Normalize path quiet (filePath)" />
+      <function name="minimatch" callers="4" purpose="Minimatch (filePath, pattern)" />
+      <function name="fileExists" callers="3" purpose="File exists (filePath)" />
     </key_internal_functions>
     <depends_on>Config</depends_on>
   </module>
@@ -99,9 +96,45 @@
       <function name="hashPassword" callers="1" purpose="Hash password (plain)" />
     </key_internal_functions>
     <depends_on>Config</depends_on>
-    <module_constraints>
-      <constraint>module:fixtures-ts-express-api-auth cannot import module:mesh-apps-web</constraint>
-    </module_constraints>
+  </module>
+  <module id="packages-core-hash">
+    <name>Providers & Storage</name>
+    <location>c:/users/ansh/desktop/web/mesh/packages/core/src/hash/**</location>
+    <purpose>4 files, 0 functions</purpose>
+    <entry_points>
+      <function signature="hashFunctionBody(fileContent, startLine, endLine) [c:/users/ansh/desktop/web/mesh/packages/core/src/hash/file-hasher.ts:22]" purpose="Hash function body (fileContent, startLine, endLine)" />
+      <function signature="HashStore.setBatch(entries) [c:/users/ansh/desktop/web/mesh/packages/core/src/hash/hash-store.ts:102]" purpose="Hash store.set batch (entries)" />
+      <function signature="HashStore.get(filePath) [c:/users/ansh/desktop/web/mesh/packages/core/src/hash/hash-store.ts:61]" purpose="Hash store.get (filePath)" />
+      <function signature="HashStore.set(filePath, hash, sizeBytes) [c:/users/ansh/desktop/web/mesh/packages/core/src/hash/hash-store.ts:69]" purpose="Hash store.set (filePath, hash, sizeBytes)" />
+      <function signature="HashStore.delete(filePath) [c:/users/ansh/desktop/web/mesh/packages/core/src/hash/hash-store.ts:79]" purpose="Hash store.delete (filePath)" />
+    </entry_points>
+    <key_internal_functions>
+      <function name="hashFile" callers="6" purpose="Hash file (filePath)" />
+      <function name="hashContent" callers="2" purpose="Hash content (content)" />
+      <function name="computeModuleHash" callers="1" purpose="Compute module hash (fileHashes)" />
+      <function name="computeRootHash" callers="1" purpose="Compute root hash (moduleHashes)" />
+    </key_internal_functions>
+    <depends_on>Config</depends_on>
+  </module>
+  <module id="packages-core-parser">
+    <name>Blog & Storage</name>
+    <location>c:/users/ansh/desktop/web/mesh/packages/core/src/parser/**</location>
+    <purpose>11 files, 0 functions</purpose>
+    <entry_points>
+      <function signature="async TypescriptExtractor.extract(filePath, content) [c:/users/ansh/desktop/web/mesh/packages/core/src/parser/oxc-parser.ts:355]" purpose="Typescript extractor.extract (filePath, content)" />
+      <function signature="async TreeSitterParser.parseWithConfig(filePath, content, ext, config) [c:/users/ansh/desktop/web/mesh/packages/core/src/parser/tree-sitter/parser.ts:412]" purpose="Tree sitter parser.parse with config" />
+      <function signature="async FunctionBodyExtractor.extractBody(fn, options) [c:/users/ansh/desktop/web/mesh/packages/core/src/parser/function-body-extractor.ts:28]" purpose="Function body extractor.extract body (fn, options)" />
+      <function signature="walk(n) [c:/users/ansh/desktop/web/mesh/packages/core/src/parser/oxc-parser.ts:239]" purpose="Walk (n)" />
+      <function signature="BoundaryChecker.allCrossModuleCalls() [c:/users/ansh/desktop/web/mesh/packages/core/src/parser/boundary-checker.ts:155]" purpose="Boundary checker.all cross module calls" />
+    </entry_points>
+    <key_internal_functions>
+      <function name="extractCalls" callers="6" purpose="Extract calls (node, lineIndex)" />
+      <function name="findFirstChild" callers="6" purpose="Find first child (node, predicate)" />
+      <function name="LanguageRegistry.getInstance" callers="5" purpose="Language registry.get instance" />
+      <function name="getSpan" callers="5" purpose="Get span (node)" />
+      <function name="LineIndex.getLine" callers="5" purpose="Line index.get line (offset)" />
+    </key_internal_functions>
+    <depends_on>Config, Utils</depends_on>
   </module>
   <module id="packages-vscode-extension-webview">
     <name>Dashboard</name>
@@ -122,26 +155,6 @@
       <function name="getWebviewContent" callers="1" purpose="Get webview content" />
     </key_internal_functions>
   </module>
-  <module id="mesh-packages-ai-context">
-    <name>Providers</name>
-    <location>c:/users/ansh/desktop/web/mesh/packages/ai-context/src/**</location>
-    <purpose>7 files, 0 functions</purpose>
-    <entry_points>
-      <function signature="ContextBuilder.build(query) [c:/users/ansh/desktop/web/mesh/packages/ai-context/src/context-builder.ts:555]" purpose="Context builder.build (query)" />
-      <function signature="ContextBuilder.readFunctionBody(fn, projectRoot) [c:/users/ansh/desktop/web/mesh/packages/ai-context/src/context-builder.ts:839]" purpose="Context builder.read function body (fn, projectRoot)" />
-      <function signature="ClaudeMdGenerator.generate() [c:/users/ansh/desktop/web/mesh/packages/ai-context/src/claude-md-generator.ts:42]" purpose="Claude md generator.generate" />
-      <function signature="ClaudeMdGenerator.generateContextFilesSection() [c:/users/ansh/desktop/web/mesh/packages/ai-context/src/claude-md-generator.ts:317]" purpose="Claude md generator.generate context files section" />
-      <function signature="ClaudeMdGenerator.generateImportGraphSection() [c:/users/ansh/desktop/web/mesh/packages/ai-context/src/claude-md-generator.ts:637]" purpose="Claude md generator.generate import graph section" />
-    </entry_points>
-    <key_internal_functions>
-      <function name="getProvider" callers="4" purpose="Get provider (name)" />
-      <function name="tokenizeFunction" callers="2" purpose="Tokenize function (fn)" />
-      <function name="readContextFile" callers="2" purpose="Read context file (filePath, projectRoot)" />
-      <function name="estimateTokens" callers="2" purpose="Estimate tokens (text)" />
-      <function name="getModuleAndDescendants" callers="2" purpose="Get module and descendants (moduleId, modules)" />
-    </key_internal_functions>
-    <depends_on>Config, Storage & Authentication</depends_on>
-  </module>
   <module id="mesh-apps-web">
     <name>Config & API</name>
     <location>c:/users/ansh/desktop/web/mesh/apps/web/**</location>
@@ -160,10 +173,7 @@
       <function name="useContributionGraph" callers="4" purpose="Hook for contribution graph" />
       <function name="collectDocsRoutes" callers="3" purpose="Collect docs routes (dir)" />
     </key_internal_functions>
-    <depends_on>Config, Storage & Authentication</depends_on>
-    <module_constraints>
-      <constraint>module:fixtures-ts-express-api-auth cannot import module:mesh-apps-web</constraint>
-    </module_constraints>
+    <depends_on>Config, Utils</depends_on>
   </module>
   <module id="mesh-packages-cli">
     <name>CLI & Utils</name>
@@ -183,27 +193,22 @@
       <function name="patchFileContent" callers="4" purpose="Patch file content (filePath, newContent)" />
       <function name="resolveCoreModule" callers="4" purpose="Resolve core module (projectRoot)" />
     </key_internal_functions>
-    <depends_on>Storage & Authentication, Config, Providers</depends_on>
+    <depends_on>Utils, Config, Providers & Storage, Blog & Storage</depends_on>
   </module>
-  <module id="mesh-packages-vscode-extension">
-    <name>Providers</name>
-    <location>c:/users/ansh/desktop/web/mesh/packages/vscode-extension/**, c:/users/ansh/desktop/web/mesh/packages/vscode-extension/src/**</location>
+  <module id="fixtures-js-utility-parsers">
+    <name>Utils & Testing</name>
+    <location>c:/users/ansh/desktop/web/mesh/benchmarks/fixtures/js-utility/src/parsers/**</location>
     <purpose>2 files, 0 functions</purpose>
     <entry_points>
-      <function signature="activate(context) [c:/users/ansh/desktop/web/mesh/packages/vscode-extension/src/extension.ts:177]" purpose="Activate (context)" />
-      <function signature="MikkCodeLensProvider.provideCodeLenses(document, _token) [c:/users/ansh/desktop/web/mesh/packages/vscode-extension/src/providers/mikkcodelensprovider.ts:14]" purpose="Mikk code lens provider.provide code lenses (document, _token)" />
-      <function signature="deactivate() [c:/users/ansh/desktop/web/mesh/packages/vscode-extension/src/extension.ts:293]" purpose="Deactivate" />
-      <function signature="MikkDataProvider.setRoot(root) [c:/users/ansh/desktop/web/mesh/packages/vscode-extension/src/extension.ts:39]" purpose="Mikk data provider.set root (root)" />
-      <function signature="MikkDataProvider.getRoot() [c:/users/ansh/desktop/web/mesh/packages/vscode-extension/src/extension.ts:45]" purpose="Mikk data provider.get root" />
+      <function signature="parseCsv(csv, {...}) [c:/users/ansh/desktop/web/mesh/benchmarks/fixtures/js-utility/src/parsers/csv.js:9]" purpose="Parse csv (csv, {...})" />
+      <function signature="toCsv(data, {...}) [c:/users/ansh/desktop/web/mesh/benchmarks/fixtures/js-utility/src/parsers/csv.js:21]" purpose="To csv (data, {...})" />
+      <function signature="detectDelimiter(firstLine) [c:/users/ansh/desktop/web/mesh/benchmarks/fixtures/js-utility/src/parsers/csv.js:28]" purpose="Detect delimiter (firstLine)" />
+      <function signature="safeJsonParse(str, fallback) [c:/users/ansh/desktop/web/mesh/benchmarks/fixtures/js-utility/src/parsers/json-safe.js:1]" purpose="Safe json parse (str, fallback)" />
+      <function signature="safeJsonStringify(value, indent) [c:/users/ansh/desktop/web/mesh/benchmarks/fixtures/js-utility/src/parsers/json-safe.js:9]" purpose="Safe json stringify (value, indent)" />
     </entry_points>
     <key_internal_functions>
-      <function name="updateStatusBar" callers="4" purpose="Update status bar (bar, data)" />
-      <function name="refresh" callers="3" purpose="Refresh" />
-      <function name="MikkDecoratorProvider.updateDecorations" callers="3" purpose="Mikk decorator provider.update decorations (editor, dataProvider)" />
-      <function name="findRoot" callers="2" purpose="Find root (startPath)" />
-      <function name="updateContext" callers="2" purpose="Update context (editor)" />
+      <function name="mergeDeep" callers="1" purpose="Merge deep (target, sources)" />
     </key_internal_functions>
-    <depends_on>Dashboard</depends_on>
   </module>
 </modules>
 
@@ -968,8 +973,5 @@ usersRouter.post('/:id/promote', requireAuth, requireAdmin, async (req, res) => 
 - **GET** `/me` → `async (req, res) => { try { const userId = (req as any).user.userId const profil...` → [requireAuth] *(C:/Users/Ansh/Desktop/web/Mesh/benchmarks/fixtures/ts-express-api/src/routes/users.ts:7)*
 - **DELETE** `/:id` → `async (req, res) => { try { await removeUser(req.params.id) res.status(204).send...` → [requireAuth, requireAdmin] *(C:/Users/Ansh/Desktop/web/Mesh/benchmarks/fixtures/ts-express-api/src/routes/users.ts:17)*
 - **POST** `/:id/promote` → `async (req, res) => { try { await promoteToAdmin(req.params.id) res.json({ messa...` → [requireAuth, requireAdmin] *(C:/Users/Ansh/Desktop/web/Mesh/benchmarks/fixtures/ts-express-api/src/routes/users.ts:26)*
-
-## Cross-Cutting Constraints
-- module:fixtures-ts-express-api-auth cannot import module:mesh-apps-web
 
 <!-- MIKK-END -->

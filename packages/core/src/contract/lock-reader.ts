@@ -40,7 +40,7 @@ export class LockReader {
 
     serialize(lock: MikkLock): string {
         const compact = compactifyLock(lock)
-        return JSON.stringify(compact)
+        return JSON.stringify(compact, null, 2)
     }
 
     async prepareForWrite(lock: MikkLock, lockPath: string, options: LockWriteOptions = {}): Promise<MikkLock> {

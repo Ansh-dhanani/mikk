@@ -23,7 +23,7 @@ function parseIntOption(value: string, name: string, _fallback: number): number 
 export function registerContextCommands(program: Command) {
     const context = program
         .command('context')
-        .description('Query codebase using natural language for AI context generation')
+        .description('Graph traversal → AI context (modules, calls, routes)')
 
     // ── mikk context query "..." ─────────────────────────────────────────
     context
@@ -31,6 +31,7 @@ export function registerContextCommands(program: Command) {
         .description('Ask an architecture question — returns graph-traced context')
         .option('--provider <name>', 'Output provider: claude | generic | compact', 'claude')
         .option('--hops <n>', 'Graph traversal depth (default 4)', '4')
+        .option('--limit <n>', 'Max functions to include', '100')
         .option('--tokens <n>', 'Token budget for functions (default 6000)', '6000')
         .option('--strict', 'High-precision mode: include only tightly relevant context')
         .option('--must <terms>', 'Comma-separated required terms, e.g. resolver,import,ts')
@@ -51,6 +52,7 @@ export function registerContextCommands(program: Command) {
                 const query: ContextQuery = {
                     task: question,
                     maxHops: parseIntOption(options.hops, 'hops', 4),
+                    maxFunctions: parseIntOption(options.limit, 'limit', 100),
                     tokenBudget: parseIntOption(options.tokens, 'tokens', 6000),
                     includeCallGraph: options.callgraph !== false,
                     relevanceMode: options.strict ? 'strict' : 'balanced',

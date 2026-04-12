@@ -64,14 +64,14 @@ export async function resolveCoreModule(projectRoot: string): Promise<CoreModule
 export function registerAnalyzeCommand(program: Command) {
     program
         .command('analyze [path]')
-        .description('Re-analyze codebase and update lock + derived artifacts')
+        .description('Re-scan code. Updates: lock, AI context')
         .option('--strict-parsing', 'Fail if any files could not be parsed cleanly')
         .addHelpText('after',
             `\nExamples:\n` +
             `  mikk analyze                   Analyze and update all artifacts\n` +
             `  mikk analyze --strict-parsing  Use stricter parsing (faster but may miss code)\n` +
             `  mikk analyze ./path/to/project  Analyze a specific project\n` +
-            `\nThis updates: mikk.lock.json, diagrams/, claude.md, AGENTS.md, .clinerules\n`)
+            `\nThis updates: mikk.lock.json, claude.md, AGENTS.md, .clinerules\n`)
         .action(async (projectPath, options) => {
             const spinner = ora('Analyzing project...').start()
             const projectRoot = projectPath || process.cwd()
@@ -186,7 +186,7 @@ export function registerAnalyzeCommand(program: Command) {
                         'Degraded analysis: generated lock has zero call edges. Blast radius may be underestimated. '
                         + 'Use --strict-parsing to fail on this condition.'
                     )
-                    spinner.start('Generating Mermaid diagrams...')
+                    spinner.start('Processing graph data...')
                 }
 
                 const artifactWrites: Array<{ targetPath: string; content: string }> = [

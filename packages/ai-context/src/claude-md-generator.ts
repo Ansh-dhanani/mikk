@@ -685,7 +685,21 @@ export class ClaudeMdGenerator {
                 return `${name}${opt}`
             }).join(', ')
             : ''
-        return `${asyncPrefix}${fn.name}(${params}) [${fn.file}:${fn.startLine}]`
+        // Use relative path if projectRoot is available
+        const filePath = this.toRelativePath(fn.file)
+        return `${asyncPrefix}${fn.name}(${params}) [${filePath}:${fn.startLine}]`
+    }
+
+    /** Convert absolute path to relative if possible */
+    private toRelativePath(absolutePath: string): string {
+        if (!this.projectRoot) return absolutePath
+        // Handle both Windows and Unix paths
+        const normalizedRoot = this.projectRoot.replace(/\\/g, '/').replace(/\/$/, '')
+        const normalizedAbs = absolutePath.replace(/\\/g, '/')
+        if (normalizedAbs.toLowerCase().startsWith(normalizedRoot.toLowerCase())) {
+            return normalizedAbs.slice(normalizedRoot.length + 1)
+        }
+        return absolutePath
     }
 
     /**
@@ -694,10 +708,13 @@ export class ClaudeMdGenerator {
      * becomes "src/features/portfolio/**"
      */
     private collapsePaths(paths: string[]): string {
-        if (paths.length <= 2) return paths.join(', ')
+        // Convert to relative paths first using projectRoot
+        const relativePaths = paths.map(p => this.toRelativePath(p))
+        
+        if (relativePaths.length <= 2) return relativePaths.join(', ')
 
         // Split each path into segments (strip trailing **)
-        const stripped = paths.map(p => p.replace(/\/\*\*$/, ''))
+        const stripped = relativePaths.map(p => p.replace(/\/\*\*$/, ''))
 
         // Try progressively shorter common prefixes
         // Find the longest common directory prefix shared by majority of paths

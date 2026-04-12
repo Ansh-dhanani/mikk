@@ -9,7 +9,7 @@ import {
 export function registerDeadCodeCommand(program: Command) {
     program
         .command('dead-code')
-        .description('Detect dead code — functions with zero callers after multi-pass exemptions')
+        .description('Find functions never called by anyone')
         .option('-m, --module <moduleId>', 'Filter to a specific module')
         .option('--json', 'Output raw JSON instead of formatted table')
         .addHelpText('after',

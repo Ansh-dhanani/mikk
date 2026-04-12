@@ -11,7 +11,7 @@ interface Change {
 export function registerDiffCommand(program: Command) {
     program
         .command('diff')
-        .description('Show what changed since last analysis (compares lock vs current filesystem)')
+        .description('Show files modified since last analyze')
         .addHelpText('after',
             `\nExamples:\n` +
             `  mikk diff                    Show all changes since last analyze\n` +

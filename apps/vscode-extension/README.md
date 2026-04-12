@@ -21,14 +21,13 @@ A dedicated **Mikk** panel in the Activity Bar sidebar shows your project's modu
 - Expand to see individual files within each module
 - Auto-refreshes when `mikk.json` changes
 
-### 🔍 Architecture Diagrams
+### 🔍 Code Navigation
 
-Open Mermaid architecture diagrams directly in VS Code:
+Search and navigate functions directly in VS Code:
 
-- Main architecture overview
-- Per-module detail diagrams
-- Health dashboard
-- Dependency matrix
+- Search by function name
+- Explore module structure
+- View dependency graph
 
 ### 🤖 AI Context
 
@@ -58,9 +57,8 @@ Access all commands via the Command Palette (`Ctrl+Shift+P` / `Cmd+Shift+P`):
 
 | Command | ID | Description |
 |---------|-----|-------------|
-| **Mikk: Initialize** | `mikk.init` | Run `mikk init` in the integrated terminal — scans the codebase, generates contract, lock file, diagrams, and AI context files |
+| **Mikk: Initialize** | `mikk.init` | Run `mikk init` — scans the codebase, generates contract, lock file, and AI context files |
 | **Mikk: Analyze** | `mikk.analyze` | Run `mikk analyze` — re-analyze the codebase and update all generated artifacts |
-| **Mikk: Show Architecture Diagram** | `mikk.showDiagram` | Open the main architecture diagram (`.mikk/diagrams/main.mmd`) |
 | **Mikk: Show Impact Analysis** | `mikk.showImpact` | Run impact analysis on the currently active file and show results |
 | **Mikk: Get AI Context** | `mikk.getContext` | Prompt for a task description, then generate and display graph-traced AI context |
 
@@ -146,7 +144,6 @@ src/
 
 **Internal dependencies:**
 - `@getmikk/core` — Contract/lock reading, types
-- `@getmikk/diagram-generator` — Diagram generation
 - `@getmikk/ai-context` — Context building
 
 ---

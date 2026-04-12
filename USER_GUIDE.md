@@ -19,7 +19,7 @@ This will initialize Mikk in your project, generate a skeleton `mikk.json` contr
 **What gets created:**
 - `mikk.json` - Architecture contract (edit to refine your modules)
 - `mikk.lock.json` - Auto-generated lock file (commit this)
-- `.mikk/` - Diagrams and internal data
+- `.mikk/` - Internal data
 - `claude.md` - AI context for Claude
 - `AGENTS.md` - AI context for Codex/Copilot
 - `.clinerules` - Auto-imported instructions for Cline/OpenClaw
@@ -39,7 +39,7 @@ mikk init --force          # Re-initialize (overwrites existing files)
 mikk init --strict-parsing # Fail if any files could not be parsed cleanly
 ```
 
-Creates: `mikk.json`, `mikk.lock.json`, `.mikk/`, diagrams/, `claude.md`, `AGENTS.md`, `.clinerules`
+Creates: `mikk.json`, `mikk.lock.json`, `.mikk/`, `claude.md`, `AGENTS.md`, `.clinerules`
 
 #### `mikk analyze`
 Re-analyze codebase and update lock + derived artifacts.
@@ -49,7 +49,7 @@ mikk analyze                   # Analyze and update all artifacts
 mikk analyze --strict-parsing  # Use stricter parsing (faster but may miss code)
 ```
 
-This updates: `mikk.lock.json`, diagrams/, `claude.md`, `AGENTS.md`, `.clinerules`
+This updates: `mikk.lock.json`, `claude.md`, `AGENTS.md`, `.clinerules`
 
 #### `mikk watch`
 Watch for file changes and sync lock file automatically (daemon).
@@ -230,27 +230,6 @@ mikk intent "Add rate limiting to payments" --json
 ```
 
 Analyzes your intent, detects conflicts with existing architecture, and suggests implementation steps.
-
----
-
-### Visualization
-
-#### `mikk visualize all`
-Regenerate all diagrams.
-
-```bash
-mikk visualize all
-```
-
-Generates Mermaid diagrams in `.mikk/diagrams/`.
-
-#### `mikk visualize module <id>`
-Regenerate specific module diagram.
-
-```bash
-mikk visualize module cli
-mikk visualize module api
-```
 
 ---
 
@@ -440,7 +419,7 @@ This interprets your prompt, suggests changes, detects conflicts, and validates 
 
 ## 📝 Tips for Best Results
 
-1. **Keep Mikk Watched**: Run `mikk watch` in a separate terminal while developing so your diagrams and contexts are always real-time.
+1. **Keep Mikk Watched**: Run `mikk watch` in a separate terminal while developing so your lock and AI contexts are always real-time.
 2. **Commit `mikk.json` and `mikk.lock.json`**: Treat them like `package.json` and `package-lock.json`. These files serve as the source of truth for your codebase's architectural boundaries.
 3. **Use with VS Code**: Check out the `@mikk/vscode-extension` to get visual charts and context tools directly in your editor's sidebar!
 
