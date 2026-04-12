@@ -2592,6 +2592,374 @@ export function registerTools(server: McpServer, projectRoot: string) {
     )
 
 
+    // TOOL: mikk_secrets_scan
+
+    ;(server as any).tool(
+        'mikk_secrets_scan',
+        'Scan recursively for hardcoded secrets (API keys, tokens, passwords, credentials) in any folder. Warns AI agents about security risks. Does NOT modify files - safe for CI/pre-commit hooks. AFTER THIS: Use mikk_secrets_replace to automatically replace secrets with process.env references.',
+        {
+            path: z.string().optional().describe('Directory to scan (relative to project root). Default: scan all source files.'),
+            recursive: z.boolean().optional().default(true).describe('Recursively scan subdirectories (default: true)'),
+            exclude: z.array(z.string()).optional().describe('Patterns to exclude (e.g., ["node_modules", "*.test.js"])'),
+            includePatterns: z.array(z.string()).optional().describe('Additional regex patterns to detect secrets'),
+            severity: z.enum(['critical', 'high', 'medium', 'all']).optional().default('all').describe('Minimum severity to report'),
+        },
+        async (args: any): Promise<any> => {
+            const { path: scanPath, recursive, exclude, includePatterns, severity } = args as any
+            const { lock } = await loadContractAndLock(projectRoot)
+
+            const SECRET_PATTERNS = [
+                // AWS
+                { id: 'aws_access_key', pattern: /AKIA[0-9A-Z]{16}/, severity: 'critical', label: 'AWS Access Key ID', envVar: 'AWS_ACCESS_KEY_ID' },
+                { id: 'aws_secret_key', pattern: /[A-Za-z0-9/+=]{40}/, severity: 'critical', label: 'AWS Secret Key', envVar: 'AWS_SECRET_ACCESS_KEY', needsContext: ['aws', 'AWS_ACCESS_KEY_ID'] },
+                // GitHub
+                { id: 'github_token', pattern: /(?:ghp|gho|ghu|ghs)_[A-Za-z0-9]{36,}/, severity: 'critical', label: 'GitHub Token', envVar: 'GITHUB_TOKEN' },
+                { id: 'github_pat', pattern: /(?:github_personal_access_token)/i, severity: 'critical', label: 'GitHub PAT', envVar: 'GITHUB_TOKEN' },
+                // Stripe
+                { id: 'stripe_sk', pattern: /(?:sk_live_[A-Za-z0-9]{24,})/, severity: 'critical', label: 'Stripe Secret Key', envVar: 'STRIPE_SECRET_KEY' },
+                { id: 'stripe_pk', pattern: /(?:pk_live_[A-Za-z0-9]{24,})/, severity: 'high', label: 'Stripe Public Key', envVar: 'STRIPE_PUBLIC_KEY' },
+                { id: 'stripe_webhook', pattern: /(?:whsec_[A-Za-z0-9]{32,})/, severity: 'critical', label: 'Stripe Webhook Secret', envVar: 'STRIPE_WEBHOOK_SECRET' },
+                // OpenAI / AI Providers
+                { id: 'openai_key', pattern: /(?:sk-[A-Za-z0-9]{48,})/, severity: 'critical', label: 'OpenAI API Key', envVar: 'OPENAI_API_KEY' },
+                { id: 'anthropic_key', pattern: /(?:sk-ant-[A-Za-z0-9_-]{48,})/, severity: 'critical', label: 'Anthropic API Key', envVar: 'ANTHROPIC_API_KEY' },
+                { id: 'google_ai_key', pattern: /(?:AIza[0-9A-Za-z_-]{35})/, severity: 'critical', label: 'Google AI API Key', envVar: 'GOOGLE_AI_API_KEY' },
+                { id: 'huggingface_key', pattern: /(?:hf_[A-Za-z0-9]{48,})/, severity: 'critical', label: 'HuggingFace Token', envVar: 'HUGGINGFACE_TOKEN' },
+                // Database
+                { id: 'db_connection', pattern: /(?:(?:mongodb|postgres|postgresql|mysql|redis):\/\/[^:\s]+:[^@\s]+@)/i, severity: 'critical', label: 'Database Connection String', envVar: 'DATABASE_URL' },
+                { id: 'db_password', pattern: /(?:password\s*[=:]\s*['"`]([^'"`]{6,})['"`]/i, severity: 'high', label: 'Database Password', envVar: 'DB_PASSWORD', needsContext: ['password', 'pwd', 'pass'] },
+                // JWT
+                { id: 'jwt_token', pattern: /eyJ[A-Za-z0-9_-]*\.eyJ[A-Za-z0-9_-]*\.[A-Za-z0-9_-]*/, severity: 'high', label: 'JWT Token', envVar: 'JWT_SECRET' },
+                // Slack
+                { id: 'slack_token', pattern: /(?:xox[baprs]-[0-9]{10,}-[0-9]{10,}-[a-zA-Z0-9]{24,})/, severity: 'critical', label: 'Slack Token', envVar: 'SLACK_TOKEN' },
+                // Twilio
+                { id: 'twilio_sid', pattern: /(?:AC[a-z0-9]{32})/, severity: 'high', label: 'Twilio Account SID', envVar: 'TWILIO_ACCOUNT_SID' },
+                { id: 'twilio_auth', pattern: /(?:SK[a-z0-9]{32})/, severity: 'critical', label: 'Twilio Auth Token', envVar: 'TWILIO_AUTH_TOKEN' },
+                // SendGrid
+                { id: 'sendgrid_key', pattern: /(?:SG\.[A-Za-z0-9_-]{22}\.[A-Za-z0-9_-]{43})/, severity: 'critical', label: 'SendGrid API Key', envVar: 'SENDGRID_API_KEY' },
+                // Mailgun
+                { id: 'mailgun_key', pattern: /(?:key-[0-9a-zA-Z]{32})/, severity: 'critical', label: 'Mailgun API Key', envVar: 'MAILGUN_API_KEY' },
+                // Generic API Keys
+                { id: 'generic_api_key', pattern: /(?:api[_-]?key\s*[=:]\s*['"`]([A-Za-z0-9_-]{20,})['"`]/i, severity: 'medium', label: 'Generic API Key', envVar: 'API_KEY', needsContext: ['api', 'key', 'secret'] },
+                { id: 'generic_secret', pattern: /(?:secret\s*[=:]\s*['"`]([A-Za-z0-9_-]{16,})['"`]/i, severity: 'high', label: 'Generic Secret', envVar: 'SECRET', needsContext: ['secret', 'private'] },
+                // Private Keys
+                { id: 'private_key', pattern: /-----BEGIN (?:RSA |EC |DSA |OPENSSH )?PRIVATE KEY-----/, severity: 'critical', label: 'Private Key', envVar: 'PRIVATE_KEY' },
+                // Tokens
+                { id: 'bearer_token', pattern: /(?:Bearer\s+[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+)/, severity: 'high', label: 'Bearer Token', envVar: 'BEARER_TOKEN' },
+                { id: 'access_token', pattern: /(?:access_token\s*[=:]\s*['"`]([A-Za-z0-9_-]{20,})['"`]/i, severity: 'high', label: 'Access Token', envVar: 'ACCESS_TOKEN' },
+                { id: 'refresh_token', pattern: /(?:refresh_token\s*[=:]\s*['"`]([A-Za-z0-9_-]{20,})['"`]/i, severity: 'high', label: 'Refresh Token', envVar: 'REFRESH_TOKEN' },
+                // Webhook
+                { id: 'webhook_url', pattern: /(?:webhook[_-]?url\s*[=:]\s*['"`](https?:\/\/[^'"`]+)['"`]/i, severity: 'medium', label: 'Webhook URL', envVar: 'WEBHOOK_URL' },
+                // Passwords in config
+                { id: 'config_password', pattern: /(?:password\s*:\s*['"`]([^'"`]{6,})['"`]/i, severity: 'high', label: 'Password in config', envVar: 'PASSWORD', needsContext: ['password', 'pwd'] },
+            ]
+
+            const severityOrder = { critical: 4, high: 3, medium: 2 }
+            const minSeverity = severityOrder[severity as keyof typeof severityOrder] || 1
+
+            const defaultExcludes = ['node_modules', '.git', 'dist', 'build', '.next', 'coverage', '.cache', '*.min.js', '*.map']
+            const excludePatterns = [...defaultExcludes, ...(exclude || [])]
+
+            const isExcluded = (filePath: string): boolean => {
+                const normalized = filePath.replace(/\\/g, '/')
+                for (const pattern of excludePatterns) {
+                    if (pattern.includes('*')) {
+                        const regex = new RegExp('^' + pattern.replace(/\*/g, '.*') + '$')
+                        if (regex.test(normalized)) return true
+                    } else if (normalized.includes(pattern)) {
+                        return true
+                    }
+                }
+                return false
+            }
+
+            const isSourceFile = (filePath: string): boolean => {
+                const ext = path.extname(filePath).toLowerCase()
+                return ['.ts', '.tsx', '.js', '.jsx', '.py', '.rb', '.go', '.java', '.php', '.sh'].includes(ext)
+            }
+
+            const filesToScan: string[] = []
+            
+            if (scanPath) {
+                const baseDir = path.join(projectRoot, scanPath)
+                const walkDir = async (dir: string, depth = 0): Promise<void> => {
+                    if (depth > 10) return
+                    if (isExcluded(dir)) return
+                    
+                    try {
+                        const entries = await fs.readdir(dir)
+                        for (const entry of entries) {
+                            const fullPath = path.join(dir, entry)
+                            const stat = await fs.stat(fullPath)
+                            
+                            if (stat.isDirectory()) {
+                                if (recursive !== false) {
+                                    await walkDir(fullPath, depth + 1)
+                                }
+                            } else if (stat.isFile() && isSourceFile(fullPath)) {
+                                const relPath = path.relative(projectRoot, fullPath)
+                                if (!isExcluded(relPath)) {
+                                    filesToScan.push(relPath)
+                                }
+                            }
+                        }
+                    } catch {
+                        // Skip inaccessible directories
+                    }
+                }
+                await walkDir(baseDir)
+            } else {
+                filesToScan.push(...Object.keys(lock.files).filter(f => isSourceFile(f)))
+            }
+
+            const findings: any[] = []
+
+            for (const relFile of filesToScan) {
+                const fullPath = path.join(projectRoot, relFile)
+                let content: string
+                try {
+                    content = await fs.readFile(fullPath, 'utf-8')
+                } catch {
+                    continue
+                }
+
+                const lines = content.split(/\r?\n/)
+
+                for (let i = 0; i < lines.length; i++) {
+                    const line = lines[i]
+                    const lineNum = i + 1
+
+                    // Skip comments
+                    if (/^\s*(\/\/|#|\*|\/\*)/.test(line.trim())) continue
+                    // Skip already replaced
+                    if (/process\.env\.|os\.environ\.|import\.meta\.env/.test(line)) continue
+
+                    for (const pat of SECRET_PATTERNS) {
+                        if (pat.severity && severityOrder[pat.severity as keyof typeof severityOrder] < minSeverity) continue
+                        if (pat.needsContext && !pat.needsContext.some((ctx: string) => line.toLowerCase().includes(ctx))) continue
+
+                        const match = line.match(pat.pattern)
+                        if (!match) continue
+
+                        const value = match[1] || match[0]
+                        if (!value || value.includes('${') || value.includes('process.env')) continue
+
+                        findings.push({
+                            file: relFile,
+                            line: lineNum,
+                            severity: pat.severity || 'high',
+                            type: pat.label,
+                            envVar: pat.envVar,
+                            context: line.trim().slice(0, 80),
+                            valuePreview: value.slice(0, 8) + '***',
+                        })
+                    }
+                }
+            }
+
+            const bySeverity = findings.filter(f => f.severity === 'critical').length > 0
+                ? { critical: findings.filter(f => f.severity === 'critical'), high: findings.filter(f => f.severity === 'high'), medium: findings.filter(f => f.severity === 'medium') }
+                : { critical: [], high: findings, medium: [] }
+
+            const total = findings.length
+            const response = {
+                scannedFiles: filesToScan.length,
+                findings: total,
+                bySeverity: {
+                    critical: bySeverity.critical.length,
+                    high: bySeverity.high.length,
+                    medium: bySeverity.medium.length,
+                },
+                details: findings.slice(0, 50).map(f => ({
+                    file: f.file,
+                    line: f.line,
+                    severity: f.severity.toUpperCase(),
+                    type: f.type,
+                    envVar: f.envVar,
+                    context: f.context,
+                })),
+                warning: total > 0 ? `⚠️ SECURITY ALERT: Found ${total} potential secret(s)! Do NOT commit without addressing.` : null,
+                hint: 'Use mikk_secrets_replace to automatically replace with process.env references.',
+            }
+
+            return { content: [{ type: 'text' as const, text: JSON.stringify(response, null, 2) }] }
+        },
+    )
+
+
+    // TOOL: mikk_secrets_replace
+
+    ;(server as any).tool(
+        'mikk_secrets_replace',
+        'Replace hardcoded secrets with process.env references, generate .env with real values and .env.example with placeholders. AFTER THIS: Add .env to .gitignore immediately!',
+        {
+            path: z.string().optional().describe('Directory to scan (relative to project root). Default: all source files.'),
+            recursive: z.boolean().optional().default(true).describe('Recursively scan subdirectories'),
+            dryRun: z.boolean().optional().default(true).describe('Preview only (default: true). Set false to apply changes.'),
+            envFile: z.string().optional().default('.env').describe('Output path for real secrets (default: .env)'),
+            envExampleFile: z.string().optional().default('.env.example').describe('Example file with placeholders (default: .env.example)'),
+            prefix: z.string().optional().describe('Optional prefix for env vars (e.g., "APP")'),
+        },
+        async (args: any): Promise<any> => {
+            const { path: scanPath, recursive, dryRun, envFile, envExampleFile, prefix } = args as any
+            const { lock } = await loadContractAndLock(projectRoot)
+
+            const SECRET_PATTERNS = [
+                { id: 'aws_access_key', pattern: /AKIA[0-9A-Z]{16}/, severity: 'critical', label: 'AWS Access Key', envVar: `${prefix || ''}AWS_ACCESS_KEY_ID`.replace(/^aws_/, '') },
+                { id: 'github_token', pattern: /(?:ghp|gho|ghu|ghs)_[A-Za-z0-9]{36,}/, severity: 'critical', label: 'GitHub Token', envVar: `${prefix || ''}GITHUB_TOKEN` },
+                { id: 'stripe_sk', pattern: /(?:sk_live_[A-Za-z0-9]{24,})/, severity: 'critical', label: 'Stripe Secret', envVar: `${prefix || ''}STRIPE_SECRET_KEY` },
+                { id: 'stripe_pk', pattern: /(?:pk_live_[A-Za-z0-9]{24,})/, severity: 'high', label: 'Stripe Public', envVar: `${prefix || ''}STRIPE_PUBLIC_KEY` },
+                { id: 'openai_key', pattern: /(?:sk-[A-Za-z0-9]{48,})/, severity: 'critical', label: 'OpenAI', envVar: `${prefix || ''}OPENAI_API_KEY` },
+                { id: 'anthropic_key', pattern: /(?:sk-ant-[A-Za-z0-9_-]{48,})/, severity: 'critical', label: 'Anthropic', envVar: `${prefix || ''}ANTHROPIC_API_KEY` },
+                { id: 'huggingface', pattern: /(?:hf_[A-Za-z0-9]{48,})/, severity: 'critical', label: 'HuggingFace', envVar: `${prefix || ''}HUGGINGFACE_TOKEN` },
+                { id: 'db_url', pattern: /(?:(?:mongodb|postgres|postgresql|mysql|redis):\/\/[^:\s]+:[^@\s]+@)/i, severity: 'critical', label: 'DB Connection', envVar: `${prefix || ''}DATABASE_URL` },
+                { id: 'jwt', pattern: /eyJ[A-Za-z0-9_-]*\.eyJ[A-Za-z0-9_-]*\.[A-Za-z0-9_-]*/, severity: 'high', label: 'JWT', envVar: `${prefix || ''}JWT_SECRET` },
+                { id: 'slack', pattern: /(?:xox[baprs]-[0-9]{10,}-[0-9]{10,}-[a-zA-Z0-9]{24,})/, severity: 'critical', label: 'Slack', envVar: `${prefix || ''}SLACK_TOKEN` },
+                { id: 'sendgrid', pattern: /(?:SG\.[A-Za-z0-9_-]{22}\.[A-Za-z0-9_-]{43})/, severity: 'critical', label: 'SendGrid', envVar: `${prefix || ''}SENDGRID_API_KEY` },
+                { id: 'private_key', pattern: /-----BEGIN (?:RSA |EC |DSA |OPENSSH )?PRIVATE KEY-----/, severity: 'critical', label: 'Private Key', envVar: `${prefix || ''}PRIVATE_KEY` },
+                { id: 'generic_key', pattern: /(?:api[_-]?key\s*[=:]\s*['"`]([A-Za-z0-9_-]{20,})['"`]/i, severity: 'medium', label: 'API Key', envVar: `${prefix || ''}API_KEY` },
+                { id: 'generic_secret', pattern: /(?:secret\s*[=:]\s*['"`]([A-Za-z0-9_-]{16,})['"`]/i, severity: 'high', label: 'Secret', envVar: `${prefix || ''}SECRET` },
+            ]
+
+            const isSourceFile = (filePath: string): boolean => {
+                const ext = path.extname(filePath).toLowerCase()
+                return ['.ts', '.tsx', '.js', '.jsx', '.py', '.rb'].includes(ext)
+            }
+
+            const envRegistry = new Map<string, string>()
+            const replacements: any[] = []
+
+            const filesToScan: string[] = []
+            
+            if (scanPath) {
+                const baseDir = path.join(projectRoot, scanPath)
+                const walkDir = async (dir: string, depth = 0): Promise<void> => {
+                    if (depth > 10) return
+                    const excludeDirs = ['node_modules', '.git', 'dist', 'build']
+                    if (excludeDirs.some(d => dir.includes(d))) return
+                    
+                    try {
+                        const entries = await fs.readdir(dir)
+                        for (const entry of entries) {
+                            const fullPath = path.join(dir, entry)
+                            const stat = await fs.stat(fullPath)
+                            
+                            if (stat.isDirectory()) {
+                                if (recursive !== false) await walkDir(fullPath, depth + 1)
+                            } else if (stat.isFile() && isSourceFile(fullPath)) {
+                                filesToScan.push(path.relative(projectRoot, fullPath))
+                            }
+                        }
+                    } catch { /* Skip inaccessible directories */ }
+                }
+                await walkDir(baseDir)
+            } else {
+                filesToScan.push(...Object.keys(lock.files).filter(f => isSourceFile(f)))
+            }
+
+            for (const relFile of filesToScan) {
+                const fullPath = path.join(projectRoot, relFile)
+                let content: string
+                try {
+                    content = await fs.readFile(fullPath, 'utf-8')
+                } catch {
+                    continue
+                }
+
+                const lines = content.split(/\r?\n/)
+                let modified = false
+
+                for (let i = 0; i < lines.length; i++) {
+                    const line = lines[i]
+                    if (/^\s*(\/\/|#)/.test(line.trim())) continue
+                    if (/process\.env\.|os\.environ/.test(line)) continue
+
+                    for (const pat of SECRET_PATTERNS) {
+                        const match = line.match(pat.pattern)
+                        if (!match) continue
+
+                        const value = match[1] || match[0]
+                        if (!value || value.includes('${')) continue
+
+                        const baseEnvName = (pat.envVar || 'SECRET').toUpperCase().replace(/[^A-Z0-9_]/g, '_')
+                        let envName = baseEnvName
+                        let counter = 1
+                        while (envRegistry.has(envName) && envRegistry.get(envName) !== value) {
+                            envName = `${baseEnvName}_${counter++}`
+                        }
+                        envRegistry.set(envName, value)
+
+                        const newLine = line.replace(value, `process.env.${envName}`)
+                        if (newLine !== line) {
+                            lines[i] = newLine
+                            modified = true
+                            replacements.push({
+                                file: relFile,
+                                line: i + 1,
+                                type: pat.label,
+                                envVar: envName,
+                                original: value.slice(0, 6) + '***',
+                                replacement: `process.env.${envName}`,
+                            })
+                            break
+                        }
+                    }
+                }
+
+                if (modified && !dryRun) {
+                    const useCRLF = content.includes('\r\n')
+                    await fs.writeFile(fullPath, lines.join(useCRLF ? '\r\n' : '\n'), 'utf-8')
+                }
+            }
+
+            // Write .env files
+            const envLines: string[] = []
+            const envExampleLines: string[] = []
+            for (const [name, value] of envRegistry) {
+                envLines.push(`${name}=${value}`)
+                envExampleLines.push(`${name}=`)
+            }
+
+            if (!dryRun) {
+                const envPath = path.join(projectRoot, envFile || '.env')
+                const exPath = path.join(projectRoot, envExampleFile || '.env.example')
+                
+                let existingEnv = ''
+                try { existingEnv = await fs.readFile(envPath, 'utf-8') } catch { /* Skip inaccessible directories */ }
+                const newLines = envLines.filter(l => !existingEnv.includes(l.split('=')[0] + '='))
+                if (newLines.length > 0) {
+                    await fs.writeFile(envPath, existingEnv + (existingEnv ? '\n' : '') + newLines.join('\n') + '\n', 'utf-8')
+                }
+
+                let existingEx = ''
+                try { existingEx = await fs.readFile(exPath, 'utf-8') } catch { /* Skip inaccessible directories */ }
+                const newExLines = envExampleLines.filter(l => !existingEx.includes(l.split('=')[0] + '='))
+                if (newExLines.length > 0) {
+                    await fs.writeFile(exPath, existingEx + (existingEx ? '\n' : '') + newExLines.join('\n') + '\n', 'utf-8')
+                }
+            }
+
+            return {
+                content: [{
+                    type: 'text' as const,
+                    text: JSON.stringify({
+                        dryRun,
+                        filesScanned: filesToScan.length,
+                        replacements: replacements.length,
+                        uniqueSecrets: envRegistry.size,
+                        changes: replacements.slice(0, 20),
+                        envFile: { path: envFile, entries: envLines.map(e => e.split('=')[0] + '=***'), written: !dryRun },
+                        envExample: { path: envExampleFile, entries: envExampleLines, written: !dryRun },
+                        warning: !dryRun ? '⚠️ Add .env to .gitignore immediately!' : null,
+                        hint: dryRun 
+                            ? `Found ${replacements.length} secrets. Run with dryRun=false to apply.`
+                            : `Applied ${replacements.length} replacements. Add ${envFile} to .gitignore!`,
+                    }, null, 2)
+                }]
+            }
+        },
+    )
+
+
     // TOOL: mikk_get_complexity
 
     ; (server as any).tool(
