@@ -6,7 +6,7 @@
 
 <p align="center">
   <strong>Deterministic AI Context Engine</strong><br/>
-  Keeps your AI in sync with your codebase — before it breaks something.
+  Gives AI agents a live structural map of your codebase — before they break something.
 </p>
 
 <p align="center">
@@ -20,25 +20,27 @@
 
 ## What is Mikk?
 
-AI coding agents are fast but architecturally blind. They don't know your module boundaries, can't trace dependencies, and have no idea that touching `auth/login.ts` breaks 14 downstream functions across 3 packages.
+AI coding agents write fast — but they're architecturally blind. They don't know your module boundaries, can't trace dependencies, and have no idea that touching `auth/login.ts` breaks 14 downstream functions across 3 packages.
 
-Mikk fixes this by building a **deterministic, AST-based map** of your architecture — modules, functions, call graphs, constraints — and serving it to any AI agent with millisecond precision.
+Mikk fixes this by building a **deterministic, AST-based map** of your architecture — modules, functions, call graphs, constraints — and serving it to any AI agent over MCP.
 
 **No RAG. No guessing. No cloud. Everything runs locally.**
 
 ---
 
-## Why Mikk is Fast
+## How It Works
 
-Mikk uses **[Oxc](https://oxc.rs/)** — a Rust-native JavaScript and TypeScript parser — as its core analysis engine.
+```
+Parse → Graph → Hash → Contract → Serve
+```
 
-| Property | Detail |
+| Step | Description |
 |---|---|
-| **Speed** | Oxc parses TypeScript and JavaScript much faster than the TypeScript Compiler API. |
-| **Analysis** | Oxc produces a full Abstract Syntax Tree. Mikk walks this tree to extract functions, imports, exports, call expressions, classes, and types. |
-| **Determinism** | The same code always produces the same output. No probability involved. |
-| **Call graph** | Call edges are resolved from actual `CallExpression` AST nodes. |
-| **Multi-language** | Tree-sitter handles Python, Java, C#, Go, Rust, C, C++, PHP, Ruby, and more. |
+| **Parse** | OxcParser (Rust-backed) for TS/JS. Tree-sitter for other languages. Go has a native extractor. |
+| **Graph** | Two-pass `GraphBuilder` — registers all nodes first, then resolves edges. O(n) construction, O(1) lookups via adjacency maps. |
+| **Hash** | SHA-256 from function → file → module → root. One root hash = instant drift detection. |
+| **Contract** | `mikk.json` defines modules, constraints, and ADRs. Six constraint types enforced. |
+| **Serve** | MCP server with 30s TTL cache, busted immediately when `mikk.lock.json` changes. |
 
 ---
 
@@ -51,7 +53,7 @@ mikk init
 mikk mcp
 ```
 
-Configure your AI tool:
+Then configure your AI tool:
 
 ```json
 {
@@ -64,57 +66,39 @@ Configure your AI tool:
 }
 ```
 
----
-
-## Why Not RAG?
-
-| | RAG / Semantic Search | Mikk |
-|---|---|---|
-| Dependencies | Approximated | Exact call graph |
-| Dead code | Unknown | Precise detection |
-| Token usage | High — dumps raw files | Low — distilled API boundaries |
-| Setup | Index + embed | One command |
-
----
-
-## How It Works
-
-```
-Parse → Graph → Cluster → Hash → Contract → Serve
-```
-
-| Step | Description |
-|---|---|
-| **Parse** | OxcParser (Rust-backed) for TS/JS. Tree-sitter for other languages. |
-| **Graph** | Two-pass `GraphBuilder` — O(n) construction, O(1) lookups. |
-| **Cluster** | Groups files into logical modules via greedy agglomeration. |
-| **Hash** | SHA-256 from function → file → module → root. One hash = full drift detection. |
-| **Contract** | `mikk.json` validated against the lock. Six constraint types enforced. |
-| **Serve** | MCP server with 30s cache. Fast tool calls after first load. |
+Or use the auto-installer: `mikk mcp install`
 
 ---
 
 ## What Gets Generated
 
-Running `mikk init` produces:
+`mikk init` produces:
 
-- `mikk.json` — your architecture contract
-- `mikk.lock.json` — full function/file/dependency snapshot
-- `claude.md` / `AGENTS.md` — token-budgeted AI context files
-- `.mikk/diagrams/` — Mermaid diagrams (architecture, dependency matrix, impact, module, capsule)
+- `mikk.json` — your architecture contract (modules, constraints, ADRs)
+- `mikk.lock.json` — full codebase snapshot (functions, files, call edges, hashes)
+- `claude.md` / `AGENTS.md` — token-budgeted AI context files, auto-regenerated on `mikk analyze`
+- `.mikk/diagrams/` — Mermaid diagrams (architecture, health, dependency matrix, module capsules, impact)
 
 ---
 
-## MCP Server — 37 Tools
+## MCP Server — 40 Tools
 
 Connect to Claude Desktop, Cursor, VS Code Copilot, or any MCP-compatible client.
 
 ### Session Tools
 | Tool | Description |
 |---|---|
-| `mikk_get_session_context` | Call once per session. Returns project overview, constraints, hot modules. |
-| `mikk_get_changes` | Files added, modified, or deleted since last analysis. |
+| `mikk_get_session_context` | **Call this first.** Project overview, constraint status, hot modules, recent changes. |
+| `mikk_get_changes` | Files added, modified, or deleted since last analysis. SHA-256 hash comparison. |
 | `mikk_get_project_overview` | Modules, function counts, file counts, tech stack. |
+| `mikk_token_stats` | Token savings for this session vs. naive file reading. |
+
+### Planning Tools
+| Tool | Description |
+|---|---|
+| `mikk_change_plan` | **One-shot pre-flight.** Scope + impact + constraints + risk in a single call. Start every complex task here. |
+| `mikk_scope_check` | Minimal set of files to touch for a task. The inverse of impact analysis. |
+| `mikk_explain_risk` | Human-readable breakdown of why a function has a high risk score, with hot paths and recommendations. |
 
 ### Navigation Tools
 | Tool | Description |
@@ -122,49 +106,48 @@ Connect to Claude Desktop, Cursor, VS Code Copilot, or any MCP-compatible client
 | `mikk_query_context` | Architecture question → graph-traced answer with call chains. |
 | `mikk_list_modules` | All declared modules with paths and function counts. |
 | `mikk_get_module_detail` | Functions, files, exported API, and call graph for a module. |
-| `mikk_get_function_detail` | Params, return type, call graph, source body, and line range. |
-| `mikk_search_functions` | Hybrid search combining multiple algorithms. |
-| `mikk_semantic_search` | Natural-language function search using embeddings. |
-| `mikk_search_rich` | Rich search with filters, body content search. |
-| `mikk_find_function` | Find a function by name or pattern. |
-| `mikk_find_by_signature` | Find functions matching a signature. |
-| `mikk_find_by_location` | Find functions at a specific line in a file. |
-| `mikk_find_similar` | Find semantically similar functions. |
-| `mikk_find_usages` | Every function that calls a specific function. |
-| `mikk_get_file` | Raw source of any project file. |
-| `mikk_read_file` | Source scoped to specific functions. |
-| `mikk_get_routes` | All detected HTTP routes with method, path, handler. |
-| `mikk_list_files` | List all tracked files in the project. |
-| `mikk_get_class_detail` | Class details: methods, properties, inheritance. |
-| `mikk_get_generic_detail` | Type/interface details: type params, extends. |
-| `mikk_get_call_graph` | Visual call graph for a function. |
+| `mikk_get_function_detail` | Params, return type, source body, call graph, error handling, line range. |
+| `mikk_search_functions` | Hybrid BM25 + substring search. |
+| `mikk_search_rich` | Search with multiple filters: module, file, async, return type, body content. |
+| `mikk_semantic_search` | Natural-language search using local vector embeddings. Requires `@xenova/transformers`. |
+| `mikk_find_function` | O(1) exact-name lookup. |
+| `mikk_find_by_signature` | Find function by full signature string. |
+| `mikk_find_by_location` | Find function at a specific file:line. |
+| `mikk_find_similar` | Find functions with similar names (handles renames). |
+| `mikk_find_usages` | Every caller of a specific function. |
+| `mikk_get_file` | Raw source of any tracked project file. |
+| `mikk_read_file` | Source scoped to specific named functions — saves tokens vs. whole-file read. |
+| `mikk_get_routes` | All detected HTTP routes with method, path, handler, middleware chain. |
+| `mikk_list_files` | All tracked files with metadata (language, imports, exports, line count). |
+| `mikk_get_class_detail` | Class details: methods, properties, inheritance, decorators. |
+| `mikk_get_generic_detail` | Type/interface details: type parameters, extends clauses. |
+| `mikk_get_call_graph` | Mermaid call graph for a function or module. |
+| `mikk_bulk_query` | Batch multiple function detail queries in one call. |
 
 ### Safety Tools
 | Tool | Description |
 |---|---|
-| `mikk_test_tool` | A simple test tool that returns a static message. |
-| `mikk_before_edit` | Call before editing. Returns blast radius and constraint violations. |
-| `mikk_validate_edit` | Pre-edit validation with intent analysis and recommendations. |
-| `mikk_impact_analysis` | Full blast radius classified by severity. |
-| `mikk_dead_code` | Unused functions detection. |
-| `mikk_get_dead_code` | Dead code analysis with multi-pass exemptions. |
-| `mikk_get_complexity` | Find overly complex functions above threshold. |
-| `mikk_security_scan` | Security vulnerability scanning. |
+| `mikk_before_edit` | **Call before editing.** Blast radius, exported functions at risk, constraint violations, circular deps. |
+| `mikk_validate_edit` | Pre-edit validation with intent analysis, 6 safety gates, and auto-correction suggestions. |
+| `mikk_impact_analysis` | Full blast radius classified by severity (critical / high / medium / low). |
+| `mikk_dead_code` | Dead functions with multi-pass exemptions (exports, entry points, route handlers, tests). |
+| `mikk_get_dead_code` | Dead code with filters: module, complexity, exported status. |
+| `mikk_get_complexity` | Functions above a cyclomatic complexity threshold. |
+| `mikk_security_scan` | Scan for hardcoded secrets, injection, weak crypto, path traversal, command injection. |
 
 ### Refactoring Tools
 | Tool | Description |
 |---|---|
-| `mikk_rename` | Coordinated multi-file rename. |
-| `mikk_git_diff_impact` | Maps git diff hunks to affected symbols. |
-| `mikk_file_diff` | Get diff between two file versions. |
+| `mikk_rename` | Coordinated multi-file rename plan — all call sites and import locations. |
+| `mikk_git_diff_impact` | Map git diff hunks to affected symbols. |
+| `mikk_file_diff` | Drift between lock state and current filesystem for a file. |
 
 ### Project Tools
 | Tool | Description |
 |---|---|
-| `mikk_get_constraints` | All architectural constraints from `mikk.json`. |
-| `mikk_manage_adr` | CRUD for Architectural Decision Records. |
-| `mikk_token_stats` | Track token savings. |
-| `mikk_bulk_query` | Run multiple queries in a single call. |
+| `mikk_get_constraints` | All architectural constraints and ADRs from `mikk.json`. |
+| `mikk_manage_adr` | CRUD for Architectural Decision Records. ADRs surface in every `mikk_query_context` response. |
+| `mikk_test_tool` | Smoke test — verifies MCP connection is alive. |
 
 ---
 
@@ -198,16 +181,7 @@ Define module boundaries and rules in `mikk.json`:
 }
 ```
 
-Constraint types: `no-import` · `must-use` · `no-call` · `layer` · `naming` · `max-files`
-
----
-
-## Practical Use Cases
-
-- **Refactor safety**: run `mikk intent "..."` before large renames/splits.
-- **PR/CI safety**: run `mikk ci --strict` to prevent architectural regressions.
-- **Fresh context for AI agents**: run `mikk analyze` after code changes.
-- **Fast onboarding**: run `mikk context query "How does X work?"`.
+**Constraint types:** `no-import` · `must-use` · `no-call` · `layer` · `naming` · `max-files`
 
 ---
 
@@ -218,20 +192,20 @@ mikk init                      # Full scan — graph, lock, diagrams, claude.md
 mikk init --strict-parsing    # Fail if parser diagnostics are detected
 mikk analyze                   # Re-analyze after code changes
 mikk analyze --strict-parsing  # CI-friendly parse completeness enforcement
-mikk doctor                    # Diagnostics including parser runtime preflight
+mikk doctor                    # Diagnostics: config, lock freshness, parser runtime
 mikk update                    # Interactive self-update
 mikk watch                     # Live watcher daemon (incremental, 100ms debounce)
 mikk diff                      # Files changed since last analysis
 mikk ci                        # CI gate — exits non-zero on violations
 mikk ci --strict              # Also enforce dead code threshold
 mikk ci --format json         # Machine-readable output
-mikk intent "<prompt>"        # Pre-flight a refactor
+mikk intent "<prompt>"        # Pre-flight a refactor idea
 mikk dead-code                # Show unused functions
 mikk context query "<q>"     # Architecture question
 mikk context impact <file>   # Blast radius of changing a file
 mikk context for "<task>"     # Token-budgeted context for a coding task
 mikk stats                    # Per-module metrics
-mikk suggest                  # Practical next-step recommendations
+mikk suggest                  # Next-step recommendations
 mikk contract validate        # Check for violations and drift
 mikk mcp install              # Auto-write MCP config
 mikk adr list                 # List all architectural decisions
@@ -245,214 +219,34 @@ mikk remove                   # Uninstall and delete artifacts
 
 ```yaml
 - name: Architecture gate
-  run: mikk ci --format json
+  run: |
+    mikk doctor
+    mikk analyze --strict-parsing
+    mikk ci --strict --format json
 ```
 
-`mikk ci` exits non-zero on constraint violations.
-
-Recommended CI gate order:
-
-```bash
-mikk doctor
-mikk analyze --strict-parsing
-mikk ci --strict
-```
+`mikk ci` exits non-zero on constraint violations. `--strict` also enforces a dead code threshold (default 20%).
 
 ---
 
 ## Language Support
 
-| Language | Parser | Status |
+| Language | Parser | Notes |
 |---|---|---|
-| TypeScript / JavaScript | OxcParser (Rust) | ✅ Production |
-| Python | Tree-sitter | ✅ Production |
-| Go | Native (GoExtractor) | ✅ Production |
-| Java | Tree-sitter | ✅ Production |
-| Rust | Tree-sitter | ✅ Production |
-| C / C++ | Tree-sitter | ✅ Production |
-| C# | Tree-sitter | ✅ Production |
-| PHP | Tree-sitter | ✅ Production |
-| Swift | Tree-sitter | ✅ Production |
-| Shell / Bash | Tree-sitter | ✅ Production |
+| TypeScript / JavaScript | OxcParser (Rust) | Full function, class, import, call graph extraction |
+| Go | Native GoExtractor | Functions, structs, methods, call graph |
+| Python | Tree-sitter | Functions, classes, imports |
+| Java | Tree-sitter | Functions, classes, imports |
+| Rust | Tree-sitter | Functions, structs, imports |
+| C / C++ | Tree-sitter | Functions, imports |
+| C# | Tree-sitter | Functions, classes, imports |
+| PHP | Tree-sitter | Functions, classes |
+| Swift | Tree-sitter | Functions, classes |
+| Shell / Bash | Tree-sitter | Functions |
 
-> **10 languages verified in production** — tested with 71 functions, 18 classes, 134 call edges across 29 files.
-> 
-> **34 languages in registry** — Kotlin, Scala, Dart, Ruby, Zig, Elixir, Haskell, Clojure, F#, OCaml, Perl, R, SQL, Terraform, and more. These use tree-sitter grammars and can be enabled by adding test fixtures.
-> 
-> **24 languages parsed** in polyglot test: TypeScript, Python, Go, Java, Rust, C, C++, C#, PHP, Swift, Shell, Kotlin, Scala, Dart, Ruby, Haskell, Elixir, Clojure, F#, OCaml, Perl, R, Julia, Lua, SQL, Terraform
-
----
-
-## Context & Search Flags — The Most Flexible System
-
-Mikk provides **60+ flags** across context and search commands, giving you precise control over AI context generation and code search.
-
-### `mikk context` Flags
-
-| Flag | Description | Example |
-|------|-------------|---------|
-| `--provider claude\|generic\|compact` | Output format for AI | `--provider claude` |
-| `--hops <n>` | Graph traversal depth (default 4) | `--hops 6` |
-| `--tokens <n>` | Token budget for functions (default 6000) | `--tokens 10000` |
-| `--strict` | High-precision mode: only tightly relevant context | `--strict` |
-| `--must <terms>` | Required keywords (comma-separated) | `--must resolver,import` |
-| `--all-keywords` | Require ALL extracted keywords to match | `--all-keywords` |
-| `--min-keywords <n>` | Minimum keyword matches (default 1) | `--min-keywords 3` |
-| `--exact-only` | Hard gate: only strict keyword matches | `--exact-only` |
-| `--fail-fast` | Return empty if strict finds no match | `--fail-fast` |
-| `--no-auto-fallback` | Disable fallback to balanced mode | `--no-auto-fallback` |
-| `--no-callgraph` | Omit call/calledBy edges | `--no-callgraph` |
-| `--file <path>` | Anchor traversal from specific file | `--file src/auth.ts` |
-| `--module <id>` | Anchor traversal from specific module | `--module auth` |
-| `--out <file>` | Write context to file | `--out context.md` |
-| `--meta` | Print diagnostics (seed count, tokens, keywords) | `--meta` |
-
-### `mikk search` Flags
-
-| Flag | Description | Example |
-|------|-------------|---------|
-| `-l, --limit <n>` | Max results (default 10) | `--limit 50` |
-| `--top <n>` | Show top N with bodies | `--top 5` |
-| `--rich` | Rich output with signatures | `--rich` |
-| `--minimal` | Minimal output (names only) | `--minimal` |
-| `--json` | Output as JSON | `--json` |
-| `-b, --body` | Include function bodies | `--body` |
-| `--in <names>` | Search IN function bodies | `--in getUser,updateUser` |
-| `--in-any` | Match in ANY of --in functions | `--in-any` |
-| `--in-all` | Match in ALL of --in functions | `--in-all` (default) |
-| `--max-lines <n>` | Max lines per body (default 50) | `--max-lines 100` |
-| `--module <id>` | Filter by module (repeatable) | `--module auth --module users` |
-| `--file <pattern>` | Filter by file pattern (repeatable) | `--file "*.controller.ts"` |
-| `--exported` | Only exported functions | `--exported` |
-| `--internal` | Only internal functions | `--internal` |
-| `--async` | Only async functions | `--async` |
-| `--returns <type>` | Return type contains | `--returns Promise` |
-| `--param <name>` | Has parameter (repeatable) | `--param userId --param token` |
-| `--calls <fn>` | Calls function (repeatable) | `--calls validateToken` |
-| `--called-by <fn>` | Called by function (repeatable) | `--called-by authMiddleware` |
-| `-m, --mode exact\|direct\|semantic\|hybrid` | Search mode (default hybrid) | `--mode semantic` |
-| `--sort score\|name\|calls\|length` | Sort by field | `--sort calls` |
-| `--list-modules` | List modules with counts | `--list-modules` |
-| `--list-files` | List files with counts | `--list-files` |
-
-### `mikk ci` Flags
-
-| Flag | Description | Example |
-|------|-------------|---------|
-| `--strict` | Fail on dead code above threshold | `--strict` |
-| `--dead-code-threshold <n>` | Max dead code % (default 20) | `--dead-code-threshold 10` |
-| `--format text\|json` | Output format | `--format json` |
-
-### `mikk contract` Flags
-
-| Flag | Description | Example |
-|------|-------------|---------|
-| `--boundaries-only` | Skip drift check, only boundaries | `--boundaries-only` |
-| `--drift-only` | Skip boundaries, only drift | `--drift-only` |
-| `--strict` | Exit 1 on warnings | `--strict` |
-
-### `mikk init` Flags
-
-| Flag | Description | Example |
-|------|-------------|---------|
-| `--force` | Overwrite existing mikk.json | `--force` |
-| `--strict-parsing` | Fail if any files can't be parsed | `--strict-parsing` |
-| `--no-context` | Skip context file discovery | `--no-context` |
-
-> **Total: 60+ flags** — no other code intelligence tool comes close to this level of control.
-
----
-
-## Why Mikk Wins — Direct Competitor Comparison
-
-### Tier 1: True Core Competitors (Building the Same Thing)
-
-| Feature | Mikk | GitNexus | CodeGraphContext |
-|---------|------|----------|-------------------|
-| **Full call graph** | ✅ | ✅ | ✅ |
-| **MCP integration** | ✅ | ✅ | ✅ |
-| **Multi-language (10+)** | ✅ | ⚠️ | ⚠️ |
-| **Deterministic hashing** | ✅ | ❌ | ❌ |
-| **Architecture contracts** | ✅ | ❌ | ❌ |
-| **CI gate enforcement** | ✅ | ❌ | ❌ |
-| **100% local/offline** | ✅ | ✅ | ❌ |
-| **Open source** | ✅ (Apache 2.0) | ⚠️ (PolyForm) | ✅ |
-| **Token-budgeted AI context** | ✅ | ❌ | ❌ |
-
-### Tier 2: Same Problem, Different Approach
-
-| Feature | Mikk | Greptile | DeepWiki | Repomix |
-|---------|------|----------|----------|----------|
-| **Graph-native code understanding** | ✅ | ❌ | ❌ | ❌ |
-| **Call graph precision** | ✅ | ❌ | ❌ | ❌ |
-| **Deterministic (not RAG)** | ✅ | ❌ | ❌ | ❌ |
-| **AI-ready context generation** | ✅ | ⚠️ | ⚠️ | ⚠️ |
-| **CLI-first developer UX** | ✅ | ❌ | ❌ | ⚠️ |
-| **MCP server** | ✅ | ❌ | ❌ | ❌ |
-
-### Tier 3: Legacy / Partial Overlap
-
-| Feature | Mikk | JArchitect | Axon | Aider |
-|---------|------|------------|------|-------|
-| **AI-native** | ✅ | ❌ | ❌ | ⚠️ |
-| **MCP-driven** | ✅ | ❌ | ❌ | ❌ |
-| **Architecture constraints** | ✅ | ⚠️ | ❌ | ❌ |
-| **Lightweight (WASM)** | ✅ | ❌ | ⚠️ | ✅ |
-
-> **Legend**: ✅ = Full support | ⚠️ = Limited/Partial | ❌ = Not available
-
----
-
-## What Makes Mikk Unique (That Competitors Don't Have)
-
-### 1. Deterministic (Not Probabilistic)
-- **Mikk**: SHA-256 hashes at every level (function → file → module → root)
-- **Competitors**: Use RAG/summarization/embeddings — AI can guess wrong
-- **Result**: Same code always produces identical output. Zero ambiguity.
-
-### 2. Architecture Contracts + CI Enforcement
-- **Mikk**: Define `auth must not import from payments` → enforced in CI
-- **Competitors**: GitNexus has graph, no contracts. None have CI gates.
-- **Result**: `mikk ci` exits non-zero before violations reach production
-
-### 3. Token-Budgeted AI Context
-- **Mikk**: BFS graph traversal with configurable token limits
-- **Competitors**: Repomix compresses, Greptile searches — no structured traversal
-- **Result**: AI gets exactly what it needs, no overflow, no guesswork
-
-### 4. 100% Local with MCP
-- **Mikk**: WASM-based, runs offline, MCP server for Claude/Cursor
-- **Competitors**: GitNexus has cloud, CodeGraphContext needs graph DB backend
-- **Result**: Works in air-gapped environments, no data leaves your machine
-
-### 5. Full Pipeline: Parse → Graph → Cluster → Hash → Contract → Serve
-- **Mikk**: Complete end-to-end system
-- **Competitors**: Only do parts (indexing, or search, or visualization)
-
----
-
-## The Real Positioning
-
-> **Mikk is building: "Code Intelligence Infrastructure for AI Agents"**
-
-Unlike competitors using RAG/summarization, Mikk provides:
-- Deterministic, graph-based understanding of your codebase
-- Architectural contracts with CI safety gates
-- MCP-native AI context generation
-- 100% local/offline operation
-
----
-
-## Real-World Advantages
-
-| Scenario | With Mikk | Without Mikk |
-|----------|-----------|--------------|
-| AI asks "what calls this function?" | Instant call graph | Manual grep + guess |
-| Refactor a core module | Know all affected functions | Hope tests catch everything |
-| AI edits auth code | See 14 functions across 3 modules that will break | Blind edit, broken build |
-| New developer joins | `mikk context for "explain auth flow"` = complete explanation | Read 47 files manually |
-| CI runs | `mikk ci` catches constraint violations | Runtime errors in production |
-| Find dead code | `mikk dead-code` = precise list | Static analysis guesswork |
+> **10 languages tested in production** against fixture suites covering 71 functions, 18 classes, 134 call edges across 29 files.
+>
+> **30+ additional languages** in the registry (Kotlin, Scala, Dart, Ruby, Zig, Elixir, and more) use tree-sitter grammars and work once test fixtures are added.
 
 ---
 
@@ -460,13 +254,14 @@ Unlike competitors using RAG/summarization, Mikk provides:
 
 | Package | Description |
 |---|---|
-| `@getmikk/core` | AST parsing, dependency graph, BM25, hashing, contract management |
+| `@getmikk/core` | AST parsing, dependency graph, BM25 search, Merkle hashing, boundary checker, risk/confidence engines |
 | `@getmikk/cli` | CLI commands |
-| `@getmikk/mcp-server` | MCP tools, caching, staleness detection |
-| `@getmikk/ai-context` | BFS context builder, token budgeting, claude.md generation |
-| `@getmikk/intent-engine` | Intent parsing, conflict detection, semantic search |
-| `@getmikk/watcher` | Incremental file watcher |
-| `mikk` (VS Code) | Extension — Dashboard, dead code view, status bar |
+| `@getmikk/mcp-server` | 40 MCP tools, project cache with mtime-based invalidation |
+| `@getmikk/ai-context` | BFS context builder, token budgeting, `claude.md` generation |
+| `@getmikk/intent-engine` | Pre-edit validation, 6 safety gates, decision engine, auto-correction, semantic search |
+| `@getmikk/watcher` | Incremental file watcher daemon with atomic lock writes |
+| `@getmikk/diagram-generator` | 7 Mermaid diagram types with cohesion/coupling metrics |
+| `@getmikk/vscode-extension` | Status bar, dead code view, impact analysis inline |
 
 ---
 

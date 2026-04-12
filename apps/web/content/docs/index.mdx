@@ -8,7 +8,7 @@ export const SectionSpacer = () => <div style={{ marginTop: '2rem' }} />;
 <SectionSpacer />
 
 <Callout title="Your AI doesn't understand your codebase. Mikk fixes that." type="info">
-  Mikk parses your entire project via **OXC** (Rust-backed, 50× faster than TS Compiler API), builds a
+  Mikk parses your entire project via **OXC** (Rust-backed, significantly faster than the TS Compiler API), builds a
   bidirectional dependency graph, hashes everything with Merkle-tree SHA-256, enforces architectural
   contracts, and serves structured intelligence through an MCP server that Claude, Cursor, and VS Code
   Copilot call directly. **Everything stays on your machine.**
@@ -47,7 +47,7 @@ For high-assurance environments, use `mikk init --strict-parsing` and `mikk anal
 | **Graph** | `@getmikk/core` | Two-pass O(n) graph: nodes first, edges second. Forward + reverse adjacency maps |
 | **Hash** | `@getmikk/core` | Merkle SHA-256: function → file → module → root. One hash = full drift detection |
 | **Lock** | `@getmikk/core` | `mikk.lock.json` written — compact integer-indexed format, ~60% smaller than raw source |
-| **Serve** | `@getmikk/mcp-server` | 22 MCP tools + 3 resources. Cache busted immediately after `mikk analyze`. ~5ms per call |
+| **Serve** | `@getmikk/mcp-server` | 40 MCP tools + 3 resources. Cache busted immediately after `mikk analyze`. ~5ms per call |
 | **Watch** | `@getmikk/watcher` | Chokidar daemon — incremental re-analysis, atomic writes, single-instance PID guard |
 | **Safety** | `@getmikk/intent-engine` | Pre-edit validation: intent analysis, 6 safety gates, auto-correction, decision engine |
 
@@ -85,7 +85,7 @@ Configure all thresholds in `mikk.json` under `policies`.
 |---------|-------------|
 | `@getmikk/core` | OXC parser, dependency graph, Merkle hashing, BM25 search, boundary checker, risk/confidence engines |
 | `@getmikk/cli` | 17+ CLI commands |
-| `@getmikk/mcp-server` | 22 MCP tools + 3 resources, lock-file-mtime cache invalidation |
+| `@getmikk/mcp-server` | 40 MCP tools + 3 resources, lock-file-mtime cache invalidation |
 | `@getmikk/ai-context` | BFS context builder, token budgeting, strict mode, `claude.md` generation |
 | `@getmikk/intent-engine` | Pre-edit validation, 6 safety gates, decision engine, auto-correction, intent understanding |
 | `@getmikk/watcher` | Incremental watcher daemon, atomic writes |

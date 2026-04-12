@@ -10,4 +10,8 @@ export { ConfidenceEngine } from './confidence-engine.js'
 export { QueryEngine } from './query-engine.js'
 export { RichFunctionIndex } from './rich-function-index.js'
 export type { RichFunction, RichParam, RichCall, RichErrorHandling, SearchQuery, SearchResult, ContextRequest, FunctionContext } from './rich-function-index.js'
-
+// New exports — scope analysis and risk explanation
+export { ScopeAnalyzer } from './scope-analyzer.js'
+export type { ScopeResult, ScopeFile } from './scope-analyzer.js'
+export { RiskExplainer } from './risk-explainer.js'
+export type { RiskExplanation, RiskFactor, HotPath } from './risk-explainer.js'

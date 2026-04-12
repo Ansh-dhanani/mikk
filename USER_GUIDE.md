@@ -270,14 +270,14 @@ mikk dead-code --json       # Machine-readable output
 ### Search & Trace
 
 #### `mikk search <query>`
-Search codebase semantically using natural language.
+Search codebase semantically using local vector embeddings.
 
 ```bash
 mikk search "authentication middleware"
 mikk search "database connection pooling" --limit 20
 ```
 
-**Requires:** `GEMINI_API_KEY` environment variable.
+**Requires:** `@xenova/transformers` installed in your project root (`npm install @xenova/transformers`). The model (~22MB) downloads once and runs entirely locally — no API key or internet connection needed after that. If the package is not installed, the command falls back to keyword search.
 
 #### `mikk trace <functionId> <variable>`
 Trace the origin of a variable through the codebase (taint analysis).
@@ -302,6 +302,12 @@ mikk mcp install                  # Install into Claude Desktop, Cursor, VS Code
 mikk mcp install --tool claude    # Install only into Claude Desktop
 mikk mcp install --dry-run        # Preview what would be written
 ```
+
+**Recommended session start sequence for AI agents:**
+1. `mikk_get_session_context` — call once per session for project overview
+2. `mikk_get_changes` — see what drifted since last analyze
+3. `mikk_change_plan "<task>"` — one-shot pre-flight before any complex change
+4. `mikk_before_edit` — mandatory gate before touching any file
 
 ---
 

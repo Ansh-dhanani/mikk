@@ -1,180 +1,102 @@
 # Mikk Obsidian Plugin
 
-A visually clean and feature-rich Obsidian plugin for visualizing `mikk.lock.json` files with interactive graph exploration and detailed information panels.
+Visualize `mikk.lock.json` files inside Obsidian — interactive graph exploration with module breakdowns, function details, call relationships, and search.
+
+> Part of [Mikk](../../README.md) — live architectural context for your AI agent.
+
+---
 
 ## Features
 
-### 🔒 Lock File Information
-- **Complete lock file details**: Version, generation timestamp, generator version
-- **Sync status monitoring**: Visual indicators for clean/dirty states
-- **Parse diagnostics**: File parsing statistics and error counts
-- **Graph statistics**: Node/edge counts and root hash information
+- **Interactive graph** — nodes for functions, methods, and classes; edges for call relationships
+- **Module grouping** — color-coded by module with visual backgrounds
+- **Export indicators** — exported symbols marked visually
+- **Dead code view** — unreferenced functions highlighted
+- **Multi-word search** — fuzzy, cross-field (name, file, module) with real-time highlighting
+- **Detail panels** — full function signatures, caller/callee lists, param types
+- **Zoom-adaptive rendering** — detail level adjusts to current zoom
+- **Lock file info** — version, sync status, parse diagnostics, graph stats
 
-### 📦 Module Statistics
-- **Module breakdown**: Function and class counts per module
-- **Visual hierarchy**: Color-coded modules with statistics
-- **Export tracking**: Identify exported symbols at a glance
-- **Interactive panels**: Toggleable information displays
-
-### 🎨 Enhanced Visualization
-- **Modern UI design**: Clean, professional interface with smooth transitions
-- **Module backgrounds**: Subtle visual grouping by module
-- **Smart rendering**: Adaptive detail based on zoom level
-- **Export indicators**: Visual markers for exported functions
-
-### 🔍 Advanced Search
-- **Multi-word search**: Support for complex queries
-- **Fuzzy matching**: Intelligent partial matching
-- **Cross-field search**: Search names, files, and modules
-- **Real-time highlighting**: Instant visual feedback
-
-### 📊 Interactive Exploration
-- **Detailed tooltips**: Rich information on hover
-- **Comprehensive info panels**: In-depth function details
-- **Call relationship visualization**: See callers and callees
-- **Parameter and type information**: Full function signatures
-
-### 🎯 Node Types
-- **Functions** (⚙️): Circular nodes
-- **Methods** (⚡): Diamond shapes
-- **Classes** (📦): Rounded squares
-- **Export indicators**: Green dots for exported symbols
+---
 
 ## Installation
 
-### Method 1: Manual Installation
-1. Build the plugin: `npm run build`
-2. Copy the following files to your Obsidian vault's plugin folder:
-   - `main.js`
-   - `manifest.json`
-3. Reload Obsidian (Ctrl+R)
-4. Enable "Mikk" in Settings → Community plugins
+### Manual
 
-### Method 2: For Development
-Link the built plugin to your Obsidian vault:
+1. Build: `npm run build`
+2. Copy `main.js` and `manifest.json` to your vault's `.obsidian/plugins/mikk/` folder
+3. Reload Obsidian (Ctrl+R)
+4. Enable "Mikk" in Settings → Community Plugins
+
+### Development
+
+```bash
+npm install
+npm run dev
 ```
-cp -r /path/to/mikk/packages/obsidian-plugin ~/.obsidian/plugins/mikk/
-```
+
+Then symlink or copy the output to your vault's plugins folder.
+
+---
 
 ## Usage
 
-1. **Generate Mikk data**: Run `mikk scan` in your project to create `mikk.lock.json`
-2. **Place lock file**: Ensure `mikk.lock.json` is in your vault root
-3. **Open graph**: Click the Mikk icon in the left ribbon or use the command palette
+1. **Generate the lock file** — run `mikk init` or `mikk analyze` in your project
+2. **Place the lock file** — ensure `mikk.lock.json` is accessible in your vault (copy or symlink)
+3. **Open the graph** — click the Mikk icon in the left ribbon, or use the command palette
+
+---
 
 ## Controls
 
-### Navigation
-- **Drag**: Pan the graph
-- **Scroll**: Zoom in/out
-- **Click node**: Select and view details
-- **Double-click**: Deselect
+| Control | Action |
+|---------|--------|
+| Drag | Pan the graph |
+| Scroll | Zoom in / out |
+| Click node | Select and show detail panel |
+| Double-click | Deselect |
+| Search bar | Filter by name, file, or module |
+| 🔒 Lock Info | Toggle lock file stats panel |
+| 📦 Module Stats | Toggle per-module breakdown panel |
+| ⟳ Reset View | Reset zoom and position |
 
-### Search
-- **Search bar**: Find functions, modules, or files
-- **Multi-word**: Use spaces for AND search
-- **Real-time**: Results highlight instantly
+---
 
-### Panels
-- **🔒 Lock Info**: Toggle lock file details
-- **📦 Module Stats**: Toggle module statistics
-- **⟳ Reset View**: Reset zoom and position
+## Lock File Format
 
-## Data Structure
-
-The plugin reads `mikk.lock.json` files with the following structure:
+The plugin reads `mikk.lock.json` produced by `@getmikk/cli`:
 
 ```json
 {
   "version": "2.0.0",
   "generatedAt": "2026-04-07T15:05:19.462Z",
-  "generatorVersion": "@getmikk/cli@1.2.1",
-  "projectRoot": "/path/to/project",
-  "syncState": {
-    "status": "clean",
-    "lastSyncAt": "2026-04-07T15:05:19.462Z",
-    "lockHash": "...",
-    "contractHash": "...",
-    "generationId": "...",
-    "writeVersion": 7,
-    "parseDiagnostics": {
-      "requestedFiles": 27,
-      "parsedFiles": 27,
-      "fallbackFiles": 0,
-      "diagnostics": 0
-    }
-  },
-  "graph": {
-    "nodes": 200,
-    "edges": 230,
-    "rootHash": "..."
-  },
-  "fnIndex": ["fn:path/to/file:functionName", ...],
+  "syncState": { "status": "clean", "parseDiagnostics": { "parsedFiles": 27 } },
+  "graph": { "nodes": 200, "edges": 230, "rootHash": "..." },
+  "fnIndex": ["fn:path/to/file:functionName"],
   "functions": {
     "0": {
-      "id": "functionName",
       "name": "functionName",
       "file": "path/to/file",
       "moduleId": "module-name",
-      "calls": [1, 2, 3],
-      "calledBy": [4, 5],
+      "calls": [1, 2],
+      "calledBy": [3],
       "isExported": true,
-      "purpose": "Function description",
-      "params": [
-        {"name": "param1", "type": "string", "optional": false}
-      ],
+      "params": [{ "name": "param1", "type": "string", "optional": false }],
       "returnType": "boolean"
-    }
-  },
-  "classes": {
-    "0": {
-      "name": "ClassName",
-      "file": "path/to/file",
-      "moduleId": "module-name",
-      "isExported": true
     }
   }
 }
 ```
 
-## Customization
-
-### Module Colors
-The plugin uses a predefined color palette for modules. You can modify the `MODULE_COLORS` object in the source code to customize colors.
-
-### UI Styling
-The plugin uses Obsidian's CSS variables for theming. It automatically adapts to your current theme.
-
-## Development
-
-```bash
-# Install dependencies
-npm install
-
-# Build for production
-npm run build
-
-# Development mode
-npm run dev
-```
+---
 
 ## Requirements
 
 - Obsidian 0.15.0 or higher
-- A `mikk.lock.json` file in your vault root
+- A `mikk.lock.json` file (generated by `mikk init` or `mikk analyze`)
+
+---
 
 ## License
 
-MIT License - see LICENSE file for details.
-
-## Contributing
-
-1. Fork the repository
-2. Create a feature branch
-3. Make your changes
-4. Add tests if applicable
-5. Submit a pull request
-
-## Support
-
-For issues and feature requests, please use the GitHub issue tracker.
+[Apache-2.0](../../LICENSE)

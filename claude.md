@@ -1,11 +1,14 @@
 <repository_context>
   <name>mikk</name>
   <stats>
-    <files>280</files>
-    <functions>1442</functions>
+    <files>274</files>
+    <functions>1450</functions>
     <modules>8</modules>
     <language>typescript</language>
   </stats>
+  <critical_constraints>
+    <constraint>module:fixtures-ts-express-api-auth cannot import module:mesh-apps-web</constraint>
+  </critical_constraints>
 </repository_context>
 
 <modules>
@@ -37,19 +40,19 @@
     <purpose>1 files, 0 functions</purpose>
     <entry_points>
       <function signature="async main() [c:/users/ansh/desktop/web/mesh/benchmarks/fixtures/test-project/evaluate-all-mcp-tools-via-config.js:216]" purpose="Main" />
-      <function signature="async loadContractAndLock(projectRoot) [c:/users/ansh/desktop/web/mesh/packages/mcp-server/src/tools.ts:1989]" purpose="Load contract and lock (projectRoot)" />
+      <function signature="async loadContractAndLock(projectRoot) [c:/users/ansh/desktop/web/mesh/packages/mcp-server/src/tools.ts:3008]" purpose="Load contract and lock (projectRoot)" />
       <function signature="async main() [c:/users/ansh/desktop/web/mesh/benchmarks/fixtures/test-project/evaluate-all-mcp-tools.js:106]" purpose="Main" />
+      <function signature="getFunctionBody(fn, projectRoot) [c:/users/ansh/desktop/web/mesh/packages/mcp-server/src/tools.ts:58]" purpose="Get function body (fn, projectRoot)" />
       <function signature="IntentInterpreter.findMatchingFunctions(prompt) [c:/users/ansh/desktop/web/mesh/packages/intent-engine/src/interpreter.ts:145]" purpose="Intent interpreter.find matching functions (prompt)" />
-      <function signature="levenshtein(a, b) [c:/users/ansh/desktop/web/mesh/scripts/search-techniques-test.js:70]" purpose="Levenshtein (a, b)" />
     </entry_points>
     <key_internal_functions>
-      <function name="get" callers="180" purpose="Get (key)" />
-      <function name="set" callers="171" purpose="Set (key, value, ttlMs)" />
+      <function name="get" callers="178" purpose="Get (key)" />
+      <function name="set" callers="169" purpose="Set (key, value, ttlMs)" />
+      <function name="SemanticSearcher.isAvailable" callers="10" purpose="Semantic searcher.is available" />
       <function name="calculateLatencyStats" callers="4" purpose="Calculate latency stats (values)" />
-      <function name="SemanticSearcher.isAvailable" callers="4" purpose="Semantic searcher.is available" />
       <function name="startStdioServer" callers="4" purpose="Start stdio server" />
     </key_internal_functions>
-    <depends_on>Storage & Authentication, Providers, Config & API, Authentication</depends_on>
+    <depends_on>Storage & Authentication, CLI & Utils, Providers, Config & API, Authentication</depends_on>
   </module>
   <module id="mesh-packages-core">
     <name>Storage & Authentication</name>
@@ -57,15 +60,15 @@
     <purpose>3 files, 0 functions</purpose>
     <entry_points>
       <function signature="async TypescriptExtractor.extract(filePath, content) [c:/users/ansh/desktop/web/mesh/packages/core/src/parser/oxc-parser.ts:355]" purpose="Typescript extractor.extract (filePath, content)" />
-      <function signature="async TreeSitterParser.parseWithConfig(filePath, content, ext, config) [c:/users/ansh/desktop/web/mesh/packages/core/src/parser/tree-sitter/parser.ts:344]" purpose="Tree sitter parser.parse with config" />
+      <function signature="async TreeSitterParser.parseWithConfig(filePath, content, ext, config) [c:/users/ansh/desktop/web/mesh/packages/core/src/parser/tree-sitter/parser.ts:342]" purpose="Tree sitter parser.parse with config" />
+      <function signature="LockCompiler.compileModules(contract, parsedFiles) [c:/users/ansh/desktop/web/mesh/packages/core/src/contract/lock-compiler.ts:394]" purpose="Lock compiler.compile modules (contract, parsedFiles)" />
       <function signature="ErrorHandler.wrap(fn, errorCode, context) [c:/users/ansh/desktop/web/mesh/packages/core/src/error-handler.ts:186]" purpose="Error handler.wrap (fn, errorCode, context)" />
       <function signature="async FunctionBodyExtractor.extractBody(fn, options) [c:/users/ansh/desktop/web/mesh/packages/core/src/parser/function-body-extractor.ts:28]" purpose="Function body extractor.extract body (fn, options)" />
-      <function signature="ImpactAnalyzer.analyze(changedNodeIds) [c:/users/ansh/desktop/web/mesh/packages/core/src/graph/impact-analyzer.ts:21]" purpose="Impact analyzer.analyze (changedNodeIds)" />
     </entry_points>
     <key_internal_functions>
-      <function name="log" callers="93" purpose="Log (level, message, data)" />
+      <function name="log" callers="103" purpose="Log (level, message, data)" />
+      <function name="isVendorPath" callers="7" purpose="Check if vendor path (filePath)" />
       <function name="writeFileAtomic" callers="7" purpose="Write file atomic (targetPath, content, options)" />
-      <function name="isVendorPath" callers="6" purpose="Check if vendor path (filePath)" />
       <function name="LockReader.read" callers="6" purpose="Lock reader.read (lockPath)" />
       <function name="hashFile" callers="6" purpose="Hash file (filePath)" />
     </key_internal_functions>
@@ -83,13 +86,16 @@
       <function signature="revokeSession(token) [c:/users/ansh/desktop/web/mesh/benchmarks/fixtures/ts-express-api/src/auth/session.ts:16]" purpose="Revoke session (token)" />
     </entry_points>
     <key_internal_functions>
+      <function name="createSession" callers="4" purpose="Create session (userId, token)" />
       <function name="signToken" callers="2" purpose="Sign token (payload)" />
       <function name="verifyToken" callers="2" purpose="Verify token (token)" />
-      <function name="createSession" callers="2" purpose="Create session (userId, token)" />
+      <function name="comparePassword" callers="2" purpose="Compare password (plain, hash)" />
       <function name="hashPassword" callers="1" purpose="Hash password (plain)" />
-      <function name="comparePassword" callers="1" purpose="Compare password (plain, hash)" />
     </key_internal_functions>
     <depends_on>Config</depends_on>
+    <module_constraints>
+      <constraint>module:fixtures-ts-express-api-auth cannot import module:mesh-apps-web</constraint>
+    </module_constraints>
   </module>
   <module id="packages-vscode-extension-webview">
     <name>Dashboard</name>
@@ -117,9 +123,9 @@
     <entry_points>
       <function signature="ContextBuilder.build(query) [c:/users/ansh/desktop/web/mesh/packages/ai-context/src/context-builder.ts:555]" purpose="Context builder.build (query)" />
       <function signature="ContextBuilder.readFunctionBody(fn, projectRoot) [c:/users/ansh/desktop/web/mesh/packages/ai-context/src/context-builder.ts:839]" purpose="Context builder.read function body (fn, projectRoot)" />
-      <function signature="ClaudeMdGenerator.generateContextFilesSection() [c:/users/ansh/desktop/web/mesh/packages/ai-context/src/claude-md-generator.ts:304]" purpose="Claude md generator.generate context files section" />
-      <function signature="ClaudeMdGenerator.generateImportGraphSection() [c:/users/ansh/desktop/web/mesh/packages/ai-context/src/claude-md-generator.ts:624]" purpose="Claude md generator.generate import graph section" />
-      <function signature="ClaudeMdGenerator.getModulesSortedByDependencyOrder() [c:/users/ansh/desktop/web/mesh/packages/ai-context/src/claude-md-generator.ts:717]" purpose="Claude md generator.get modules sorted by dependency order" />
+      <function signature="ClaudeMdGenerator.generate() [c:/users/ansh/desktop/web/mesh/packages/ai-context/src/claude-md-generator.ts:42]" purpose="Claude md generator.generate" />
+      <function signature="ClaudeMdGenerator.generateContextFilesSection() [c:/users/ansh/desktop/web/mesh/packages/ai-context/src/claude-md-generator.ts:317]" purpose="Claude md generator.generate context files section" />
+      <function signature="ClaudeMdGenerator.generateImportGraphSection() [c:/users/ansh/desktop/web/mesh/packages/ai-context/src/claude-md-generator.ts:637]" purpose="Claude md generator.generate import graph section" />
     </entry_points>
     <key_internal_functions>
       <function name="getProvider" callers="4" purpose="Get provider (name)" />
@@ -135,20 +141,23 @@
     <location>c:/users/ansh/desktop/web/mesh/apps/web/**</location>
     <purpose>5 files, 0 functions</purpose>
     <entry_points>
-      <function signature="CodeChat({...}) [c:/users/ansh/desktop/web/mesh/apps/web/components/code-chat.tsx:92]" purpose="Code chat ({...})" />
-      <function signature="CodeChat({...}) [c:/users/ansh/desktop/web/mesh/apps/web/components/code-chat.tsx:92]" purpose="Code chat ({...})" />
-      <function signature="PlaygroundPage() [c:/users/ansh/desktop/web/mesh/apps/web/app/playground/page.tsx:727]" purpose="Playground page" />
-      <function signature="PlaygroundPage() [c:/users/ansh/desktop/web/mesh/apps/web/app/playground/page.tsx:727]" purpose="Playground page" />
       <function signature="CommandMenu({...}) [c:/users/ansh/desktop/web/mesh/apps/web/components/command-menu.tsx:156]" purpose="Command menu ({...})" />
+      <function signature="FeedbackBlock() [c:/users/ansh/desktop/web/mesh/apps/web/components/feedback-block.tsx:11]" purpose="Feedback block" />
+      <function signature="GraphView({...}) [c:/users/ansh/desktop/web/mesh/apps/web/components/graph-view.tsx:20]" purpose="Graph view ({...})" />
+      <function signature="CopyButton({...}) [c:/users/ansh/desktop/web/mesh/apps/web/components/copy-button.tsx:34]" purpose="Copy button ({...})" />
+      <function signature="ActiveIndicator({...}) [c:/users/ansh/desktop/web/mesh/apps/web/components/toc.tsx:150]" purpose="Active indicator ({...})" />
     </entry_points>
     <key_internal_functions>
-      <function name="cn" callers="132" purpose="Cn (inputs)" />
+      <function name="cn" callers="128" purpose="Cn (inputs)" />
       <function name="trackEvent" callers="5" purpose="Track event (properties)" />
       <function name="useFormField" callers="4" purpose="Hook for form field" />
       <function name="useContributionGraph" callers="4" purpose="Hook for contribution graph" />
       <function name="collectDocsRoutes" callers="3" purpose="Collect docs routes (dir)" />
     </key_internal_functions>
     <depends_on>Config, Storage & Authentication</depends_on>
+    <module_constraints>
+      <constraint>module:fixtures-ts-express-api-auth cannot import module:mesh-apps-web</constraint>
+    </module_constraints>
   </module>
   <module id="mesh-packages-cli">
     <name>CLI & Utils</name>
@@ -156,10 +165,10 @@
     <purpose>4 files, 0 functions</purpose>
     <entry_points>
       <function signature="panel(title, rows, width?) [c:/users/ansh/desktop/web/mesh/packages/cli/src/ui.ts:73]" purpose="Panel (title, rows, width)" />
-      <function signature="registerTraceCommand(program) [c:/users/ansh/desktop/web/mesh/packages/cli/src/commands/trace.ts:15]" purpose="Register trace command (program)" />
+      <function signature="registerAdrCommand(program) [c:/users/ansh/desktop/web/mesh/packages/cli/src/commands/adr.ts:6]" purpose="Register adr command (program)" />
       <function signature="buildGraphFromLock(lock) [c:/users/ansh/desktop/web/mesh/packages/cli/src/commands/dead-code.ts:92]" purpose="Build graph from lock (lock)" />
-      <function signature="buildGraphFromLock(lock) [c:/users/ansh/desktop/web/mesh/packages/cli/src/commands/ci.ts:109]" purpose="Build graph from lock (lock)" />
-      <function signature="buildGraphFromLock(lock) [c:/users/ansh/desktop/web/mesh/packages/cli/src/commands/stats.ts:136]" purpose="Build graph from lock (lock)" />
+      <function signature="async getFunctionBody(fn, projectRoot, _maxLines) [c:/users/ansh/desktop/web/mesh/packages/cli/src/commands/search.ts:25]" purpose="Get function body (fn, projectRoot, _maxLines)" />
+      <function signature="levenshtein(a, b) [c:/users/ansh/desktop/web/mesh/packages/cli/src/commands/search.ts:81]" purpose="Levenshtein (a, b)" />
     </entry_points>
     <key_internal_functions>
       <function name="gap" callers="11" purpose="Gap" />
@@ -277,44 +286,67 @@ type UserPublic struct {
 ### `benchmarks/fixtures/polyglot-services/src/models.py` (model)
 
 ```python
-from dataclasses import dataclass
-from typing import List, Optional
-import json
+#!/usr/bin/env python3
+"""Main entry point for the application."""
 
 
-@dataclass
+def connect_database():
+    """Connect to the database."""
+    pass
+
+
+def is_connected():
+    """Check if database is connected."""
+    pass
+
+
+def disconnect_database():
+    """Disconnect from the database."""
+    pass
+
+
+def authenticate_user(email: str, password: str) -> bool:
+    """Authenticate a user with email and password."""
+    pass
+
+
+def hash_password(password: str) -> str:
+    """Hash a password."""
+    pass
+
+
+def verify_password(password: str, hash: str) -> bool:
+    """Verify a password against a hash."""
+    pass
+
+
 class User:
-    id: int
-    name: str
-    email: str
+    def __init__(self, email: str, name: str):
+        self.email = email
+        self.name = name
 
-    def display_name(self) -> str:
-        return self.name.title()
-
-    def is_valid(self) -> bool:
-        return "@" in self.email
+    def get_profile(self):
+        """Get user profile."""
+        pass
 
 
-class UserRepository:
-    def __init__(self):
-        self._users: dict[int, User] = {}
-
-    def add(self, user: User) -> None:
-        self._users[user.id] = user
-
-    def find_by_id(self, id: int) -> Optional[User]:
-        return self._users.get(id)
-
-    def list_all(self) -> List[User]:
-        return list(self._users.values())
+def create_invoice(amount: float) -> dict:
+    """Create an invoice."""
+    pass
 
 
-def main():
-    repo = UserRepository()
-    repo.add(User(1, "alice", "alice@example.com"))
-    user = repo.find_by_id(1)
-    if user:
-        print(user.display_name())
+def process_payment(invoice_id: str, amount: float) -> bool:
+    """Process payment for an invoice."""
+    pass
+
+
+def error_handler(error: Exception):
+    """Handle errors."""
+    pass
+
+
+if __name__ == "__main__":
+    connect_database()
 ```
 
 ### `packages/ai-context/src/types.ts` (types)
@@ -931,4 +963,6 @@ usersRouter.post('/:id/promote', requireAuth, requireAdmin, async (req, res) => 
 - **DELETE** `/:id` → `async (req, res) => { try { await removeUser(req.params.id) res.status(204).send...` → [requireAuth, requireAdmin] *(C:/Users/Ansh/Desktop/web/Mesh/benchmarks/fixtures/ts-express-api/src/routes/users.ts:17)*
 - **POST** `/:id/promote` → `async (req, res) => { try { await promoteToAdmin(req.params.id) res.json({ messa...` → [requireAuth, requireAdmin] *(C:/Users/Ansh/Desktop/web/Mesh/benchmarks/fixtures/ts-express-api/src/routes/users.ts:26)*
 
+## Cross-Cutting Constraints
+- module:fixtures-ts-express-api-auth cannot import module:mesh-apps-web
 

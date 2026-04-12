@@ -1,6 +1,6 @@
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js'
-import { registerTools } from './tools.js'
-import { registerResources } from './resources.js'
+import { registerTools } from './tools'
+import { registerResources } from './resources'
 
 declare const __MCP_VERSION__: string
 

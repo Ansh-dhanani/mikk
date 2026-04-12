@@ -1,65 +1,112 @@
-﻿# @getmikk/core
+# @getmikk/core
 
-> AST parsing, dependency graph, Merkle hashing, contract management, boundary enforcement.
+> AST parsing, dependency graph, Merkle hashing, contract management, boundary enforcement, risk analysis.
 
 [![npm](https://img.shields.io/npm/v/@getmikk/core)](https://www.npmjs.com/package/@getmikk/core)
 [![License: Apache-2.0](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](../../LICENSE)
 
-Foundation package for the Mikk ecosystem. All other packages depend on core — nothing in core depends on them.
+Foundation package for the Mikk ecosystem. All other packages import from core — nothing in core imports from them.
 
 > Part of [Mikk](../../README.md) — live architectural context for your AI agent.
 
 ---
 
-## What is in core
-
-### Parsers
+## Parsers
 
 Three parser families follow the same interface: `parse(filePath, content)` → `ParsedFile`.
 
-**TypeScript / TSX**
-Uses OXC (Rust parser). Extracts: functions (name, params with types, return type, start/end line, async flag, decorators, generics), classes (methods, properties, inheritance), imports (named, default, namespace, type-only) with full resolution (tsconfig `paths` alias resolution, recursive `extends` chain, index file inference, extension inference). Every extracted function has its exact byte-accurate body location.
-
-**JavaScript / JSX**
-Uses OXC with `ScriptKind` inference (detects JS/JSX/CJS/MJS). Handles: JSX expression containers, default exports, CommonJS `module.exports`, re-exports via barrel files.
-
-**Polyglot (Tree-sitter)**
-Python, Java, Kotlin (`.kt`, `.kts`), Swift, C/C++ (`.cpp`, `.cc`, `.cxx`, `.hpp`, `.hxx`, `.hh`), C#, Rust, PHP, and Ruby via tree-sitter grammars.
+**TypeScript / TSX / JavaScript / JSX**
+Uses OxcParser (Rust-backed). Extracts: functions with full signatures (params, return type, async flag, decorators, generics), classes (methods, properties, inheritance chain), imports (named, default, namespace, type-only) with full resolution (tsconfig `paths` alias resolution, recursive `extends`, index file inference, extension inference). Every function has its exact byte-accurate body location.
 
 **Go**
-Regex + stateful scanning. No Go toolchain dependency. Extracts: functions, methods (with receiver types), structs, interfaces, package imports. `go.mod` used for project boundary detection.
+Regex + stateful scanning. No Go toolchain required. Extracts: functions, methods (with receiver types), structs, interfaces, package imports. Uses `go.mod` for project boundary detection.
+
+**Polyglot (Tree-sitter)**
+Python, Java, Kotlin (`.kt`, `.kts`), Swift, C/C++, C#, Rust, PHP, Ruby, Shell, and more via tree-sitter grammars.
+
+---
+
+## Graph
 
 ### GraphBuilder
 
 Two-pass O(n) dependency graph construction:
-1. **Pass 1** — create all nodes (functions, files)
-2. **Pass 2** — wire all edges (import edges, call edges, containment edges)
+1. **Pass 1** — register all nodes (functions, classes, files, generics)
+2. **Pass 2** — resolve all edges (import, call, containment, extends, implements)
 
-Result: `DependencyGraph` with forward `outEdges` and reverse `inEdges` maps for O(1) lookups in both directions.
+Result: `DependencyGraph` with both `outEdges` and `inEdges` adjacency maps — O(1) traversal in either direction.
+
+```typescript
+interface DependencyGraph {
+  nodes: Map<string, GraphNode>
+  edges: GraphEdge[]
+  outEdges: Map<string, GraphEdge[]>  // node → edges going out
+  inEdges: Map<string, GraphEdge[]>   // node → edges coming in
+}
+```
+
+Function IDs are stable and unambiguous:
+```
+fn:<absolute-posix-path>:<FunctionName>
+class:<absolute-posix-path>:<ClassName>
+type:<absolute-posix-path>:<TypeName>
+```
 
 ### ImpactAnalyzer
 
 BFS backward walk from a set of changed nodes. Returns:
 - `changed` — directly modified nodes
 - `impacted` — all transitively affected upstream callers
-- `classified` — impacted nodes sorted into `critical | high | medium | low` by proximity
-- `depth` — max blast radius depth
-- `confidence` — `high | medium | low` based on analysis mode
+- `classified` — sorted into `critical | high | medium | low` by proximity and risk score
+- `confidence` — `high | medium | low` based on edge coverage
+
+### RiskEngine
+
+Computes a quantitative risk score (0–100) per node based on structural position in the graph:
+
+```
+score = (connectedNodes × 1.5) + (depth × 2)
+      + 30 if auth/security domain
+      + 20 if database/state domain
+      + 15 if exported
+```
+
+Clamped to [0, 100].
+
+### RiskExplainer
+
+Takes a function ID and produces a human-readable audit trail of its risk score — scored factors with point contributions, hot paths to critical downstream nodes, and concrete recommendations. Used by `mikk_explain_risk`.
+
+### ConfidenceEngine
+
+Computes path-level confidence for impact analysis. Each edge carries a confidence score (1.0 for direct AST-confirmed calls, lower for inferred). Path confidence is the product of all edge confidences along a traversal path.
+
+### ScopeAnalyzer
+
+Given a task description, finds the minimal set of files to modify. The inverse of `ImpactAnalyzer` — instead of "what breaks if I change X", it answers "what do I need to touch to do Y". Uses BFS forward from keyword-matched anchor functions with decay weighting. Used by `mikk_scope_check` and `mikk_change_plan`.
 
 ### ClusterDetector
 
-Groups files into logical modules via greedy agglomeration. Produces clusters with a `confidence` score (0–1). Used by `mikk init` to auto-generate `mikk.json` from an unknown codebase.
+Groups files into logical modules via greedy agglomeration using import coupling, directory structure, and naming patterns. Produces clusters with confidence scores. Used by `mikk init` to auto-generate `mikk.json`.
+
+### DeadCodeDetector
+
+Identifies functions with zero callers after multi-pass exemptions: exported functions, entry-point patterns, detected route handlers, test functions, constructors, React components, and functions transitively reachable from any exported function in the same file. Returns per-module breakdown with confidence levels (high / medium / low).
+
+---
+
+## Contract & Lock
 
 ### BoundaryChecker
 
-Runs all declared constraint rules against the lock file. For each violation, returns: the source function, target function, which rule was violated, and severity. Used live by `mikk_before_edit` and `mikk ci`.
+Runs all declared constraint rules from `mikk.json` against the lock file. For each violation: source function, target function, which rule was violated, severity. Used by `mikk_before_edit` and `mikk ci`.
 
-**Constraint types:**
-- `no-import` — module A must not import from module B
+**Six constraint types:**
+- `no-import` — module A must not import from B
 - `must-use` — module A must use dependency B
 - `no-call` — specific functions must not call specific targets
-- `layer` — layered architecture enforcement (can only import from lower-numbered layers)
-- `naming` — function or file naming pattern via regex
+- `layer` — layered architecture (can only import from lower layers)
+- `naming` — function or file naming regex
 - `max-files` — maximum file count per module
 
 ### Merkle Hashing
@@ -69,38 +116,31 @@ SHA-256 at every level:
 function hash → file hash → module hash → root hash
 ```
 
-One root hash comparison = instant full drift detection. Persisted in SQLite with WAL mode for zero-contention concurrent reads.
+One root hash comparison = instant full drift detection with zero file reads for unchanged subtrees. Hash store persisted in SQLite with WAL mode.
 
 ### LockCompiler
 
-Compiles a `DependencyGraph` + `MikkContract` + parsed files into a `MikkLock`. The lock file is the single source of truth for all MCP tools and CLI commands.
+Compiles `DependencyGraph` + `MikkContract` + parsed files into a `MikkLock`. Lock format uses an integer function index — call edges are stored as integer references for compact output (~60% smaller than raw source).
 
-Lock format:
-- Integer-based function index (`fnIndex`) — call graph edges stored as integer references
-- Compact JSON output
-- Backward-compatible hydration
+### ContractReader / LockReader / AdrManager
 
-### ContractReader / ContractWriter / LockReader
+Read and write `mikk.json` and `mikk.lock.json`. All writes use atomic temp-file + rename. `AdrManager` additionally holds a file lock during writes to prevent concurrent agent corruption.
 
-Read and write `mikk.json` and `mikk.lock.json`. `LockReader.write()` uses atomic temp-file + rename to prevent corruption.
+---
 
-`AdrManager` writes `mikk.json` atomically as well (temp file + rename + file lock), reducing corruption risk in concurrent agent workflows.
+## Search
 
-### Parse Diagnostics
+### BM25Index
 
-`parseFilesWithDiagnostics` returns both parsed files and parser/read/import-resolution diagnostics. This enables strict parse enforcement in CLI commands (`mikk init --strict-parsing`, `mikk analyze --strict-parsing`) for high-assurance pipelines.
+Full-text BM25 ranking over function tokens (name, params, purpose, file path). Used by `mikk_search_functions`.
 
-### AdrManager
+### DirectSearchEngine
 
-CRUD for Architectural Decision Records in `mikk.json`. Add, update, remove, list, and get individual decisions. ADRs surface in all AI context queries via the MCP server.
-
-### DeadCodeDetector
-
-Identifies functions with zero callers after exempting: exported functions, entry points, detected route handlers, test functions, and constructors. Returns per-module breakdown.
-
-### Route Detection
-
-Detects HTTP route definitions in Express, Koa, and Hono patterns. Extracts: HTTP method, path string, handler function reference, middleware chain, file, and line number.
+O(1) lookups against a prebuilt index:
+- `getExactMatch(name)` — direct name lookup
+- `findBySignature(sig)` — signature string match
+- `findByLocation(file, line)` — function containing a specific line
+- `findSimilar(query)` — Levenshtein-distance fuzzy match
 
 ---
 
@@ -112,26 +152,19 @@ interface ParsedFile {
   hash: string
   language: string
   functions: ParsedFunction[]
+  classes: ParsedClass[]
   imports: ParsedImport[]
   exports: ParsedExport[]
-  classes: ParsedClass[]
   routes: ParsedRoute[]
-}
-
-interface DependencyGraph {
-  nodes: Map<string, GraphNode>
-  edges: GraphEdge[]
-  outEdges: Map<string, GraphEdge[]>
-  inEdges: Map<string, GraphEdge[]>
 }
 
 interface MikkLock {
   version: string
   lockDate: string
-  project: { name: string; language: string }
-  fnIndex: string[]          // all function IDs — edges reference by integer index
-  functions: Record<string, LockFunction>
+  fnIndex: string[]                       // all function IDs
+  functions: Record<string, LockFunction> // keyed by ID
   files: Record<string, LockFile>
+  classes: Record<string, LockClass>
   routes: LockRoute[]
   syncState: { status: string; lastUpdated: number }
 }
@@ -139,10 +172,10 @@ interface MikkLock {
 
 ---
 
-## Test Coverage
-
-196 tests across: TypeScript parser, JavaScript parser, Go parser, dependency graph, impact analysis, hash store, contract validation, dead code detection, fuzzy matching, filesystem utilities.
+## Tests
 
 ```bash
 bun test
 ```
+
+196 tests across: TypeScript parser, JavaScript parser, Go extractor, dependency graph, impact analysis, hash store, boundary checker, dead code detection, BM25 search, fuzzy matching, filesystem utilities.

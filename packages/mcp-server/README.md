@@ -1,115 +1,82 @@
 # @getmikk/mcp-server
 
-> Give your AI assistant real architectural intelligence — not guesses.
+> MCP server for Mikk architectural analysis.
 
-[![npm](https://img.shields.io/npm/v/@getmikk/mcp-server)](https://www.npmjs.com/package/@getmikk/mcp-server)
+[![npm](https://img.shields.io/npm/v/@getmikk/mcp-server)](https://www.npmjs.org/package/@getmikk/mcp-server)
 [![License: Apache-2.0](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](../../LICENSE)
 
-MCP (Model Context Protocol) server for [Mikk](../../README.md) — connects your project's full architectural graph directly to AI assistants like Claude Desktop, Cursor, and any MCP-compatible client.
+MCP (Model Context Protocol) server for [Mikk](../../README.md) - connects your project's architectural graph to AI assistants like Claude Desktop, Cursor, and any MCP-compatible client.
 
-Once connected, your AI assistant can answer questions like *"what breaks if I change this file?"*, *"who calls `parseToken`?"*, and *"what are the architectural constraints for this project?"* — all grounded in the actual call graph, real export surfaces, and real constraint definitions. Not hallucinated. Not guessed.
+Every tool reads from `mikk.lock.json` - no re-parsing on each call.
 
-Every tool reads from `mikk.lock.json` — no re-parsing, millisecond response times.
-
-> Part of [Mikk](../../README.md) — the codebase nervous system for AI-assisted development.
+> Part of [Mikk](../../README.md) - live architectural context for your AI agent.
 
 ---
 
 ## Requirements
 
-- [Mikk](https://github.com/Ansh-dhanani/mikk) installed and initialized in your project (`mikk.json` + `mikk.lock.json` present)
+- Mikk initialized in your project (`mikk.json` + `mikk.lock.json` present)
 - Node.js 18+ or Bun 1.x
 
 ---
 
-## Installation
+## Usage
 
 ```bash
-npm install -g @getmikk/mcp-server
-# or
-bunx @getmikk/mcp-server /path/to/your/project
+# Auto-install into your AI tool
+mikk mcp install
+
+# Or start manually
+npx @getmikk/mcp-server /path/to/your/project
 ```
 
----
-
-## Connecting to an MCP client
-
-### Claude Desktop
-
-Add to `~/Library/Application Support/Claude/claude_desktop_config.json` (macOS) or `%APPDATA%\Claude\claude_desktop_config.json` (Windows):
-
+**Claude Desktop** — add to `claude_desktop_config.json`:
 ```json
 {
   "mcpServers": {
     "mikk": {
       "command": "npx",
-      "args": ["-y", "@getmikk/mcp-server", "/absolute/path/to/your/project"]
+      "args": ["-y", "@getmikk/mcp-server", "/absolute/path/to/project"]
     }
   }
 }
-```
-
-### Cursor / VS Code (via settings.json)
-
-```json
-{
-  "mcp.servers": {
-    "mikk": {
-      "command": "npx",
-      "args": ["-y", "@getmikk/mcp-server", "/absolute/path/to/your/project"]
-    }
-  }
-}
-```
-
-### Direct invocation
-
-```bash
-mikk-mcp /path/to/project
 ```
 
 ---
 
-## Tools (22)
+## Tools
 
-All tools read from the lock file (`mikk.lock.json`) — fast, no re-parsing.
-
-| Tool | Purpose |
+### Core Analysis
+| Tool | Description |
 |---|---|
-| `mikk_get_project_overview` | Modules, function counts, tech stack, constraints |
-| `mikk_get_session_context` | **One-shot AI session start** — get project overview, recent changes, hot modules, and constraint status instantly |
-| `mikk_get_changes` | What files changed since the last codebase analysis |
-| `mikk_query_context` | Ask an architecture question — returns graph-traced context with call chains |
-| `mikk_impact_analysis` | Blast radius of changing a specific file |
-| `mikk_before_edit` | **Call before editing any file** — exported functions at risk, actual boundary constraint violations, full blast radius |
-| `mikk_find_usages` | Every function that calls a specific function — essential before renaming |
-| `mikk_list_modules` | All declared modules with file/function counts |
-| `mikk_get_module_detail` | Functions, files, exported API, and internal call graph for a module |
-| `mikk_get_function_detail` | Params, return type, call graph, source body, error handling for a function |
-| `mikk_search_functions` | Substring search across all function names |
-| `mikk_semantic_search` | **Natural-language semantic search** using local vector embeddings (Xenova/all-MiniLM-L6-v2). Query: *"validate a JWT token"* returns functions ranked by semantic similarity (e.g. `verifyToken`, `validateJwt`). Requires optional `@xenova/transformers` package. |
-| `mikk_get_constraints` | All architectural constraints and design decisions |
-| `mikk_get_file` | Read raw source of any project file (with path traversal guard) |
-| `mikk_read_file` | Read raw source, scoped only to specific functions to save token context |
-| `mikk_get_routes` | Detected HTTP routes (Express / Koa / Hono style) |
-| `mikk_rename` | Coordinated multi-file rename plan (definition + call sites + imports) |
-| `mikk_git_diff_impact` | Map git diff hunks to affected symbols (added/modified/deleted) |
-| `mikk_manage_adr` | CRUD for Architectural Decision Records (ADRs) stored in `mikk.json` |
-| `mikk_dead_code` | Detect dead code (functions with zero callers after exemptions) |
-| `mikk_token_stats` | Session token savings and efficiency estimates |
-| `mikk_test_tool` | Simple test tool for verifying MCP connectivity |
+| `mikk_query_context` | Ask an architecture question - returns graph-traced context with relevant functions, files, and call chains. |
+| `mikk_get_project_overview` | Get a high-level overview: modules, function counts, file counts, constraints. |
+| `mikk_list_modules` | List all declared modules with file counts, function counts, entry points, and descriptions. |
+| `mikk_get_session_context` | One-shot context for session start: project overview + constraint status + hot modules + recently modified files. |
 
-### Staleness warning
+### Navigation & Search
+| Tool | Description |
+|---|---|
+| `mikk_search_functions` | Search for functions by name or ID using a hybrid BM25+substring search. |
+| `mikk_find_function` | Direct O(1) lookup of a function by exact name. |
+| `mikk_get_function_detail` | 360-degree view of a function: params, return type, source body, call graph, error handling. |
+| `mikk_read_file` | Read file scoped to specific functions. Returns bodies with metadata headers. |
 
-If `mikk.lock.json` is in a `drifted` or `conflict` state (i.e., out of sync with the source), every impact-sensitive tool will include a `"warning"` field in its response:
+### Safety & Impact Analysis
+| Tool | Description |
+|---|---|
+| `mikk_before_edit` | Call BEFORE editing any file. Returns blast radius, exported functions at risk, constraint violations. |
+| `mikk_impact_analysis` | Analyze the blast radius of changing a file. Returns impacted functions classified by severity. |
 
-```json
-{
-  "warning": "⚠️ Lock file is drifted. Run `mikk analyze` for accurate results."
-}
-```
-
-Run `mikk analyze` in your project to refresh the lock.
+### Project Management
+| Tool | Description |
+|---|---|
+| `mikk_get_constraints` | Get all architectural constraints and ADRs from `mikk.json`. |
+| `mikk_get_routes` | Get all detected HTTP routes with methods, paths, handlers, and middleware chains. |
+| `mikk_get_changes` | Detect files added, modified, and deleted since last mikk analyze. |
+| `mikk_token_stats` | Show token savings for this session. |
+| `mikk_security_scan` | Scan codebase for security vulnerabilities: hardcoded secrets, SQL injection, XSS, weak crypto. |
+| `mikk_test_tool` | Simple test tool that returns a static message. |
 
 ---
 
@@ -117,101 +84,24 @@ Run `mikk analyze` in your project to refresh the lock.
 
 | URI | Content |
 |---|---|
-| `mikk://contract` | The full `mikk.json` contract as JSON |
-| `mikk://lock` | The full `mikk.lock.json` as JSON |
-| `mikk://context` | The `claude.md` AI context document (if present) |
+| `mikk://contract` | Full `mikk.json` as JSON |
+| `mikk://lock` | Full `mikk.lock.json` as JSON |
+| `mikk://context` | Current `claude.md` content |
 
 ---
 
-## Tool reference
+## Staleness
 
-### `mikk_before_edit`
+Every response includes a `warning` field when the lock is out of sync with the filesystem:
 
-The most important tool. Call it **before** editing any file.
-
-```
-files: string[]   # relative paths, e.g. ["src/auth/verify.ts"]
+```json
+{ "warning": "Lock file is drifted. Run `mikk analyze` for accurate results." }
 ```
 
-Returns for each file:
-- Functions defined in the file
-- Exported functions at risk (with their callers)
-- Blast radius (how many nodes depend on this file)
-- All project-level architectural constraints
-
----
-
-### `mikk_query_context`
-
-Ask an architecture question and get back a formatted context block ready to feed into your prompt.
-
-```
-question:     string            # e.g. "How does token refresh work?"
-maxHops:      number (default 4)
-tokenBudget:  number (default 6000)
-focusFile:    string (optional) # anchor traversal from a specific file
-focusModule:  string (optional) # anchor traversal from a specific module
-provider:     'generic' | 'claude' | 'compact'  (default 'generic')
-```
-
-Returns `isError: true` with a helpful message if no context was found (e.g. file doesn't exist in the lock).
-
----
-
-### `mikk_find_usages`
-
-Find everything that calls a function — complete with file, module, and line number.
-
-```
-name: string   # function name (e.g. "parseToken")
-```
-
----
-
-### `mikk_semantic_search`
-
-Find functions by **natural-language meaning**, not just name matching. Uses local vector embeddings (Xenova/all-MiniLM-L6-v2) to rank functions by semantic similarity.
-
-```
-query:  string   # natural-language description (e.g. "validate JWT token", "send email notification")
-topK:   number   # max results to return (default 10)
-```
-
-**Example queries**:
-- `"validate JWT token"` → ranks `verifyToken`, `validateJwt`, `checkToken` highest
-- `"send an email notification"` → ranks `sendWelcomeEmail`, `notifyUser`, `emailAlert` highest
-- `"database persistence"` → ranks `saveUser`, `storeRecord`, `commitTransaction` highest
-
-**Advantages over `mikk_search_functions`**:
-- Keyword search: exact substring match (very fast, narrow results)
-- Semantic search: meaning match (slower, broader understanding, finds related functions)
-
-**Requirements**: `@xenova/transformers` must be installed in your project (`npm install @xenova/transformers`). The first query will download the model (~22 MB) to `~/.cache/huggingface/` and cache it locally.
-
-**Availability check**: If `@xenova/transformers` is not installed, the tool returns a helpful error message with installation instructions.
-
----
-
-### `mikk_impact_analysis`
-
-```
-file: string   # relative path to the file being changed
-```
-
-Returns `changedNodes`, `impactedNodes`, depth, confidence, `classified` risk breakdown, and the top 30 impacted functions.
-
----
-
-## Recommended AI assistant workflow
-
-1. **Before editing** → call `mikk_before_edit` with the files you plan to touch
-2. **Understanding a flow** → call `mikk_query_context` with your question
-3. **Searching by meaning** → call `mikk_semantic_search` for natural-language queries
-4. **Renaming a function** → call `mikk_find_usages` first
-5. **Exploring the project** → `mikk_get_project_overview` → `mikk_get_module_detail`
+Keep the lock current with `mikk analyze` after code changes, or `mikk watch` for continuous sync.
 
 ---
 
 ## License
 
-Apache-2.0
+[Apache-2.0](../../LICENSE)

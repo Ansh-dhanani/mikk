@@ -1,153 +1,106 @@
 # @getmikk/intent-engine
 
-> Parse developer intent, enforce safety gates, run the Decision Engine, auto-correct issues, and find functions by meaning.
+> Safety gates, decision engine, auto-correction, and local semantic search for pre-edit validation.
 
 [![npm](https://img.shields.io/npm/v/@getmikk/intent-engine)](https://www.npmjs.com/package/@getmikk/intent-engine)
 [![License: Apache-2.0](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](../../LICENSE)
 
-The Intent Engine is the safety layer that validates every edit before it lands. It combines:
-
-1. **PreflightPipeline** — pre-flight check for plain-English plans
-2. **PreEditValidation** — full pre-edit safety validation (used by `mikk_before_edit`)
-3. **IntentUnderstanding** — analyzes commit/branch context for intentional breaking changes
-4. **EnforcedSafetyGates** — six gates that block or warn on risky edits
-5. **DecisionEngine** — aggregates all signals into `APPROVED` / `WARNING` / `BLOCKED`
-6. **AutoCorrectionEngine** — detects and auto-fixes broken references, imports, boundary violations
-7. **SemanticSearcher** — local vector search for functions by natural-language description
+The Intent Engine is the safety layer that validates every edit before it lands. It runs as part of `mikk_validate_edit` and `mikk_before_edit` in the MCP server, and as `mikk intent` in the CLI.
 
 > Part of [Mikk](../../README.md) — live architectural context for your AI agent.
 
 ---
 
-## Pre-Edit Validation (`mikk_before_edit`)
+## Components
 
-The main entry point for the MCP `mikk_before_edit` tool. Runs the full pipeline against a set of files the AI intends to edit.
+### PreEditValidation
+
+The main entry point for the MCP `mikk_validate_edit` tool. Runs the full pipeline against a set of files the agent intends to edit.
 
 ```typescript
 import { PreEditValidation } from '@getmikk/intent-engine'
 
-const validator = new PreEditValidation(contract, lock, graph, projectRoot, {
-  maxRiskScore: 70,
-  maxImpactNodes: 10,
-  protectedModules: ['auth', 'billing'],
-  requireTestsForChangedFiles: true,
-  requireDocumentationForApiChanges: false,
-})
+const validator = new PreEditValidation(contract, lock, graph, projectRoot)
 
 const result = await validator.validate({
-  files: ['src/auth/login.ts', 'src/auth/session.ts'],
+  files: ['src/auth/login.ts'],
   description: 'Refactor JWT validation to use new token format',
-  author: 'dev@example.com',
   intent: {
     commitMessage: 'REFACTOR: update JWT validation',
     branchName: 'refactor/jwt-v2',
   },
 })
 
-console.log(result.allowed)          // true | false
-console.log(result.intent)           // { isIntentionalBreakingChange, confidence, reasoning }
-console.log(result.gates)            // per-gate pass/fail with reason and bypassable flag
-console.log(result.corrections)      // auto-fixed issues and suggestions
-console.log(result.recommendations)  // contextual next steps
-```
-
-### Response shape
-
-```typescript
-{
-  allowed: boolean,
-  confidence: number,          // 0–1 intent confidence
-
-  intent: {
-    isIntentionalBreakingChange: boolean,
-    confidence: number,
-    reasoning: string[],
-    riskAcceptance: 'none' | 'low' | 'medium' | 'high'
-  },
-
-  impact: {
-    totalFiles: number,
-    totalFunctions: number,
-    riskScore: number,          // 0–100
-    criticalPaths: string[],    // high-calledBy functions
-    blastRadius: string[]       // functions in calledBy chain
-  },
-
-  gates: Array<{
-    name: string,               // RISK_SCORE | IMPACT_SCALE | PROTECTED_MODULE | ...
-    passed: boolean,
-    severity: 'BLOCKING' | 'WARNING',
-    message: string,
-    bypassable: boolean
-  }>,
-
-  corrections: {
-    available: boolean,
-    issuesFound: number,
-    autoFixable: number,
-    applied: string[],
-    suggested: string[]
-  },
-
-  recommendations: string[],
-  nextSteps: string[],
-  tokenSavings: number
-}
+result.allowed        // true | false
+result.gates          // per-gate pass/fail with reason and bypassable flag
+result.intent         // { isIntentionalBreakingChange, confidence, reasoning }
+result.impact         // { riskScore, totalFunctions, blastRadius, criticalPaths }
+result.corrections    // auto-applied and suggested fixes
+result.recommendations
+result.nextSteps
 ```
 
 ---
 
-## Safety Gates
+### EnforcedSafetyGates
 
-Six gates enforced by `EnforcedSafetyGates`. Use standalone or via `PreEditValidation`:
-
-```typescript
-import { EnforcedSafetyGates } from '@getmikk/intent-engine'
-
-const gates = new EnforcedSafetyGates(contract, lock, graph, {
-  maxRiskScore: 70,
-  maxImpactNodes: 10,
-  protectedModules: ['auth'],
-  enforceOnSave: true,
-  enforceOnCommit: true,
-  enforceInCI: true,
-  requireTestsForChangedFiles: true,
-  requireDocumentationForApiChanges: false,
-})
-
-const results = await gates.validateEdits(['src/auth/login.ts'])
-const { allowed, blockingGates } = gates.canProceed(results)
-```
+Six gates that run before any edit is applied:
 
 | Gate | Blocks when | Bypassable |
 |------|------------|-----------|
-| `RISK_SCORE` | Risk ≥ 90, or > `maxRiskScore` | Yes (except ≥ 90) |
+| `RISK_SCORE` | Risk ≥ 90, or > `maxRiskScore` policy | Yes (except ≥ 90) |
 | `IMPACT_SCALE` | Impact > `maxImpactNodes × 2` | Yes |
-| `PROTECTED_MODULE` | Protected module touched | **Never** |
-| `BREAKING_CHANGE` | Exported API changed without `BREAKING:` marker | Yes |
+| `PROTECTED_MODULE` | A protected module is touched | **Never** |
+| `BREAKING_CHANGE` | Exported API changed without `BREAKING:` commit marker | Yes |
 | `TEST_COVERAGE` | High-risk changes with no test file edits | Yes |
-| `DOCUMENTATION` | Significant API changes with no doc updates | Yes |
+| `DOCUMENTATION` | Significant API changes with no doc file updates | Yes |
+
+Configure all thresholds in `mikk.json` under `policies`.
 
 ---
 
-## Decision Engine
+### IntentUnderstanding
 
-Evaluates an `ImpactResult` against your policies:
+Analyzes commit messages, branch names, and change patterns to determine whether a breaking change is intentional.
+
+Intent signals recognized:
+- Commit markers: `BREAKING:`, `REFACTOR:`, `MIGRATION:`
+- Branch patterns: `refactor/`, `breaking/`, `v2/`
+- ADR entries in `mikk.json` that mention the changed module and contain "migration" or "deprecat"
+
+---
+
+### DecisionEngine
+
+Aggregates all signals and returns a three-state verdict:
+
+| Status | Meaning |
+|--------|---------|
+| `APPROVED` | Risk within policy, no violations |
+| `WARNING` | Risk or impact exceeds a threshold — review recommended |
+| `BLOCKED` | Risk ≥ 90, protected module touched, or strict boundaries violated |
 
 ```typescript
 import { DecisionEngine } from '@getmikk/intent-engine'
 
 const engine = new DecisionEngine(contract)
 const decision = engine.evaluate(impactResult)
-
-// { status: 'APPROVED' | 'WARNING' | 'BLOCKED', reasons: string[], riskScore: number, impactNodes: number }
+// { status, reasons, riskScore, impactNodes }
 ```
 
 ---
 
-## Auto-Correction
+### AutoCorrectionEngine
 
-Detects and fixes common issues in source files:
+Detects and auto-fixes common issues in source files without requiring AI involvement:
+
+| Issue type | Detection | Fix |
+|-----------|-----------|-----|
+| **Broken references** | Call targets absent from lock | Nearest Levenshtein match (threshold 3); replaces whole-word occurrences |
+| **Missing imports** | Resolved import path absent from lock | Finds moved file by basename; replaces import path |
+| **Boundary violations** | Cross-module calls that violate constraints | Prepends `// TODO [mikk]: Boundary violation` comment with adapter suggestion |
+
+All file writes are path-traversal guarded — only files inside `projectRoot` are touched.
 
 ```typescript
 import { AutoCorrectionEngine } from '@getmikk/intent-engine'
@@ -155,18 +108,16 @@ import { AutoCorrectionEngine } from '@getmikk/intent-engine'
 const corrector = new AutoCorrectionEngine(contract, lock, graph, projectRoot)
 const result = await corrector.analyzeAndFix(['src/auth/login.ts'])
 
-console.log(result.issues)         // all detected issues
-console.log(result.appliedFixes)   // auto-applied fixes
-console.log(result.failedFixes)    // fixes that failed to apply
+result.appliedFixes   // fixes written to disk
+result.failedFixes    // fixes that could not be safely applied
+result.filesModified  // list of modified file paths
 ```
-
-Issues detected: `broken_reference` · `missing_import` · `boundary_violation`
 
 ---
 
-## Pre-flight Pipeline
+### PreflightPipeline
 
-For plain-English intent validation before writing any code:
+For validating a plain-English plan before writing any code:
 
 ```typescript
 import { PreflightPipeline } from '@getmikk/intent-engine'
@@ -174,41 +125,39 @@ import { PreflightPipeline } from '@getmikk/intent-engine'
 const pipeline = new PreflightPipeline(contract, lock)
 const result = await pipeline.run("Add rate limiting to all API routes")
 
-console.log(result.approved)    // true | false
-console.log(result.conflicts)   // constraint violations
-console.log(result.decision)    // DecisionResult from DecisionEngine
-console.log(result.explanation) // human-readable summary
+result.approved      // true | false
+result.conflicts     // constraint violations detected
+result.decision      // DecisionResult
+result.explanation   // human-readable summary with risk breakdown
 ```
 
 ---
 
-## Semantic Search
+### SemanticSearcher
 
-Find functions by natural-language description using local vector embeddings. Runs entirely on-device — no external API.
-
-### Setup
+Find functions by natural-language description using local vector embeddings.
 
 ```bash
 npm install @xenova/transformers
 ```
 
-The model (`Xenova/all-MiniLM-L6-v2`, ~22MB) downloads once to `~/.cache/huggingface`.
-
-### Usage
+The model (`Xenova/all-MiniLM-L6-v2`, ~22MB) downloads once to `~/.cache/huggingface` and runs fully locally.
 
 ```typescript
 import { SemanticSearcher } from '@getmikk/intent-engine'
 
+const available = await SemanticSearcher.isAvailable()
+
 const searcher = new SemanticSearcher(projectRoot)
 await searcher.index(lock)
-
 const results = await searcher.search('validate a JWT token', lock, 10)
-// Returns: [{ name, file, moduleId, purpose, lines, score }]
+// [{ name, file, moduleId, purpose, lines, score }]
 ```
 
-Embeddings are cached to `.mikk/embeddings.json` and only recomputed when the lock changes.
+Embeddings are cached to `.mikk/embeddings.json` and recomputed only when the lock changes.
 
-```typescript
-const available = await SemanticSearcher.isAvailable()
-// true if @xenova/transformers is installed
-```
+---
+
+## License
+
+[Apache-2.0](../../LICENSE)

@@ -1,11 +1,11 @@
-﻿# @getmikk/watcher
+# @getmikk/watcher
 
 > Live file watcher daemon — incremental, debounced, atomic.
 
 [![npm](https://img.shields.io/npm/v/@getmikk/watcher)](https://www.npmjs.com/package/@getmikk/watcher)
 [![License: Apache-2.0](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](../../LICENSE)
 
-Background daemon that keeps `mikk.lock.json` in sync as you edit code. Detects file changes via chokidar, re-parses only what changed, updates the lock atomically, and emits typed events for downstream consumers.
+Background daemon that keeps `mikk.lock.json` in sync as you edit code. Detects file changes via chokidar, re-parses only what changed, updates the lock atomically, and emits typed events.
 
 > Part of [Mikk](../../README.md) — live architectural context for your AI agent.
 
@@ -33,11 +33,13 @@ const daemon = new WatcherDaemon({
 
 daemon.on((event) => {
   if (event.type === 'graph:updated') {
-    console.log(`Graph updated: ${event.data.changedNodes.length} changed`)
+    console.log(`${event.data.changedNodes.length} nodes changed`)
   }
 })
 
 await daemon.start()
+// ...
+await daemon.stop()
 ```
 
 ---
@@ -46,31 +48,27 @@ await daemon.start()
 
 ### FileWatcher
 
-Wraps chokidar. Watches `.ts` and `.tsx` files (configurable). On change:
-1. Computes a SHA-256 hash of the new file content
-2. Compares against the stored hash — skips true no-ops (content unchanged)
+Wraps chokidar. On any file change:
+1. SHA-256 hashes the new content
+2. Compares against stored hash — skips true no-ops (content unchanged despite mtime change)
 3. Emits a typed `FileChangeEvent` with old hash, new hash, and change type
 
-Hash store is seeded at startup from the lock file so first-change dedup works correctly from the beginning.
+Hash store is seeded at startup from the lock file so first-change dedup works immediately.
 
 ### WatcherDaemon
 
-Orchestrates everything:
-
-- **Debounce** — collects file change events for 100ms, then flushes as a batch
-- **Deduplication** — if the same file changes twice in a batch, only the latest event is kept
-- **Batch threshold** — batches under 15 files → incremental analysis; 15+ files → full re-analysis
-- **Atomic writes** — lock file written as temp file then renamed; zero corruption risk on crash
-- **PID file** — `.mikk/watcher.pid` prevents duplicate daemon instances
+- **Debounce** — collects changes for `debounceMs` (default 100ms), then flushes as a batch
+- **Dedup** — if the same file changes twice in a batch, only the latest event is processed
+- **Threshold** — batches under 15 files → incremental re-analysis; 15+ files → full re-analysis
+- **Atomic writes** — lock written as temp file then renamed; zero corruption risk on crash
+- **PID guard** — `.mikk/watcher.pid` prevents duplicate daemon instances
 - **Sync state** — `.mikk/sync-state.json` tracks `clean | syncing | drifted | conflict`
 
 ### IncrementalAnalyzer
 
-Re-parses only changed files, updates graph nodes, and recompiles the lock. O(changed files), not O(whole repo).
+Re-parses only changed files and updates the lock. O(changed files), not O(whole repo).
 
-**Race condition handling:** after parsing a file, re-hashes it. If the hash changed during the parse (file was modified while being read), re-parses up to 3 times. Accepts final state after retries are exhausted.
-
-**Full re-analysis path:** triggered when batch size exceeds 15 files (e.g. `git checkout`, bulk rename). Re-parses all changed files in parallel, rebuilds the full graph, recompiles the lock.
+Race condition handling: after parsing, re-hashes the file. If the hash changed during parsing (file was modified mid-read), retries up to 3 times before accepting the final state.
 
 ---
 
@@ -78,13 +76,13 @@ Re-parses only changed files, updates graph nodes, and recompiles the lock. O(ch
 
 ```typescript
 type WatcherEvent =
-  | { type: 'file:changed'; data: FileChangeEvent }
+  | { type: 'file:changed';  data: FileChangeEvent }
   | { type: 'graph:updated'; data: { changedNodes: string[]; impactedNodes: string[] } }
-  | { type: 'sync:drifted'; data: { reason: string; affectedModules: string[] } }
+  | { type: 'sync:drifted';  data: { reason: string; affectedModules: string[] } }
 
 type FileChangeEvent = {
   type: 'changed' | 'added' | 'deleted'
-  path: string         // relative to project root
+  path: string           // relative to project root
   oldHash: string | null
   newHash: string | null
   timestamp: number
@@ -96,13 +94,17 @@ type FileChangeEvent = {
 
 ## Sync State
 
-Written atomically to `.mikk/sync-state.json` on every transition:
-
 | Status | Meaning |
 |--------|---------|
-| `clean` | Lock file matches filesystem |
+| `clean` | Lock matches filesystem |
 | `syncing` | Batch in progress |
 | `drifted` | Analysis failed — lock is stale |
 | `conflict` | Manual intervention needed |
 
 The MCP server reads sync state to surface staleness warnings on every tool call.
+
+---
+
+## License
+
+[Apache-2.0](../../LICENSE)
