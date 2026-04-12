@@ -1,9 +1,15 @@
 ﻿{
   "name": "@getmikk/core",
-  "version": "2.1.1",
-  "publishConfig": { "access": "public", "registry": "https://registry.npmjs.org/" },
+  "version": "2.1.2",
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://registry.npmjs.org/"
+  },
   "license": "Apache-2.0",
-  "repository": { "type": "git", "url": "https://github.com/Ansh-dhanani/mikk" },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Ansh-dhanani/mikk"
+  },
   "type": "module",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",

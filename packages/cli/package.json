@@ -1,12 +1,23 @@
 ﻿{
   "name": "@getmikk/cli",
-  "version": "2.1.1",
-  "publishConfig": { "access": "public", "registry": "https://registry.npmjs.org/" },
+  "version": "2.1.2",
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://registry.npmjs.org/"
+  },
   "license": "Apache-2.0",
-  "repository": { "type": "git", "url": "https://github.com/Ansh-dhanani/mikk" },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Ansh-dhanani/mikk"
+  },
   "main": "./dist/index.js",
-  "bin": { "mikk": "bin/mikk.js" },
-  "files": ["dist", "bin"],
+  "bin": {
+    "mikk": "bin/mikk.js"
+  },
+  "files": [
+    "dist",
+    "bin"
+  ],
   "scripts": {
     "build": "node esbuild.mjs",
     "test": "bun test",
