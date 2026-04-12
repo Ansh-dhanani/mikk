@@ -9,6 +9,10 @@
                 ".next/**",
                 "!.next/cache/**",
                 "dist/**"
+            ],
+            "env": [
+                "BUN_INSTALL_CACHE_DIR",
+                "BUN_GLOBAL_DIR"
             ]
         },
         "test": {
