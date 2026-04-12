@@ -23,6 +23,11 @@ jobs:
           path: ~/.bun/install/cache
           key: ${{ runner.os }}-bun-${{ hashFiles('package.json', 'bun.lock') }}
           restore-keys: ${{ runner.os }}-bun-
+      - uses: actions/cache@v4
+        with:
+          path: node_modules
+          key: ${{ runner.os }}-nm-${{ hashFiles('package.json', 'bun.lock') }}
+          restore-keys: ${{ runner.os }}-nm-
       - run: bun install
       - run: bun run build --no-cache
       - run: bun run check:mcp-consistency
@@ -41,6 +46,11 @@ jobs:
           path: ~/.bun/install/cache
           key: ${{ runner.os }}-bun-${{ hashFiles('package.json', 'bun.lock') }}
           restore-keys: ${{ runner.os }}-bun-
+      - uses: actions/cache@v4
+        with:
+          path: node_modules
+          key: ${{ runner.os }}-nm-${{ hashFiles('package.json', 'bun.lock') }}
+          restore-keys: ${{ runner.os }}-nm-
       - run: bun install && bun run build
       - run: bun run benchmarks/ground-truth-benchmark.ts || true
       - uses: actions/upload-artifact@v4
