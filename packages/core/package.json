@@ -1,15 +1,9 @@
-{
+﻿{
   "name": "@getmikk/core",
   "version": "2.1.1",
-  "publishConfig": {
-    "access": "public",
-    "registry": "https://registry.npmjs.org/"
-  },
+  "publishConfig": { "access": "public", "registry": "https://registry.npmjs.org/" },
   "license": "Apache-2.0",
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/Ansh-dhanani/mikk"
-  },
+  "repository": { "type": "git", "url": "https://github.com/Ansh-dhanani/mikk" },
   "type": "module",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
@@ -26,18 +20,17 @@
     "dev": "tsc --watch",
     "lint": "bunx eslint --config ../../eslint.config.mjs ."
   },
-  "devDependencies": {
-    "typescript": "^5.7.0",
-    "@types/node": "^22.0.0",
-    "@types/better-sqlite3": "^7.6.13",
-    "eslint": "^9.39.2"
-  },
   "dependencies": {
-    "@google/generative-ai": "^0.21.0",
     "better-sqlite3": "^12.6.2",
     "fast-glob": "^3.3.0",
     "tree-sitter-wasms": "^0.1.13",
     "web-tree-sitter": "^0.20.8",
     "zod": "^3.22.0"
+  },
+  "devDependencies": {
+    "@types/better-sqlite3": "^7.6.13",
+    "@types/node": "^22.0.0",
+    "eslint": "^9.39.2",
+    "typescript": "^5.7.0"
   }
 }

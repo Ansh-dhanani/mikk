@@ -1,15 +1,9 @@
-{
+﻿{
   "name": "@getmikk/ai-context",
   "version": "2.1.1",
-  "publishConfig": {
-    "access": "public",
-    "registry": "https://registry.npmjs.org/"
-  },
+  "publishConfig": { "access": "public", "registry": "https://registry.npmjs.org/" },
   "license": "Apache-2.0",
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/Ansh-dhanani/mikk"
-  },
+  "repository": { "type": "git", "url": "https://github.com/Ansh-dhanani/mikk" },
   "type": "module",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
@@ -27,12 +21,12 @@
     "lint": "bunx eslint --config ../../eslint.config.mjs ."
   },
   "dependencies": {
-    "@getmikk/core": "^2.0.16",
-    "@getmikk/intent-engine": "^2.0.16"
+    "@getmikk/core": "workspace:*",
+    "@getmikk/intent-engine": "workspace:*"
   },
   "devDependencies": {
-    "typescript": "^5.7.0",
     "@types/node": "^22.0.0",
-    "eslint": "^9.39.2"
+    "eslint": "^9.39.2",
+    "typescript": "^5.7.0"
   }
 }

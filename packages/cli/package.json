@@ -1,23 +1,12 @@
-{
+﻿{
   "name": "@getmikk/cli",
   "version": "2.1.1",
-  "publishConfig": {
-    "access": "public",
-    "registry": "https://registry.npmjs.org/"
-  },
+  "publishConfig": { "access": "public", "registry": "https://registry.npmjs.org/" },
   "license": "Apache-2.0",
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/Ansh-dhanani/mikk"
-  },
+  "repository": { "type": "git", "url": "https://github.com/Ansh-dhanani/mikk" },
   "main": "./dist/index.js",
-  "bin": {
-    "mikk": "bin/mikk.js"
-  },
-  "files": [
-    "dist",
-    "bin"
-  ],
+  "bin": { "mikk": "bin/mikk.js" },
+  "files": ["dist", "bin"],
   "scripts": {
     "build": "node esbuild.mjs",
     "test": "bun test",
@@ -25,10 +14,10 @@
     "lint": "bunx eslint --config ../../eslint.config.mjs ."
   },
   "dependencies": {
-    "@getmikk/ai-context": "^2.1.1",
-    "@getmikk/core": "^2.1.1",
-    "@getmikk/intent-engine": "^2.1.1",
-    "@getmikk/watcher": "^2.1.1",
+    "@getmikk/ai-context": "workspace:*",
+    "@getmikk/core": "workspace:*",
+    "@getmikk/intent-engine": "workspace:*",
+    "@getmikk/watcher": "workspace:*",
     "better-sqlite3": "^12.6.2",
     "chalk": "^5.4.0",
     "chokidar": "^4.0.0",
@@ -36,14 +25,14 @@
     "ora": "^8.0.0",
     "oxc-parser": "^0.121.0",
     "oxc-resolver": "^11.19.1",
-    "web-tree-sitter": "^0.20.8",
     "tree-sitter-wasms": "^0.1.13",
+    "web-tree-sitter": "^0.20.8",
     "zod": "^3.22.0"
   },
   "devDependencies": {
     "@types/node": "^22.0.0",
     "esbuild": "^0.21.4",
-    "typescript": "^5.7.0",
-    "eslint": "^9.39.2"
+    "eslint": "^9.39.2",
+    "typescript": "^5.7.0"
   }
 }

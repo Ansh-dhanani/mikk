@@ -1,20 +1,20 @@
-{
-    "name": "@getmikk/registry",
-    "version": "2.0.4",
-    "private": true,
-    "type": "module",
-    "scripts": {
-        "dev": "echo 'Registry scaffold — Hono API server'",
-        "build": "tsc",
-        "start": "bun run dist/index.js",
-        "lint": "bunx eslint --config ../../eslint.config.mjs ."
-    },
-    "dependencies": {
-        "@getmikk/core": "workspace:*"
-    },
-    "devDependencies": {
-        "typescript": "^5.7.0",
-        "@types/node": "^22.0.0",
-        "eslint": "^9.39.2"
-    }
+﻿{
+  "name": "@getmikk/registry",
+  "version": "2.1.1",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev":   "echo 'Registry scaffold — Hono API server'",
+    "build": "tsc",
+    "start": "bun run dist/index.js",
+    "lint":  "bunx eslint --config ../../eslint.config.mjs ."
+  },
+  "dependencies": {
+    "@getmikk/core": "workspace:*"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "eslint": "^9.39.2",
+    "typescript": "^5.7.0"
+  }
 }

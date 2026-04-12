@@ -1,53 +1,42 @@
-{
-    "name": "@getmikk/mcp-server",
-    "version": "2.0.17",
-    "publishConfig": {
-        "access": "public",
-        "registry": "https://registry.npmjs.org/"
-    },
-    "license": "Apache-2.0",
-    "description": "MCP (Model Context Protocol) server for Mikk — exposes project intelligence to AI assistants",
-    "repository": {
-        "type": "git",
-        "url": "git+https://github.com/Ansh-dhanani/mikk.git"
-    },
-    "type": "module",
-    "main": "./dist/index.cjs",
-    "types": "./dist/index.d.ts",
-    "bin": {
-        "mikk-mcp": "bin/mikk-mcp.js"
-    },
-    "exports": {
-        ".": {
-            "import": "./dist/index.cjs",
-            "require": "./dist/index.cjs",
-            "types": "./dist/index.d.ts"
-        }
-    },
-    "files": [
-        "dist",
-        "bin"
-    ],
-    "scripts": {
-        "build": "node esbuild.mjs",
-        "test": "bun test",
-        "dev": "tsc --watch",
-        "lint": "bunx eslint --config ../../eslint.config.mjs ."
-    },
-    "dependencies": {
-        "@modelcontextprotocol/sdk": "^1.12.1",
-        "better-sqlite3": "^12.6.2",
-        "web-tree-sitter": "^0.22.6",
-        "@xenova/transformers": "^2.17.2",
-        "@getmikk/core": "workspace:*",
-        "@getmikk/ai-context": "workspace:*",
-        "@getmikk/intent-engine": "workspace:*",
-        "zod": "^3.24.0"
-    },
-    "devDependencies": {
-        "@types/node": "^22.0.0",
-        "esbuild": "^0.21.4",
-        "typescript": "^5.7.0",
-        "eslint": "^9.39.2"
+﻿{
+  "name": "@getmikk/mcp-server",
+  "version": "2.1.1",
+  "publishConfig": { "access": "public", "registry": "https://registry.npmjs.org/" },
+  "license": "Apache-2.0",
+  "description": "MCP server for Mikk — exposes project intelligence to AI assistants",
+  "repository": { "type": "git", "url": "git+https://github.com/Ansh-dhanani/mikk.git" },
+  "type": "module",
+  "main": "./dist/index.cjs",
+  "types": "./dist/index.d.ts",
+  "bin": { "mikk-mcp": "bin/mikk-mcp.js" },
+  "exports": {
+    ".": {
+      "import": "./dist/index.cjs",
+      "require": "./dist/index.cjs",
+      "types": "./dist/index.d.ts"
     }
+  },
+  "files": ["dist", "bin"],
+  "scripts": {
+    "build": "node esbuild.mjs",
+    "test": "bun test",
+    "dev": "tsc --watch",
+    "lint": "bunx eslint --config ../../eslint.config.mjs ."
+  },
+  "dependencies": {
+    "@getmikk/ai-context": "workspace:*",
+    "@getmikk/core": "workspace:*",
+    "@getmikk/intent-engine": "workspace:*",
+    "@modelcontextprotocol/sdk": "^1.12.1",
+    "@xenova/transformers": "^2.17.2",
+    "better-sqlite3": "^12.6.2",
+    "web-tree-sitter": "^0.22.6",
+    "zod": "^3.24.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "esbuild": "^0.21.4",
+    "eslint": "^9.39.2",
+    "typescript": "^5.7.0"
+  }
 }

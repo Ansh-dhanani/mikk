@@ -1,4 +1,4 @@
-{
+﻿{
   "name": "mikk",
   "packageManager": "bun@1.1.20",
   "private": true,
@@ -17,28 +17,14 @@
     "apps/*"
   ],
   "devDependencies": {
+    "@changesets/cli": "^2.27.0",
     "@eslint/js": "^9.39.4",
-    "context7": "^1.0.3",
     "eslint": "^9.39.4",
     "eslint-plugin-react": "^7.37.5",
     "eslint-plugin-react-hooks": "^5.2.0",
     "globals": "^15.0.0",
     "turbo": "^2.9.3",
+    "typescript": "^5.7.0",
     "typescript-eslint": "^8.57.2"
-  },
-  "dependencies": {
-    "@vercel/analytics": "^2.0.1",
-    "@xenova/transformers": "^2.17.2",
-    "chalk": "^5.6.2",
-    "cmdk": "^1.1.1",
-    "commander": "^14.0.3",
-    "obsidian": "^1.12.3",
-    "ora": "^9.3.0",
-    "oxc-parser": "^0.121.0",
-    "oxc-resolver": "^11.19.1",
-    "react-fast-marquee": "^1.6.5",
-    "sonner": "^2.0.7",
-    "tree-sitter-wasms": "^0.1.13",
-    "typescript": "^6.0.2"
   }
 }
