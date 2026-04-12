@@ -15,6 +15,27 @@
 </repository_context>
 
 <modules>
+<tech_stack>
+  <technology>Turborepo</technology>
+</tech_stack>
+<commands>
+  <command>
+    <run>bun run dev</run>
+    <executes>turbo run dev</executes>
+  </command>
+  <command>
+    <run>bun run build</run>
+    <executes>turbo run build</executes>
+  </command>
+  <command>
+    <run>bun run test</run>
+    <executes>turbo run test</executes>
+  </command>
+  <command>
+    <run>bun run lint</run>
+    <executes>turbo run lint</executes>
+  </command>
+</commands>
   <module id="packages-core-utils">
     <name>Utils</name>
     <location>packages/core/src/utils/**</location>
