@@ -3,7 +3,7 @@
   "mcp": {
     "mikk": {
       "type": "local",
-      "command": ["bun", "x", "@getmikk/cli", "mcp", "start"]
+      "command": ["npx", "-y", "@getmikk/cli", "mcp", "start"]
     }
   }
 }
