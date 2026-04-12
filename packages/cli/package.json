@@ -25,10 +25,10 @@
     "lint": "bunx eslint --config ../../eslint.config.mjs ."
   },
   "dependencies": {
-    "@getmikk/ai-context": "^2.0.16",
-    "@getmikk/core": "^2.0.16",
-    "@getmikk/intent-engine": "^2.0.16",
-    "@getmikk/watcher": "^2.0.16",
+    "@getmikk/ai-context": "workspace:*",
+    "@getmikk/core": "workspace:*",
+    "@getmikk/intent-engine": "workspace:*",
+    "@getmikk/watcher": "workspace:*",
     "better-sqlite3": "^12.6.2",
     "chalk": "^5.4.0",
     "chokidar": "^4.0.0",

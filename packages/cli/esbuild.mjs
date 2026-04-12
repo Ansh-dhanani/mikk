@@ -13,6 +13,10 @@ await esbuild.build({
   sourcemap: true,
   banner: { js: '#!/usr/bin/env node' },
   external: [
+    '@getmikk/core',
+    '@getmikk/ai-context',
+    '@getmikk/intent-engine',
+    '@getmikk/watcher',
     '@xenova/transformers', 
     'oxc-parser', 
     'oxc-resolver', 
