@@ -2626,7 +2626,7 @@ export function registerTools(server: McpServer, projectRoot: string) {
                 { id: 'huggingface_key', pattern: /(?:hf_[A-Za-z0-9]{48,})/, severity: 'critical', label: 'HuggingFace Token', envVar: 'HUGGINGFACE_TOKEN' },
                 // Database
                 { id: 'db_connection', pattern: /(?:(?:mongodb|postgres|postgresql|mysql|redis):\/\/[^:\s]+:[^@\s]+@)/i, severity: 'critical', label: 'Database Connection String', envVar: 'DATABASE_URL' },
-                { id: 'db_password', pattern: /(?:password\s*[=:]\s*['"`]([^'"`]{6,})['"`]/i, severity: 'high', label: 'Database Password', envVar: 'DB_PASSWORD', needsContext: ['password', 'pwd', 'pass'] },
+                { id: 'db_password', pattern: /password\s*[=:]\s*["'][^"']{6,}["']/i, severity: 'high', label: 'Database Password', envVar: 'DB_PASSWORD', needsContext: ['password', 'pwd', 'pass'] },
                 // JWT
                 { id: 'jwt_token', pattern: /eyJ[A-Za-z0-9_-]*\.eyJ[A-Za-z0-9_-]*\.[A-Za-z0-9_-]*/, severity: 'high', label: 'JWT Token', envVar: 'JWT_SECRET' },
                 // Slack
@@ -2639,14 +2639,14 @@ export function registerTools(server: McpServer, projectRoot: string) {
                 // Mailgun
                 { id: 'mailgun_key', pattern: /(?:key-[0-9a-zA-Z]{32})/, severity: 'critical', label: 'Mailgun API Key', envVar: 'MAILGUN_API_KEY' },
                 // Generic API Keys
-                { id: 'generic_api_key', pattern: /(?:api[_-]?key\s*[=:]\s*['"`]([A-Za-z0-9_-]{20,})['"`]/i, severity: 'medium', label: 'Generic API Key', envVar: 'API_KEY', needsContext: ['api', 'key', 'secret'] },
-                { id: 'generic_secret', pattern: /(?:secret\s*[=:]\s*['"`]([A-Za-z0-9_-]{16,})['"`]/i, severity: 'high', label: 'Generic Secret', envVar: 'SECRET', needsContext: ['secret', 'private'] },
+                { id: 'generic_api_key', pattern: /api[_-]?key\s*[=:]\s*["'][A-Za-z0-9_-]{20,}["']/i, severity: 'medium', label: 'Generic API Key', envVar: 'API_KEY', needsContext: ['api', 'key', 'secret'] },
+                { id: 'generic_secret', pattern: /secret\s*[=:]\s*["'][A-Za-z0-9_-]{16,}["']/i, severity: 'high', label: 'Generic Secret', envVar: 'SECRET', needsContext: ['secret', 'private'] },
                 // Private Keys
                 { id: 'private_key', pattern: /-----BEGIN (?:RSA |EC |DSA |OPENSSH )?PRIVATE KEY-----/, severity: 'critical', label: 'Private Key', envVar: 'PRIVATE_KEY' },
                 // Tokens
                 { id: 'bearer_token', pattern: /(?:Bearer\s+[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+)/, severity: 'high', label: 'Bearer Token', envVar: 'BEARER_TOKEN' },
-                { id: 'access_token', pattern: /(?:access_token\s*[=:]\s*['"`]([A-Za-z0-9_-]{20,})['"`]/i, severity: 'high', label: 'Access Token', envVar: 'ACCESS_TOKEN' },
-                { id: 'refresh_token', pattern: /(?:refresh_token\s*[=:]\s*['"`]([A-Za-z0-9_-]{20,})['"`]/i, severity: 'high', label: 'Refresh Token', envVar: 'REFRESH_TOKEN' },
+                { id: 'access_token', pattern: /access_token\s*[=:]\s*["'][A-Za-z0-9_-]{20,}["']/i, severity: 'high', label: 'Access Token', envVar: 'ACCESS_TOKEN' },
+                { id: 'refresh_token', pattern: /refresh_token\s*[=:]\s*["'][A-Za-z0-9_-]{20,}["']/i, severity: 'high', label: 'Refresh Token', envVar: 'REFRESH_TOKEN' },
                 // Webhook
                 { id: 'webhook_url', pattern: /(?:webhook[_-]?url\s*[=:]\s*['"`](https?:\/\/[^'"`]+)['"`]/i, severity: 'medium', label: 'Webhook URL', envVar: 'WEBHOOK_URL' },
                 // Passwords in config
@@ -2828,8 +2828,8 @@ export function registerTools(server: McpServer, projectRoot: string) {
                 { id: 'slack', pattern: /(?:xox[baprs]-[0-9]{10,}-[0-9]{10,}-[a-zA-Z0-9]{24,})/, severity: 'critical', label: 'Slack', envVar: `${prefix || ''}SLACK_TOKEN` },
                 { id: 'sendgrid', pattern: /(?:SG\.[A-Za-z0-9_-]{22}\.[A-Za-z0-9_-]{43})/, severity: 'critical', label: 'SendGrid', envVar: `${prefix || ''}SENDGRID_API_KEY` },
                 { id: 'private_key', pattern: /-----BEGIN (?:RSA |EC |DSA |OPENSSH )?PRIVATE KEY-----/, severity: 'critical', label: 'Private Key', envVar: `${prefix || ''}PRIVATE_KEY` },
-                { id: 'generic_key', pattern: /(?:api[_-]?key\s*[=:]\s*['"`]([A-Za-z0-9_-]{20,})['"`]/i, severity: 'medium', label: 'API Key', envVar: `${prefix || ''}API_KEY` },
-                { id: 'generic_secret', pattern: /(?:secret\s*[=:]\s*['"`]([A-Za-z0-9_-]{16,})['"`]/i, severity: 'high', label: 'Secret', envVar: `${prefix || ''}SECRET` },
+                { id: 'generic_key', pattern: /api[_-]?key\s*[=:]\s*["'][A-Za-z0-9_-]{20,}["']/i, severity: 'medium', label: 'API Key', envVar: `${prefix || ''}API_KEY` },
+                { id: 'generic_secret', pattern: /secret\s*[=:]\s*["'][A-Za-z0-9_-]{16,}["']/i, severity: 'high', label: 'Secret', envVar: `${prefix || ''}SECRET` },
             ]
 
             const isSourceFile = (filePath: string): boolean => {
