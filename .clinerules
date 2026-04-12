@@ -35,7 +35,7 @@ If you create new files, rename files, or significantly refactor code, the Mikk 
 
 <!-- MIKK-START -->
 
-# OpenClaw Configuration for mikk
+# OpenClaw Configuration for Mesh
 
 You are an autonomous AI agent operating within a repository managed by **Mikk** (a deterministic AST-based context engine). 
 

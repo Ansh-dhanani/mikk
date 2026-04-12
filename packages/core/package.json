@@ -5,6 +5,10 @@
     "access": "public",
     "registry": "https://registry.npmjs.org/"
   },
+  "files": [
+    "dist",
+    "src"
+  ],
   "license": "Apache-2.0",
   "repository": {
     "type": "git",

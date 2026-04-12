@@ -13,9 +13,9 @@ await esbuild.build({
   sourcemap: true,
   banner: { js: '#!/usr/bin/env node' },
   external: [
-    '@xenova/transformers', 
-    'oxc-parser', 
-    'oxc-resolver', 
+    '@xenova/transformers',
+    'oxc-parser',
+    'oxc-resolver',
     'web-tree-sitter',
     'tree-sitter-wasms',
     'better-sqlite3',

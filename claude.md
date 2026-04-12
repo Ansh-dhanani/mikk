@@ -2,68 +2,26 @@
   <name>mikk</name>
   <stats>
     <files>284</files>
-    <functions>1453</functions>
+    <functions>1454</functions>
     <modules>9</modules>
     <language>typescript</language>
   </stats>
 </repository_context>
 
 <modules>
-<tech_stack>
-  <technology>Vercel Analytics</technology>
-  <technology>Turborepo</technology>
-</tech_stack>
-<commands>
-  <command>
-    <run>bun run dev</run>
-    <executes>turbo run dev</executes>
-  </command>
-  <command>
-    <run>bun run build</run>
-    <executes>turbo run build</executes>
-  </command>
-  <command>
-    <run>bun run test</run>
-    <executes>turbo run test</executes>
-  </command>
-  <command>
-    <run>bun run lint</run>
-    <executes>turbo run lint</executes>
-  </command>
-</commands>
-  <module id="desktop-web-mesh">
-    <name>Config</name>
-    <location>c:/users/ansh/desktop/web/mesh/**</location>
-    <purpose>1 files, 0 functions</purpose>
-    <entry_points>
-      <function signature="ContextBuilder.build(query) [c:/users/ansh/desktop/web/mesh/packages/ai-context/src/context-builder.ts:555]" purpose="Context builder.build (query)" />
-      <function signature="activate(context) [c:/users/ansh/desktop/web/mesh/packages/vscode-extension/src/extension.ts:177]" purpose="Activate (context)" />
-      <function signature="async main() [c:/users/ansh/desktop/web/mesh/benchmarks/fixtures/test-project/evaluate-all-mcp-tools-via-config.js:216]" purpose="Main" />
-      <function signature="async loadContractAndLock(projectRoot) [c:/users/ansh/desktop/web/mesh/packages/mcp-server/src/tools/shared.ts:298]" purpose="Load contract and lock (projectRoot)" />
-      <function signature="async main() [c:/users/ansh/desktop/web/mesh/benchmarks/fixtures/test-project/evaluate-all-mcp-tools.js:106]" purpose="Main" />
-    </entry_points>
-    <key_internal_functions>
-      <function name="get" callers="179" purpose="Get (key)" />
-      <function name="set" callers="171" purpose="Set (key, value, ttlMs)" />
-      <function name="LockReader.read" callers="21" purpose="Lock reader.read (lockPath)" />
-      <function name="ContractReader.read" callers="17" purpose="Contract reader.read (contractPath)" />
-      <function name="SemanticSearcher.isAvailable" callers="10" purpose="Semantic searcher.is available" />
-    </key_internal_functions>
-    <depends_on>Utils, CLI & Utils, Config & API, Dashboard, Providers & Storage, Blog & Storage, Authentication</depends_on>
-  </module>
   <module id="packages-core-utils">
     <name>Utils</name>
-    <location>c:/users/ansh/desktop/web/mesh/packages/core/src/utils/**</location>
+    <location>packages/core/src/utils/**</location>
     <purpose>10 files, 0 functions</purpose>
     <entry_points>
-      <function signature="async runArtifactWriteTransaction(projectRoot, name, writes, options) [c:/users/ansh/desktop/web/mesh/packages/core/src/utils/artifact-transaction.ts:54]" purpose="Run artifact write transaction" />
-      <function signature="async discoverContextFiles(projectRoot, options) [c:/users/ansh/desktop/web/mesh/packages/core/src/utils/fs.ts:198]" purpose="Discover context files (projectRoot, options)" />
-      <function signature="scoreFunctions(prompt, lock, maxResults) [c:/users/ansh/desktop/web/mesh/packages/core/src/utils/fuzzy-match.ts:28]" purpose="Score functions (prompt, lock, maxResults)" />
-      <function signature="getDiscoveryPatterns(language) [c:/users/ansh/desktop/web/mesh/packages/core/src/utils/fs.ts:373]" purpose="Get discovery patterns (language)" />
-      <function signature="findFuzzyMatches(searchTerm, lock, maxResults) [c:/users/ansh/desktop/web/mesh/packages/core/src/utils/fuzzy-match.ts:58]" purpose="Find fuzzy matches (searchTerm, lock, maxResults)" />
+      <function signature="async runArtifactWriteTransaction(projectRoot, name, writes, options) [packages/core/src/utils/artifact-transaction.ts:54]" purpose="Run artifact write transaction" />
+      <function signature="async discoverContextFiles(projectRoot, options) [packages/core/src/utils/fs.ts:198]" purpose="Discover context files (projectRoot, options)" />
+      <function signature="scoreFunctions(prompt, lock, maxResults) [packages/core/src/utils/fuzzy-match.ts:28]" purpose="Score functions (prompt, lock, maxResults)" />
+      <function signature="getDiscoveryPatterns(language) [packages/core/src/utils/fs.ts:373]" purpose="Get discovery patterns (language)" />
+      <function signature="findFuzzyMatches(searchTerm, lock, maxResults) [packages/core/src/utils/fuzzy-match.ts:58]" purpose="Find fuzzy matches (searchTerm, lock, maxResults)" />
     </entry_points>
     <key_internal_functions>
-      <function name="log" callers="101" purpose="Log (level, message, data)" />
+      <function name="log" callers="103" purpose="Log (level, message, data)" />
       <function name="writeFileAtomic" callers="7" purpose="Write file atomic (targetPath, content, options)" />
       <function name="normalizePathQuiet" callers="6" purpose="Normalize path quiet (filePath)" />
       <function name="minimatch" callers="4" purpose="Minimatch (filePath, pattern)" />
@@ -71,16 +29,36 @@
     </key_internal_functions>
     <depends_on>Config</depends_on>
   </module>
+  <module id="desktop-web-mesh">
+    <name>Config</name>
+    <location>**</location>
+    <purpose>1 files, 0 functions</purpose>
+    <entry_points>
+      <function signature="ContextBuilder.build(query) [packages/ai-context/src/context-builder.ts:555]" purpose="Context builder.build (query)" />
+      <function signature="activate(context) [packages/vscode-extension/src/extension.ts:177]" purpose="Activate (context)" />
+      <function signature="async main() [benchmarks/fixtures/test-project/evaluate-all-mcp-tools-via-config.js:216]" purpose="Main" />
+      <function signature="async main() [benchmarks/fixtures/test-project/evaluate-all-mcp-tools.js:106]" purpose="Main" />
+      <function signature="LockCompiler.compileModules(contract, parsedFiles) [packages/core/src/contract/lock-compiler.ts:394]" purpose="Lock compiler.compile modules (contract, parsedFiles)" />
+    </entry_points>
+    <key_internal_functions>
+      <function name="get" callers="179" purpose="Get (key)" />
+      <function name="set" callers="171" purpose="Set (key, value, ttlMs)" />
+      <function name="SemanticSearcher.isAvailable" callers="10" purpose="Semantic searcher.is available" />
+      <function name="_track" callers="8" purpose="Track (root, raw, resp)" />
+      <function name="run" callers="7" purpose="Run (cmd, cwd)" />
+    </key_internal_functions>
+    <depends_on>Utils, CLI & Utils, Config & API, Dashboard, Providers & Storage, Blog & Storage, Authentication</depends_on>
+  </module>
   <module id="fixtures-ts-express-api-auth">
     <name>Authentication</name>
-    <location>c:/users/ansh/desktop/web/mesh/benchmarks/fixtures/ts-express-api/src/auth/**</location>
+    <location>benchmarks/fixtures/ts-express-api/src/auth/**</location>
     <purpose>4 files, 0 functions</purpose>
     <entry_points>
-      <function signature="refreshToken(token) [c:/users/ansh/desktop/web/mesh/benchmarks/fixtures/ts-express-api/src/auth/jwt.ts:32]" purpose="Refresh token (token)" />
-      <function signature="validatePasswordStrength(password) [c:/users/ansh/desktop/web/mesh/benchmarks/fixtures/ts-express-api/src/auth/password.ts:16]" purpose="Check password strength (password)" />
-      <function signature="decodeToken(token) [c:/users/ansh/desktop/web/mesh/benchmarks/fixtures/ts-express-api/src/auth/jwt.ts:24]" purpose="Decode token (token)" />
-      <function signature="hasPermission(userRole, requiredRole) [c:/users/ansh/desktop/web/mesh/benchmarks/fixtures/ts-express-api/src/auth/roles.ts:7]" purpose="Check if permission (userRole, requiredRole)" />
-      <function signature="revokeSession(token) [c:/users/ansh/desktop/web/mesh/benchmarks/fixtures/ts-express-api/src/auth/session.ts:16]" purpose="Revoke session (token)" />
+      <function signature="refreshToken(token) [benchmarks/fixtures/ts-express-api/src/auth/jwt.ts:32]" purpose="Refresh token (token)" />
+      <function signature="validatePasswordStrength(password) [benchmarks/fixtures/ts-express-api/src/auth/password.ts:16]" purpose="Check password strength (password)" />
+      <function signature="decodeToken(token) [benchmarks/fixtures/ts-express-api/src/auth/jwt.ts:24]" purpose="Decode token (token)" />
+      <function signature="hasPermission(userRole, requiredRole) [benchmarks/fixtures/ts-express-api/src/auth/roles.ts:7]" purpose="Check if permission (userRole, requiredRole)" />
+      <function signature="revokeSession(token) [benchmarks/fixtures/ts-express-api/src/auth/session.ts:16]" purpose="Revoke session (token)" />
     </entry_points>
     <key_internal_functions>
       <function name="createSession" callers="4" purpose="Create session (userId, token)" />
@@ -93,14 +71,14 @@
   </module>
   <module id="packages-core-hash">
     <name>Providers & Storage</name>
-    <location>c:/users/ansh/desktop/web/mesh/packages/core/src/hash/**</location>
+    <location>packages/core/src/hash/**</location>
     <purpose>4 files, 0 functions</purpose>
     <entry_points>
-      <function signature="hashFunctionBody(fileContent, startLine, endLine) [c:/users/ansh/desktop/web/mesh/packages/core/src/hash/file-hasher.ts:22]" purpose="Hash function body (fileContent, startLine, endLine)" />
-      <function signature="HashStore.setBatch(entries) [c:/users/ansh/desktop/web/mesh/packages/core/src/hash/hash-store.ts:102]" purpose="Hash store.set batch (entries)" />
-      <function signature="HashStore.get(filePath) [c:/users/ansh/desktop/web/mesh/packages/core/src/hash/hash-store.ts:61]" purpose="Hash store.get (filePath)" />
-      <function signature="HashStore.set(filePath, hash, sizeBytes) [c:/users/ansh/desktop/web/mesh/packages/core/src/hash/hash-store.ts:69]" purpose="Hash store.set (filePath, hash, sizeBytes)" />
-      <function signature="HashStore.delete(filePath) [c:/users/ansh/desktop/web/mesh/packages/core/src/hash/hash-store.ts:79]" purpose="Hash store.delete (filePath)" />
+      <function signature="hashFunctionBody(fileContent, startLine, endLine) [packages/core/src/hash/file-hasher.ts:22]" purpose="Hash function body (fileContent, startLine, endLine)" />
+      <function signature="HashStore.setBatch(entries) [packages/core/src/hash/hash-store.ts:102]" purpose="Hash store.set batch (entries)" />
+      <function signature="HashStore.get(filePath) [packages/core/src/hash/hash-store.ts:61]" purpose="Hash store.get (filePath)" />
+      <function signature="HashStore.set(filePath, hash, sizeBytes) [packages/core/src/hash/hash-store.ts:69]" purpose="Hash store.set (filePath, hash, sizeBytes)" />
+      <function signature="HashStore.delete(filePath) [packages/core/src/hash/hash-store.ts:79]" purpose="Hash store.delete (filePath)" />
     </entry_points>
     <key_internal_functions>
       <function name="hashFile" callers="6" purpose="Hash file (filePath)" />
@@ -112,14 +90,14 @@
   </module>
   <module id="packages-core-parser">
     <name>Blog & Storage</name>
-    <location>c:/users/ansh/desktop/web/mesh/packages/core/src/parser/**</location>
+    <location>packages/core/src/parser/**</location>
     <purpose>11 files, 0 functions</purpose>
     <entry_points>
-      <function signature="async TypescriptExtractor.extract(filePath, content) [c:/users/ansh/desktop/web/mesh/packages/core/src/parser/oxc-parser.ts:355]" purpose="Typescript extractor.extract (filePath, content)" />
-      <function signature="async TreeSitterParser.parseWithConfig(filePath, content, ext, config) [c:/users/ansh/desktop/web/mesh/packages/core/src/parser/tree-sitter/parser.ts:412]" purpose="Tree sitter parser.parse with config" />
-      <function signature="async FunctionBodyExtractor.extractBody(fn, options) [c:/users/ansh/desktop/web/mesh/packages/core/src/parser/function-body-extractor.ts:28]" purpose="Function body extractor.extract body (fn, options)" />
-      <function signature="walk(n) [c:/users/ansh/desktop/web/mesh/packages/core/src/parser/oxc-parser.ts:239]" purpose="Walk (n)" />
-      <function signature="BoundaryChecker.allCrossModuleCalls() [c:/users/ansh/desktop/web/mesh/packages/core/src/parser/boundary-checker.ts:155]" purpose="Boundary checker.all cross module calls" />
+      <function signature="async TypescriptExtractor.extract(filePath, content) [packages/core/src/parser/oxc-parser.ts:355]" purpose="Typescript extractor.extract (filePath, content)" />
+      <function signature="async TreeSitterParser.parseWithConfig(filePath, content, ext, config) [packages/core/src/parser/tree-sitter/parser.ts:463]" purpose="Tree sitter parser.parse with config" />
+      <function signature="async FunctionBodyExtractor.extractBody(fn, options) [packages/core/src/parser/function-body-extractor.ts:28]" purpose="Function body extractor.extract body (fn, options)" />
+      <function signature="walk(n) [packages/core/src/parser/oxc-parser.ts:239]" purpose="Walk (n)" />
+      <function signature="BoundaryChecker.allCrossModuleCalls() [packages/core/src/parser/boundary-checker.ts:155]" purpose="Boundary checker.all cross module calls" />
     </entry_points>
     <key_internal_functions>
       <function name="extractCalls" callers="6" purpose="Extract calls (node, lineIndex)" />
@@ -132,14 +110,14 @@
   </module>
   <module id="packages-vscode-extension-webview">
     <name>Dashboard</name>
-    <location>c:/users/ansh/desktop/web/mesh/packages/vscode-extension/src/webview/**</location>
+    <location>packages/vscode-extension/src/webview/**</location>
     <purpose>3 files, 0 functions</purpose>
     <entry_points>
-      <function signature="DiagramPanel.createOrShow(diagramPath) [c:/users/ansh/desktop/web/mesh/packages/vscode-extension/src/webview/diagrampanel.ts:16]" purpose="Diagram panel.create or show (diagramPath)" />
-      <function signature="DashboardPanel.constructor(panel, data) [c:/users/ansh/desktop/web/mesh/packages/vscode-extension/src/webview/dashboardpanel.ts:15]" purpose="Dashboard panel.constructor (panel, data)" />
-      <function signature="DashboardPanel._notInitializedHtml() [c:/users/ansh/desktop/web/mesh/packages/vscode-extension/src/webview/dashboardpanel.ts:232]" purpose="Dashboard panel. not initialized html" />
-      <function signature="DashboardPanel.dispose() [c:/users/ansh/desktop/web/mesh/packages/vscode-extension/src/webview/dashboardpanel.ts:252]" purpose="Dashboard panel.dispose" />
-      <function signature="DiagramPanel.constructor(panel, diagramText) [c:/users/ansh/desktop/web/mesh/packages/vscode-extension/src/webview/diagrampanel.ts:10]" purpose="Diagram panel.constructor (panel, diagramText)" />
+      <function signature="DiagramPanel.createOrShow(diagramPath) [packages/vscode-extension/src/webview/diagrampanel.ts:16]" purpose="Diagram panel.create or show (diagramPath)" />
+      <function signature="DashboardPanel.constructor(panel, data) [packages/vscode-extension/src/webview/dashboardpanel.ts:15]" purpose="Dashboard panel.constructor (panel, data)" />
+      <function signature="DashboardPanel._notInitializedHtml() [packages/vscode-extension/src/webview/dashboardpanel.ts:232]" purpose="Dashboard panel. not initialized html" />
+      <function signature="DashboardPanel.dispose() [packages/vscode-extension/src/webview/dashboardpanel.ts:252]" purpose="Dashboard panel.dispose" />
+      <function signature="DiagramPanel.constructor(panel, diagramText) [packages/vscode-extension/src/webview/diagrampanel.ts:10]" purpose="Diagram panel.constructor (panel, diagramText)" />
     </entry_points>
     <key_internal_functions>
       <function name="DashboardPanel.update" callers="3" purpose="Dashboard panel.update (data)" />
@@ -151,14 +129,14 @@
   </module>
   <module id="mesh-apps-web">
     <name>Config & API</name>
-    <location>c:/users/ansh/desktop/web/mesh/apps/web/**</location>
+    <location>apps/web/**</location>
     <purpose>5 files, 0 functions</purpose>
     <entry_points>
-      <function signature="CommandMenu({...}) [c:/users/ansh/desktop/web/mesh/apps/web/components/command-menu.tsx:156]" purpose="Command menu ({...})" />
-      <function signature="FeedbackBlock() [c:/users/ansh/desktop/web/mesh/apps/web/components/feedback-block.tsx:11]" purpose="Feedback block" />
-      <function signature="GraphView({...}) [c:/users/ansh/desktop/web/mesh/apps/web/components/graph-view.tsx:20]" purpose="Graph view ({...})" />
-      <function signature="CopyButton({...}) [c:/users/ansh/desktop/web/mesh/apps/web/components/copy-button.tsx:34]" purpose="Copy button ({...})" />
-      <function signature="ActiveIndicator({...}) [c:/users/ansh/desktop/web/mesh/apps/web/components/toc.tsx:150]" purpose="Active indicator ({...})" />
+      <function signature="CommandMenu({...}) [apps/web/components/command-menu.tsx:156]" purpose="Command menu ({...})" />
+      <function signature="FeedbackBlock() [apps/web/components/feedback-block.tsx:11]" purpose="Feedback block" />
+      <function signature="GraphView({...}) [apps/web/components/graph-view.tsx:20]" purpose="Graph view ({...})" />
+      <function signature="CopyButton({...}) [apps/web/components/copy-button.tsx:34]" purpose="Copy button ({...})" />
+      <function signature="ActiveIndicator({...}) [apps/web/components/toc.tsx:150]" purpose="Active indicator ({...})" />
     </entry_points>
     <key_internal_functions>
       <function name="cn" callers="128" purpose="Cn (inputs)" />
@@ -171,14 +149,14 @@
   </module>
   <module id="mesh-packages-cli">
     <name>CLI & Utils</name>
-    <location>c:/users/ansh/desktop/web/mesh/packages/cli/**, c:/users/ansh/desktop/web/mesh/packages/cli/src/**</location>
+    <location>packages/cli/**, packages/cli/src/**</location>
     <purpose>4 files, 0 functions</purpose>
     <entry_points>
-      <function signature="panel(title, rows, width?) [c:/users/ansh/desktop/web/mesh/packages/cli/src/ui.ts:73]" purpose="Panel (title, rows, width)" />
-      <function signature="registerAdrCommand(program) [c:/users/ansh/desktop/web/mesh/packages/cli/src/commands/adr.ts:6]" purpose="Register adr command (program)" />
-      <function signature="buildGraphFromLock(lock) [c:/users/ansh/desktop/web/mesh/packages/cli/src/commands/dead-code.ts:92]" purpose="Build graph from lock (lock)" />
-      <function signature="async getFunctionBody(fn, projectRoot, _maxLines) [c:/users/ansh/desktop/web/mesh/packages/cli/src/commands/search.ts:25]" purpose="Get function body (fn, projectRoot, _maxLines)" />
-      <function signature="levenshtein(a, b) [c:/users/ansh/desktop/web/mesh/packages/cli/src/commands/search.ts:81]" purpose="Levenshtein (a, b)" />
+      <function signature="registerAdrCommand(program) [packages/cli/src/commands/adr.ts:6]" purpose="Register adr command (program)" />
+      <function signature="panel(title, rows, width?) [packages/cli/src/ui.ts:73]" purpose="Panel (title, rows, width)" />
+      <function signature="registerTraceCommand(program) [packages/cli/src/commands/trace.ts:15]" purpose="Register trace command (program)" />
+      <function signature="buildGraphFromLock(lock) [packages/cli/src/commands/dead-code.ts:92]" purpose="Build graph from lock (lock)" />
+      <function signature="async getFunctionBody(fn, projectRoot, _maxLines) [packages/cli/src/commands/search.ts:25]" purpose="Get function body (fn, projectRoot, _maxLines)" />
     </entry_points>
     <key_internal_functions>
       <function name="gap" callers="11" purpose="Gap" />
@@ -191,14 +169,14 @@
   </module>
   <module id="fixtures-js-utility-parsers">
     <name>Utils & Testing</name>
-    <location>c:/users/ansh/desktop/web/mesh/benchmarks/fixtures/js-utility/src/parsers/**</location>
+    <location>benchmarks/fixtures/js-utility/src/parsers/**</location>
     <purpose>2 files, 0 functions</purpose>
     <entry_points>
-      <function signature="parseCsv(csv, {...}) [c:/users/ansh/desktop/web/mesh/benchmarks/fixtures/js-utility/src/parsers/csv.js:9]" purpose="Parse csv (csv, {...})" />
-      <function signature="toCsv(data, {...}) [c:/users/ansh/desktop/web/mesh/benchmarks/fixtures/js-utility/src/parsers/csv.js:21]" purpose="To csv (data, {...})" />
-      <function signature="detectDelimiter(firstLine) [c:/users/ansh/desktop/web/mesh/benchmarks/fixtures/js-utility/src/parsers/csv.js:28]" purpose="Detect delimiter (firstLine)" />
-      <function signature="safeJsonParse(str, fallback) [c:/users/ansh/desktop/web/mesh/benchmarks/fixtures/js-utility/src/parsers/json-safe.js:1]" purpose="Safe json parse (str, fallback)" />
-      <function signature="safeJsonStringify(value, indent) [c:/users/ansh/desktop/web/mesh/benchmarks/fixtures/js-utility/src/parsers/json-safe.js:9]" purpose="Safe json stringify (value, indent)" />
+      <function signature="parseCsv(csv, {...}) [benchmarks/fixtures/js-utility/src/parsers/csv.js:9]" purpose="Parse csv (csv, {...})" />
+      <function signature="toCsv(data, {...}) [benchmarks/fixtures/js-utility/src/parsers/csv.js:21]" purpose="To csv (data, {...})" />
+      <function signature="detectDelimiter(firstLine) [benchmarks/fixtures/js-utility/src/parsers/csv.js:28]" purpose="Detect delimiter (firstLine)" />
+      <function signature="safeJsonParse(str, fallback) [benchmarks/fixtures/js-utility/src/parsers/json-safe.js:1]" purpose="Safe json parse (str, fallback)" />
+      <function signature="safeJsonStringify(value, indent) [benchmarks/fixtures/js-utility/src/parsers/json-safe.js:9]" purpose="Safe json stringify (value, indent)" />
     </entry_points>
     <key_internal_functions>
       <function name="mergeDeep" callers="1" purpose="Merge deep (target, sources)" />
