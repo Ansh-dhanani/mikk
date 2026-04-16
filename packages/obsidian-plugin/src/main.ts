@@ -54,18 +54,23 @@ interface GraphEdge { source: string; target: string; }
 
 // ─── Module colour palette ────────────────────────────────────────────────────
 const MODULE_COLORS: Record<string, string> = {
-  'components': '#6366f1', 'lib': '#10b981', 'app': '#f59e0b',
-  'providers': '#ec4899', 'hooks': '#8b5cf6', 'utils': '#14b8a6',
-  'api': '#f97316', 'types': '#64748b', 'graph': '#3b82f6',
-  'parser': '#a855f7', 'core': '#22c55e', 'cli': '#ef4444',
-  'search': '#0ea5e9', 'cache': '#d97706', 'contract': '#7c3aed',
-  'security': '#dc2626', 'hash': '#059669', 'analysis': '#6d28d9',
-  'scripts': '#78716c', 'benchmarks': '#92400e',
+  'components': '#818cf8', 'lib': '#34d399', 'app': '#fbbf24',
+  'providers': '#f472b6', 'hooks': '#a78bfa', 'utils': '#2dd4bf',
+  'api': '#fb923c', 'types': '#94a3b8', 'graph': '#60a5fa',
+  'parser': '#c084fc', 'core': '#4ade80', 'cli': '#f87171',
+  'search': '#38bdf8', 'cache': '#fbbf24', 'contract': '#818cf8',
+  'security': '#f87171', 'hash': '#34d399', 'analysis': '#c084fc',
+  'scripts': '#94a3b8', 'benchmarks': '#fb923c',
 };
+
+function isDarkTheme() {
+  return document.body.classList.contains('theme-dark');
+}
+
 function moduleColor(moduleId: string): string {
-  if (!moduleId) return '#94a3b8';
+  if (!moduleId) return isDarkTheme() ? '#cbd5e1' : '#475569';
   const key = Object.keys(MODULE_COLORS).find(k => moduleId.toLowerCase().includes(k));
-  return key ? MODULE_COLORS[key] : '#94a3b8';
+  return key ? MODULE_COLORS[key] : (isDarkTheme() ? '#cbd5e1' : '#475569');
 }
 
 // ─── Force-directed layout helpers ───────────────────────────────────────────
@@ -73,24 +78,24 @@ const IDEAL_LINK = 80, REPULSION = 1500, DAMPING = 0.9, ALPHA_DECAY = 0.02;
 
 function forceStep(nodes: GraphNode[], edges: GraphEdge[], alpha: number) {
   const n = nodes.length;
-  
+
   // Simple repulsion between all nodes
   for (let i = 0; i < n; i++) {
     for (let j = i + 1; j < n; j++) {
       const dx = nodes[j].x - nodes[i].x || 0.1;
       const dy = nodes[j].y - nodes[i].y || 0.1;
       const dist2 = dx * dx + dy * dy;
-      
+
       // Skip if too far apart
       if (dist2 > 40000) continue; // 200px max distance
-      
+
       let force = (REPULSION / dist2) * alpha;
       const f = force / Math.sqrt(dist2);
       nodes[i].vx -= f * dx; nodes[i].vy -= f * dy;
       nodes[j].vx += f * dx; nodes[j].vy += f * dy;
     }
   }
-  
+
   // Attraction along edges
   const nodeMap = new Map(nodes.map(n => [n.id, n]));
   for (const e of edges) {
@@ -103,7 +108,7 @@ function forceStep(nodes: GraphNode[], edges: GraphEdge[], alpha: number) {
     if (s.fx === null) { s.vx += fx; s.vy += fy; }
     if (t.fx === null) { t.vx -= fx; t.vy -= fy; }
   }
-  
+
   // Gentle center gravity
   for (const node of nodes) {
     if (node.fx !== null) continue;
@@ -196,16 +201,16 @@ class MikkGraphView extends ItemView {
       if (count >= MAX_NODES) break;
       const idx = parseInt(key, 10);
       const fullId = !isNaN(idx) && fnIndex[idx] ? fnIndex[idx] : key;
-      
+
       const parts = fullId.split(':');
       const filePath = parts.length >= 3 ? parts.slice(0, -1).join(':').replace('fn:', '') : '';
       const rawName = parts[parts.length - 1] || key;
       const name = this.cleanFunctionName(rawName, filePath);
       const modId = getModId(filePath, fn.moduleId);
-      
+
       // Determine if this is a method (has a class context in the name)
       const nodeType: 'function' | 'method' = rawName.includes('.') || rawName.charAt(0) === rawName.charAt(0).toUpperCase() ? 'method' : 'function';
-      
+
       const node: GraphNode = {
         id: fullId, name, file: filePath, moduleId: modId, nodeType,
         x: (Math.random() - 0.5) * 600,
@@ -224,7 +229,7 @@ class MikkGraphView extends ItemView {
       if (count >= MAX_NODES) break;
       const fullId = `class:${cls.file}:${cls.name}`;
       const modId = getModId(cls.file, cls.moduleId);
-      
+
       const node: GraphNode = {
         id: fullId, name: cls.name, file: cls.file || '', moduleId: modId, nodeType: 'class',
         x: (Math.random() - 0.5) * 600,
@@ -246,7 +251,7 @@ class MikkGraphView extends ItemView {
       const idx = parseInt(key, 10);
       const sourceId = !isNaN(idx) && fnIndex[idx] ? fnIndex[idx] : null;
       if (!sourceId || !nodeMap.has(sourceId)) continue;
-      
+
       if (Array.isArray(fn.calls)) {
         for (const targetIdx of fn.calls) {
           const targetId = getFnId(targetIdx);
@@ -262,7 +267,7 @@ class MikkGraphView extends ItemView {
       const idx = parseInt(key, 10);
       const targetId = !isNaN(idx) && fnIndex[idx] ? fnIndex[idx] : null;
       if (!targetId || !nodeMap.has(targetId)) continue;
-      
+
       if (Array.isArray(fn.calledBy)) {
         for (const callerIdx of fn.calledBy) {
           const sourceId = getFnId(callerIdx);
@@ -284,7 +289,7 @@ class MikkGraphView extends ItemView {
   private initialLayout(nodeMap: Map<string, GraphNode>) {
     const centerX = 0, centerY = 0;
     const radius = Math.min(200, this.nodes.length * 2);
-    
+
     // Simple circle layout
     this.nodes.forEach((node, i) => {
       const angle = (i / this.nodes.length) * Math.PI * 2;
@@ -298,10 +303,10 @@ class MikkGraphView extends ItemView {
     try {
       const lock = this.lock;
       if (!lock?.functions || !lock.fnIndex) return undefined;
-      
+
       // Try direct key (numeric string like "0", "1")
       if (lock.functions[nodeId]) return lock.functions[nodeId];
-      
+
       // Search fnIndex for matching ID
       const idx = lock.fnIndex.findIndex(id => id.includes(nodeId));
       if (idx >= 0) return lock.functions[lock.fnIndex[idx]];
@@ -332,7 +337,7 @@ class MikkGraphView extends ItemView {
   private deduplicateNodeNames() {
     const nameCounts = new Map<string, number>();
     const nameToNode = new Map<string, GraphNode[]>();
-    
+
     // Count occurrences
     for (const node of this.nodes) {
       if (!node || !node.name) continue;
@@ -342,7 +347,7 @@ class MikkGraphView extends ItemView {
       list.push(node);
       nameToNode.set(node.name, list);
     }
-    
+
     // Add suffix to duplicates
     for (const [name, nodes] of nameToNode) {
       if (nodes.length > 1) {
@@ -361,20 +366,20 @@ class MikkGraphView extends ItemView {
     if (!query || !target) return 0;
     query = query.toLowerCase();
     target = target.toLowerCase();
-    
+
     // Exact substring match
     if (target.includes(query)) return 0.9;
-    
+
     // Prefix match
     if (target.startsWith(query)) return 0.7;
-    
+
     // Fuzzy: check if all chars appear in order
     let qi = 0;
     for (let i = 0; i < target.length && qi < query.length; i++) {
       if (target[i] === query[qi]) qi++;
     }
     if (qi === query.length) return 0.5;
-    
+
     return 0;
   }
 
@@ -393,7 +398,7 @@ class MikkGraphView extends ItemView {
 
     const lock = this.lock!;
     const generatedDate = lock.generatedAt ? new Date(lock.generatedAt).toLocaleString() : 'Unknown';
-    
+
     this.lockInfoPanel.innerHTML = `
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
         <h3 style="margin:0;font-size:14px;font-weight:600;color:var(--text-accent)">🔒 Lock File Info</h3>
@@ -542,7 +547,7 @@ class MikkGraphView extends ItemView {
     // Control buttons
     const controls = toolbar.createEl('div');
     controls.style.cssText = 'display:flex;gap:6px;';
-    
+
     const toggleLockBtn = controls.createEl('button');
     toggleLockBtn.innerHTML = '🔒';
     toggleLockBtn.title = 'Toggle Lock Info';
@@ -569,11 +574,11 @@ class MikkGraphView extends ItemView {
     this.canvas = root.createEl('canvas');
     this.canvas.style.cssText = 'position:absolute;top:48px;left:0;right:0;bottom:0;cursor:grab;background:transparent;';
     this.ctx = this.canvas.getContext('2d')!;
-    
+
     // Initialize transform
     this.transform = { x: 0, y: 0, k: 0.5 };
     this.resize();
-    
+
     console.log('Canvas created, initial transform:', this.transform);
 
     // Tooltip
@@ -621,7 +626,7 @@ class MikkGraphView extends ItemView {
     const w = this.containerEl.clientWidth || 800;
     const h = this.containerEl.clientHeight || 600;
     this.canvas.width = w; this.canvas.height = h;
-    
+
     // Reset transform to center
     this.transform = { x: w / 2, y: h / 2, k: 0.5 };
     console.log(`Canvas: ${w}x${h}, Transform:`, this.transform);
@@ -654,14 +659,14 @@ class MikkGraphView extends ItemView {
       const factor = e.deltaY < 0 ? 1.1 : 0.9;
       // Clamp zoom to reasonable range
       const newK = Math.min(3, Math.max(0.1, this.transform.k * factor));
-      
+
       // Transform to world coordinates before zoom
       const worldX = (mx - this.transform.x) / this.transform.k;
       const worldY = (my - this.transform.y) / this.transform.k;
-      
+
       // Apply zoom
       this.transform.k = newK;
-      
+
       // Transform back to screen coordinates
       this.transform.x = mx - worldX * newK;
       this.transform.y = my - worldY * newK;
@@ -713,7 +718,7 @@ class MikkGraphView extends ItemView {
       const rect = c.getBoundingClientRect();
       const wp = this.screenToWorld(e.clientX - rect.left, e.clientY - rect.top);
       const hit = this.nodeAt(wp.x, wp.y);
-      
+
       // Toggle: if clicking same node, deselect; otherwise select
       if (hit && this.selected?.id === hit.id) {
         this.selectNode(null);
@@ -736,23 +741,23 @@ class MikkGraphView extends ItemView {
   private onSearch(query: string) {
     this.highlight.clear();
     if (!query.trim()) return;
-    
+
     const q = query.toLowerCase();
     const queryWords = q.split(/\s+/).filter(w => w.length > 0);
-    
+
     for (const n of this.nodes) {
       const name = n.name.toLowerCase();
       const file = n.file.toLowerCase();
       const module = n.moduleId.toLowerCase();
-      
+
       // Multi-word search - all words must match somewhere
-      const matchesAllWords = queryWords.every(word => 
+      const matchesAllWords = queryWords.every(word =>
         name.includes(word) || file.includes(word) || module.includes(word)
       );
-      
+
       // Fuzzy matching for single word queries
       const fuzzyMatch = queryWords.length === 1 && this.fuzzyMatch(queryWords[0], name) > 0.3;
-      
+
       if (matchesAllWords || fuzzyMatch) {
         this.highlight.add(n.id);
       }
@@ -762,7 +767,7 @@ class MikkGraphView extends ItemView {
   // ── Enhanced Tooltip / info panel ──────────────────────────────────────────────
   private showTooltip(node: GraphNode | null, sx: number, sy: number) {
     if (!node) { this.tooltip.style.display = 'none'; return; }
-    
+
     // Get calls/callers from graph edges
     const calls = this.edges.filter(e => e.source === node.id);
     const callers = this.edges.filter(e => e.target === node.id);
@@ -780,7 +785,7 @@ class MikkGraphView extends ItemView {
     const typeLabel = node.nodeType === 'class' ? 'Class' : node.nodeType === 'method' ? 'Method' : 'Function';
 
     // Format parameters
-    const paramsStr = params.length > 0 
+    const paramsStr = params.length > 0
       ? params.slice(0, 3).map(p => `${p.name}${p.optional ? '?' : ''}: ${p.type}`).join(', ') + (params.length > 3 ? '…' : '')
       : '';
 
@@ -810,11 +815,11 @@ class MikkGraphView extends ItemView {
     try {
       this.selected = node;
       if (!node) { this.infoPanel.style.display = 'none'; return; }
-      
+
       // Get calls/callers from graph edges
       const calls = this.edges.filter(e => e.source === node.id);
       const callers = this.edges.filter(e => e.target === node.id);
-      
+
       const fnData = this.getFnData(node.id);
       const purpose = fnData?.purpose || '';
       const params = fnData?.params || [];
@@ -823,32 +828,32 @@ class MikkGraphView extends ItemView {
       const isExported = fnData?.isExported || node.radius > 6;
 
       // Format calls/callers with better names
-    const formatCallList = (edges: GraphEdge[], maxItems: number = 8) => {
-      return edges.slice(0, maxItems).map(e => {
-        const parts = e.target.split(':');
-        const name = parts[parts.length - 1] || '?';
-        const targetNode = this.nodes.find(n => n.id === e.target);
-        const module = targetNode?.moduleId || '';
-        return `<div style="padding:2px 0;font-size:10px">• <span style="color:var(--text-normal)">${name}</span> <span style="color:var(--text-muted)">(${module})</span></div>`;
-      }).join('') + (edges.length > maxItems ? `<div style="color:var(--text-muted);font-size:9px;padding:2px 0">… and ${edges.length - maxItems} more</div>` : '');
-    };
+      const formatCallList = (edges: GraphEdge[], maxItems: number = 8) => {
+        return edges.slice(0, maxItems).map(e => {
+          const parts = e.target.split(':');
+          const name = parts[parts.length - 1] || '?';
+          const targetNode = this.nodes.find(n => n.id === e.target);
+          const module = targetNode?.moduleId || '';
+          return `<div style="padding:2px 0;font-size:10px">• <span style="color:var(--text-normal)">${name}</span> <span style="color:var(--text-muted)">(${module})</span></div>`;
+        }).join('') + (edges.length > maxItems ? `<div style="color:var(--text-muted);font-size:9px;padding:2px 0">… and ${edges.length - maxItems} more</div>` : '');
+      };
 
-    // Highlight connected nodes
-    this.highlight.clear();
-    this.highlight.add(node.id);
-    for (const e of calls) this.highlight.add(e.target);
-    for (const e of callers) this.highlight.add(e.source);
+      // Highlight connected nodes
+      this.highlight.clear();
+      this.highlight.add(node.id);
+      for (const e of calls) this.highlight.add(e.target);
+      for (const e of callers) this.highlight.add(e.source);
 
-    const typeIcon = node.nodeType === 'class' ? '📦' : node.nodeType === 'method' ? '⚡' : '⚙️';
-    const typeLabel = node.nodeType === 'class' ? 'Class' : node.nodeType === 'method' ? 'Method' : 'Function';
+      const typeIcon = node.nodeType === 'class' ? '📦' : node.nodeType === 'method' ? '⚡' : '⚙️';
+      const typeLabel = node.nodeType === 'class' ? 'Class' : node.nodeType === 'method' ? 'Method' : 'Function';
 
-    // Format parameters
-    const paramsStr = params.length > 0 
-      ? params.map(p => `${p.name}${p.optional ? '?' : ''}: ${p.type}`).join(', ')
-      : 'none';
+      // Format parameters
+      const paramsStr = params.length > 0
+        ? params.map(p => `${p.name}${p.optional ? '?' : ''}: ${p.type}`).join(', ')
+        : 'none';
 
-    this.infoPanel.style.display = 'block';
-    this.infoPanel.innerHTML = `
+      this.infoPanel.style.display = 'block';
+      this.infoPanel.innerHTML = `
       <div style="display:flex;justify-content:space-between;align-items:start;margin-bottom:12px">
         <div style="display:flex;align-items:center;gap:6px">
           <span style="font-size:18px">${typeIcon}</span>
@@ -935,23 +940,23 @@ class MikkGraphView extends ItemView {
     console.log('Transform:', this.transform);
     console.log('Canvas:', this.canvas ? 'available' : 'null');
     console.log('Context:', this.ctx ? 'available' : 'null');
-    
+
     if (!this.ctx || !this.canvas) {
       console.error('Canvas or context not available');
       return;
     }
-    
+
     const ctx = this.ctx;
     const { x: tx, y: ty, k } = this.transform;
     const hasHL = this.highlight.size > 0;
 
     // Clear canvas
     ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
-    
+
     // Draw a background to verify canvas is working
     ctx.fillStyle = 'rgba(255, 0, 0, 0.1)';
     ctx.fillRect(0, 0, 50, 50);
-    
+
     if (!this.nodes || this.nodes.length === 0) {
       ctx.fillStyle = '#fff';
       ctx.font = '16px sans-serif';
@@ -960,7 +965,7 @@ class MikkGraphView extends ItemView {
     }
 
     console.log('About to draw nodes...');
-    
+
     ctx.save();
     ctx.translate(tx, ty);
     ctx.scale(k, k);
@@ -977,7 +982,7 @@ class MikkGraphView extends ItemView {
         const s = this.nodes.find(n => n.id === e.source);
         const t = this.nodes.find(n => n.id === e.target);
         if (!s || !t) continue;
-        
+
         ctx.beginPath();
         ctx.moveTo(s.x, s.y);
         ctx.lineTo(t.x, t.y);
@@ -994,26 +999,26 @@ class MikkGraphView extends ItemView {
       nodeCount++;
       const isHL = !hasHL || this.highlight.has(node.id);
       const isSelected = this.selected?.id === node.id;
-      
+
       console.log(`Drawing node ${nodeCount}: ${node.name} at (${node.x}, ${node.y})`);
-      
+
       // Simple opacity logic
       const opacity = hasHL && !isHL ? 0.3 : 0.9;
       const nodeColor = node.color + Math.floor(opacity * 255).toString(16).padStart(2, '0');
-      
+
       // Simple circle for all nodes
       ctx.beginPath();
       ctx.arc(node.x, node.y, Math.max(4, node.radius), 0, Math.PI * 2);
       ctx.fillStyle = nodeColor;
       ctx.fill();
-      
+
       // Selection outline
       if (isSelected) {
         ctx.strokeStyle = '#fff';
         ctx.lineWidth = 2 / k;
         ctx.stroke();
       }
-      
+
       // Simple labels when zoomed in
       if (k > 0.8) {
         ctx.font = `${Math.max(8, 10 / k)}px sans-serif`;
@@ -1023,7 +1028,7 @@ class MikkGraphView extends ItemView {
         ctx.fillText(text, node.x, node.y + node.radius + 8);
       }
     }
-    
+
     console.log(`Drew ${nodeCount} nodes`);
     ctx.restore();
     console.log('=== DRAW END ===');

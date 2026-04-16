@@ -25,31 +25,34 @@ module.exports = __toCommonJS(main_exports);
 var import_obsidian = require("obsidian");
 var VIEW_TYPE = "mikk-v2";
 var MODULE_COLORS = {
-  "components": "#6366f1",
-  "lib": "#10b981",
-  "app": "#f59e0b",
-  "providers": "#ec4899",
-  "hooks": "#8b5cf6",
-  "utils": "#14b8a6",
-  "api": "#f97316",
-  "types": "#64748b",
-  "graph": "#3b82f6",
-  "parser": "#a855f7",
-  "core": "#22c55e",
-  "cli": "#ef4444",
-  "search": "#0ea5e9",
-  "cache": "#d97706",
-  "contract": "#7c3aed",
-  "security": "#dc2626",
-  "hash": "#059669",
-  "analysis": "#6d28d9",
-  "scripts": "#78716c",
-  "benchmarks": "#92400e"
+  "components": "#818cf8",
+  "lib": "#34d399",
+  "app": "#fbbf24",
+  "providers": "#f472b6",
+  "hooks": "#a78bfa",
+  "utils": "#2dd4bf",
+  "api": "#fb923c",
+  "types": "#94a3b8",
+  "graph": "#60a5fa",
+  "parser": "#c084fc",
+  "core": "#4ade80",
+  "cli": "#f87171",
+  "search": "#38bdf8",
+  "cache": "#fbbf24",
+  "contract": "#818cf8",
+  "security": "#f87171",
+  "hash": "#34d399",
+  "analysis": "#c084fc",
+  "scripts": "#94a3b8",
+  "benchmarks": "#fb923c"
 };
+function isDarkTheme() {
+  return document.body.classList.contains("theme-dark");
+}
 function moduleColor(moduleId) {
-  if (!moduleId) return "#94a3b8";
+  if (!moduleId) return isDarkTheme() ? "#cbd5e1" : "#475569";
   const key = Object.keys(MODULE_COLORS).find((k) => moduleId.toLowerCase().includes(k));
-  return key ? MODULE_COLORS[key] : "#94a3b8";
+  return key ? MODULE_COLORS[key] : isDarkTheme() ? "#cbd5e1" : "#475569";
 }
 var IDEAL_LINK = 80;
 var REPULSION = 1500;
@@ -802,79 +805,85 @@ var MikkGraphView = class extends import_obsidian.ItemView {
   }
   // ── Simple Render ────────────────────────────────────────────────────
   draw() {
-    console.log("=== DRAW START ===");
-    console.log("Nodes:", this.nodes?.length || 0);
-    console.log("Edges:", this.edges?.length || 0);
-    console.log("Transform:", this.transform);
-    console.log("Canvas:", this.canvas ? "available" : "null");
-    console.log("Context:", this.ctx ? "available" : "null");
-    if (!this.ctx || !this.canvas) {
-      console.error("Canvas or context not available");
-      return;
-    }
+    if (!this.ctx || !this.canvas) return;
     const ctx = this.ctx;
     const { x: tx, y: ty, k } = this.transform;
     const hasHL = this.highlight.size > 0;
+    const isDark = isDarkTheme();
     ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
-    ctx.fillStyle = "rgba(255, 0, 0, 0.1)";
-    ctx.fillRect(0, 0, 50, 50);
-    if (!this.nodes || this.nodes.length === 0) {
-      ctx.fillStyle = "#fff";
-      ctx.font = "16px sans-serif";
-      ctx.fillText("No nodes to display", 100, 100);
-      return;
-    }
-    console.log("About to draw nodes...");
+    if (!this.nodes || this.nodes.length === 0) return;
     ctx.save();
     ctx.translate(tx, ty);
     ctx.scale(k, k);
-    console.log(`Drawing ${this.nodes.length} nodes, ${this.edges?.length || 0} edges`);
-    if (k > 0.5) {
-      console.log("Drawing edges...");
-      ctx.strokeStyle = "rgba(150, 150, 150, 0.2)";
+    if (k > 0.2) {
+      ctx.strokeStyle = isDark ? "rgba(255, 255, 255, 0.1)" : "rgba(0, 0, 0, 0.1)";
       ctx.lineWidth = 1 / k;
-      let edgeCount = 0;
       for (const e of this.edges) {
         const s = this.nodes.find((n) => n.id === e.source);
         const t = this.nodes.find((n) => n.id === e.target);
         if (!s || !t) continue;
+        if (hasHL) {
+          if (this.highlight.size > 0 && this.highlight.has(s.id) && this.highlight.has(t.id)) {
+            ctx.strokeStyle = isDark ? `rgba(255, 255, 255, 0.6)` : `rgba(0, 0, 0, 0.4)`;
+            ctx.lineWidth = 2 / k;
+          } else {
+            ctx.strokeStyle = isDark ? `rgba(255, 255, 255, 0.03)` : `rgba(0, 0, 0, 0.05)`;
+            ctx.lineWidth = 1 / k;
+          }
+        }
         ctx.beginPath();
         ctx.moveTo(s.x, s.y);
         ctx.lineTo(t.x, t.y);
         ctx.stroke();
-        edgeCount++;
       }
-      console.log(`Drew ${edgeCount} edges`);
     }
-    console.log("Drawing nodes...");
-    let nodeCount = 0;
     for (const node of this.nodes) {
-      nodeCount++;
       const isHL = !hasHL || this.highlight.has(node.id);
       const isSelected = this.selected?.id === node.id;
-      console.log(`Drawing node ${nodeCount}: ${node.name} at (${node.x}, ${node.y})`);
-      const opacity = hasHL && !isHL ? 0.3 : 0.9;
-      const nodeColor = node.color + Math.floor(opacity * 255).toString(16).padStart(2, "0");
+      const opacity = hasHL && !isHL ? isDark ? 0.2 : 0.3 : 1;
+      if (isHL && k > 0.4) {
+        ctx.shadowBlur = 15;
+        ctx.shadowColor = node.color;
+      } else {
+        ctx.shadowBlur = 0;
+      }
       ctx.beginPath();
-      ctx.arc(node.x, node.y, Math.max(4, node.radius), 0, Math.PI * 2);
-      ctx.fillStyle = nodeColor;
+      ctx.arc(node.x, node.y, Math.max(isSelected ? 6 : 4, node.radius), 0, Math.PI * 2);
+      ctx.fillStyle = node.color;
+      ctx.globalAlpha = opacity;
       ctx.fill();
       if (isSelected) {
+        ctx.shadowBlur = 25;
+        ctx.shadowColor = node.color;
         ctx.strokeStyle = "#fff";
-        ctx.lineWidth = 2 / k;
+        ctx.lineWidth = 3 / k;
+        ctx.stroke();
+      } else if (isHL && hasHL) {
+        ctx.strokeStyle = isDark ? "rgba(255,255,255,0.7)" : "rgba(0,0,0,0.4)";
+        ctx.lineWidth = 1 / k;
         ctx.stroke();
       }
-      if (k > 0.8) {
-        ctx.font = `${Math.max(8, 10 / k)}px sans-serif`;
-        ctx.fillStyle = isHL ? "#fff" : "rgba(255, 255, 255, 0.8)";
+      ctx.shadowBlur = 0;
+      ctx.globalAlpha = 1;
+      if (k > 0.7 || isHL && hasHL && k > 0.4 || isSelected) {
+        const labelOpacity = isHL ? 1 : 0.4;
+        ctx.font = `${isSelected ? "bold " : ""}${Math.max(10, 12 / k)}px Inter, system-ui, sans-serif`;
         ctx.textAlign = "center";
-        const text = node.name.length > 12 ? node.name.slice(0, 10) + "\u2026" : node.name;
-        ctx.fillText(text, node.x, node.y + node.radius + 8);
+        const text = node.name.length > 20 ? node.name.slice(0, 18) + "\u2026" : node.name;
+        if (isSelected) {
+          const metrics = ctx.measureText(text);
+          const bgW = metrics.width + 12;
+          const bgH = 16;
+          ctx.fillStyle = isDark ? "rgba(0,0,0,0.85)" : "rgba(255,255,255,0.85)";
+          ctx.fillRect(node.x - bgW / 2, node.y + node.radius + 6, bgW, bgH);
+          ctx.fillStyle = isDark ? "#fff" : "#000";
+        } else {
+          ctx.fillStyle = isDark ? `rgba(255, 255, 255, ${labelOpacity})` : `rgba(0, 0, 0, ${labelOpacity})`;
+        }
+        ctx.fillText(text, node.x, node.y + node.radius + 18);
       }
     }
-    console.log(`Drew ${nodeCount} nodes`);
     ctx.restore();
-    console.log("=== DRAW END ===");
   }
 };
 var MikkPlugin = class extends import_obsidian.Plugin {

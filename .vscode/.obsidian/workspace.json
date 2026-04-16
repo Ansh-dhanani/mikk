@@ -1,20 +1,20 @@
 {
   "main": {
-    "id": "529587ba1939635a",
+    "id": "9bb34996099f3173",
     "type": "split",
     "children": [
       {
-        "id": "c9a980ee31695708",
+        "id": "535b7463b7d58dbe",
         "type": "tabs",
         "children": [
           {
-            "id": "1f7f795c81bb81f1",
+            "id": "10ad677121e9277c",
             "type": "leaf",
             "state": {
-              "type": "mikk-v2",
+              "type": "empty",
               "state": {},
               "icon": "lucide-file",
-              "title": "Mikk Graph"
+              "title": "New tab"
             }
           }
         ]
@@ -23,15 +23,15 @@
     "direction": "vertical"
   },
   "left": {
-    "id": "9f70a0d5d594e7a2",
+    "id": "a9b0849accacb1ed",
     "type": "split",
     "children": [
       {
-        "id": "05eed028e8ee5f7b",
+        "id": "3b720e4541fd61a8",
         "type": "tabs",
         "children": [
           {
-            "id": "a48f4ec6700dd41a",
+            "id": "1fdf19a4b33062c0",
             "type": "leaf",
             "state": {
               "type": "file-explorer",
@@ -44,7 +44,7 @@
             }
           },
           {
-            "id": "9b743d382fafbc0a",
+            "id": "c5240348ade6c6d5",
             "type": "leaf",
             "state": {
               "type": "search",
@@ -61,7 +61,7 @@
             }
           },
           {
-            "id": "63eab03a603ead31",
+            "id": "fde910445bdf6f8c",
             "type": "leaf",
             "state": {
               "type": "bookmarks",
@@ -74,23 +74,23 @@
       }
     ],
     "direction": "horizontal",
-    "width": 200
+    "width": 300
   },
   "right": {
-    "id": "4f9af4672b975bb7",
+    "id": "4738b10d258503f0",
     "type": "split",
     "children": [
       {
-        "id": "de19d659aabfe03a",
+        "id": "153247ba025bdfdd",
         "type": "tabs",
         "children": [
           {
-            "id": "27a90950ac70e970",
+            "id": "8a4152d1a7877228",
             "type": "leaf",
             "state": {
               "type": "backlink",
               "state": {
-                "collapseAll": true,
+                "collapseAll": false,
                 "extraContext": false,
                 "sortOrder": "alphabetical",
                 "showSearch": false,
@@ -103,7 +103,7 @@
             }
           },
           {
-            "id": "10c2fe210cbd118e",
+            "id": "e169a69582b13ed8",
             "type": "leaf",
             "state": {
               "type": "outgoing-link",
@@ -116,7 +116,7 @@
             }
           },
           {
-            "id": "1f86f2c08e9995c0",
+            "id": "675d86633c4c4193",
             "type": "leaf",
             "state": {
               "type": "tag",
@@ -131,7 +131,7 @@
             }
           },
           {
-            "id": "87801328543c5f8d",
+            "id": "7f62d7eac2a1d60f",
             "type": "leaf",
             "state": {
               "type": "all-properties",
@@ -145,7 +145,7 @@
             }
           },
           {
-            "id": "f58de19e92250e28",
+            "id": "82040137a4f0018a",
             "type": "leaf",
             "state": {
               "type": "outline",
@@ -162,7 +162,8 @@
       }
     ],
     "direction": "horizontal",
-    "width": 300
+    "width": 300,
+    "collapsed": true
   },
   "left-ribbon": {
     "hiddenItems": {
@@ -172,10 +173,9 @@
       "daily-notes:Open today's daily note": false,
       "templates:Insert template": false,
       "command-palette:Open command palette": false,
-      "bases:Create new base": false,
-      "mikk-v2:Mikk Graph": false
+      "bases:Create new base": false
     }
   },
-  "active": "1f7f795c81bb81f1",
+  "active": "10ad677121e9277c",
   "lastOpenFiles": []
 }

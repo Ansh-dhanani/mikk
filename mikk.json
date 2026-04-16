@@ -10,23 +10,23 @@
       "C:/Users/Ansh/Desktop/web/Mesh/packages/ai-context/src/index.ts",
       "C:/Users/Ansh/Desktop/web/Mesh/packages/cli/src/index.ts",
       "C:/Users/Ansh/Desktop/web/Mesh/packages/core/src/index.ts",
+      "C:/Users/Ansh/Desktop/web/Mesh/packages/intent-engine/src/index.ts",
       "C:/Users/Ansh/Desktop/web/Mesh/packages/mcp-server/src/index.ts",
       "C:/Users/Ansh/Desktop/web/Mesh/packages/mcp-server/src/server.ts",
-      "C:/Users/Ansh/Desktop/web/Mesh/packages/intent-engine/src/index.ts",
       "C:/Users/Ansh/Desktop/web/Mesh/packages/obsidian-plugin/src/main.ts",
       "C:/Users/Ansh/Desktop/web/Mesh/packages/watcher/src/index.ts",
       "C:/Users/Ansh/Desktop/web/Mesh/benchmarks/fixtures/ts-express-api/src/index.ts",
       "C:/Users/Ansh/Desktop/web/Mesh/packages/core/src/analysis/index.ts",
+      "C:/Users/Ansh/Desktop/web/Mesh/packages/core/src/cache/index.ts",
       "C:/Users/Ansh/Desktop/web/Mesh/packages/core/src/contract/index.ts",
       "C:/Users/Ansh/Desktop/web/Mesh/packages/core/src/graph/index.ts",
-      "C:/Users/Ansh/Desktop/web/Mesh/packages/core/src/cache/index.ts",
       "C:/Users/Ansh/Desktop/web/Mesh/packages/core/src/hash/index.ts",
       "C:/Users/Ansh/Desktop/web/Mesh/packages/core/src/parser/index.ts",
-      "C:/Users/Ansh/Desktop/web/Mesh/packages/core/src/search/index.ts",
       "C:/Users/Ansh/Desktop/web/Mesh/packages/core/src/security/index.ts",
+      "C:/Users/Ansh/Desktop/web/Mesh/packages/core/src/search/index.ts",
       "C:/Users/Ansh/Desktop/web/Mesh/apps/web/components/kibo-ui/contribution-graph/index.tsx",
-      "C:/Users/Ansh/Desktop/web/Mesh/apps/web/components/kibo-ui/image-zoom/index.tsx",
       "C:/Users/Ansh/Desktop/web/Mesh/apps/web/components/kibo-ui/marquee/index.tsx",
+      "C:/Users/Ansh/Desktop/web/Mesh/apps/web/components/kibo-ui/image-zoom/index.tsx",
       "C:/Users/Ansh/Desktop/web/Mesh/packages/cli/src/commands/contract/index.ts"
     ]
   },
@@ -194,22 +194,22 @@
         "entryFunctions": []
       },
       {
-        "id": "fixtures-js-utility-async",
-        "name": "Utils",
-        "description": "1 files, 0 functions",
-        "intent": "",
-        "paths": [
-          "c:/users/ansh/desktop/web/mesh/benchmarks/fixtures/js-utility/src/async/**"
-        ],
-        "entryFunctions": []
-      },
-      {
         "id": "fixtures-js-utility-formatters",
         "name": "Utils & Forms",
         "description": "1 files, 0 functions",
         "intent": "",
         "paths": [
           "c:/users/ansh/desktop/web/mesh/benchmarks/fixtures/js-utility/src/formatters/**"
+        ],
+        "entryFunctions": []
+      },
+      {
+        "id": "fixtures-js-utility-async",
+        "name": "Utils",
+        "description": "1 files, 0 functions",
+        "intent": "",
+        "paths": [
+          "c:/users/ansh/desktop/web/mesh/benchmarks/fixtures/js-utility/src/async/**"
         ],
         "entryFunctions": []
       },
@@ -344,16 +344,6 @@
         "entryFunctions": []
       },
       {
-        "id": "core-parser-go",
-        "name": "GraphQL",
-        "description": "2 files, 0 functions",
-        "intent": "",
-        "paths": [
-          "c:/users/ansh/desktop/web/mesh/packages/core/src/parser/go/**"
-        ],
-        "entryFunctions": []
-      },
-      {
         "id": "core-parser-javascript",
         "name": "GraphQL",
         "description": "1 files, 0 functions",
@@ -380,6 +370,16 @@
         "intent": "",
         "paths": [
           "c:/users/ansh/desktop/web/mesh/packages/core/src/parser/typescript/**"
+        ],
+        "entryFunctions": []
+      },
+      {
+        "id": "core-parser-go",
+        "name": "GraphQL",
+        "description": "2 files, 0 functions",
+        "intent": "",
+        "paths": [
+          "c:/users/ansh/desktop/web/mesh/packages/core/src/parser/go/**"
         ],
         "entryFunctions": []
       },
@@ -658,22 +658,22 @@
         "entryFunctions": []
       },
       {
-        "id": "components-kibo-ui-image-zoom",
-        "name": "Media",
-        "description": "1 files, 0 functions",
-        "intent": "",
-        "paths": [
-          "c:/users/ansh/desktop/web/mesh/apps/web/components/kibo-ui/image-zoom/**"
-        ],
-        "entryFunctions": []
-      },
-      {
         "id": "components-kibo-ui-marquee",
         "name": "Components",
         "description": "1 files, 0 functions",
         "intent": "",
         "paths": [
           "c:/users/ansh/desktop/web/mesh/apps/web/components/kibo-ui/marquee/**"
+        ],
+        "entryFunctions": []
+      },
+      {
+        "id": "components-kibo-ui-image-zoom",
+        "name": "Media",
+        "description": "1 files, 0 functions",
+        "intent": "",
+        "paths": [
+          "c:/users/ansh/desktop/web/mesh/apps/web/components/kibo-ui/image-zoom/**"
         ],
         "entryFunctions": []
       },
@@ -708,22 +708,22 @@
         "entryFunctions": []
       },
       {
-        "id": "fixtures-ts-express-api-utils",
-        "name": "Utils & API",
-        "description": "2 files, 0 functions",
-        "intent": "",
-        "paths": [
-          "c:/users/ansh/desktop/web/mesh/benchmarks/fixtures/ts-express-api/src/utils/**"
-        ],
-        "entryFunctions": []
-      },
-      {
         "id": "cli-commands-contract",
         "name": "CLI",
         "description": "1 files, 0 functions",
         "intent": "",
         "paths": [
           "c:/users/ansh/desktop/web/mesh/packages/cli/src/commands/contract/**"
+        ],
+        "entryFunctions": []
+      },
+      {
+        "id": "fixtures-ts-express-api-utils",
+        "name": "Utils & API",
+        "description": "2 files, 0 functions",
+        "intent": "",
+        "paths": [
+          "c:/users/ansh/desktop/web/mesh/benchmarks/fixtures/ts-express-api/src/utils/**"
         ],
         "entryFunctions": []
       }

@@ -2,8 +2,8 @@
   <name>mikk</name>
   <stats>
     <files>284</files>
-    <functions>1454</functions>
-    <modules>9</modules>
+    <functions>1456</functions>
+    <modules>0</modules>
     <language>typescript</language>
   </stats>
 </repository_context>
@@ -30,179 +30,6 @@
     <executes>turbo run lint</executes>
   </command>
 </commands>
-  <module id="packages-core-utils">
-    <name>Utils</name>
-    <location>packages/core/src/utils/**</location>
-    <purpose>10 files, 0 functions</purpose>
-    <entry_points>
-      <function signature="async runArtifactWriteTransaction(projectRoot, name, writes, options) [packages/core/src/utils/artifact-transaction.ts:54]" purpose="Run artifact write transaction" />
-      <function signature="async discoverContextFiles(projectRoot, options) [packages/core/src/utils/fs.ts:198]" purpose="Discover context files (projectRoot, options)" />
-      <function signature="scoreFunctions(prompt, lock, maxResults) [packages/core/src/utils/fuzzy-match.ts:28]" purpose="Score functions (prompt, lock, maxResults)" />
-      <function signature="getDiscoveryPatterns(language) [packages/core/src/utils/fs.ts:373]" purpose="Get discovery patterns (language)" />
-      <function signature="findFuzzyMatches(searchTerm, lock, maxResults) [packages/core/src/utils/fuzzy-match.ts:58]" purpose="Find fuzzy matches (searchTerm, lock, maxResults)" />
-    </entry_points>
-    <key_internal_functions>
-      <function name="log" callers="103" purpose="Log (level, message, data)" />
-      <function name="writeFileAtomic" callers="7" purpose="Write file atomic (targetPath, content, options)" />
-      <function name="normalizePathQuiet" callers="6" purpose="Normalize path quiet (filePath)" />
-      <function name="minimatch" callers="4" purpose="Minimatch (filePath, pattern)" />
-      <function name="fileExists" callers="3" purpose="File exists (filePath)" />
-    </key_internal_functions>
-    <depends_on>Config</depends_on>
-  </module>
-  <module id="desktop-web-mesh">
-    <name>Config</name>
-    <location>**</location>
-    <purpose>1 files, 0 functions</purpose>
-    <entry_points>
-      <function signature="ContextBuilder.build(query) [packages/ai-context/src/context-builder.ts:555]" purpose="Context builder.build (query)" />
-      <function signature="activate(context) [packages/vscode-extension/src/extension.ts:177]" purpose="Activate (context)" />
-      <function signature="async main() [benchmarks/fixtures/test-project/evaluate-all-mcp-tools-via-config.js:216]" purpose="Main" />
-      <function signature="async main() [benchmarks/fixtures/test-project/evaluate-all-mcp-tools.js:106]" purpose="Main" />
-      <function signature="LockCompiler.compileModules(contract, parsedFiles) [packages/core/src/contract/lock-compiler.ts:394]" purpose="Lock compiler.compile modules (contract, parsedFiles)" />
-    </entry_points>
-    <key_internal_functions>
-      <function name="get" callers="179" purpose="Get (key)" />
-      <function name="set" callers="171" purpose="Set (key, value, ttlMs)" />
-      <function name="SemanticSearcher.isAvailable" callers="10" purpose="Semantic searcher.is available" />
-      <function name="_track" callers="8" purpose="Track (root, raw, resp)" />
-      <function name="run" callers="7" purpose="Run (cmd, cwd)" />
-    </key_internal_functions>
-    <depends_on>Utils, CLI & Utils, Config & API, Dashboard, Providers & Storage, Blog & Storage, Authentication</depends_on>
-  </module>
-  <module id="fixtures-ts-express-api-auth">
-    <name>Authentication</name>
-    <location>benchmarks/fixtures/ts-express-api/src/auth/**</location>
-    <purpose>4 files, 0 functions</purpose>
-    <entry_points>
-      <function signature="refreshToken(token) [benchmarks/fixtures/ts-express-api/src/auth/jwt.ts:32]" purpose="Refresh token (token)" />
-      <function signature="validatePasswordStrength(password) [benchmarks/fixtures/ts-express-api/src/auth/password.ts:16]" purpose="Check password strength (password)" />
-      <function signature="decodeToken(token) [benchmarks/fixtures/ts-express-api/src/auth/jwt.ts:24]" purpose="Decode token (token)" />
-      <function signature="hasPermission(userRole, requiredRole) [benchmarks/fixtures/ts-express-api/src/auth/roles.ts:7]" purpose="Check if permission (userRole, requiredRole)" />
-      <function signature="revokeSession(token) [benchmarks/fixtures/ts-express-api/src/auth/session.ts:16]" purpose="Revoke session (token)" />
-    </entry_points>
-    <key_internal_functions>
-      <function name="createSession" callers="4" purpose="Create session (userId, token)" />
-      <function name="signToken" callers="2" purpose="Sign token (payload)" />
-      <function name="verifyToken" callers="2" purpose="Verify token (token)" />
-      <function name="comparePassword" callers="2" purpose="Compare password (plain, hash)" />
-      <function name="hashPassword" callers="1" purpose="Hash password (plain)" />
-    </key_internal_functions>
-    <depends_on>Config</depends_on>
-  </module>
-  <module id="packages-core-hash">
-    <name>Providers & Storage</name>
-    <location>packages/core/src/hash/**</location>
-    <purpose>4 files, 0 functions</purpose>
-    <entry_points>
-      <function signature="hashFunctionBody(fileContent, startLine, endLine) [packages/core/src/hash/file-hasher.ts:22]" purpose="Hash function body (fileContent, startLine, endLine)" />
-      <function signature="HashStore.setBatch(entries) [packages/core/src/hash/hash-store.ts:102]" purpose="Hash store.set batch (entries)" />
-      <function signature="HashStore.get(filePath) [packages/core/src/hash/hash-store.ts:61]" purpose="Hash store.get (filePath)" />
-      <function signature="HashStore.set(filePath, hash, sizeBytes) [packages/core/src/hash/hash-store.ts:69]" purpose="Hash store.set (filePath, hash, sizeBytes)" />
-      <function signature="HashStore.delete(filePath) [packages/core/src/hash/hash-store.ts:79]" purpose="Hash store.delete (filePath)" />
-    </entry_points>
-    <key_internal_functions>
-      <function name="hashFile" callers="6" purpose="Hash file (filePath)" />
-      <function name="hashContent" callers="2" purpose="Hash content (content)" />
-      <function name="computeModuleHash" callers="1" purpose="Compute module hash (fileHashes)" />
-      <function name="computeRootHash" callers="1" purpose="Compute root hash (moduleHashes)" />
-    </key_internal_functions>
-    <depends_on>Config</depends_on>
-  </module>
-  <module id="packages-core-parser">
-    <name>Blog & Storage</name>
-    <location>packages/core/src/parser/**</location>
-    <purpose>11 files, 0 functions</purpose>
-    <entry_points>
-      <function signature="async TypescriptExtractor.extract(filePath, content) [packages/core/src/parser/oxc-parser.ts:355]" purpose="Typescript extractor.extract (filePath, content)" />
-      <function signature="async TreeSitterParser.parseWithConfig(filePath, content, ext, config) [packages/core/src/parser/tree-sitter/parser.ts:463]" purpose="Tree sitter parser.parse with config" />
-      <function signature="async FunctionBodyExtractor.extractBody(fn, options) [packages/core/src/parser/function-body-extractor.ts:28]" purpose="Function body extractor.extract body (fn, options)" />
-      <function signature="walk(n) [packages/core/src/parser/oxc-parser.ts:239]" purpose="Walk (n)" />
-      <function signature="BoundaryChecker.allCrossModuleCalls() [packages/core/src/parser/boundary-checker.ts:155]" purpose="Boundary checker.all cross module calls" />
-    </entry_points>
-    <key_internal_functions>
-      <function name="extractCalls" callers="6" purpose="Extract calls (node, lineIndex)" />
-      <function name="findFirstChild" callers="6" purpose="Find first child (node, predicate)" />
-      <function name="LanguageRegistry.getInstance" callers="5" purpose="Language registry.get instance" />
-      <function name="getSpan" callers="5" purpose="Get span (node)" />
-      <function name="LineIndex.getLine" callers="5" purpose="Line index.get line (offset)" />
-    </key_internal_functions>
-    <depends_on>Config, Utils</depends_on>
-  </module>
-  <module id="packages-vscode-extension-webview">
-    <name>Dashboard</name>
-    <location>packages/vscode-extension/src/webview/**</location>
-    <purpose>3 files, 0 functions</purpose>
-    <entry_points>
-      <function signature="DiagramPanel.createOrShow(diagramPath) [packages/vscode-extension/src/webview/diagrampanel.ts:16]" purpose="Diagram panel.create or show (diagramPath)" />
-      <function signature="DashboardPanel.constructor(panel, data) [packages/vscode-extension/src/webview/dashboardpanel.ts:15]" purpose="Dashboard panel.constructor (panel, data)" />
-      <function signature="DashboardPanel._notInitializedHtml() [packages/vscode-extension/src/webview/dashboardpanel.ts:232]" purpose="Dashboard panel. not initialized html" />
-      <function signature="DashboardPanel.dispose() [packages/vscode-extension/src/webview/dashboardpanel.ts:252]" purpose="Dashboard panel.dispose" />
-      <function signature="DiagramPanel.constructor(panel, diagramText) [packages/vscode-extension/src/webview/diagrampanel.ts:10]" purpose="Diagram panel.constructor (panel, diagramText)" />
-    </entry_points>
-    <key_internal_functions>
-      <function name="DashboardPanel.update" callers="3" purpose="Dashboard panel.update (data)" />
-      <function name="DashboardPanel.createOrShow" callers="2" purpose="Dashboard panel.create or show (extensionUri, data)" />
-      <function name="DashboardPanel._update" callers="2" purpose="Dashboard panel. update (data)" />
-      <function name="DiagramPanel._update" callers="2" purpose="Diagram panel. update (diagramText)" />
-      <function name="getWebviewContent" callers="1" purpose="Get webview content" />
-    </key_internal_functions>
-  </module>
-  <module id="mesh-apps-web">
-    <name>Config & API</name>
-    <location>apps/web/**</location>
-    <purpose>5 files, 0 functions</purpose>
-    <entry_points>
-      <function signature="CommandMenu({...}) [apps/web/components/command-menu.tsx:156]" purpose="Command menu ({...})" />
-      <function signature="FeedbackBlock() [apps/web/components/feedback-block.tsx:11]" purpose="Feedback block" />
-      <function signature="GraphView({...}) [apps/web/components/graph-view.tsx:20]" purpose="Graph view ({...})" />
-      <function signature="CopyButton({...}) [apps/web/components/copy-button.tsx:34]" purpose="Copy button ({...})" />
-      <function signature="ActiveIndicator({...}) [apps/web/components/toc.tsx:150]" purpose="Active indicator ({...})" />
-    </entry_points>
-    <key_internal_functions>
-      <function name="cn" callers="128" purpose="Cn (inputs)" />
-      <function name="trackEvent" callers="5" purpose="Track event (properties)" />
-      <function name="useFormField" callers="4" purpose="Hook for form field" />
-      <function name="useContributionGraph" callers="4" purpose="Hook for contribution graph" />
-      <function name="collectDocsRoutes" callers="3" purpose="Collect docs routes (dir)" />
-    </key_internal_functions>
-    <depends_on>Config, Utils</depends_on>
-  </module>
-  <module id="mesh-packages-cli">
-    <name>CLI & Utils</name>
-    <location>packages/cli/**, packages/cli/src/**</location>
-    <purpose>4 files, 0 functions</purpose>
-    <entry_points>
-      <function signature="registerAdrCommand(program) [packages/cli/src/commands/adr.ts:6]" purpose="Register adr command (program)" />
-      <function signature="panel(title, rows, width?) [packages/cli/src/ui.ts:73]" purpose="Panel (title, rows, width)" />
-      <function signature="registerTraceCommand(program) [packages/cli/src/commands/trace.ts:15]" purpose="Register trace command (program)" />
-      <function signature="buildGraphFromLock(lock) [packages/cli/src/commands/dead-code.ts:92]" purpose="Build graph from lock (lock)" />
-      <function signature="async getFunctionBody(fn, projectRoot, _maxLines) [packages/cli/src/commands/search.ts:25]" purpose="Get function body (fn, projectRoot, _maxLines)" />
-    </entry_points>
-    <key_internal_functions>
-      <function name="gap" callers="11" purpose="Gap" />
-      <function name="kv" callers="6" purpose="Kv (label, value, labelWidth)" />
-      <function name="tw" callers="5" purpose="Tw" />
-      <function name="patchFileContent" callers="4" purpose="Patch file content (filePath, newContent)" />
-      <function name="resolveCoreModule" callers="4" purpose="Resolve core module (projectRoot)" />
-    </key_internal_functions>
-    <depends_on>Utils, Config, Providers & Storage, Blog & Storage</depends_on>
-  </module>
-  <module id="fixtures-js-utility-parsers">
-    <name>Utils & Testing</name>
-    <location>benchmarks/fixtures/js-utility/src/parsers/**</location>
-    <purpose>2 files, 0 functions</purpose>
-    <entry_points>
-      <function signature="parseCsv(csv, {...}) [benchmarks/fixtures/js-utility/src/parsers/csv.js:9]" purpose="Parse csv (csv, {...})" />
-      <function signature="toCsv(data, {...}) [benchmarks/fixtures/js-utility/src/parsers/csv.js:21]" purpose="To csv (data, {...})" />
-      <function signature="detectDelimiter(firstLine) [benchmarks/fixtures/js-utility/src/parsers/csv.js:28]" purpose="Detect delimiter (firstLine)" />
-      <function signature="safeJsonParse(str, fallback) [benchmarks/fixtures/js-utility/src/parsers/json-safe.js:1]" purpose="Safe json parse (str, fallback)" />
-      <function signature="safeJsonStringify(value, indent) [benchmarks/fixtures/js-utility/src/parsers/json-safe.js:9]" purpose="Safe json stringify (value, indent)" />
-    </entry_points>
-    <key_internal_functions>
-      <function name="mergeDeep" callers="1" purpose="Merge deep (target, sources)" />
-    </key_internal_functions>
-  </module>
 </modules>
 
 ## Data Models & Schemas
@@ -957,14 +784,14 @@ usersRouter.post('/:id/promote', requireAuth, requireAdmin, async (req, res) => 
 
 ## HTTP Routes
 
-- **POST** `/login` → `async (req, res) => { try { const { email, password } = req.body if (!isValidEma...` *(C:/Users/Ansh/Desktop/web/Mesh/benchmarks/fixtures/ts-express-api/src/routes/auth.ts:7)*
-- **POST** `/register` → `async (req, res) => { try { const { email, password } = req.body if (!isValidEma...` *(C:/Users/Ansh/Desktop/web/Mesh/benchmarks/fixtures/ts-express-api/src/routes/auth.ts:21)*
-- **POST** `/invoices` → `async (req, res) => { try { const { amount, currency } = req.body const userId =...` → [requireAuth] *(C:/Users/Ansh/Desktop/web/Mesh/benchmarks/fixtures/ts-express-api/src/routes/payments.ts:7)*
-- **POST** `/invoices/:id/charge` → `async (req, res) => { try { const clientSecret = await chargeInvoice(req.params....` → [requireAuth] *(C:/Users/Ansh/Desktop/web/Mesh/benchmarks/fixtures/ts-express-api/src/routes/payments.ts:18)*
-- **POST** `/invoices/:id/paid` → `async (req, res) => { try { const { paymentIntentId } = req.body await markInvoi...` → [requireAuth] *(C:/Users/Ansh/Desktop/web/Mesh/benchmarks/fixtures/ts-express-api/src/routes/payments.ts:27)*
-- **POST** `/invoices/:id/refund` → `async (req, res) => { try { await refundInvoice(req.params.id) res.json({ messag...` → [requireAuth, requireAdmin] *(C:/Users/Ansh/Desktop/web/Mesh/benchmarks/fixtures/ts-express-api/src/routes/payments.ts:37)*
-- **GET** `/me` → `async (req, res) => { try { const userId = (req as any).user.userId const profil...` → [requireAuth] *(C:/Users/Ansh/Desktop/web/Mesh/benchmarks/fixtures/ts-express-api/src/routes/users.ts:7)*
-- **DELETE** `/:id` → `async (req, res) => { try { await removeUser(req.params.id) res.status(204).send...` → [requireAuth, requireAdmin] *(C:/Users/Ansh/Desktop/web/Mesh/benchmarks/fixtures/ts-express-api/src/routes/users.ts:17)*
-- **POST** `/:id/promote` → `async (req, res) => { try { await promoteToAdmin(req.params.id) res.json({ messa...` → [requireAuth, requireAdmin] *(C:/Users/Ansh/Desktop/web/Mesh/benchmarks/fixtures/ts-express-api/src/routes/users.ts:26)*
+- **POST** `/login` → `async (req, res) => { try { const { email, password } = req.body if (!isValidEma...` *(C:/Users/Ansh/Desktop/web/Mikk/benchmarks/fixtures/ts-express-api/src/routes/auth.ts:7)*
+- **POST** `/register` → `async (req, res) => { try { const { email, password } = req.body if (!isValidEma...` *(C:/Users/Ansh/Desktop/web/Mikk/benchmarks/fixtures/ts-express-api/src/routes/auth.ts:21)*
+- **POST** `/invoices` → `async (req, res) => { try { const { amount, currency } = req.body const userId =...` → [requireAuth] *(C:/Users/Ansh/Desktop/web/Mikk/benchmarks/fixtures/ts-express-api/src/routes/payments.ts:7)*
+- **POST** `/invoices/:id/charge` → `async (req, res) => { try { const clientSecret = await chargeInvoice(req.params....` → [requireAuth] *(C:/Users/Ansh/Desktop/web/Mikk/benchmarks/fixtures/ts-express-api/src/routes/payments.ts:18)*
+- **POST** `/invoices/:id/paid` → `async (req, res) => { try { const { paymentIntentId } = req.body await markInvoi...` → [requireAuth] *(C:/Users/Ansh/Desktop/web/Mikk/benchmarks/fixtures/ts-express-api/src/routes/payments.ts:27)*
+- **POST** `/invoices/:id/refund` → `async (req, res) => { try { await refundInvoice(req.params.id) res.json({ messag...` → [requireAuth, requireAdmin] *(C:/Users/Ansh/Desktop/web/Mikk/benchmarks/fixtures/ts-express-api/src/routes/payments.ts:37)*
+- **GET** `/me` → `async (req, res) => { try { const userId = (req as any).user.userId const profil...` → [requireAuth] *(C:/Users/Ansh/Desktop/web/Mikk/benchmarks/fixtures/ts-express-api/src/routes/users.ts:7)*
+- **DELETE** `/:id` → `async (req, res) => { try { await removeUser(req.params.id) res.status(204).send...` → [requireAuth, requireAdmin] *(C:/Users/Ansh/Desktop/web/Mikk/benchmarks/fixtures/ts-express-api/src/routes/users.ts:17)*
+- **POST** `/:id/promote` → `async (req, res) => { try { await promoteToAdmin(req.params.id) res.json({ messa...` → [requireAuth, requireAdmin] *(C:/Users/Ansh/Desktop/web/Mikk/benchmarks/fixtures/ts-express-api/src/routes/users.ts:26)*
 
 
