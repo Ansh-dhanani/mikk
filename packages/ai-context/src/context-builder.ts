@@ -81,6 +81,13 @@ const DEFAULT_TOKEN_BUDGET = 6000
 
 function readContextFile(filePath: string, projectRoot?: string): string {
     if (!projectRoot) return ''
+
+    // SECURITY: Never include .env files or secret configurations in context output
+    const lowerPath = filePath.toLowerCase()
+    if (lowerPath.includes('.env') || lowerPath.includes('secret') || lowerPath.includes('credentials')) {
+        return '/* File content excluded for security */'
+    }
+
     try {
         return fs.readFileSync(path.resolve(projectRoot, filePath), 'utf-8')
     } catch {
@@ -234,12 +241,12 @@ function keywordScore(
     keywords: string[]
 ): { score: number; matchedKeywords: string[] } {
     if (keywords.length === 0) return { score: 0, matchedKeywords: [] }
-    
+
     const nameLower = fn.name.toLowerCase()
     const fileLower = fn.file.toLowerCase()
     const fileNoExt = fileLower.replace(/\.(d\.ts|ts|tsx|js|jsx|mjs|cjs|mts|cts)\b/g, ' ')
     const purposeLower = (fn.purpose ?? '').toLowerCase()
-    
+
     // Get name tokens including camelCase components
     const nameTokens = new Set<string>()
     for (const part of nameLower.split(/[-_.]/)) {
@@ -250,14 +257,14 @@ function keywordScore(
             if (cp.length >= 2) nameTokens.add(cp)
         }
     }
-    
+
     const fileTokens = new Set<string>(
         fileNoExt.match(/[a-z0-9]+/g) ?? []
     )
     const purposeTokens = new Set<string>(
         purposeLower.match(/[a-z0-9]+/g) ?? []
     )
-    
+
     let score = 0
     const matched: string[] = []
 
@@ -268,7 +275,7 @@ function keywordScore(
         const tokenMatch = nameTokens.has(kw) || [...nameTokens].some(t => t.includes(kw))
         const fileMatch = fileLower.includes(kw) || fileTokens.has(kw)
         const purposeMatch = purposeLower.includes(kw) || purposeTokens.has(kw)
-        
+
         if (exactName) {
             score = Math.max(score, WEIGHT.KEYWORD_EXACT)
             matched.push(kw)
@@ -345,13 +352,13 @@ function resolveSeeds(
             }
             return newIndex
         })()
-        
+
         const bm25Results = index.search(keywords.join(' '), Math.min(50, Object.keys(lock.functions).length))
         const scoredSeeds = new Map<string, number>()
         for (const r of bm25Results) {
             scoredSeeds.set(r.id, r.score)
         }
-        
+
         for (const fn of Object.values(lock.functions)) {
             const bm25Score = scoredSeeds.get(fn.id) ?? 0
             const kwScore = keywordScore(fn, keywords).score
@@ -381,7 +388,7 @@ function resolveSeeds(
     // 4. For large codebases: also match module names and file paths with BM25
     if (isLargeCodebase && seeds.size === 0) {
         const taskLower = query.task.toLowerCase()
-        
+
         // Match against module names
         for (const mod of contract.declared.modules) {
             const modNameLower = mod.name.toLowerCase()
@@ -392,7 +399,7 @@ function resolveSeeds(
                 }
             }
         }
-        
+
         // Match against file path components (including context files)
         if (seeds.size === 0) {
             // Also check context files from lock
@@ -402,11 +409,21 @@ function resolveSeeds(
                     contextFilePaths.add(path.basename(cf.path).toLowerCase())
                 }
             }
-            
+
             for (const fn of Object.values(lock.functions)) {
-                const pathParts = fn.file.toLowerCase().split(/[-_.]+/)
+                // Split on ALL path separators AND delimiters so "lib/router/index.js"
+                // becomes ["lib", "router", "index", "js"] — previously only split on
+                // [-_.] which left "lib/router/index" as a single token, preventing
+                // "routing" from matching "router".
+                const pathParts = fn.file.toLowerCase().split(/[/\\.\-_]+/)
                 for (const kw of keywords) {
-                    if (pathParts.includes(kw) || pathParts.some(p => p.includes(kw))) {
+                    // Also do a simple stem match so "routing" hits "router", "route" etc.
+                    // Stem = first max(4, len-3) chars when kw.length >= 5.
+                    const kwStem = kw.length >= 5 ? kw.slice(0, Math.max(4, kw.length - 3)) : kw
+                    const matches = pathParts.some(p =>
+                        p === kw || p.includes(kw) || (kwStem.length >= 4 && p.includes(kwStem))
+                    )
+                    if (matches) {
                         seeds.add(fn.id)
                         break
                     }
@@ -449,20 +466,25 @@ function resolveSeeds(
     // Returning confident but irrelevant context is strictly worse than returning nothing.
     // The caller gets an empty modules list + suggestions pointing at the closest matches.
     if (seeds.size === 0) {
-        // Compute top-5 name-similarity suggestions so the user can refine their query
+        // Compute top-5 name-similarity + file-path suggestions so the user can refine.
+        // Use stemming so "routing" also matches functions in router/ files.
         const taskWords = query.task.toLowerCase().split(/\W+/).filter(w => w.length > 2)
         const scored = Object.values(lock.functions)
             .map(fn => {
                 const nameLower = fn.name.toLowerCase()
-                const hits = taskWords.filter(w => nameLower.includes(w) || fn.file.toLowerCase().includes(w))
-                return { fn, hits: hits.length }
+                // tokenise file path on ALL separators, not just [-_.]
+                const fileParts = fn.file.toLowerCase().split(/[/\\.\-_]+/)
+                let hits = 0
+                for (const w of taskWords) {
+                    const wStem = w.length >= 5 ? w.slice(0, Math.max(4, w.length - 3)) : w
+                    if (nameLower.includes(w) || nameLower.includes(wStem)) { hits++; continue }
+                    if (fileParts.some(p => p === w || p.includes(w) || (wStem.length >= 4 && p.includes(wStem)))) { hits++ }
+                }
+                return { fn, hits }
             })
             .filter(x => x.hits > 0)
             .sort((a, b) => b.hits - a.hits)
             .slice(0, 5)
-        // Push these as suggestions — resolveSeeds returns [] meaning the caller
-        // will emit { modules: [], meta: { seedCount: 0, suggestions: [...] } }
-        // No seeds means no BFS walk and no functions will be selected.
         return scored.map(x => x.fn.id)
     }
 
@@ -758,11 +780,11 @@ export class ContextBuilder {
 
         // ── Step 5: Fill token budget ──────────────────────────────────────
         let selected: MikkLockFunction[] = []
-        
+
         // Pre-calculate baseline overhead (context files, routes, constraints)
         let usedTokens = 0
         const routesStr = (!strictMode && this.lock.routes) ? JSON.stringify(this.lock.routes) : ''
-        const ctxStr = (!strictMode && this.lock.contextFiles) 
+        const ctxStr = (!strictMode && this.lock.contextFiles)
             ? this.lock.contextFiles.map(cf => readContextFile(cf.path, query.projectRoot).slice(0, 2000)).join('\n')
             : ''
         usedTokens += estimateTokens(routesStr + ctxStr + JSON.stringify(this.contract.declared.constraints))
@@ -772,7 +794,7 @@ export class ContextBuilder {
             // If no seeds found at all (unmatched query), still filter by score > 0
             const hasRelevantScore = score > 0
             const shouldFilter = seeds.length > 0 || keywords.length > 0
-            
+
             if (shouldFilter && !hasRelevantScore) continue // Skip irrelevant functions
             if (selected.length >= (query.maxFunctions ?? 80)) break
 

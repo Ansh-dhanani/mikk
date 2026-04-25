@@ -104,7 +104,7 @@ const SECRET_SCAN_PATTERNS = [
     { id: 'hex_escape_sequence', pattern: /(?:\\x[0-9a-fA-F]{2}){10,}/, severity: 'high', label: 'Hex-Escaped String (potential obfuscation)', envVar: '' },
 ]
 const SEVERITY_ORDER: Record<string, number> = { critical: 4, high: 3, medium: 2, low: 1, info: 0 }
-const DEFAULT_EXCLUDES = ['node_modules', '.git', 'dist', 'build', '.next', 'coverage', '.cache', '*.min.js', '*.map', '.env']
+const DEFAULT_EXCLUDES = ['node_modules', '.git', 'dist', 'build', '.next', 'coverage', '.cache', '*.min.js', '*.map', '.env', '.env.local', '.env.production', '.env.development', '.env.staging', '.env.*']
 
 function isExcluded(filePath: string, patterns: string[]): boolean {
     const n = filePath.replace(/\\/g, '/')
@@ -229,17 +229,34 @@ export function registerSecurityTools(server: McpServer, projectRoot: string) {
                         if (val.length > 512 || val.includes('${') || val.includes('process.env')) continue
 
                         const entropy = calculateEntropy(val)
-                        if (entropy > 4.3) {
+                        if (entropy > 4.5) { // Increased threshold to reduce false positives
                             const lineNo = content.slice(0, eMatch.index).split('\n').length
+                            const lineContent = (content.split('\n')[lineNo - 1] || '').trim()
+
+                            // Skip common false positive patterns
+                            if (
+                                lineContent.includes('console.') ||
+                                lineContent.includes('IgnorePattern') ||
+                                lineContent.includes('throw new Error') ||
+                                displayFile.toLowerCase().includes('test') ||
+                                displayFile.toLowerCase().includes('benchmark') ||
+                                displayFile.toLowerCase().includes('fixture') ||
+                                displayFile.toLowerCase().includes('scripts/') ||
+                                !val.match(/[a-zA-Z]/) || // Must contain at least one letter
+                                !val.match(/[0-9]/)       // Must contain at least one number
+                            ) {
+                                continue
+                            }
+
                             // Avoid duplicates with regex patterns
                             if (findings.some(f => f.file === displayFile && f.line === lineNo)) continue
 
                             findings.push({
                                 file: displayFile, line: lineNo,
-                                severity: entropy > 5.0 ? 'critical' : 'high',
+                                severity: entropy > 5.5 ? 'critical' : 'high',
                                 type: 'High Entropy Secret', id: 'high_entropy',
                                 envVar: 'POTENTIAL_SECRET',
-                                context: (content.split('\n')[lineNo - 1] || '').trim().slice(0, 100),
+                                context: lineContent.slice(0, 100),
                                 valuePreview: val.slice(0, 8) + '...'
                             })
                         }

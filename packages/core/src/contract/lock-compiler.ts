@@ -569,9 +569,21 @@ export class LockCompiler {
             // Skip the bare wildcard — it matches everything and is never "specific"
             if (relativePattern === '**' || relativePattern === '/**') continue
 
-            if (minimatch(normalizedRelative, relativePattern) ||
-                minimatch(normalizedAbsolute, normalizedPattern)) {
-                const len = relativePattern.length
+            // Exact file match (no glob chars) — compare directly, treating as highest specificity
+            const isExactFile = !relativePattern.includes('*') && !relativePattern.includes('?') && !relativePattern.includes('{')
+            const matchesExact = isExactFile && (
+                normalizedRelative === relativePattern ||
+                normalizedAbsolute === normalizedPattern
+            )
+            const matchesGlob = !isExactFile && (
+                minimatch(normalizedRelative, relativePattern) ||
+                minimatch(normalizedAbsolute, normalizedPattern)
+            )
+
+            if (matchesExact || matchesGlob) {
+                // Exact file paths score as their full length + a large bonus so they
+                // always beat any glob that covers the same directory.
+                const len = isExactFile ? relativePattern.length + 10000 : relativePattern.length
                 if (longest === null || len > longest) longest = len
             }
         }

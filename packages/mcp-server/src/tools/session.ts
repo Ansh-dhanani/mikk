@@ -14,10 +14,11 @@ export function registerSessionTools(server: McpServer, projectRoot: string) {
     server.tool(
         'mikk_get_session_context',
         'CALL THIS FIRST. One-shot session onboarding: project overview + constraint status + hot modules + recently modified files + active decisions. AFTER THIS: Use mikk_query_context with your task, or mikk_get_changes for drift details.',
-        {},
-        async (): Promise<any> => {
+        { projectRoot: z.string().optional().describe('Override project root (default: server start directory)') },
+        async (args: any): Promise<any> => {
             return requestQueue.add(async () => {
-                const { contract, lock, staleness } = await loadContractAndLock(projectRoot)
+                const effectiveRoot = (args as any)?.projectRoot || projectRoot
+                const { contract, lock, staleness } = await loadContractAndLock(effectiveRoot)
                 const modules = contract.declared.modules.map(mod => {
                     const fns = Object.values(lock.functions).filter(f => f.moduleId === mod.id)
                     return { id: mod.id, name: mod.name, functions: fns.length, exported: fns.filter(f => f.isExported).length }
@@ -25,7 +26,7 @@ export function registerSessionTools(server: McpServer, projectRoot: string) {
                 const fileEntries = Object.entries(lock.files)
                 const sampleSize = Math.min(fileEntries.length, 20)
                 const sampleFiles = fileEntries.slice(0, sampleSize).map(([p]) => p.replace(/\\/g, '/'))
-                const dirtyFiles = await getDirtySampleFiles(projectRoot, sampleFiles)
+                const dirtyFiles = await getDirtySampleFiles(effectiveRoot, sampleFiles)
                 const modifiedFiles: string[] = []
                 let changedCount = 0
                 if (dirtyFiles !== null) {
@@ -34,7 +35,7 @@ export function registerSessionTools(server: McpServer, projectRoot: string) {
                 } else {
                     for (let i = 0; i < sampleSize; i++) {
                         const [filePath, fileInfo] = fileEntries[i]
-                        const absPath = path.isAbsolute(filePath) ? filePath : path.join(projectRoot, filePath)
+                        const absPath = path.isAbsolute(filePath) ? filePath : path.join(effectiveRoot, filePath)
                         try {
                             const stat = await fs.stat(absPath)
                             const lockDate = new Date(fileInfo.lastModified || 0)
@@ -70,7 +71,7 @@ export function registerSessionTools(server: McpServer, projectRoot: string) {
                         : 'Codebase in sync. Use mikk_query_context with your task to start.',
                 }
                 const _rawSC = Math.min(20, Object.keys(lock.files).length) * Math.round((100 * _ALC) / _CPT)
-                    ; (response as any).tokens = _track(projectRoot, _rawSC, response)
+                    ; (response as any).tokens = _track(effectiveRoot, _rawSC, response)
                 return { content: [{ type: 'text' as const, text: JSON.stringify(response, null, 2) }] }
             }, { priority: PRIORITIES.STANDARD })
         },
@@ -79,10 +80,11 @@ export function registerSessionTools(server: McpServer, projectRoot: string) {
     server.tool(
         'mikk_token_stats',
         'Show token savings for this session — how many tokens Mikk saved vs raw file reads. Useful at session end to review cumulative efficiency.',
-        {},
-        async () => {
-            const t = _tally(projectRoot)
-            const { lock } = await loadContractAndLock(projectRoot)
+        { projectRoot: z.string().optional() },
+        async (args: any) => {
+            const effectiveRoot = (args as any)?.projectRoot || projectRoot
+            const t = _tally(effectiveRoot)
+            const { lock } = await loadContractAndLock(effectiveRoot)
             const totalFileLine = Object.values(lock.functions).reduce((s, f) => s + (f.endLine - f.startLine + 1), 0)
             const fullCodebaseTok = Math.round((totalFileLine * _ALC) / _CPT)
             const elapsedMin = Math.round((Date.now() - t.start) / 60000)
@@ -109,15 +111,15 @@ export function registerSessionTools(server: McpServer, projectRoot: string) {
     server.tool(
         'mikk_get_changes',
         'Detect files added, modified, and deleted since last mikk analyze. WHEN TO USE: At session start or after edits. AFTER THIS: Run mikk analyze to update the lock.',
-        {},
-        async () => {
-            const { lock, staleness } = await loadContractAndLock(projectRoot)
+        { projectRoot: z.string().optional() },
+        async (args: any) => {
+            const effectiveRoot = (args as any)?.projectRoot || projectRoot
+            const { lock, staleness } = await loadContractAndLock(effectiveRoot)
             const added: string[] = []; const modified: string[] = []; const deleted: string[] = []
             let scanTruncated = false
             for (const [filePath, fileInfo] of Object.entries(lock.files)) {
-                // Ensure we compare posix relative paths
-                const relPath = path.isAbsolute(filePath) ? path.relative(projectRoot, filePath).replace(/\\/g, '/') : filePath.replace(/\\/g, '/')
-                const absPath = path.join(projectRoot, relPath)
+                const relPath = path.isAbsolute(filePath) ? path.relative(effectiveRoot, filePath).replace(/\\/g, '/') : filePath.replace(/\\/g, '/')
+                const absPath = path.join(effectiveRoot, relPath)
                 try {
                     const currentHash = await quickHashFile(absPath)
                     const storedHash = fileInfo.hash?.slice(0, 16) ?? ''
@@ -126,18 +128,18 @@ export function registerSessionTools(server: McpServer, projectRoot: string) {
             }
             try {
                 for (const dir of ['src', 'lib', 'app', 'pages', 'components', '.']) { // Include root (.) for flat projects
-                    const dirPath = dir === '.' ? projectRoot : path.join(projectRoot, dir)
+                    const dirPath = dir === '.' ? effectiveRoot : path.join(effectiveRoot, dir)
                     try {
                         const stat = await fs.stat(dirPath)
                         if (!stat.isDirectory()) continue
 
                         const { walkDir, isSourceFile } = await import('./shared.js')
-                        const files = await walkDir(dirPath, projectRoot)
+                        const files = await walkDir(dirPath, effectiveRoot)
                         if (files.length >= 10_000) scanTruncated = true
                         for (const f of files) {
                             const relF = f.replace(/\\/g, '/')
                             // Check both absolute and relative in lock keys
-                            const inLock = lock.files[relF] || lock.files[path.resolve(projectRoot, relF).replace(/\\/g, '/')]
+                            const inLock = lock.files[relF] || lock.files[path.resolve(effectiveRoot, relF).replace(/\\/g, '/')]
                             if (!inLock && isSourceFile(relF)) added.push(relF)
                         }
                     } catch { /* dir doesn't exist */ }
@@ -152,7 +154,7 @@ export function registerSessionTools(server: McpServer, projectRoot: string) {
             }
             if (scanTruncated) response.hint += '\nNote: change scan was truncated for performance.'
             const _rawGC = Math.min(50, Object.keys(lock.files).length) * Math.round((60 * _ALC) / _CPT)
-                ; (response as any).tokens = _track(projectRoot, _rawGC, response)
+                ; (response as any).tokens = _track(effectiveRoot, _rawGC, response)
             return { content: [{ type: 'text' as const, text: JSON.stringify(response, null, 2) }] }
         },
     )

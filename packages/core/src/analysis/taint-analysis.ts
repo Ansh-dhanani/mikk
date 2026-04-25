@@ -247,6 +247,8 @@ export class TaintAnalyzer {
 
   /**
    * Find functions that contain taint sources.
+   * Checks name, purpose, file path, return type, params AND keywords.
+   * Also treats classic route-handler signatures (req, res params) as sources.
    */
   private findTaintSources(functions: MikkLockFunction[]): MikkLockFunction[] {
     const sources: MikkLockFunction[] = []
@@ -258,16 +260,30 @@ export class TaintAnalyzer {
         fn.file || '',
         fn.returnType || '',
         ...(fn.params ?? []).map(p => `${p.name} ${p.type}`),
+        ...((fn as any).keywords ?? []),
       ].join(' ').toLowerCase()
 
+      let matched = false
       for (const source of this.sources) {
         for (const pattern of source.patterns) {
           if (pattern.test(fnText)) {
-            sources.push(fn)
+            matched = true
             break
           }
         }
+        if (matched) break
       }
+
+      // Route-handler heuristic: any function with (req, res) or (request, response)
+      // params is a taint source regardless of whether its metadata matches a pattern.
+      if (!matched && fn.params && fn.params.length >= 2) {
+        const paramNames = fn.params.map(p => p.name.toLowerCase())
+        const hasReq = paramNames.some(n => n === 'req' || n === 'request' || n === 'ctx' || n === 'context' || n === 'event')
+        const hasRes = paramNames.some(n => n === 'res' || n === 'response' || n === 'reply')
+        if (hasReq || hasRes) matched = true
+      }
+
+      if (matched) sources.push(fn)
     }
 
     return sources
@@ -275,6 +291,7 @@ export class TaintAnalyzer {
 
   /**
    * Find functions that contain taint sinks.
+   * Checks name, purpose, file path, return type, params, keywords AND outgoing calls.
    */
   private findTaintSinks(functions: MikkLockFunction[]): Array<{ fn: MikkLockFunction; sink: TaintSink }> {
     const sinks: Array<{ fn: MikkLockFunction; sink: TaintSink }> = []
@@ -286,15 +303,19 @@ export class TaintAnalyzer {
         fn.file || '',
         fn.returnType || '',
         ...(fn.params ?? []).map(p => `${p.name} ${p.type}`),
+        ...((fn as any).keywords ?? []),
+        // include the names of functions this function calls — a caller of exec/query is a sink
+        ...((fn.calls ?? []) as any[]).map((c: any) =>
+          typeof c === 'string' ? c.split(':').pop() || c : c?.name || ''
+        ),
       ].join(' ').toLowerCase()
 
       for (const sink of this.sinks) {
+        let matched = false
         for (const pattern of sink.patterns) {
-          if (pattern.test(fnText)) {
-            sinks.push({ fn, sink })
-            break
-          }
+          if (pattern.test(fnText)) { matched = true; break }
         }
+        if (matched) { sinks.push({ fn, sink }); break }
       }
     }
 
@@ -311,7 +332,8 @@ export class TaintAnalyzer {
     functionMap: Map<string, MikkLockFunction>
   ): TaintFlow | null {
     // Direct call: source calls sink directly
-    if (source.calls?.includes(sinkFn.id)) {
+    const sourceCalls = (source.calls ?? []) as any[]
+    if (sourceCalls.some(c => this.resolveCallId(c) === sinkFn.id)) {
       const directPath = [source.id, sinkFn.id]
       const sanitized = this.pathContainsSanitizer(directPath, sink, functionMap)
       return {
@@ -364,7 +386,8 @@ export class TaintAnalyzer {
       const fn = functionMap.get(id)
       if (!fn?.calls) continue
 
-      for (const calleeId of fn.calls) {
+      for (const rawCall of (fn.calls as any[])) {
+        const calleeId = this.resolveCallId(rawCall)
         if (visited.has(calleeId)) continue
 
         visited.add(calleeId)
@@ -379,6 +402,18 @@ export class TaintAnalyzer {
     }
 
     return null
+  }
+
+  /**
+   * Resolve a raw call reference (either a fn-ID string or a call-object) to a
+   * canonical function-ID string so findPath works regardless of lock version.
+   */
+  private resolveCallId(raw: any): string {
+    if (typeof raw === 'string') return raw
+    // call-object shape: { targetId?: string, name?: string, ... }
+    if (raw?.targetId) return raw.targetId
+    if (raw?.name) return raw.name
+    return String(raw)
   }
 
   private buildFunctionMap(): Map<string, MikkLockFunction> {

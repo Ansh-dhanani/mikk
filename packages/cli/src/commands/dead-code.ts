@@ -15,19 +15,21 @@ export function registerDeadCodeCommand(program: Command) {
     program
         .command('dead-code')
         .description('Find functions never called by anyone')
+        .option('-p, --path <path>', 'Project path (defaults to current directory)')
         .option('-m, --module <moduleId>', 'Filter to a specific module')
         .option('--include-exported', 'Include exported functions in output')
         .option('--min-lines <n>', 'Minimum function length to include', '3')
         .option('--json', 'Output raw JSON instead of formatted table')
         .addHelpText('after',
           `\nExamples:\n` +
-          `  mikk dead-code              List all dead code candidates\n` +
-          `  mikk dead-code --module cli   Filter to specific module\n` +
-          `  mikk dead-code --json         Machine-readable output\n` +
+          `  mikk dead-code                            List all dead code candidates\n` +
+          `  mikk dead-code --path ./my-project        Analyze a specific project\n` +
+          `  mikk dead-code --module cli               Filter to specific module\n` +
+          `  mikk dead-code --json                     Machine-readable output\n` +
           `\nDead code detection analyzes the call graph to find functions\n` +
           `that are never referenced by other code.\n`)
-        .action(async (opts: { module?: string; includeExported?: boolean; minLines?: string; json?: boolean }) => {
-            const projectRoot = process.cwd()
+        .action(async (opts: { path?: string; module?: string; includeExported?: boolean; minLines?: string; json?: boolean }) => {
+            const projectRoot = opts.path || process.cwd()
 
             // Read lock file
             const lockReader = new LockReader()

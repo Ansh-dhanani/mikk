@@ -12,14 +12,16 @@ export function registerDiffCommand(program: Command) {
     program
         .command('diff')
         .description('Show files modified since last analyze')
+        .option('-p, --path <path>', 'Project path (defaults to current directory)')
         .addHelpText('after',
             `\nExamples:\n` +
-            `  mikk diff                    Show all changes since last analyze\n` +
-            `  mikk diff | head -20        Preview first 20 changes\n` +
+            `  mikk diff                             Show all changes since last analyze\n` +
+            `  mikk diff --path ./my-project         Diff a specific project\n` +
+            `  mikk diff | head -20                  Preview first 20 changes\n` +
             `\nThis compares the lock file against your current filesystem.\n` +
             `Run "mikk analyze" to update the lock file with your changes.\n`)
-        .action(async () => {
-            const projectRoot = process.cwd()
+        .action(async (options: { path?: string }) => {
+            const projectRoot = options.path || process.cwd()
 
             try {
                 const lockReader = new LockReader()

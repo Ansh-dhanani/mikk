@@ -21,7 +21,8 @@ export function registerPlanningTools(server: McpServer, projectRoot: string) {
         },
         async (args: any): Promise<any> => {
             const { task, maxFiles, maxHops } = args as any
-            const { lock, staleness } = await loadContractAndLock(projectRoot)
+                const effectiveRoot = (args as any).projectRoot || projectRoot
+            const { lock, staleness } = await loadContractAndLock(effectiveRoot)
             const graph = buildGraphFromLock(lock)
             const analyzer = new ScopeAnalyzer(graph, lock)
             const result = analyzer.analyze(task, maxFiles, maxHops)
@@ -62,7 +63,8 @@ export function registerPlanningTools(server: McpServer, projectRoot: string) {
         },
         async (args: any): Promise<any> => {
             const { name, mode } = args as any
-            const { lock, staleness } = await loadContractAndLock(projectRoot)
+                const effectiveRoot = (args as any).projectRoot || projectRoot
+            const { lock, staleness } = await loadContractAndLock(effectiveRoot)
             const graph = buildGraphFromLock(lock)
             const explainer = new RiskExplainer(graph, lock)
 
@@ -113,7 +115,8 @@ export function registerPlanningTools(server: McpServer, projectRoot: string) {
         },
         async (args: any): Promise<any> => {
             const { task, maxFiles } = args as any
-            const { contract, lock, staleness } = await loadContractAndLock(projectRoot)
+                const effectiveRoot = (args as any).projectRoot || projectRoot
+            const { contract, lock, staleness } = await loadContractAndLock(effectiveRoot)
             const graph = buildGraphFromLock(lock)
 
             // 1. Scope — what files do I need to touch?

@@ -46,7 +46,8 @@ export function registerSafetyTools(server: McpServer, projectRoot: string) {
         },
         async (args: any): Promise<any> => {
             const { files: filesToEdit, tokenBudget, abortOnHighTokens } = args as any
-            const { contract, lock, staleness } = await loadContractAndLock(projectRoot)
+                const effectiveRoot = (args as any).projectRoot || projectRoot
+            const { contract, lock, staleness } = await loadContractAndLock(effectiveRoot)
             const graph = buildGraphFromLock(lock)
             const analyzer = new ImpactAnalyzer(graph)
             const checker = new BoundaryChecker(contract, lock)
@@ -72,7 +73,14 @@ export function registerSafetyTools(server: McpServer, projectRoot: string) {
                     fn.file === normalizedFile || fn.file.endsWith('/' + normalizedFile)
                 )
                 if (fileFns.length === 0) {
-                    fileReports[file] = { warning: `No tracked functions found in "${file}". Run \`mikk analyze\` or verify path with mikk_list_files.` }
+                    fileReports[file] = {
+                        warning: `No tracked functions found in "${file}". Run \`mikk analyze\` or verify path with mikk_list_files.`,
+                        constraintStatus: 'unknown',
+                        violations: [],
+                        impactedNodes: 0,
+                        classified: { critical: 0, high: 0, medium: 0, low: 0 },
+                        hint: 'File not yet indexed — cannot assess constraint status or blast radius. Run mikk analyze first.',
+                    }
                     continue
                 }
                 const result = analyzer.analyze(fileFns.map(fn => fn.id))
@@ -180,7 +188,7 @@ export function registerSafetyTools(server: McpServer, projectRoot: string) {
             const allTopViolations = Object.values(fileReports).flatMap((r: any) => r.violations ?? [])
             const response: any = {
                 summary: `Editing ${filesToEdit.length} file(s). Blast radius: ${totalImpact} dependent node(s). Constraint violations: ${totalViolations}.`,
-                constraintStatus: totalViolations === 0 ? 'pass' : 'fail',
+                constraintStatus: Object.values(fileReports).some((r: any) => r.constraintStatus === 'unknown') ? 'unknown' : (totalViolations === 0 ? 'pass' : 'fail'),
                 violations: allTopViolations,
                 files: fileReports, warning: staleness,
                 hint: totalViolations > 0
@@ -193,7 +201,7 @@ export function registerSafetyTools(server: McpServer, projectRoot: string) {
                 return { content: [{ type: 'text' as const, text: JSON.stringify({ summary: response.summary, constraintStatus: response.constraintStatus, warning: `Token budget exceeded (${budget}). Aborting early.`, tokenGuard: { budget, estimatedTokens: estimated, shouldAbort: true } }, null, 2) }], isError: true }
             response.tokenGuard = { budget, estimatedTokens: estimated, minimized: estimated > budget, shouldAbort: false }
             const _rawBE = _filesTok(lock as any, filesToEdit) * 4
-            response.tokens = _track(projectRoot, _rawBE, response)
+            ;(response as any).tokens = _track(effectiveRoot, _rawBE, response)
             return { content: [{ type: 'text' as const, text: JSON.stringify(response, null, 2) }] }
         },
     )
@@ -209,7 +217,8 @@ export function registerSafetyTools(server: McpServer, projectRoot: string) {
         },
         async (args: any): Promise<any> => {
             const { file, tokenBudget, abortOnHighTokens } = args as any
-            const { lock, staleness } = await loadContractAndLock(projectRoot)
+                const effectiveRoot = (args as any).projectRoot || projectRoot
+            const { lock, staleness } = await loadContractAndLock(effectiveRoot)
             const graph = buildGraphFromLock(lock)
             const analyzer = new ImpactAnalyzer(graph)
             const normalizedFile = String(file).replace(/\\/g, '/')
@@ -262,7 +271,7 @@ export function registerSafetyTools(server: McpServer, projectRoot: string) {
             const affectedFiles = [...new Set([...affectedFilesFromNodes, ...directImporters])]
             const response = { ...baseResponse, affectedFiles, impacted: compact.items, truncated: compact.minimized, tokenGuard: { budget, estimatedTokens: compact.estimatedTokens, minimized: compact.minimized, shouldAbort: false } }
             const _rawIA = _fileTok(lock as any, normalizedFile) + result.impacted.length * Math.round((40 * _ALC) / _CPT)
-            ;(response as any).tokens = _track(projectRoot, _rawIA, response)
+            ;(response as any).tokens = _track(effectiveRoot, _rawIA, response)
             return { content: [{ type: 'text' as const, text: JSON.stringify(response, null, 2) }] }
         },
     )
@@ -272,8 +281,7 @@ export function registerSafetyTools(server: McpServer, projectRoot: string) {
         'mikk_get_constraints',
         'Get all architectural constraints and ADRs with full context. WHEN TO USE: Before cross-module changes, or when mikk_before_edit reports violations. Explains WHY a constraint exists. 6 constraint types: no-import, must-use, no-call, layer, naming, max-files.',
         {},
-        async () => {
-            const { contract, staleness } = await loadContractAndLock(projectRoot)
+        async (args: any = {}) => { const effectiveRoot = args.projectRoot || projectRoot; const { contract, staleness } = await loadContractAndLock(effectiveRoot)
             return { content: [{ type: 'text' as const, text: JSON.stringify({ constraints: contract.declared.constraints, decisions: contract.declared.decisions, overwrite: contract.overwrite, warning: staleness, hint: 'Use mikk_manage_adr to add/update architectural decisions.' }, null, 2) }] }
         },
     )
@@ -283,8 +291,7 @@ export function registerSafetyTools(server: McpServer, projectRoot: string) {
         'mikk_find_usages',
         'Find every function that calls a specific function. Essential before renaming or changing signatures — shows the full blast radius of a signature change. WHEN TO USE: Before renaming, refactoring, or changing a function interface. AFTER THIS: Review each caller before proceeding.',
         { name: z.string().describe('Function name to find callers of') },
-        async ({ name }: any) => {
-            const { lock, staleness } = await loadContractAndLock(projectRoot)
+        async (args: any) => { const { name } = args; const effectiveRoot = args.projectRoot || projectRoot; const { lock, staleness } = await loadContractAndLock(effectiveRoot)
             const fn = Object.values(lock.functions).find(f => f.name === name || f.name.endsWith(`.${name}`) || (f.id ?? '').includes(name))
             if (!fn) return { content: [{ type: 'text' as const, text: `Function "${name}" not found. Use mikk_search_functions to verify the name.` }], isError: true }
             const usages = fn.calledBy.map(id => lock.functions[id]).filter(Boolean).map(caller => ({

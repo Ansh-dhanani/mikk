@@ -1,16 +1,15 @@
 <repository_context>
   <name>mikk</name>
   <stats>
-    <files>279</files>
+    <files>274</files>
     <functions>1560</functions>
     <modules>11</modules>
-    <language>polyglot</language>
+    <language>typescript</language>
   </stats>
 </repository_context>
 
 <modules>
 <tech_stack>
-  <technology>Polyglot</technology>
   <technology>Turborepo</technology>
 </tech_stack>
 <commands>
@@ -43,7 +42,7 @@
       <function signature="ContractGenerator.generateFromClusters(clusters, parsedFiles, projectName, packageJsonDescription?, projectRoot?) [packages/core/src/contract/contract-generator.ts:96]" purpose="Contract generator.generate from clusters" />
     </entry_points>
     <key_internal_functions>
-      <function name="log" callers="90" purpose="Log (level, message, data)" />
+      <function name="log" callers="86" purpose="Log (level, message, data)" />
       <function name="makeCanonicalId" callers="14" purpose="Make canonical id" />
       <function name="classifyFile" callers="12" purpose="Classify file (filePath)" />
       <function name="isVendorPath" callers="8" purpose="Check if vendor path (filePath)" />
@@ -73,14 +72,14 @@
   </module>
   <module id="packages-mcp-server">
     <name>Packages Mcp-server</name>
-    <location>packages/mcp-server/bin/**, packages/mcp-server/src/**</location>
-    <purpose>9 files, 0 exported entry functions</purpose>
+    <location>packages/mcp-server/bin/**, packages/mcp-server/src/tools/**</location>
+    <purpose>14 files, 0 exported entry functions</purpose>
     <entry_points>
       <function signature="async loadContractAndLock(projectRoot) [packages/mcp-server/src/tools/shared.ts:502]" purpose="Load contract and lock (projectRoot)" />
       <function signature="getFunctionBody(fn, projectRoot) [packages/mcp-server/src/tools/shared.ts:111]" purpose="Get function body (fn, projectRoot)" />
       <function signature="async indexSemanticSearcherIfStale(projectRoot, lock, _searcher?) [packages/mcp-server/src/tools/shared.ts:294]" purpose="Index semantic searcher if stale (projectRoot, lock, _searcher)" />
-      <function signature="createMikkMcpServer(projectRoot) [packages/mcp-server/src/server.ts:12]" purpose="Create mikk mcp server (projectRoot)" />
       <function signature="async walk(dir, depth) [packages/mcp-server/src/tools/security.ts:165]" purpose="Walk (dir, depth)" />
+      <function signature="isCircuitClosed(key) [packages/mcp-server/src/tools/shared.ts:250]" purpose="Check if circuit closed (key)" />
     </entry_points>
     <key_internal_functions>
       <function name="normalize" callers="10" purpose="Normalize (s)" />
@@ -191,10 +190,10 @@
     <purpose>2 files, 0 exported entry functions</purpose>
     <entry_points>
       <function signature="hydrateLock(raw) [packages/obsidian-plugin/main.js:115]" purpose="Hydrate lock (raw)" />
-      <function signature="MikkGraphView._buildGraph() [packages/obsidian-plugin/src/main.ts:636]" purpose="Mikk graph view. build graph" />
-      <function signature="MikkGraphView._buildSettingsPanel(root) [packages/obsidian-plugin/src/main.ts:1675]" purpose="Mikk graph view. build settings panel (root)" />
-      <function signature="async MikkGraphView._loadLock() [packages/obsidian-plugin/src/main.ts:590]" purpose="Mikk graph view. load lock" />
-      <function signature="MikkGraphView.__onMM(e) [packages/obsidian-plugin/src/main.ts:1311]" purpose="Mikk graph view. on mm" />
+      <function signature="MikkGraphView._buildGraph() [packages/obsidian-plugin/src/main.ts:659]" purpose="Mikk graph view. build graph" />
+      <function signature="MikkGraphView._buildSettingsPanel(root) [packages/obsidian-plugin/src/main.ts:1726]" purpose="Mikk graph view. build settings panel (root)" />
+      <function signature="async MikkGraphView._loadLock() [packages/obsidian-plugin/src/main.ts:613]" purpose="Mikk graph view. load lock" />
+      <function signature="MikkGraphView.__onMM(e) [packages/obsidian-plugin/src/main.ts:1360]" purpose="Mikk graph view. on mm" />
     </entry_points>
     <key_internal_functions>
       <function name="mk" callers="6" purpose="Mk (tag, css, parent)" />
@@ -239,11 +238,642 @@
   </module>
 </modules>
 
+## Data Models & Schemas
+
+These files define the project's data structures, schemas, and configuration.
+They are auto-discovered and included verbatim from the source.
+
+### `package.json` (package-config)
+
+```json
+{
+  "name": "mikk",
+  "packageManager": "bun@1.1.20",
+  "private": true,
+  "scripts": {
+    "build": "turbo run build",
+    "test": "turbo run test",
+    "dev": "turbo run dev",
+    "lint": "turbo run lint",
+    "check:mcp-consistency": "bun scripts/check-mcp-consistency.mjs",
+    "quality:dashboard": "bun scripts/quality-dashboard.mjs",
+    "release": "bun run build && changeset publish",
+    "version-packages": "changeset version"
+  },
+  "workspaces": [
+    "packages/*",
+    "apps/*"
+  ],
+  "devDependencies": {
+    "@changesets/cli": "^2.27.0",
+    "@eslint/js": "^9.39.4",
+    "@getmikk/cli": "workspace:*",
+    "eslint": "^9.39.4",
+    "eslint-plugin-react": "^7.37.5",
+    "eslint-plugin-react-hooks": "^5.2.0",
+    "globals": "^15.0.0",
+    "turbo": "^2.9.3",
+    "typescript": "^5.7.0",
+    "typescript-eslint": "^8.57.2"
+  }
+}
+```
+
+### `tsconfig.base.json` (tsconfig)
+
+```json
+{
+    "compilerOptions": {
+        "target": "ES2022",
+        "module": "ESNext",
+        "moduleResolution": "bundler",
+        "strict": true,
+        "declaration": true,
+        "declarationMap": true,
+        "sourceMap": true,
+        "skipLibCheck": true,
+        "esModuleInterop": true,
+        "forceConsistentCasingInFileNames": true,
+        "resolveJsonModule": true,
+        "isolatedModules": true,
+        "types": [
+            "node"
+        ],
+        "outDir": "dist",
+        "rootDir": "src"
+    }
+}
+```
+
+### `apps/registry/package.json` (package-config)
+
+```json
+{
+  "name": "@getmikk/registry",
+  "version": "2.1.1",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev":   "echo 'Registry scaffold — Hono API server'",
+    "build": "tsc",
+    "start": "bun run dist/index.js",
+    "lint":  "bunx eslint --config ../../eslint.config.mjs ."
+  },
+  "dependencies": {
+    "@getmikk/core": "workspace:*"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "eslint": "^9.39.2",
+    "typescript": "^5.7.0"
+  }
+}
+```
+
+### `apps/registry/tsconfig.json` (tsconfig)
+
+```json
+{
+    "extends": "../../tsconfig.base.json",
+    "compilerOptions": {
+        "outDir": "dist",
+        "rootDir": "src"
+    },
+    "include": [
+        "src/**/*"
+    ],
+    "exclude": [
+        "node_modules",
+        "dist"
+    ]
+}
+```
+
+### `apps/web/.env.example` (env-config)
+
+```example
+NEXT_PUBLIC_BASE_URL=http://localhost:3000
+GITHUB_TOKEN=ghp_****************************9KRLs
+GITHUB_REPO_OWNER=your_name
+GITHUB_REPO_NAME=mikk
+DOCS_FEEDBACK_CATEGORY=Docs Feedback
+```
+
+### `apps/web/.env.local` (env-config)
+
+```local
+# ─────────────────────────────────────────────────
+# Mikk Docs — Environment Variables
+# Copy this file to .env.local and fill in values
+# ─────────────────────────────────────────────────
+
+# Your deployed URL (no trailing slash)
+NEXT_PUBLIC_BASE_URL=http://localhost:3000
+
+
+# ── GitHub — Last Updated ─────────────────────────
+# Used to show "last updated" date on docs pages.
+# Create at: https://github.com/settings/tokens
+# Scopes: public_repo (or repo for private repos)
+GITHUB_TOKEN=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
+
+GITHUB_REPO_OWNER=ansh-dhanani
+GITHUB_REPO_NAME=mikk
+
+#
+# Personal Access Token (simpler):
+#   Same token as above, but needs the "discussions" scope.
+#   The GITHUB_TOKEN above will be used automatically if
+#   GITHUB_APP_ID is not set.
+#   Go to: https://github.com/settings/tokens → Fine-grained
+#   Repository permissions: Discussions → Read and Write
+#
+
+# Discussion category to post feedback into.
+# Steps:
+#   1. Go to https://github.com/ansh-dhanani/mikk/discussions
+#   2. Click "Categories" → New category → name it "Docs Feedback"
+#      Use the 📚 emoji and set type to "Announcement"
+#   3. The category name here must match exactly (case-sensitive)
+DOCS_FEEDBACK_CATEGORY="Docs Feedback"
+NEXT_WEBPACK=1
+NEXT_WEBPACK=1
+```
+
+### `apps/web/.prettierrc` (format-config)
+
+```prettierrc
+{
+  "endOfLine": "lf",
+  "semi": false,
+  "singleQuote": false,
+  "tabWidth": 2,
+  "trailingComma": "es5",
+  "printWidth": 80,
+  "plugins": ["prettier-plugin-tailwindcss"],
+  "tailwindStylesheet": "app/globals.css",
+  "tailwindFunctions": ["cn", "cva"]
+}
+```
+
+### `apps/web/next.config.mjs` (next-config)
+
+```javascript
+import { createMDX } from 'fumadocs-mdx/next';
+
+/** @type {import('next').NextConfig} */
+const config = {
+  reactStrictMode: true,
+  serverExternalPackages: ['fumadocs-mdx'],
+};
+
+const withMDX = createMDX();
+
+export default withMDX(config);
+```
+
+### `apps/web/package.json` (package-config)
+
+```json
+{
+  "name": "web",
+  "version": "0.0.5",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "dev": "cross-env NEXT_WEBPACK=1 next dev --webpack",
+    "dev:turbo": "next dev --turbo",
+    "build": "cross-env NEXT_WEBPACK=1 next build --webpack",
+    "start": "next start",
+    "lint": "eslint",
+    "format": "prettier --write \"**/*.{ts,tsx}\"",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@radix-ui/react-dropdown-menu": "^2.1.16",
+    "@react-three/drei": "^10.0.0",
+    "@react-three/fiber": "^9.0.0",
+    "@shikijs/transformers": "^4.0.2",
+    "@types/d3": "^7.4.3",
+    "@types/mdx": "^2.0.13",
+    "@vercel/analytics": "^1.3.1",
+    "class-variance-authority": "^0.7.1",
+    "clsx": "^2.1.1",
+    "d3": "^7.9.0",
+    "framer-motion": "^12.36.0",
+    "fumadocs-core": "^16.6.17",
+    "fumadocs-mdx": "^14.2.10",
+    "fumadocs-ui": "^16.6.16",
+    "lucide-react": "^0.577.0",
+    "next": "16.1.6",
+    "next-themes": "^0.4.6",
+    "octokit": "^5.0.5",
+    "radix-ui": "^1.4.3",
+    "react": "^19.2.4",
+    "react-dom": "^19.2.4",
+    "react-markdown": "^10.1.0",
+    "rehype-slug": "^6.0.0",
+    "remark-gfm": "^4.0.1",
+    "shadcn": "^4.0.6",
+    "sonner": "^2.0.7",
+    "tailwind-merge": "^3.5.0",
+    "three": "^0.172.0",
+    "tw-animate-css": "^1.4.0",
+    "zod": "^4.3.6"
+  },
+  "devDependencies": {
+    "@eslint/eslintrc": "^3",
+    "@tailwindcss/postcss": "^4.1.18",
+    "@types/node": "^25.1.0",
+    "@types/react": "^19.2.10",
+    "@types/react-dom": "^19.2.3",
+    "@types/three": "^0.172.0",
+    "eslint": "^9.39.2",
+    "eslint-config-next": "16.1.6",
+    "prettier": "^3.8.1",
+    "prettier-plugin-tailwindcss": "^0.7.2",
+    "postcss": "^8",
+    "cross-env": "^7.0.3",
+    "tailwindcss": "^4.1.18",
+    "typescript": "^5.9.3"
+  }
+}
+```
+
+### `apps/web/tsconfig.json` (tsconfig)
+
+```json
+{
+  "compilerOptions": {
+    "target": "ES2017",
+    "lib": ["dom", "dom.iterable", "esnext"],
+    "allowJs": true,
+    "skipLibCheck": true,
+    "strict": true,
+    "noEmit": true,
+    "esModuleInterop": true,
+    "module": "esnext",
+    "moduleResolution": "bundler",
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "jsx": "react-jsx",
+    "incremental": true,
+    "plugins": [{ "name": "next" }],
+    "paths": {
+      "@/*": ["./*"],
+      "collections/*": ["./.source/*"]
+    }
+  },
+  "include": [
+    "next-env.d.ts",
+    "**/*.ts",
+    "**/*.tsx",
+    ".next/types/**/*.ts",
+    ".next/dev/types/**/*.ts"
+  ],
+  "exclude": [
+    "node_modules",
+    "components/mdx copy.tsx",
+    "components/markdown.tsx",
+    "components/command-menu.tsx",
+    "components/consent-manager.tsx",
+    "components/consent-manager-client.tsx",
+    "components/code-block-command.tsx",
+    "components/code-collapsible-wrapper.tsx",
+    "components/code-tabs.tsx",
+    "components/collapsible-list.tsx",
+    "components/not-found.tsx",
+    "components/kibo-ui",
+    "components/animated-icons",
+    "components/base",
+    "components/ui/command.tsx",
+    "components/ui/form.tsx",
+    "components/toc.tsx"
+  ]
+}
+```
+
+### `packages/ai-context/package.json` (package-config)
+
+```json
+{
+  "name": "@getmikk/ai-context",
+  "version": "2.1.4",
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://registry.npmjs.org/"
+  },
+  "license": "Apache-2.0",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Ansh-dhanani/mikk"
+  },
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": "./dist/index.js",
+      "require": "./dist/index.js",
+      "types": "./dist/index.d.ts"
+    }
+  },
+  "scripts": {
+    "build": "tsc",
+    "test": "bun test",
+    "dev": "tsc --watch",
+    "lint": "bunx eslint --config ../../eslint.config.mjs ."
+  },
+  "dependencies": {
+    "@getmikk/core": "^2.1.3",
+    "@getmikk/intent-engine": "^2.1.3"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "eslint": "^9.39.2",
+    "typescript": "^5.7.0"
+  }
+}
+```
+
+### `packages/ai-context/tsconfig.json` (tsconfig)
+
+```json
+{
+    "extends": "../../tsconfig.base.json",
+    "compilerOptions": {
+        "outDir": "dist",
+        "rootDir": "src"
+    },
+    "include": [
+        "src/**/*"
+    ],
+    "exclude": [
+        "node_modules",
+        "dist",
+        "tests"
+    ]
+}
+```
+
+### `packages/cli/package.json` (package-config)
+
+```json
+{
+  "name": "@getmikk/cli",
+  "version": "2.1.4",
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://registry.npmjs.org/"
+  },
+  "license": "Apache-2.0",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Ansh-dhanani/mikk"
+  },
+  "main": "./dist/index.js",
+  "bin": {
+    "mikk": "bin/mikk.js"
+  },
+  "files": [
+    "dist",
+    "bin"
+  ],
+  "scripts": {
+    "build": "node esbuild.mjs",
+    "test": "bun test",
+    "dev": "tsc --watch",
+    "lint": "bunx eslint --config ../../eslint.config.mjs ."
+  },
+  "dependencies": {
+    "@getmikk/ai-context": "^2.1.3",
+    "@getmikk/core": "^2.1.3",
+    "@getmikk/intent-engine": "^2.1.3",
+    "@getmikk/watcher": "^2.1.3",
+    "better-sqlite3": "^12.6.2",
+    "chalk": "^5.4.0",
+    "chokidar": "^4.0.0",
+    "commander": "^13.0.0",
+    "ora": "^8.0.0",
+    "oxc-parser": "^0.121.0",
+    "oxc-resolver": "^11.19.1",
+    "tree-sitter-wasms": "^0.1.13",
+    "web-tree-sitter": "^0.20.8",
+    "zod": "^3.22.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "esbuild": "^0.21.4",
+    "eslint": "^9.39.2",
+    "typescript": "^5.7.0"
+  }
+}
+```
+
+### `packages/cli/tsconfig.json` (tsconfig)
+
+```json
+{
+    "extends": "../../tsconfig.base.json",
+    "compilerOptions": {
+        "outDir": "dist",
+        "rootDir": "src"
+    },
+    "include": [
+        "src/**/*"
+    ],
+    "exclude": [
+        "node_modules",
+        "dist",
+        "tests"
+    ]
+}
+```
+
+### `packages/core/package.json` (package-config)
+
+```json
+{
+  "name": "@getmikk/core",
+  "version": "2.1.4",
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://registry.npmjs.org/"
+  },
+  "files": [
+    "dist",
+    "src"
+  ],
+  "license": "Apache-2.0",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Ansh-dhanani/mikk"
+  },
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": "./dist/index.js",
+      "require": "./dist/index.js",
+      "types": "./dist/index.d.ts"
+    }
+  },
+  "scripts": {
+    "build": "tsc",
+    "test": "bun test",
+    "dev": "tsc --watch",
+    "lint": "bunx eslint --config ../../eslint.config.mjs ."
+  },
+  "dependencies": {
+    "@google/generative-ai": "^0.21.0",
+    "@xenova/transformers": "^2.17.2",
+    "better-sqlite3": "^12.6.2",
+    "fast-glob": "^3.3.0",
+    "oxc-parser": "^0.121.0",
+    "oxc-resolver": "^11.19.1",
+    "tree-sitter-wasms": "^0.1.13",
+    "web-tree-sitter": "^0.20.8",
+    "zod": "^3.22.0"
+  },
+  "devDependencies": {
+    "@types/better-sqlite3": "^7.6.13",
+    "@types/node": "^22.0.0",
+    "eslint": "^9.39.2",
+    "typescript": "^5.7.0"
+  }
+}
+```
+
+### `packages/core/tsconfig.json` (tsconfig)
+
+```json
+{
+    "extends": "../../tsconfig.base.json",
+    "compilerOptions": {
+        "outDir": "dist",
+        "rootDir": "src"
+    },
+    "include": [
+        "src/**/*"
+    ],
+    "exclude": [
+        "node_modules",
+        "dist",
+        "tests"
+    ]
+}
+```
+
+### `packages/ide-context/package.json` (package-config)
+
+```json
+{
+  "name": "@getmikk/ide-context",
+  "version": "0.1.0",
+  "description": "Importable Mikk context API for IDE chat agents — module maps, node roles, symbol-to-module assignment",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": "./dist/index.js",
+      "types": "./dist/index.d.ts"
+    }
+  },
+  "scripts": {
+    "build": "tsc --build"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "typescript": "^5.7.0"
+  }
+}
+```
+
+### `packages/ide-context/tsconfig.json` (tsconfig)
+
+```json
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "outDir": "./dist",
+    "rootDir": "./src"
+  },
+  "include": ["src/**/*"],
+  "exclude": ["node_modules", "dist"]
+}
+```
+
+### `packages/intent-engine/package.json` (package-config)
+
+```json
+{
+  "name": "@getmikk/intent-engine",
+  "version": "2.1.4",
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://registry.npmjs.org/"
+  },
+  "license": "Apache-2.0",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Ansh-dhanani/mikk"
+  },
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": "./dist/index.js",
+      "require": "./dist/index.js",
+      "types": "./dist/index.d.ts"
+    }
+  },
+  "scripts": {
+    "build": "tsc",
+    "test": "bun test",
+    "dev": "tsc --watch",
+    "lint": "bunx eslint --config ../../eslint.config.mjs ."
+  },
+  "dependencies": {
+    "@getmikk/core": "^2.1.3",
+    "@xenova/transformers": "^2.17.2",
+    "zod": "^3.22.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "eslint": "^9.39.2",
+    "typescript": "^5.7.0"
+  }
+}
+```
+
+### `packages/intent-engine/tsconfig.json` (tsconfig)
+
+```json
+{
+    "extends": "../../tsconfig.base.json",
+    "compilerOptions": {
+        "outDir": "dist",
+        "rootDir": "src"
+    },
+    "include": [
+        "src/**/*"
+    ],
+    "exclude": [
+        "node_modules",
+        "dist",
+        "tests"
+    ]
+}
+```
+
 ## HTTP Routes
 
-- **GET** `/POST` → `POST` *(C:/Users/Ansh/Desktop/web/Mikk/apps/web/app/api/analyze-repo/route.ts:298)*
-- **POST** `s/web` → `POST` *(C:/Users/Ansh/Desktop/web/Mikk/apps/web/app/api/analyze-repo/route.ts:298)*
-- **GET** `/GET` → `GET` *(C:/Users/Ansh/Desktop/web/Mikk/apps/web/app/api/lock/route.ts:11)*
-- **GET** `s/web` → `GET` *(C:/Users/Ansh/Desktop/web/Mikk/apps/web/app/api/lock/route.ts:11)*
+- **GET** `/POST` → `POST` *(C:/Users/Ansh/Desktop/web/mikk/apps/web/app/api/analyze-repo/route.ts:298)*
+- **POST** `s/web` → `POST` *(C:/Users/Ansh/Desktop/web/mikk/apps/web/app/api/analyze-repo/route.ts:298)*
+- **GET** `/GET` → `GET` *(C:/Users/Ansh/Desktop/web/mikk/apps/web/app/api/lock/route.ts:11)*
+- **GET** `s/web` → `GET` *(C:/Users/Ansh/Desktop/web/mikk/apps/web/app/api/lock/route.ts:11)*
 
 

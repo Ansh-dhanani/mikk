@@ -73,7 +73,16 @@ export function registerNavigationTools(server: McpServer, projectRoot: string) 
                 const { name, projectRoot: argRoot } = args as any
                 const effectiveRoot = argRoot || projectRoot
                 const { lock, staleness } = await loadContractAndLock(effectiveRoot)
-                const matches = Object.values(lock.functions).filter(f => f.name === name || f.name.endsWith(`.${name}`) || (f.id ?? '').includes(name))
+                // EXACT match first (name === fn.name), only fall back to prefix if no exact found
+                let matches = Object.values(lock.functions).filter(f => f.name === name)
+                if (matches.length === 0) {
+                    // Try dot-notation class method exact match (e.g. "ContextBuilder.build")
+                    matches = Object.values(lock.functions).filter(f => f.name.endsWith(`.${name}`))
+                }
+                if (matches.length === 0) {
+                    // Last resort: id contains name (for function IDs)
+                    matches = Object.values(lock.functions).filter(f => (f.id ?? '').includes(name))
+                }
                 if (matches.length === 0) return { content: [{ type: 'text' as const, text: `No function matching "${name}" found.` }], isError: true }
                 const results = await Promise.all(matches.map(async fn => {
                     let body: string | undefined
@@ -131,6 +140,13 @@ export function registerNavigationTools(server: McpServer, projectRoot: string) 
                         const available = Object.keys((lock as any).classes || {}).slice(0, 8).join(', ')
                         return { content: [{ type: 'text' as const, text: `Class "${name}" not found. Available: ${available || 'none'}. Use mikk_get_function_detail for methods.` }], isError: true }
                     }
+                    // Derive method count from top-level functions with ClassName.* naming
+                    const className = clsId?.split(':').pop() || ''
+                    const classMethods = Object.values(lock.functions).filter(f =>
+                        f.name.startsWith(className + '.') ||
+                        (cls.methods && cls.methods.some((m: any) => m.name === f.name || f.name.endsWith('.' + m.name)))
+                    )
+                    const methodCount = classMethods.length > 0 ? classMethods.length : (cls.methods?.length || 0)
                     return {
                         content: [{
                             type: 'text' as const, text: JSON.stringify({

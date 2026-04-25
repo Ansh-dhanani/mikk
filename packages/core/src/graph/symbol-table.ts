@@ -74,11 +74,23 @@ export class GlobalSymbolTable {
         for (const cls of file.classes ?? []) {
             registerSymbol(cls.name, 'class', cls.id, cls.isExported)
             for (const m of cls.methods) {
-                const fullName = `${cls.name}.${m.name}`
-                registerSymbol(fullName, 'function', m.id, false)
-                const byName = this.symbolsByName.get(m.name) ?? []
-                byName.push({ id: m.id, name: m.name, type: 'function', file: filePath, isExported: false })
-                this.symbolsByName.set(m.name, byName)
+                // m.name is already "ClassName.methodName"
+                registerSymbol(m.name, 'function', m.id, false)
+
+                // Register the simple method name for `this.methodName()` resolution
+                const simpleName = m.name.split('.').pop()!
+                const def: SymbolDefinition = { id: m.id, name: m.name, type: 'function', file: filePath, isExported: false }
+
+                const byName = this.symbolsByName.get(simpleName) ?? []
+                byName.push(def)
+                this.symbolsByName.set(simpleName, byName)
+
+                const lowerName = simpleName.toLowerCase()
+                if (lowerName !== simpleName) {
+                    const byNameLower = this.symbolsByNameLower.get(lowerName) ?? []
+                    byNameLower.push(def)
+                    this.symbolsByNameLower.set(lowerName, byNameLower)
+                }
             }
         }
         for (const gen of file.generics ?? []) {

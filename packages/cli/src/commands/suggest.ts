@@ -16,15 +16,17 @@ export function registerSuggestCommand(program: Command) {
     program
         .command('suggest')
         .description('Show practical next steps based on current project state')
+        .option('-p, --path <path>', 'Project path (defaults to current directory)')
         .addHelpText('after',
           `\nExamples:\n` +
-          `  mikk suggest              See what to do next\n` +
+          `  mikk suggest                        See what to do next\n` +
+          `  mikk suggest --path ./my-project    Check a specific project\n` +
           `\nThis analyzes your project state and suggests relevant next steps,\n` +
           `such as refreshing stale locks, fixing boundary violations, or\n` +
           `reviewing dead code candidates.\n`)
-        .action(async () => {
+        .action(async (opts: { path?: string }) => {
             try {
-            const projectRoot = process.cwd()
+            const projectRoot = opts.path || process.cwd()
             const suggestions: string[] = []
 
             let contract: MikkContract | null = null

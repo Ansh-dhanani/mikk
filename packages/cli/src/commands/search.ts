@@ -295,8 +295,25 @@ ${chalk.bold('Semantic Search Providers:')}
 `)
 
     .action(async (queryParts, options) => {
-      const query = queryParts?.join(' ') || ''
-      const projectRoot = options.path || process.cwd()
+      // Auto-detect project root from positional args:
+      // `mikk search render /path/to/project` is a common mistake — detect when the
+      // last positional arg is an existing directory and treat it as the project root.
+      const rawParts: string[] = Array.isArray(queryParts) ? [...queryParts] : queryParts ? [queryParts] : []
+      let projectRoot = options.path
+      if (!projectRoot && rawParts.length > 0) {
+          const lastArg = rawParts[rawParts.length - 1]
+          try {
+              const stat = fs.statSync(lastArg)
+              if (stat.isDirectory()) {
+                  projectRoot = lastArg
+                  rawParts.pop()
+                  console.log(chalk.dim(`ℹ  Detected project path from argument: ${projectRoot}`))
+                  console.log(chalk.dim(`   Tip: use --path "${projectRoot}" to be explicit\n`))
+              }
+          } catch { /* not a path — normal query word */ }
+      }
+      projectRoot = projectRoot || process.cwd()
+      const query = rawParts.join(' ')
       const limit = parseInt(options.limit) || 10
       const topN = options.top ? parseInt(options.top) : 0
       const includeBody = options.body === true || topN > 0
@@ -734,8 +751,19 @@ ${chalk.bold('Semantic Search Providers:')}
                 const params = fn.params?.map((p: any) => `${p.name}: ${p.type}`).join(', ') || ''
                 console.log(chalk.dim(`   ${fn.name}(${params})${fn.returnType ? ': ' + fn.returnType : ''}`))
                 if (fn.purpose) console.log(`   ${chalk.italic(fn.purpose)}`)
-                if (fn.calls?.length) console.log(chalk.dim(`   calls: ${fn.calls.slice(0, 3).join(', ')}${fn.calls.length > 3 ? '...' : ''}`))
-                if (fn.calledBy?.length) console.log(chalk.dim(`   called by: ${fn.calledBy.slice(0, 3).join(', ')}${fn.calledBy.length > 3 ? '...' : ''}`))
+                // calls can be call-objects ({name,targetId,...}) OR raw fn-ID strings — handle both
+                const toCallName = (c: any): string => {
+                    if (typeof c === 'string') return c.split(':').pop() || c
+                    return c?.name || c?.targetId?.split(':').pop() || String(c)
+                }
+                if (fn.calls?.length) {
+                    const names = (fn.calls as any[]).slice(0, 3).map(toCallName)
+                    console.log(chalk.dim(`   calls: ${names.join(', ')}${fn.calls.length > 3 ? ` … +${fn.calls.length - 3}` : ''}`))
+                }
+                if (fn.calledBy?.length) {
+                    const names = (fn.calledBy as any[]).slice(0, 3).map(toCallName)
+                    console.log(chalk.dim(`   called by: ${names.join(', ')}${fn.calledBy.length > 3 ? ` … +${fn.calledBy.length - 3}` : ''}`))
+                }
             }
 
             if (includeBody || topN > 0) {

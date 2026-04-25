@@ -25,9 +25,10 @@ export function registerAnalysisTools(server: McpServer, projectRoot: string) {
             limit: z.number().optional().default(50),
         },
         async (args: any): Promise<any> => {
+            const effectiveRoot = (args as any)?.projectRoot || projectRoot
             return requestQueue.add(async () => {
                 const { moduleId, includeExported, minLines, limit } = args as any
-                const { lock, staleness } = await loadContractAndLock(projectRoot)
+                const { lock, staleness } = await loadContractAndLock(effectiveRoot)
                 const graph = buildGraphFromLock(lock)
                 const detector = new DeadCodeDetector(graph, lock)
                 const result = detector.detect()
@@ -36,6 +37,7 @@ export function registerAnalysisTools(server: McpServer, projectRoot: string) {
                     const lockMod = (lock.modules as any)?.[moduleId]
                     const modFileSet = new Set<string>(((lockMod?.files ?? []) as string[]).map(normalizePathKey))
                     dead = dead.filter(f => modFileSet.has(normalizePathKey(f.file)))
+                    // Unknown module: return empty result (not an error) so callers can handle gracefully
                 }
                 if (!includeExported) {
                     dead = dead.filter(f => {
@@ -52,8 +54,10 @@ export function registerAnalysisTools(server: McpServer, projectRoot: string) {
                     const fnA = lock.functions[a.id]; const fnB = lock.functions[b.id];
                     return ((fnB as any)?.complexity || 1) - ((fnA as any)?.complexity || 1)
                 })
+                // byModule: only include filtered module when moduleId filter is active
                 const byModule = dead.reduce((acc: Record<string, any[]>, f) => {
                     const mid = f.moduleId ?? 'unknown'
+                    if (moduleId && mid !== moduleId) return acc  // respect --module filter
                         ; (acc[mid] = acc[mid] || []).push(f)
                     return acc
                 }, {})
@@ -99,9 +103,10 @@ export function registerAnalysisTools(server: McpServer, projectRoot: string) {
                 limit: z.number().optional().default(30),
             },
             async (args: any): Promise<any> => {
+                const effectiveRoot = (args as any)?.projectRoot || projectRoot
                 return requestQueue.add(async () => {
                     const { moduleId, minComplexity, limit } = args as any
-                    const { lock, staleness } = await loadContractAndLock(projectRoot)
+                    const { lock, staleness } = await loadContractAndLock(effectiveRoot)
 
                     // Compute complexity on-the-fly from available lock fields.
                     // MikkLockFunction has no stored complexity — derive from:
@@ -175,9 +180,10 @@ export function registerAnalysisTools(server: McpServer, projectRoot: string) {
                 projectRoot: z.string().optional(),
             },
             async (args: any): Promise<any> => {
+                const effectiveRoot2 = (args as any)?.projectRoot || projectRoot
                 return requestQueue.add(async () => {
                     const { severity, limit, sources: customSources, sinks: customSinks, projectRoot: argRoot } = args as any
-                    const effectiveRoot = argRoot || projectRoot
+                    const effectiveRoot = argRoot || effectiveRoot2
                     const { lock, staleness } = await loadContractAndLock(effectiveRoot)
                     const allFunctions = Object.values(lock.functions)
 
@@ -251,7 +257,7 @@ export function registerAnalysisTools(server: McpServer, projectRoot: string) {
                         // Find the original source name (the callee that was the direct source)
                         const origSrcName = bodySources.has(srcId) ? srcFn.name :
                             (callMap.get(srcId) ?? []).filter(id => bodySources.has(id)).map(id => lock.functions[id]?.name).filter(Boolean)[0] ?? srcFn.name
-                        const queue: { id: string; path: string[] }[] = [{ id: srcId, path: [origSrcName, srcFn.name].filter((v,i,a) => a.indexOf(v)===i) }]
+                        const queue: { id: string; path: string[] }[] = [{ id: srcId, path: [origSrcName, srcFn.name].filter((v, i, a) => a.indexOf(v) === i) }]
                         const visited = new Set<string>()
                         while (queue.length > 0) {
                             const item = queue.shift()!
@@ -282,8 +288,13 @@ export function registerAnalysisTools(server: McpServer, projectRoot: string) {
                         severity: f.severity, confidence: f.confidence,
                     }))
                     const allPaths = [...detectedPaths, ...builtinPaths]
-                    const bySev: Record<string, any[]> = {}
-                    for (const f of filtered) { if (!bySev[f.severity]) bySev[f.severity] = []; bySev[f.severity].push(f) }
+                    // BUG FIX: build bySeverity from allPaths, not just filtered (was always empty for high)
+                    const bySev: Record<string, any[]> = { critical: [], high: [], medium: [], low: [] }
+                    for (const p of allPaths) {
+                        const sev = p.severity ?? 'medium'
+                        if (!bySev[sev]) bySev[sev] = []
+                        bySev[sev].push(p)
+                    }
 
                     return {
                         content: [{

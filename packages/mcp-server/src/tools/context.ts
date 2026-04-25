@@ -18,10 +18,11 @@ export function registerContextTools(server: McpServer, projectRoot: string) {
     server.tool(
         'mikk_reset_session',
         'Reset session memory — clears the list of functions already sent this session so the next mikk_query_context returns a full context without the "already sent" annotation. WHEN TO USE: When switching to a completely different part of the codebase or a new task.',
-        {},
-        async (): Promise<any> => {
-            const before = getSessionSent(projectRoot).size
-            _sessionFunctionsSent.delete(projectRoot)
+        { projectRoot: z.string().optional() },
+        async (args: any): Promise<any> => {
+            const effectiveRoot = (args as any)?.projectRoot || projectRoot
+            const before = getSessionSent(effectiveRoot).size
+            _sessionFunctionsSent.delete(effectiveRoot)
             return { content: [{ type: 'text' as const, text: JSON.stringify({ reset: true, clearedFunctions: before, hint: 'Session cleared. Next mikk_query_context will return full context.' }) }] }
         },
     )
@@ -43,19 +44,23 @@ export function registerContextTools(server: McpServer, projectRoot: string) {
             failFast: z.boolean().optional().default(false),
             autoFallback: z.boolean().optional().default(true),
             provider: z.enum(['claude', 'generic', 'compact']).optional().default('generic'),
+            projectRoot: z.string().optional(),
         },
         async (args: any): Promise<any> => {
             return requestQueue.add(async () => {
                 const { question, maxHops, tokenBudget, focusFile, focusModule, strict, requiredTerms,
-                    requireAllKeywords, minKeywordMatches, exactOnly, failFast, autoFallback, provider } = args as any
-                const { contract, lock, staleness } = await loadContractAndLock(projectRoot)
+                    requireAllKeywords, minKeywordMatches, exactOnly, failFast, autoFallback, provider, projectRoot: argRoot } = args as any
+                const effectiveRoot = argRoot || projectRoot
+                const { contract, lock, staleness } = await loadContractAndLock(effectiveRoot)
                 const query: any = {
                     task: question, maxHops, tokenBudget,
                     focusFiles: focusFile ? [focusFile] : undefined,
                     focusModules: focusModule ? [focusModule] : undefined,
                     includeCallGraph: true, includeBodies: true,
                     relevanceMode: strict ? 'strict' : 'balanced',
-                    requiredKeywords: requiredTerms, requireAllKeywords, minKeywordMatches, exactOnly, failFast, projectRoot,
+                    requiredKeywords: requiredTerms, requireAllKeywords, minKeywordMatches, exactOnly, failFast, projectRoot: effectiveRoot,
+                    // SECURITY: Never include .env files in AI agent context — they may contain real secrets
+                    excludeFiles: ['.env', '.env.local', '.env.production', '.env.development', '.env.staging', '.env.example'],
                 }
                 const builder = new ContextBuilder(contract, lock)
                 let ctx = builder.build(query)
@@ -74,7 +79,7 @@ export function registerContextTools(server: McpServer, projectRoot: string) {
                 // Session deduplication: track which function IDs we've already sent.
                 // On follow-up queries, annotate re-sent functions so the AI knows they're
                 // already in context rather than re-reading them from scratch.
-                const sessionSent = getSessionSent(projectRoot)
+                const sessionSent = getSessionSent(effectiveRoot)
                 const allFnIds = ctx.modules.flatMap(m => m.functions.map((f: any) => f.name + ':' + f.file))
                 const newFnIds = allFnIds.filter(id => !sessionSent.has(id))
                 const repeatedCount = allFnIds.length - newFnIds.length
@@ -86,7 +91,7 @@ export function registerContextTools(server: McpServer, projectRoot: string) {
                 const warning = staleness ? `\n\n${staleness}` : ''
                 const fallbackNote = fallbackUsed ? 'Note: strict mode had no exact matches; showing balanced fallback context.\n\n' : ''
                 const _rawQC = (tokenBudget ?? 6000) * 3
-                const _tokQC = _track(projectRoot, _rawQC, output)
+                const _tokQC = _track(effectiveRoot, _rawQC, output)
                 const tokLine = `\n\n---\n// tokens: ${JSON.stringify(_tokQC)}`
                 return {
                     content: [{ type: 'text' as const, text: dedupNote + fallbackNote + output + warning + '\n\n---\nHint: Use mikk_before_edit on files you plan to modify, then mikk_impact_analysis to see blast radius.' + tokLine }],

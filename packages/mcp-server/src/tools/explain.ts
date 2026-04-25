@@ -80,9 +80,10 @@ export function registerExplainTools(server: McpServer, projectRoot: string) {
             '  • Key config files',
             'After this call you know WHERE to look — use mikk_query_context or mikk_read_function for details.',
         ].join('\n'),
-        {},
-        async (): Promise<any> => {
-            const { contract, lock, staleness } = await loadContractAndLock(projectRoot)
+        { projectRoot: z.string().optional() },
+        async (args: any): Promise<any> => {
+            const effectiveRoot = (args as any)?.projectRoot || projectRoot
+            const { contract, lock, staleness } = await loadContractAndLock(effectiveRoot)
 
             // ── 1. Files and context files ────────────────────────────────────
             const lockFiles = Object.keys(lock.files)
@@ -237,7 +238,7 @@ export function registerExplainTools(server: McpServer, projectRoot: string) {
             }
 
             const rawEst = Math.round(lockFiles.length * 25)
-            ;(response as any).tokens = _track(projectRoot, rawEst, response)
+                ; (response as any).tokens = _track(effectiveRoot, rawEst, response)
             return { content: [{ type: 'text' as const, text: JSON.stringify(response, null, 2) }] }
         },
     )
@@ -248,11 +249,13 @@ export function registerExplainTools(server: McpServer, projectRoot: string) {
         'Classify the semantic role of a file path (route, api-handler, model, test, etc.) without reading it. Instant — no parsing needed.',
         {
             filePath: z.string().describe('Relative or absolute file path to classify'),
+            projectRoot: z.string().optional()
         },
-        async ({ filePath }: { filePath: string }) => {
+        async ({ filePath, projectRoot: argRoot }: { filePath: string, projectRoot?: string }) => {
+            const effectiveRoot = argRoot || projectRoot
             const classifier = new SemanticRoleClassifier()
             const normalized = path.isAbsolute(filePath)
-                ? path.relative(projectRoot, filePath).replace(/\\/g, '/')
+                ? path.relative(effectiveRoot, filePath).replace(/\\/g, '/')
                 : filePath.replace(/\\/g, '/')
 
             const result = classifier.classifyFile(normalized)

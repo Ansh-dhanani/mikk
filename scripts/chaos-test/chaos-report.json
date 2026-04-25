@@ -11,8 +11,8 @@
       "name": "Search Non-Determinism — Same Query, 20 Sequential Runs",
       "category": "TRUST_VIOLATION",
       "status": "PASS",
-      "durationMs": 1811,
-      "memoryDeltaMB": 2.86,
+      "durationMs": 2085,
+      "memoryDeltaMB": 2.58,
       "issues": []
     },
     {
@@ -20,8 +20,8 @@
       "name": "Stale Cache — Deleted File's Symbols Survive in Search Index",
       "category": "TRUST_VIOLATION",
       "status": "PASS",
-      "durationMs": 1552,
-      "memoryDeltaMB": 1.07,
+      "durationMs": 2302,
+      "memoryDeltaMB": 0.8,
       "issues": []
     },
     {
@@ -29,8 +29,8 @@
       "name": "Search Mode Contradiction — Semantic vs BM25 vs Hybrid Diverge",
       "category": "TRUST_VIOLATION",
       "status": "PASS",
-      "durationMs": 2107,
-      "memoryDeltaMB": 0.95,
+      "durationMs": 1506,
+      "memoryDeltaMB": 0.68,
       "issues": []
     },
     {
@@ -38,8 +38,8 @@
       "name": "Cross-Project State Bleed — Project B Symbols Appear in Project A Query",
       "category": "TRUST_VIOLATION",
       "status": "PASS",
-      "durationMs": 3599,
-      "memoryDeltaMB": 2.66,
+      "durationMs": 4191,
+      "memoryDeltaMB": -35,
       "issues": []
     },
     {
@@ -47,8 +47,8 @@
       "name": "Duplicate Symbol Disambiguation — 100 files, same function name",
       "category": "TRUST_VIOLATION",
       "status": "PASS",
-      "durationMs": 1259,
-      "memoryDeltaMB": 1.32,
+      "durationMs": 2012,
+      "memoryDeltaMB": 0.21,
       "issues": []
     },
     {
@@ -56,8 +56,8 @@
       "name": "Read-Your-Writes — New Symbol Not Visible Without Re-Index",
       "category": "TRUST_VIOLATION",
       "status": "PASS",
-      "durationMs": 1272,
-      "memoryDeltaMB": 0.85,
+      "durationMs": 1764,
+      "memoryDeltaMB": -0.09,
       "issues": []
     },
     {
@@ -65,8 +65,8 @@
       "name": "Post-Rename Impact Analysis — Stale Call Graph Reports Wrong Callers",
       "category": "TRUST_VIOLATION",
       "status": "PASS",
-      "durationMs": 808,
-      "memoryDeltaMB": 1.04,
+      "durationMs": 954,
+      "memoryDeltaMB": 0.78,
       "issues": []
     },
     {
@@ -74,8 +74,8 @@
       "name": "Unicode Homograph — Cyrillic аuth Conflated With Latin auth",
       "category": "TRUST_VIOLATION",
       "status": "PASS",
-      "durationMs": 1341,
-      "memoryDeltaMB": 0.91,
+      "durationMs": 1004,
+      "memoryDeltaMB": -0.22,
       "issues": []
     },
     {
@@ -83,8 +83,8 @@
       "name": "Dynamic Dispatch Completeness — Does Tool Admit It Can't See Everything?",
       "category": "TRUST_VIOLATION",
       "status": "PASS",
-      "durationMs": 1028,
-      "memoryDeltaMB": 0.54,
+      "durationMs": 1043,
+      "memoryDeltaMB": -0.14,
       "issues": []
     },
     {
@@ -92,8 +92,8 @@
       "name": "5-Rename Chain — Each Rename Uses Previous as Input",
       "category": "TRUST_VIOLATION",
       "status": "PASS",
-      "durationMs": 1192,
-      "memoryDeltaMB": 1.32,
+      "durationMs": 1183,
+      "memoryDeltaMB": 0.2,
       "issues": []
     },
     {
@@ -101,8 +101,8 @@
       "name": "Full Dev Workflow: Search → Context → Rename → Re-index → Search",
       "category": "WORKFLOW",
       "status": "PASS",
-      "durationMs": 1092,
-      "memoryDeltaMB": -41.61,
+      "durationMs": 1241,
+      "memoryDeltaMB": -0.15,
       "issues": []
     },
     {
@@ -110,8 +110,8 @@
       "name": "Delete → Search → Re-index → Search: Tombstone Must Be Clean",
       "category": "WORKFLOW",
       "status": "PASS",
-      "durationMs": 1148,
-      "memoryDeltaMB": 0.15,
+      "durationMs": 1231,
+      "memoryDeltaMB": -0.11,
       "issues": []
     },
     {
@@ -119,8 +119,8 @@
       "name": "100 Interleaved Read/Write Pairs — No Torn Reads",
       "category": "WORKFLOW",
       "status": "PASS",
-      "durationMs": 2749,
-      "memoryDeltaMB": 0.64,
+      "durationMs": 4152,
+      "memoryDeltaMB": 0.39,
       "issues": []
     },
     {
@@ -128,8 +128,8 @@
       "name": "Misleading Corpus — Does Semantic Search Rank by Name or Behavior?",
       "category": "WORKFLOW",
       "status": "PASS",
-      "durationMs": 1536,
-      "memoryDeltaMB": -0.69,
+      "durationMs": 2305,
+      "memoryDeltaMB": -0.22,
       "issues": []
     },
     {
@@ -137,8 +137,8 @@
       "name": "Index Drift — 30% File Modification, No Re-index, Quality Should Degrade Visibly",
       "category": "WORKFLOW",
       "status": "PASS",
-      "durationMs": 1931,
-      "memoryDeltaMB": 0.45,
+      "durationMs": 2280,
+      "memoryDeltaMB": 0.21,
       "issues": []
     },
     {
@@ -146,8 +146,8 @@
       "name": "TOCTOU in mikk_before_edit — Constraint Satisfied at Check, Violated at Edit",
       "category": "WORKFLOW",
       "status": "PASS",
-      "durationMs": 943,
-      "memoryDeltaMB": -0.33,
+      "durationMs": 1065,
+      "memoryDeltaMB": -0.19,
       "issues": []
     },
     {
@@ -155,8 +155,8 @@
       "name": "Confidence Score Lying — High Score on Wrong Answer",
       "category": "WORKFLOW",
       "status": "PASS",
-      "durationMs": 1334,
-      "memoryDeltaMB": -0.03,
+      "durationMs": 1888,
+      "memoryDeltaMB": 0.6,
       "issues": []
     },
     {
@@ -164,8 +164,8 @@
       "name": "Escalating Secret Obfuscation — Level 0 to Level 5",
       "category": "WORKFLOW",
       "status": "PASS",
-      "durationMs": 4824,
-      "memoryDeltaMB": 0.09,
+      "durationMs": 8476,
+      "memoryDeltaMB": 0.25,
       "issues": []
     },
     {
@@ -173,8 +173,8 @@
       "name": "Concurrent before_edit + index_project — Constraint Race Window",
       "category": "WORKFLOW",
       "status": "PASS",
-      "durationMs": 1335,
-      "memoryDeltaMB": 0.14,
+      "durationMs": 2378,
+      "memoryDeltaMB": -0.61,
       "issues": []
     },
     {
@@ -182,8 +182,8 @@
       "name": "BEHAVIORAL CHAOS BOSS FIGHT — 6 Trust Violations Simultaneously",
       "category": "WORKFLOW",
       "status": "PASS",
-      "durationMs": 3572,
-      "memoryDeltaMB": 0.15,
+      "durationMs": 5563,
+      "memoryDeltaMB": 0.47,
       "issues": []
     },
     {
@@ -191,8 +191,8 @@
       "name": "Deeply Nested MCP Arguments — 1000 Levels of Nesting",
       "category": "ADVERSARIAL_INPUT",
       "status": "PASS",
-      "durationMs": 1365,
-      "memoryDeltaMB": 0.11,
+      "durationMs": 2161,
+      "memoryDeltaMB": -0.06,
       "issues": []
     },
     {
@@ -200,8 +200,8 @@
       "name": "AST Poison — Decorators + Conditional Types + Mapped Types in One File",
       "category": "ADVERSARIAL_INPUT",
       "status": "PASS",
-      "durationMs": 838,
-      "memoryDeltaMB": -0.03,
+      "durationMs": 1459,
+      "memoryDeltaMB": -0.11,
       "issues": []
     },
     {
@@ -209,8 +209,8 @@
       "name": "Adversarial Query — Ranking Manipulation via Contradiction Injection",
       "category": "ADVERSARIAL_INPUT",
       "status": "PASS",
-      "durationMs": 1294,
-      "memoryDeltaMB": 0.01,
+      "durationMs": 2175,
+      "memoryDeltaMB": 0.65,
       "issues": []
     },
     {
@@ -218,8 +218,8 @@
       "name": "Minified/Generated Code — Single 10K-Char Line, Valid TypeScript",
       "category": "ADVERSARIAL_INPUT",
       "status": "PASS",
-      "durationMs": 891,
-      "memoryDeltaMB": 0.01,
+      "durationMs": 1387,
+      "memoryDeltaMB": -0.13,
       "issues": []
     },
     {
@@ -227,8 +227,8 @@
       "name": "Re-export Cycle — A exports B re-exports C re-exports A",
       "category": "ADVERSARIAL_INPUT",
       "status": "PASS",
-      "durationMs": 876,
-      "memoryDeltaMB": -0.05,
+      "durationMs": 1299,
+      "memoryDeltaMB": -0.27,
       "issues": []
     },
     {
@@ -236,8 +236,8 @@
       "name": "Secret Hidden in Multi-line Template Literal",
       "category": "ADVERSARIAL_INPUT",
       "status": "PASS",
-      "durationMs": 796,
-      "memoryDeltaMB": -0.05,
+      "durationMs": 1392,
+      "memoryDeltaMB": -0.1,
       "issues": []
     },
     {
@@ -245,8 +245,8 @@
       "name": "Barrel File Explosion — index.ts Re-exports 1000 Modules",
       "category": "ADVERSARIAL_INPUT",
       "status": "PASS",
-      "durationMs": 4356,
-      "memoryDeltaMB": 0.22,
+      "durationMs": 6452,
+      "memoryDeltaMB": 0.11,
       "issues": []
     },
     {
@@ -254,8 +254,8 @@
       "name": "Abstract Class + Generic Constraint — Can MIKK Find Concrete Implementations?",
       "category": "ADVERSARIAL_INPUT",
       "status": "PASS",
-      "durationMs": 965,
-      "memoryDeltaMB": -0.05,
+      "durationMs": 1256,
+      "memoryDeltaMB": 0.59,
       "issues": []
     },
     {
@@ -263,8 +263,8 @@
       "name": "Bulk Query — 500 Symbols in Single mikk_bulk_query Call",
       "category": "ADVERSARIAL_INPUT",
       "status": "PASS",
-      "durationMs": 1383,
-      "memoryDeltaMB": 1.52,
+      "durationMs": 2233,
+      "memoryDeltaMB": 1.13,
       "issues": []
     },
     {
@@ -272,8 +272,8 @@
       "name": "ADVERSARIAL INPUT BOSS FIGHT — 5 Attack Vectors Simultaneously",
       "category": "ADVERSARIAL_INPUT",
       "status": "PASS",
-      "durationMs": 3890,
-      "memoryDeltaMB": -0.02,
+      "durationMs": 2839,
+      "memoryDeltaMB": 0.19,
       "issues": []
     }
   ]

@@ -404,9 +404,14 @@ export class ContractGenerator {
             pkgGroups.get(pkgRoot)!.push(dir)
         }
 
-        // Step 3: for each package emit the minimal covering set of globs
+        // Step 3: for each package emit the minimal covering set of globs.
+        // KEY FIX: when all files sit directly inside a single directory (no subdirs),
+        // we cannot safely use `dir/**` because multiple modules may share that same
+        // parent directory (e.g. every `lib/*.js` file in Fastify gets its own module
+        // but they all resolve to `lib/**`, making the first alphabetical module swallow
+        // every function).  In that case emit exact file-name globs instead.
         const result: string[] = []
-        for (const [, dirs] of pkgGroups) {
+        for (const [pkgRoot, dirs] of pkgGroups) {
             const unique = [...new Set(dirs)].filter(d => d.length > 0)
             if (unique.length === 0) continue
             unique.sort((a, b) => a.length - b.length)
@@ -416,7 +421,41 @@ export class ContractGenerator {
                 const covered = kept.some(k => dir === k || dir.startsWith(k + '/'))
                 if (!covered) kept.push(dir)
             }
-            for (const dir of kept) result.push(`${dir}/**`)
+
+            // Collect the actual file names (relative, forward-slash) that live under
+            // each kept directory so we can decide whether to use a glob or exact paths.
+            for (const dir of kept) {
+                // Files whose directory matches `dir` exactly (direct children)
+                const directChildren = relPaths.filter(p => {
+                    const pDir = p.split('/').slice(0, -1).join('/')
+                    return pDir === dir
+                })
+                // Files in subdirectories of `dir`
+                const deepChildren = relPaths.filter(p => {
+                    const pDir = p.split('/').slice(0, -1).join('/')
+                    return pDir !== dir && pDir.startsWith(dir + '/')
+                })
+
+                if (deepChildren.length > 0) {
+                    // Has subdirectories — a wildcard glob is appropriate and unambiguous
+                    // because the subdirectory path already distinguishes this module.
+                    result.push(`${dir}/**`)
+                } else if (directChildren.length > 0) {
+                    // All files are direct siblings in `dir`.  Count how many OTHER
+                    // modules also share this same pkgRoot — if more than one, emit
+                    // exact file paths to avoid the "first module wins all" problem.
+                    // We detect sharing by checking if pkgRoot appears in multiple kept dirs
+                    // across all pkgGroups (conservative: just always use exact paths when
+                    // there are no subdirs, since a glob would be too broad).
+                    for (const fp of directChildren) {
+                        result.push(fp)  // exact file path — unambiguous
+                    }
+                }
+                // If neither list has entries (shouldn't happen) fall back to glob
+                if (directChildren.length === 0 && deepChildren.length === 0) {
+                    result.push(`${dir}/**`)
+                }
+            }
         }
 
         return result

@@ -11,11 +11,13 @@ export function registerFileTools(server: McpServer, projectRoot: string) {
     ;(server as any).tool(
         'mikk_get_file',
         'Read raw source of a tracked file. TIP: Prefer mikk_read_file with function names to save tokens — it returns only the functions you need with rich metadata headers. WHEN TO USE: For config files, small files, or when you need the entire file.',
-        { file: z.string().describe('File path relative to project root (e.g., "src/auth/verify.ts")') },
-        async ({ file }: any) => {
-            const absPath = path.isAbsolute(file) ? file : path.join(projectRoot, file)
+        { file: z.string().describe('File path relative to project root (e.g., "src/auth/verify.ts")'), projectRoot: z.string().optional() },
+        async (args: any) => {
+            const { file, projectRoot: argRoot } = args as any
+            const effectiveRoot = argRoot || projectRoot
+            const absPath = path.isAbsolute(file) ? file : path.join(effectiveRoot, file)
             const resolved = path.resolve(absPath)
-            const rootResolved = path.resolve(projectRoot)
+            const rootResolved = path.resolve(effectiveRoot)
             if (!resolved.startsWith(rootResolved + path.sep) && resolved !== rootResolved)
                 return { content: [{ type: 'text' as const, text: `Access denied: "${file}" is outside the project root.` }], isError: true }
             try {
@@ -23,9 +25,9 @@ export function registerFileTools(server: McpServer, projectRoot: string) {
                 if (stat.size > MAX_SOURCE_FILE_BYTES)
                     return { content: [{ type: 'text' as const, text: `Refusing to read "${file}": file exceeds ${MAX_SOURCE_FILE_BYTES} bytes.` }], isError: true }
                 const rel = path.relative(rootResolved, resolved).replace(/\\/g, '/')
-                const { lock } = await loadContractAndLock(projectRoot)
+                const { lock } = await loadContractAndLock(effectiveRoot)
                 const allowlisted = new Set(['mikk.json', 'mikk.lock.json', 'package.json', 'tsconfig.json'])
-                if (!isTrackedByLock(lock, projectRoot, resolved) && !allowlisted.has(rel))
+                if (!isTrackedByLock(lock, effectiveRoot, resolved) && !allowlisted.has(rel))
                     return { content: [{ type: 'text' as const, text: `Access denied: "${file}" is not tracked in mikk.lock.json. Run \`mikk analyze\` or check path.` }], isError: true }
                 const content = await fs.readFile(resolved, 'utf-8')
                 const lineCount = content.split('\n').length
@@ -46,12 +48,13 @@ export function registerFileTools(server: McpServer, projectRoot: string) {
             functions: z.array(z.string()).max(30).optional().describe('Function names to extract. Omit to return whole file.'),
         },
         async (args: any): Promise<any> => {
-            const { lock, staleness } = await loadContractAndLock(projectRoot)
+            const effectiveRoot = (args as any)?.projectRoot || projectRoot
+            const { lock, staleness } = await loadContractAndLock(effectiveRoot)
             const fileInput = String(args?.file ?? '')
             const fnNames: string[] | undefined = Array.isArray(args?.functions) ? args.functions : undefined
-            const absPath = path.isAbsolute(fileInput) ? fileInput : path.join(projectRoot, fileInput)
+            const absPath = path.isAbsolute(fileInput) ? fileInput : path.join(effectiveRoot, fileInput)
             const resolved = path.resolve(absPath)
-            const rootResolved = path.resolve(projectRoot)
+            const rootResolved = path.resolve(effectiveRoot)
             if (!resolved.startsWith(rootResolved + path.sep) && resolved !== rootResolved)
                 return { content: [{ type: 'text' as const, text: `Access denied: "${fileInput}" is outside the project root.` }], isError: true }
             let content: string
@@ -61,7 +64,7 @@ export function registerFileTools(server: McpServer, projectRoot: string) {
                     return { content: [{ type: 'text' as const, text: `Refusing to read "${fileInput}": file exceeds ${MAX_SOURCE_FILE_BYTES} bytes.` }], isError: true }
                 const rel = path.relative(rootResolved, resolved).replace(/\\/g, '/')
                 const allowlisted = new Set(['mikk.json', 'mikk.lock.json', 'package.json', 'tsconfig.json'])
-                if (!isTrackedByLock(lock, projectRoot, resolved) && !allowlisted.has(rel))
+                if (!isTrackedByLock(lock, effectiveRoot, resolved) && !allowlisted.has(rel))
                     return { content: [{ type: 'text' as const, text: `Access denied: "${fileInput}" is not tracked in mikk.lock.json.` }], isError: true }
                 content = await fs.readFile(resolved, 'utf-8')
             } catch (err: any) {
@@ -96,7 +99,7 @@ export function registerFileTools(server: McpServer, projectRoot: string) {
             const output = sections.join('\n\n')
             const normalizedFile2 = normalizedFile
             const _rawRF = _fileTok(lock as any, normalizedFile2)
-            const _tokRF = _track(projectRoot, _rawRF, output)
+            const _tokRF = _track(effectiveRoot, _rawRF, output)
             return { content: [{ type: 'text' as const, text: output + (staleness ? `\n\n${staleness}` : '') + `\n// tokens: ${JSON.stringify(_tokRF)}` }] }
         },
     )
@@ -112,10 +115,11 @@ export function registerFileTools(server: McpServer, projectRoot: string) {
         },
         async (args: any): Promise<any> => {
             const { file, compareWith } = args as any
-            const { lock, staleness } = await loadContractAndLock(projectRoot)
-            const absPath = path.isAbsolute(file) ? file : path.join(projectRoot, file)
+            const effectiveRoot = (args as any)?.projectRoot || projectRoot
+            const { lock, staleness } = await loadContractAndLock(effectiveRoot)
+            const absPath = path.isAbsolute(file) ? file : path.join(effectiveRoot, file)
             const resolved = path.resolve(absPath)
-            const rootResolved = path.resolve(projectRoot)
+            const rootResolved = path.resolve(effectiveRoot)
             if (!resolved.startsWith(rootResolved + path.sep) && resolved !== rootResolved)
                 return { content: [{ type: 'text', text: 'Access denied: outside project root' }], isError: true }
             try {

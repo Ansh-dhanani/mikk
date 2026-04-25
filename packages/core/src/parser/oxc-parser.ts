@@ -457,6 +457,50 @@ export class TypescriptExtractor extends BaseExtractor {
                     break;
                 }
 
+                // ── CJS require() ──────────────────────────────────────────
+                case 'CallExpression': {
+                    if (node.callee && node.callee.type === 'Identifier' && node.callee.name === 'require') {
+                        const arg = node.arguments?.[0];
+                        if (arg && (arg.type === 'StringLiteral' || arg.type === 'Literal')) {
+                            let names: string[] = [];
+                            if (parent && parent.type === 'VariableDeclarator') {
+                                names = flattenPatternNames(parent.id);
+                            } else if (parent && parent.type === 'MemberExpression' && parent.parent?.type === 'VariableDeclarator') {
+                                names = flattenPatternNames(parent.parent.id);
+                            }
+                            imports.push({
+                                source: arg.value,
+                                resolvedPath: '',
+                                names,
+                                isDefault: true,
+                                isDynamic: false,
+                            });
+                        }
+                    }
+                    break;
+                }
+
+                // ── CJS Assignment (module.exports) ────────────────────────
+                case 'AssignmentExpression': {
+                    const exported = isDirectlyExported(parent);
+                    if (node.left && (node.left.type === 'MemberExpression' || node.left.type === 'StaticMemberExpression')) {
+                        const objName = resolveObjectName(node.left.object);
+                        const propName = resolvePropertyName(node.left.property);
+                        if (objName === 'module' && propName === 'exports') {
+                            const rightName = resolveObjectName(node.right) || 'default';
+                            exports.push({ name: rightName, type: 'default', file: normalizedFilePath });
+
+                            // If RHS is an object literal, maybe also register its keys? Simple default is enough for dependency tree edge creation.
+                        } else if (objName === 'exports') {
+                            if (propName) {
+                                exports.push({ name: propName, type: 'variable', file: normalizedFilePath });
+                                declaredNameKind.set(propName, 'variable');
+                            }
+                        }
+                    }
+                    break;
+                }
+
                 // ── Function Declaration ───────────────────────────────────
                 case 'FunctionDeclaration': {
                     if (!node.id) break;

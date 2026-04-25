@@ -16,8 +16,10 @@ export function registerRefactorTools(server: McpServer, projectRoot: string) {
             functionName: z.string().describe('Current function name to rename'),
             newName: z.string().describe('Desired new name'),
         },
-        async ({ functionName, newName }: any) => {
-            const { lock, staleness } = await loadContractAndLock(projectRoot)
+        async (args: any) => {
+            const { functionName, newName } = args;
+            const effectiveRoot = args.projectRoot || projectRoot;
+            const { lock, staleness } = await loadContractAndLock(effectiveRoot)
             const targetFn = Object.values(lock.functions).find(fn => fn.name === functionName || fn.id.endsWith(`:${functionName}`))
             if (!targetFn)
                 return { content: [{ type: 'text' as const, text: `Function "${functionName}" not found. Use mikk_search_functions to find the correct name.` }], isError: true }
@@ -88,7 +90,8 @@ export function registerRefactorTools(server: McpServer, projectRoot: string) {
             },
             async (args: any): Promise<any> => {
                 const { ref, staged } = args as any
-                const { lock, staleness } = await loadContractAndLock(projectRoot)
+                const effectiveRoot = (args as any).projectRoot || projectRoot
+                const { lock, staleness } = await loadContractAndLock(effectiveRoot)
                 try {
                     const validatedRef = /^[A-Za-z0-9_./\-~^]+$/.test(ref) ? ref : null
                     if (!staged && !validatedRef) return { content: [{ type: 'text' as const, text: 'Invalid git ref format.' }], isError: true }
