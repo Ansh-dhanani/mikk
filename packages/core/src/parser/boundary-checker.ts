@@ -34,11 +34,11 @@ function parseList(raw: string): string[] {
 function parseConstraint(constraint: string): ParsedRule | null {
     const c = constraint.trim()
     const l = c.toLowerCase()
-    const natDeny = l.match(/^(\S+)\s+(?:must\s+not|cannot|should\s+not)\s+(?:import\s+from|import|call\s+into|call)\s+(.+)$/)
+    const natDeny = l.match(/^(\S+)\s+(?:module\s+)?(?:must\s+not|cannot|should\s+not)\s+(?:import\s+from|import|call\s+into|call)\s+(.+)$/)
     if (natDeny) return { type: 'deny', fromModuleId: stripPrefix(natDeny[1]), toModuleIds: parseList(natDeny[2]), raw: c }
-    const natAllow = l.match(/^(\S+)\s+can\s+only\s+(?:import\s+from|import)\s+(.+)$/)
+    const natAllow = l.match(/^(\S+)\s+(?:module\s+)?can\s+only\s+(?:import\s+from|import)\s+(.+)$/)
     if (natAllow) return { type: 'allow_only', fromModuleId: stripPrefix(natAllow[1]), toModuleIds: parseList(natAllow[2]), raw: c }
-    const natIso = l.match(/^(\S+)\s+(?:is\s+isolated|has\s+no\s+imports)$/)
+    const natIso = l.match(/^(\S+)\s+(?:module\s+)?(?:is\s+isolated|has\s+no\s+imports)$/)
     if (natIso) return { type: 'isolated', fromModuleId: stripPrefix(natIso[1]), toModuleIds: [], raw: c }
     const legDeny = l.match(/^module:(\S+)\s+cannot\s+import\s+(.+)$/)
     if (legDeny) return { type: 'deny', fromModuleId: legDeny[1], toModuleIds: parseList(legDeny[2]), raw: c }
@@ -51,7 +51,9 @@ function parseConstraint(constraint: string): ParsedRule | null {
 }
 
 export class BoundaryChecker {
-    private rules: ParsedRule[]
+    // T46 fix: exposed as public so safety tools can check fresh file imports
+    // against rules without re-parsing the contract.
+    public rules: ParsedRule[]
     private moduleNames: Map<string, string>
     private fileModuleMap: Map<string, string>
 

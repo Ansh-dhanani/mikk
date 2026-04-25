@@ -92,20 +92,25 @@ export class SemanticSearcher {
         }
 
         // Text representation: name + purpose + params + types + return type + body snippet
-        const texts = await Promise.all(fns.map(fn => buildRichText(fn, this.projectRoot)))
-
-        await this.ensurePipeline()
+        // We process in batches to avoid overwhelming file handles and memory
         const embeddings: Record<string, number[]> = {}
         const BATCH = 64
         const total = fns.length
+
+        await this.ensurePipeline()
+
         for (let i = 0; i < fns.length; i += BATCH) {
-            const batch = texts.slice(i, i + BATCH)
-            const output = await this.pipeline(batch, { pooling: 'mean', normalize: true })
-            for (let j = 0; j < batch.length; j++) {
-                embeddings[fns[i + j].id] = Array.from(output[j].data as Float32Array)
+            const batchFns = fns.slice(i, i + BATCH)
+            // Limit file reads concurrency within the batch
+            const batchTexts = await Promise.all(batchFns.map(fn => buildRichText(fn, this.projectRoot)))
+            const output = await this.pipeline(batchTexts, { pooling: 'mean', normalize: true })
+
+            for (let j = 0; j < batchFns.length; j++) {
+                embeddings[batchFns[j].id] = Array.from(output[j].data as Float32Array)
             }
+
             if (this.onProgress) {
-                this.onProgress(Math.round(((i + BATCH) / total) * 100))
+                this.onProgress(Math.round(((i + batchFns.length) / total) * 100))
             }
         }
 
@@ -238,13 +243,22 @@ async function _readFileCached(filePath: string, cache: Map<string, string>): Pr
     }
 }
 
-/** Improved fingerprint: function count + all sorted IDs + metadata */
+/** Improved fingerprint: function count + all sorted IDs + all function hashes + metadata */
 function lockFingerprint(lock: MikkLock): string {
-    const ids = Object.keys(lock.functions).sort().join('|')
-    const fnCount = Object.keys(lock.functions).length
+    const fns = Object.values(lock.functions)
+        .map((fn, index) => {
+            const fallbackId = `${fn.file ?? ''}:${fn.name ?? 'anonymous'}:${fn.startLine ?? 0}:${index}`
+            return {
+                id: typeof fn.id === 'string' && fn.id.length > 0 ? fn.id : fallbackId,
+                hash: typeof fn.hash === 'string' ? fn.hash : '',
+            }
+        })
+        .sort((a, b) => a.id.localeCompare(b.id))
+    const fingerprintText = fns.map(fn => `${fn.id}:${fn.hash}`).join('|')
+    const fnCount = fns.length
     const fileCount = Object.keys(lock.files ?? {}).length
     const moduleCount = Object.keys(lock.modules ?? {}).length
-    const hash = hashContent(`${fnCount}:${fileCount}:${moduleCount}:${ids}`)
+    const hash = hashContent(`${fnCount}:${fileCount}:${moduleCount}:${fingerprintText}`)
     return hash.slice(0, 32)
 }
 

@@ -137,16 +137,16 @@ export class RichFunctionIndex {
     private nameIndex: Map<string, string> = new Map()
     private textIndex: Map<string, Set<string>> = new Map()
     private allKeywords: Set<string> = new Set()
-    
+
     private bySignatureHash: Map<string, string> = new Map()
     private byContentHash: Map<string, string> = new Map()
     private byParamHash: Map<string, string[]> = new Map()
 
-    constructor() {}
+    constructor() { }
 
     index(lock: MikkLock, graph?: DependencyGraph): void {
         this.clear()
-        
+
         for (const [id, fn] of Object.entries(lock.functions)) {
             const rich = this.enrichFunction(fn, lock, graph)
             this.addFunction(rich)
@@ -167,13 +167,13 @@ export class RichFunctionIndex {
         const id = fn.id
         const name = fn.name || this.parseNameFromId(id)
         const file = fn.file || this.parseFileFromId(id)
-        
+
         const calls = this.extractCalls(fn, lock)
         const calledBy = this.extractCalledBy(fn, lock)
         const keywords = this.extractKeywords(fn, calls)
         const signature = this.buildSignature(fn)
         const fullSignature = this.buildFullSignature(fn)
-        
+
         const richParams: RichParam[] = (fn.params || []).map(p => ({
             name: p.name,
             type: p.type,
@@ -182,7 +182,7 @@ export class RichFunctionIndex {
             destructured: false,
             rest: false,
         }))
-        
+
         const richErrors: RichErrorHandling[] = (fn.errorHandling || []).map(e => ({
             line: e.line,
             endLine: e.line,
@@ -191,11 +191,11 @@ export class RichFunctionIndex {
             caughtTypes: [],
             handled: true,
         }))
-        
+
         const signatureHash = this.simpleHash(fullSignature)
         const contentHash = fn.hash || this.simpleHash(`${file}:${name}:${signatureHash}`)
         const paramHashes = richParams.map(p => this.simpleHash(`${p.name}:${p.type}`))
-        
+
         return {
             id,
             name,
@@ -233,7 +233,7 @@ export class RichFunctionIndex {
 
     private extractCalls(fn: MikkLockFunction, lock: MikkLock): RichCall[] {
         const calls: RichCall[] = []
-        
+
         for (const calleeId of fn.calls || []) {
             const callee = lock.functions[calleeId]
             if (callee) {
@@ -247,46 +247,46 @@ export class RichFunctionIndex {
                 })
             }
         }
-        
+
         return calls
     }
 
     private extractCalledBy(fn: MikkLockFunction, lock: MikkLock): string[] {
         const calledBy: string[] = []
-        
+
         for (const callerId of fn.calledBy || []) {
             const caller = lock.functions[callerId]
             if (caller) {
                 calledBy.push(callerId)
             }
         }
-        
+
         return calledBy
     }
 
     private extractKeywords(fn: MikkLockFunction, calls: RichCall[]): string[] {
         const keywords = new Set<string>()
-        
+
         const name = fn.name || ''
         const words = name.match(/[A-Z][a-z]+|[a-z]+/g) || []
         words.forEach(w => keywords.add(w.toLowerCase()))
-        
+
         if (fn.purpose) {
             const purposeWords = fn.purpose.match(/[a-z]{3,}/g) || []
             purposeWords.forEach(w => keywords.add(w.toLowerCase()))
         }
-        
+
         const returnType = fn.returnType || ''
         if (returnType.includes('Promise')) keywords.add('async')
         if (returnType.includes('Error') || returnType.includes('Result')) keywords.add('error-handling')
         if (returnType !== 'void' && returnType !== 'never') keywords.add('returns-value')
-        
+
         if (fn.isAsync) keywords.add('async')
-        
+
         for (const call of calls) {
             keywords.add(call.name.toLowerCase())
         }
-        
+
         return [...keywords]
     }
 
@@ -324,7 +324,7 @@ export class RichFunctionIndex {
 
     private inferPurpose(name: string, fn: MikkLockFunction): string {
         const lower = name.toLowerCase()
-        
+
         if (lower.startsWith('get') || lower.startsWith('fetch') || lower.startsWith('load')) {
             return `Retrieves data`
         }
@@ -355,7 +355,7 @@ export class RichFunctionIndex {
         if (lower.startsWith('init') || lower.startsWith('setup') || lower.startsWith('configure')) {
             return `Initializes configuration`
         }
-        
+
         return ''
     }
 
@@ -377,30 +377,30 @@ export class RichFunctionIndex {
 
     private addFunction(rich: RichFunction): void {
         this.functions.set(rich.id, rich)
-        
+
         const nameLower = rich.name.toLowerCase()
-        
+
         const nameSet = this.byName.get(nameLower) || []
         nameSet.push(rich.id)
         this.byName.set(nameLower, nameSet)
-        
+
         const fileSet = this.byFile.get(rich.file) || []
         fileSet.push(rich.id)
         this.byFile.set(rich.file, fileSet)
-        
+
         const moduleSet = this.byModule.get(rich.moduleId) || []
         moduleSet.push(rich.id)
         this.byModule.set(rich.moduleId, moduleSet)
-        
+
         const exportedSet = this.byExport.get(rich.isExported) || []
         exportedSet.push(rich.id)
         this.byExport.set(rich.isExported, exportedSet)
-        
+
         const returnTypeLower = rich.returnType.toLowerCase()
         const returnSet = this.byReturnType.get(returnTypeLower) || []
         returnSet.push(rich.id)
         this.byReturnType.set(returnTypeLower, returnSet)
-        
+
         for (const param of rich.params) {
             const typeLower = param.type.toLowerCase()
             if (!this.byParamType.has(typeLower)) {
@@ -408,14 +408,14 @@ export class RichFunctionIndex {
             }
             this.byParamType.get(typeLower)!.add(rich.id)
         }
-        
+
         for (const decorator of rich.decorators) {
             const decLower = decorator.toLowerCase()
             const decSet = this.byDecorator.get(decLower) || []
             decSet.push(rich.id)
             this.byDecorator.set(decLower, decSet)
         }
-        
+
         for (const keyword of rich.keywords) {
             if (!this.byKeyword.has(keyword)) {
                 this.byKeyword.set(keyword, new Set())
@@ -423,23 +423,23 @@ export class RichFunctionIndex {
             this.byKeyword.get(keyword)!.add(rich.id)
             this.allKeywords.add(keyword)
         }
-        
+
         for (const call of rich.calls) {
             if (!this.byCall.has(call.name)) {
                 this.byCall.set(call.name, new Set())
             }
             this.byCall.get(call.name)!.add(rich.id)
         }
-        
+
         for (const callerId of rich.calledBy) {
             if (!this.byCalledBy.has(callerId)) {
                 this.byCalledBy.set(callerId, new Set())
             }
             this.byCalledBy.get(callerId)!.add(rich.id)
         }
-        
+
         this.nameIndex.set(rich.name, rich.id)
-        
+
         if (rich.signatureHash) {
             this.bySignatureHash.set(rich.signatureHash, rich.id)
         }
@@ -451,7 +451,7 @@ export class RichFunctionIndex {
             existing.push(rich.id)
             this.byParamHash.set(paramHash, existing)
         }
-        
+
         const fullText = [
             rich.name,
             rich.file,
@@ -460,7 +460,7 @@ export class RichFunctionIndex {
             ...rich.params.map(p => p.name + ' ' + p.type),
             ...rich.keywords,
         ].join(' ').toLowerCase()
-        
+
         const tokens = fullText.split(/\s+/)
         for (const token of tokens) {
             if (token.length >= 2) {
@@ -509,14 +509,14 @@ export class RichFunctionIndex {
 
     findByParamTypes(paramTypes: string[]): RichFunction[] {
         if (paramTypes.length === 0) return []
-        
+
         const paramHashes = paramTypes.map(pt => this.simpleHash(pt))
         const candidates = this.byParamHash.get(paramHashes[0]) || []
-        
+
         if (paramTypes.length === 1) {
             return candidates.map(id => this.functions.get(id)).filter(Boolean) as RichFunction[]
         }
-        
+
         return candidates
             .map(id => this.functions.get(id))
             .filter((fn): fn is RichFunction => {
@@ -529,7 +529,7 @@ export class RichFunctionIndex {
     findByLocation(file: string, line: number): RichFunction | undefined {
         const fnsInFile = this.byFile.get(file)
         if (!fnsInFile) return undefined
-        
+
         for (const id of fnsInFile) {
             const fn = this.functions.get(id)
             if (fn && line >= fn.startLine && line <= fn.endLine) {
@@ -542,13 +542,13 @@ export class RichFunctionIndex {
     findBySignatureAndParams(signature: string, paramTypes?: string[]): RichFunction | undefined {
         const fn = this.findBySignature(signature)
         if (!fn) return undefined
-        
+
         if (paramTypes && paramTypes.length > 0) {
             const fnParamTypes = fn.params.map(p => p.type)
             const matches = paramTypes.every(pt => fnParamTypes.some(fpt => fpt.includes(pt)))
             if (!matches) return undefined
         }
-        
+
         return fn
     }
 
@@ -600,26 +600,26 @@ export class RichFunctionIndex {
         if (query.name || query.nameContains) {
             const nameQuery = (query.name || query.nameContains!).toLowerCase()
             const words = nameQuery.split(/\s+/).filter(w => w.length > 0)
-            
+
             // Require ALL words to match in function name (strict AND logic)
             const allMatchIds: string[] = []
-            
+
             for (const fn of this.functions.values()) {
                 const fnNameLower = fn.name.toLowerCase()
                 let allWordsMatch = true
-                
+
                 for (const word of words) {
                     if (!fnNameLower.includes(word)) {
                         allWordsMatch = false
                         break
                     }
                 }
-                
+
                 if (allWordsMatch) {
                     allMatchIds.push(fn.id)
                 }
             }
-            
+
             // Only return results if ALL words match
             if (allMatchIds.length > 0) {
                 candidateIds = new Set(allMatchIds)
@@ -643,7 +643,7 @@ export class RichFunctionIndex {
             const matching = [...this.byName.entries()]
                 .filter(([name]) => name.includes(lower))
                 .flatMap(([, ids]) => ids)
-            
+
             if (candidateIds) {
                 candidateIds = new Set([...candidateIds].filter(id => matching.includes(id)))
             } else {
@@ -657,7 +657,7 @@ export class RichFunctionIndex {
             const matching = [...this.byName.entries()]
                 .filter(([name]) => name.startsWith(lower))
                 .flatMap(([, ids]) => ids)
-            
+
             if (candidateIds) {
                 candidateIds = new Set([...candidateIds].filter(id => matching.includes(id)))
             } else {
@@ -681,7 +681,7 @@ export class RichFunctionIndex {
             const matching = [...this.byFile.entries()]
                 .filter(([file]) => file.toLowerCase().includes(lower))
                 .flatMap(([, ids]) => ids)
-            
+
             if (candidateIds) {
                 candidateIds = new Set([...candidateIds].filter(id => matching.includes(id)))
             } else {
@@ -735,7 +735,7 @@ export class RichFunctionIndex {
             const matching = [...this.functions.values()]
                 .filter(f => f.returnType.toLowerCase().includes(lower))
                 .map(f => f.id)
-            
+
             if (candidateIds) {
                 candidateIds = new Set([...candidateIds].filter(id => matching.includes(id)))
             } else {
@@ -748,7 +748,7 @@ export class RichFunctionIndex {
             const matching = [...this.functions.values()]
                 .filter(f => f.params.some(p => p.name.toLowerCase() === query.hasParam!.toLowerCase()))
                 .map(f => f.id)
-            
+
             if (candidateIds) {
                 candidateIds = new Set([...candidateIds].filter(id => matching.includes(id)))
             } else {
@@ -764,7 +764,7 @@ export class RichFunctionIndex {
                     return query.paramTypes!.every(t => paramTypeStr.includes(t.toLowerCase()))
                 })
                 .map(f => f.id)
-            
+
             if (candidateIds) {
                 candidateIds = new Set([...candidateIds].filter(id => matching.includes(id)))
             } else {
@@ -801,7 +801,7 @@ export class RichFunctionIndex {
 
         if (query.text) {
             const tokens = query.text.toLowerCase().split(/\s+/).filter(t => t.length >= 2)
-            
+
             if (tokens.length > 0) {
                 // Get name-based matches (from byName index)
                 const nameMatches = new Set<string>()
@@ -814,7 +814,7 @@ export class RichFunctionIndex {
                         if (name.includes(token)) ids.forEach(id => nameMatches.add(id))
                     }
                 }
-                
+
                 // Get text-based matches (from textIndex) - use OR logic
                 const textMatches = new Set<string>()
                 for (const token of tokens) {
@@ -827,11 +827,11 @@ export class RichFunctionIndex {
                         }
                     }
                 }
-                
+
                 // Combine name + text matches (OR logic)
                 let matchingIds: string[] = []
                 const allMatches = new Set<string>([...nameMatches, ...textMatches])
-                
+
                 // If we have matches, score them by how many query tokens they match
                 if (allMatches.size > 0) {
                     const matchScores = new Map<string, number>()
@@ -850,7 +850,7 @@ export class RichFunctionIndex {
                         .sort((a, b) => b[1] - a[1])
                         .map(([id]) => id)
                 }
-                
+
                 if (matchingIds.length > 0) {
                     if (candidateIds) {
                         candidateIds = new Set([...candidateIds].filter(id => matchingIds.includes(id)))
@@ -895,7 +895,7 @@ export class RichFunctionIndex {
             const matching = [...this.functions.values()]
                 .filter(f => f.params.length >= query.minParams!)
                 .map(f => f.id)
-            
+
             if (candidateIds) {
                 candidateIds = new Set([...candidateIds].filter(id => matching.includes(id)))
             } else {
@@ -908,13 +908,13 @@ export class RichFunctionIndex {
             const matching = [...this.functions.values()]
                 .filter(f => f.params.length <= query.maxParams!)
                 .map(f => f.id)
-            
+
             if (candidateIds) {
                 candidateIds = new Set([...candidateIds].filter(id => matching.includes(id)))
             } else {
                 candidateIds = new Set(matching)
             }
-                matchReasons.push(`maxParams: ${query.maxParams}`)
+            matchReasons.push(`maxParams: ${query.maxParams}`)
         }
 
         // Only return results if we actually matched something
@@ -924,7 +924,7 @@ export class RichFunctionIndex {
         }
 
         const results: SearchResult[] = []
-        
+
         // For text search, track match quality for scoring
         let textMatchQuality: Map<string, number> | undefined
         if (query.text) {
@@ -941,13 +941,13 @@ export class RichFunctionIndex {
                 }
             }
         }
-        
+
         for (const id of candidateIds) {
             const fn = this.functions.get(id)
             if (!fn) continue
-            
+
             let score = 1.0
-            
+
             // Exact name match gets highest score
             if (query.name && fn.name.toLowerCase() === query.name.toLowerCase()) {
                 score *= 3.0
@@ -967,7 +967,7 @@ export class RichFunctionIndex {
                 const kw = query.keyword.toLowerCase()
                 if (fn.keywords.includes(kw)) score *= 1.5
             }
-            
+
             results.push({
                 function: fn,
                 score,
@@ -979,7 +979,7 @@ export class RichFunctionIndex {
 
         const offset = query.offset || 0
         const limit = query.limit || 100
-        
+
         return results.slice(offset, offset + limit)
     }
 
@@ -1012,21 +1012,22 @@ export class RichFunctionIndex {
     getRelated(functionId: string, depth: number = 1): RichFunction[] {
         const related = new Set<string>()
         const queue: { id: string; d: number }[] = [{ id: functionId, d: 0 }]
-        
-        while (queue.length > 0) {
-            const { id, d } = queue.shift()!
+        let head = 0
+
+        while (head < queue.length) {
+            const { id, d } = queue[head++]
             if (d >= depth) continue
-            
+
             const fn = this.functions.get(id)
             if (!fn) continue
-            
+
             for (const callerId of fn.calledBy) {
                 if (!related.has(callerId)) {
                     related.add(callerId)
                     queue.push({ id: callerId, d: d + 1 })
                 }
             }
-            
+
             for (const callee of fn.calls) {
                 if (callee.targetId && !related.has(callee.targetId)) {
                     related.add(callee.targetId)
@@ -1034,7 +1035,7 @@ export class RichFunctionIndex {
                 }
             }
         }
-        
+
         return [...related]
             .map(id => this.functions.get(id))
             .filter(Boolean) as RichFunction[]
@@ -1043,9 +1044,9 @@ export class RichFunctionIndex {
     getContext(request: ContextRequest): FunctionContext | null {
         const fn = this.functions.get(request.functionId)
         if (!fn) return null
-        
+
         const include = request.include || 'full'
-        
+
         const context: FunctionContext = {
             signature: fn.signature,
             fullSignature: fn.fullSignature,
@@ -1059,14 +1060,14 @@ export class RichFunctionIndex {
             endLine: fn.endLine,
             keywords: fn.keywords,
         }
-        
+
         if (include === 'full' || include === 'body' || include === 'all') {
             context.purpose = fn.purpose
             context.docComment = fn.docComment
             context.errorHandling = fn.errorHandling
             context.edgeCases = fn.edgeCasesHandled
         }
-        
+
         if (fn.body && (include === 'body' || include === 'all')) {
             if (request.maxBodyLines && request.maxBodyLines > 0) {
                 const lines = fn.body.split('\n')
@@ -1078,7 +1079,7 @@ export class RichFunctionIndex {
                 context.body = fn.body
             }
         }
-        
+
         return context
     }
 
@@ -1147,27 +1148,27 @@ export class RichFunctionIndex {
         byFile: Record<string, number>
     } {
         const functions = [...this.functions.values()]
-        
+
         const byModule: Record<string, number> = {}
         const byReturnType: Record<string, number> = {}
         const byFile: Record<string, number> = {}
-        
+
         let exportedCount = 0
         let asyncCount = 0
-        
+
         for (const fn of functions) {
             if (fn.isExported) exportedCount++
             if (fn.isAsync) asyncCount++
-            
+
             byModule[fn.moduleId] = (byModule[fn.moduleId] || 0) + 1
-            
+
             const returnType = fn.returnType || 'unknown'
             byReturnType[returnType] = (byReturnType[returnType] || 0) + 1
-            
+
             const fileName = fn.file.split('/').pop() || fn.file
             byFile[fileName] = (byFile[fileName] || 0) + 1
         }
-        
+
         return {
             totalFunctions: functions.length,
             exportedCount,

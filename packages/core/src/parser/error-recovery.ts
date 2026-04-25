@@ -1,7 +1,8 @@
-import type { ParsedFile, ParsedFunction, ParsedClass, ParsedImport, ParsedParam } from './types.js'
+import type { ParsedFile, ParsedFunction, ParsedClass, ParsedImport, ParsedParam, ParsedGeneric } from './types.js'
 import * as path from 'node:path'
 import { hashContent } from '../hash/file-hasher.js'
 import { toParsedFileLanguage, type RegistryLanguage } from '../utils/language-registry.js'
+import { makeCanonicalId } from '../utils/id.js'
 
 // ---------------------------------------------------------------------------
 // Error Recovery Engine — graceful degradation when parsing fails
@@ -36,6 +37,7 @@ export class ErrorRecoveryEngine {
     const errors: string[] = []
     const functions: ParsedFunction[] = []
     const classes: ParsedClass[] = []
+    const generics: ParsedGeneric[] = []
     const imports: ParsedImport[] = []
 
     try {
@@ -44,7 +46,7 @@ export class ErrorRecoveryEngine {
       if (language === 'python' || ext === '.py') {
         this.recoverPython(filePath, content, lines, functions, classes, imports)
       } else if (language === 'typescript' || language === 'javascript' || ext === '.ts' || ext === '.tsx' || ext === '.js' || ext === '.jsx') {
-        this.recoverJavaScript(filePath, content, lines, functions, classes, imports)
+        this.recoverJavaScript(filePath, content, lines, functions, classes, generics, imports)
       } else if (language === 'go' || ext === '.go') {
         this.recoverGo(filePath, content, lines, functions, classes, imports)
       } else if (language === 'rust' || ext === '.rs') {
@@ -71,7 +73,7 @@ export class ErrorRecoveryEngine {
         functions,
         classes,
         imports,
-        generics: [],
+        generics,
         variables: [],
         exports: [],
         routes: [],
@@ -133,7 +135,7 @@ export class ErrorRecoveryEngine {
           optional: p.includes('=') || p.startsWith('self') || p.startsWith('cls'),
         }))
         functions.push({
-          id: `fn:${filePath}:${name.toLowerCase()}`,
+          id: makeCanonicalId('fn', filePath, name),
           name,
           file: filePath,
           startLine: i + 1,
@@ -158,7 +160,7 @@ export class ErrorRecoveryEngine {
       if (match) {
         const [, name] = match
         classes.push({
-          id: `class:${filePath}:${name.toLowerCase()}`,
+          id: makeCanonicalId('class', filePath, name),
           name,
           file: filePath,
           startLine: i + 1,
@@ -197,10 +199,15 @@ export class ErrorRecoveryEngine {
     lines: string[],
     functions: ParsedFunction[],
     classes: ParsedClass[],
+    generics: ParsedGeneric[],
     imports: ParsedImport[]
   ): void {
-    const funcRegex = /^\s*(?:export\s+)?(?:default\s+)?(?:async\s+)?function\s+(\w+)\s*\(([^)]*)\)/
+    const funcRegex = /^\s*(?:export\s+)?(?:default\s+)?(?:async\s+)?function\s+(\w+)\s*(?:<[^>]*>)?\s*\(([^)]*)\)/
     const arrowRegex = /^\s*(?:export\s+)?(?:const|let|var)\s+(\w+)\s*=\s*(?:async\s+)?\(([^)]*)\)/
+    const methodRegex = /^\s*(?:async\s+)?(?:get\s+|set\s+)?(\w+)\s*\(([^)]*)\)\s*(?::\s*[^\{]+)?\s*\{/
+    const interfaceRegex = /^\s*(?:export\s+)?interface\s+(\w+)/
+    const typeRegex = /^\s*(?:export\s+)?type\s+(\w+)/
+    const classRegex = /^\s*(?:@\w+(?:\([^)]*\))?\s*)*(?:export\s+)?(?:default\s+)?class\s+(\w+)/
 
     for (let i = 0; i < lines.length; i++) {
       let match = lines[i].match(funcRegex)
@@ -216,7 +223,7 @@ export class ErrorRecoveryEngine {
           optional: p.includes('?') || p.includes('='),
         }))
         functions.push({
-          id: `fn:${filePath}:${name.toLowerCase()}`,
+          id: makeCanonicalId('fn', filePath, name),
           name,
           file: filePath,
           startLine: i + 1,
@@ -233,15 +240,31 @@ export class ErrorRecoveryEngine {
           detailedLines: [],
         })
       }
+
+      // Interfaces and Types
+      let gMatch = lines[i].match(interfaceRegex) || lines[i].match(typeRegex)
+      if (gMatch) {
+        const name = gMatch[1]
+        generics.push({
+          id: makeCanonicalId('type', filePath, name),
+          name,
+          type: lines[i].includes('interface') ? 'interface' : 'type',
+          file: filePath,
+          startLine: i + 1,
+          endLine: this.findJSBraceEnd(lines, i),
+          isExported: lines[i].includes('export'),
+          hash: '',
+          purpose: '',
+        })
+      }
     }
 
-    const classRegex = /^\s*(?:export\s+)?(?:default\s+)?class\s+(\w+)/
     for (let i = 0; i < lines.length; i++) {
       const match = lines[i].match(classRegex)
       if (match) {
         const [, name] = match
         classes.push({
-          id: `class:${filePath}:${name.toLowerCase()}`,
+          id: makeCanonicalId('class', filePath, name),
           name,
           file: filePath,
           startLine: i + 1,
@@ -252,6 +275,31 @@ export class ErrorRecoveryEngine {
           hash: '',
           properties: [],
         })
+
+        // Simple method recovery within class
+        const methodRegex = /^\s*(?:async\s+)?(?:get\s+|set\s+)?(\w+)\s*\(([^)]*)\)\s*(?::\s*[^\{]+)?\s*\{/
+        const classEnd = this.findJSBraceEnd(lines, i)
+        for (let j = i + 1; j < classEnd; j++) {
+          const mMatch = lines[j].match(methodRegex)
+          if (mMatch && !mMatch[0].includes('function')) {
+            const [, mName] = mMatch
+            if (['if', 'for', 'while', 'switch', 'catch', 'constructor'].includes(mName)) continue
+            functions.push({
+              id: makeCanonicalId('fn', filePath, `${name}.${mName}`),
+              name: `${name}.${mName}`,
+              file: filePath,
+              startLine: j + 1,
+              endLine: this.findJSBraceEnd(lines, j),
+              isAsync: lines[j].includes('async'),
+              isExported: false,
+              params: [],
+              returnType: '',
+              purpose: '',
+              calls: [], hash: '',
+              edgeCasesHandled: [], errorHandling: [], detailedLines: []
+            })
+          }
+        }
       }
     }
 
@@ -289,7 +337,7 @@ export class ErrorRecoveryEngine {
         const [, name] = match
         const isExported = name.length > 0 && name[0] === name[0].toUpperCase()
         functions.push({
-          id: `fn:${filePath}:${name.toLowerCase()}`,
+          id: makeCanonicalId('fn', filePath, name),
           name,
           file: filePath,
           startLine: i + 1,
@@ -315,7 +363,7 @@ export class ErrorRecoveryEngine {
         const [, name] = match
         const isExported = name.length > 0 && name[0] === name[0].toUpperCase()
         classes.push({
-          id: `class:${filePath}:${name.toLowerCase()}`,
+          id: makeCanonicalId('class', filePath, name),
           name,
           file: filePath,
           startLine: i + 1,
@@ -380,7 +428,7 @@ export class ErrorRecoveryEngine {
         const [, name] = match
         const isExported = lines[i].includes('pub')
         functions.push({
-          id: `fn:${filePath}:${name.toLowerCase()}`,
+          id: makeCanonicalId('fn', filePath, name),
           name,
           file: filePath,
           startLine: i + 1,
@@ -405,7 +453,7 @@ export class ErrorRecoveryEngine {
       if (match) {
         const [, name] = match
         classes.push({
-          id: `class:${filePath}:${name.toLowerCase()}`,
+          id: makeCanonicalId('class', filePath, name),
           name,
           file: filePath,
           startLine: i + 1,
@@ -450,7 +498,7 @@ export class ErrorRecoveryEngine {
         if (name !== 'if' && name !== 'for' && name !== 'while' && name !== 'switch' && name !== 'class' && name !== 'interface') {
           const isExported = lines[i].includes('public')
           functions.push({
-            id: `fn:${filePath}:${name.toLowerCase()}`,
+            id: makeCanonicalId('fn', filePath, name),
             name,
             file: filePath,
             startLine: i + 1,
@@ -476,7 +524,7 @@ export class ErrorRecoveryEngine {
       if (match) {
         const [, name] = match
         classes.push({
-          id: `class:${filePath}:${name.toLowerCase()}`,
+          id: makeCanonicalId('class', filePath, name),
           name,
           file: filePath,
           startLine: i + 1,
@@ -531,7 +579,7 @@ export class ErrorRecoveryEngine {
         const match = lines[i].match(pattern)
         if (match) {
           functions.push({
-            id: `fn:${filePath}:${match[1].toLowerCase()}`,
+            id: makeCanonicalId('fn', filePath, match[1]),
             name: match[1],
             file: filePath,
             startLine: i + 1,
@@ -555,7 +603,7 @@ export class ErrorRecoveryEngine {
         const match = lines[i].match(pattern)
         if (match) {
           classes.push({
-            id: `class:${filePath}:${match[1].toLowerCase()}`,
+            id: makeCanonicalId('class', filePath, match[1]),
             name: match[1],
             file: filePath,
             startLine: i + 1,

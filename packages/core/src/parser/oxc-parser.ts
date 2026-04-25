@@ -1,8 +1,9 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import path from 'node:path';
-import { BaseExtractor } from './base-extractor.js';
+import { BaseExtractor, ExtractOptions, ParseDepth } from './base-extractor.js';
 import { OxcResolver } from './oxc-resolver.js';
 import { hashContent } from '../hash/file-hasher.js';
+import { makeIdAllocator, toPosixPath } from '../utils/id.js';
 import type {
     ParsedFile,
     ParsedFunction,
@@ -45,28 +46,9 @@ class LineIndex {
 }
 
 // ---------------------------------------------------------------------------
-// ID allocation
+// ID allocation — delegated to the canonical factory in utils/id.ts
+// This ensures ALL parsers produce identically-formatted IDs.
 // ---------------------------------------------------------------------------
-// Canonical ID format (lowercased for stable matching):
-//   fn:<absolute-posix-path>:<functionname>
-//   fn:<absolute-posix-path>:<functionname>#2   (second occurrence in same file)
-//   class:<absolute-posix-path>:<classname>
-//   type:<absolute-posix-path>:<typename>
-//   enum:<absolute-posix-path>:<enumname>
-//   var:<absolute-posix-path>:<varname>
-//   prop:<absolute-posix-path>:<propname>
-// ---------------------------------------------------------------------------
-function makeAllocator(filePath: string): (prefix: string, name: string) => string {
-    const counter = new Map<string, number>();
-    const normalizedPath = filePath.replace(/\\/g, '/').toLowerCase();
-    return (prefix: string, name: string): string => {
-        const key = `${prefix}:${name}`;
-        const count = (counter.get(key) ?? 0) + 1;
-        counter.set(key, count);
-        const suffix = count === 1 ? '' : `#${count}`;
-        return `${prefix}:${normalizedPath}:${name}${suffix}`;
-    };
-}
 
 // ---------------------------------------------------------------------------
 // Export detection helpers
@@ -105,12 +87,15 @@ function resolvePropertyName(node: any): string | null {
     return null;
 }
 
-function extractDecorators(node: any): string[] {
-    if (!node?.decorators?.length) return [];
-    return node.decorators.map((dec: any) => {
-        if (dec.expression?.type === 'Identifier') return dec.expression.name;
-        if (dec.expression?.type === 'CallExpression') {
-            const callee = dec.expression.callee;
+function extractDecorators(node: any, parent?: any): string[] {
+    const decorators = node?.decorators ?? parent?.decorators ?? [];
+    if (!decorators.length) return [];
+    return decorators.map((dec: any) => {
+        const expr = dec.expression;
+        if (!expr) return 'decorator';
+        if (expr.type === 'Identifier') return expr.name;
+        if (expr.type === 'CallExpression') {
+            const callee = expr.callee;
             if (callee?.type === 'Identifier') return callee.name;
             if (callee?.type === 'MemberExpression') {
                 const obj = callee.object?.name ?? '';
@@ -118,7 +103,7 @@ function extractDecorators(node: any): string[] {
                 return obj ? `${obj}.${prop}` : prop;
             }
         }
-        return dec.expression?.name ?? dec.name ?? 'decorator';
+        return expr.name ?? dec.name ?? 'decorator';
     });
 }
 
@@ -351,30 +336,59 @@ function getSpan(node: any): { start: number; end: number } {
 // ---------------------------------------------------------------------------
 // TypescriptExtractor (OXC-based)
 // ---------------------------------------------------------------------------
+
 export class TypescriptExtractor extends BaseExtractor {
-    public async extract(filePath: string, content: string): Promise<ParsedFile> {
+    public async extract(filePath: string, content: string, options?: ExtractOptions): Promise<ParsedFile> {
+        let depth = options?.depth ?? 'full';
         const ext = path.extname(filePath).toLowerCase();
         const isTS = ['.ts', '.tsx', '.mts', '.cts'].includes(ext);
 
-         let ast: any;
-         try {
-             const { parseSync } = await import('oxc-parser');
-             const lang = ext === '.jsx' ? 'jsx' : ext === '.tsx' ? 'tsx' : isTS ? 'ts' : 'js';
-              const result = parseSync(filePath, content, {
-                  sourceType: 'module',
-                  lang: lang,
-              });
-             ast = result.program;
-         } catch (err) {
-             const error = err instanceof Error ? err.message : String(err);
-             const preview = content.substring(0, 100).replace(/\n/g, ' ');
-             console.warn(`[mikk] Parse error in ${filePath}: ${error} (content: "${preview}...")`);
-             return this.emptyFile(filePath, content, isTS);
-         }
+        if (depth === 'metadata-only') {
+            return {
+                path: toPosixPath(filePath),
+                language: isTS ? 'typescript' : 'javascript',
+                functions: [],
+                classes: [],
+                variables: [],
+                generics: [],
+                imports: [],
+                exports: [],
+                reexports: [],
+                routes: [],
+                calls: [],
+                hash: hashContent(content),
+                parsedAt: Date.now(),
+            };
+        }
+
+        // T54 fix: Detect extremely long minified lines (>2000 chars)
+        // Disable call graph analysis for these to avoid poisoning and performance death.
+        // 'exports-only' is the correct ParseDepth — the visitor skips body recursion at
+        // this depth, preventing the call graph contamination T54 exposed.
+        const isMinified = content.split('\n').some(line => line.length > 2000);
+        if (isMinified) depth = 'exports-only';
+
+        let ast: any;
+        try {
+            const { parseSync } = await import('oxc-parser');
+            const lang = ext === '.jsx' ? 'jsx' : ext === '.tsx' ? 'tsx' : isTS ? 'ts' : 'js';
+            const result = parseSync(filePath, content, {
+                sourceType: 'module',
+                lang: lang,
+            });
+            ast = result.program;
+        } catch (err) {
+            const error = err instanceof Error ? err.message : String(err);
+            const preview = content.substring(0, 100).replace(/\n/g, ' ');
+            // T52 fix: throw so the recovery engine can try regex/other parsers
+            throw new Error(`Parse error in ${filePath}: ${error} (content preview: "${preview}...")`);
+        }
 
         const lineIndex = new LineIndex(content);
-        const allocateId = makeAllocator(filePath);
-        const normalizedFilePath = filePath.replace(/\\/g, '/');
+        const allocateId = makeIdAllocator(filePath);
+        // normalizeFsPath inside makeIdAllocator lowercases; keep a display path for
+        // file: fields that preserves the original casing (for readability only).
+        const normalizedFilePath = toPosixPath(filePath);
 
         const functions: ParsedFunction[] = [];
         const classes: ParsedClass[] = [];
@@ -385,6 +399,8 @@ export class TypescriptExtractor extends BaseExtractor {
         const reexports: ReExport[] = [];
         const moduleCalls: CallExpression[] = [];
         const routes: ParsedRoute[] = [];
+        // O(1) name→kind lookup for ExportNamedDeclaration (replaces 4×O(n) .find() per specifier)
+        const declaredNameKind = new Map<string, ParsedExport['type']>();
 
         const visit = (node: any, parent: any = null): void => {
             if (!node || typeof node !== 'object') return;
@@ -447,7 +463,7 @@ export class TypescriptExtractor extends BaseExtractor {
                     const name = node.id.name;
                     const span = getSpan(node);
                     const exported = isDirectlyExported(parent);
-                    const decorators = extractDecorators(node);
+                    const decorators = extractDecorators(node, parent);
                     functions.push({
                         id: allocateId('fn', name),
                         name,
@@ -458,7 +474,9 @@ export class TypescriptExtractor extends BaseExtractor {
                         returnType: extractReturnType(node.returnType ?? node.signature?.returnType),
                         isExported: exported,
                         isAsync: !!node.async,
-                        calls: extractCalls(node.body ?? node, lineIndex),
+                        isAbstract: !!node.abstract, // T61 fix
+                        calls: depth === 'full' ? extractCalls(node.body ?? node, lineIndex) : [],
+                        typeParameters: node.typeParameters ? extractTypeParameterNames(node.typeParameters) : undefined, // T62 fix
                         hash: hashContent(JSON.stringify(node.body ?? {})),
                         purpose: '',
                         edgeCasesHandled: [],
@@ -467,6 +485,7 @@ export class TypescriptExtractor extends BaseExtractor {
                         decorators: decorators.length > 0 ? decorators : undefined,
                     });
                     if (exported) exports.push({ name, type: 'function', file: normalizedFilePath });
+                    declaredNameKind.set(name, 'function');
                     break;
                 }
 
@@ -476,12 +495,13 @@ export class TypescriptExtractor extends BaseExtractor {
                     const name = node.id.name;
                     const span = getSpan(node);
                     const exported = isDirectlyExported(parent);
-                    const decorators = extractDecorators(node);
+                    const decorators = extractDecorators(node, parent);
                     const methods: ParsedFunction[] = [];
                     const properties: ParsedVariable[] = [];
 
                     for (const member of node.body?.body ?? []) {
-                        if (member.type === 'MethodDefinition' || member.type === 'PropertyDefinition') {
+                        if (member.type === 'MethodDefinition' || member.type === 'PropertyDefinition' ||
+                            member.type === 'TSAbstractMethodDefinition' || member.type === 'TSAbstractPropertyDefinition') {
                             const key = member.key;
                             if (!key) continue;
                             const mName = key.type === 'Identifier' ? key.name :
@@ -490,9 +510,10 @@ export class TypescriptExtractor extends BaseExtractor {
                             if (!mName) continue;
 
                             const memberDecorators = extractDecorators(member);
-                            const isMethod = member.type === 'MethodDefinition';
+                            const isMethod = member.type === 'MethodDefinition' || member.type === 'TSAbstractMethodDefinition';
+                            const isAbstractMethod = member.type === 'TSAbstractMethodDefinition' || !!member.abstract;
                             if (isMethod) {
-                                const value = member.value;
+                                const value = member.value || member;
                                 const mSpan = getSpan(member);
                                 methods.push({
                                     id: allocateId('fn', `${name}.${mName}`),
@@ -504,12 +525,14 @@ export class TypescriptExtractor extends BaseExtractor {
                                     returnType: extractReturnType(value?.returnType ?? value?.signature?.returnType),
                                     isExported: exported,
                                     isAsync: !!value?.async,
-                                    calls: extractCalls(value?.body ?? value ?? {}, lineIndex),
+                                    calls: depth === 'full' ? extractCalls(value?.body ?? value ?? {}, lineIndex) : [],
+                                    typeParameters: value?.typeParameters ? extractTypeParameterNames(value.typeParameters) : undefined,
                                     hash: hashContent(JSON.stringify(value?.body ?? {})),
                                     purpose: '',
                                     edgeCasesHandled: [],
                                     errorHandling: [],
                                     detailedLines: [],
+                                    isAbstract: isAbstractMethod,
                                     decorators: memberDecorators.length > 0 ? memberDecorators : undefined,
                                 });
                             } else {
@@ -518,7 +541,7 @@ export class TypescriptExtractor extends BaseExtractor {
                                 const propertyNode: ParsedVariable = {
                                     id: allocateId('prop', `${name}.${mName}`),
                                     name: `${name}.${mName}`,
-                                    type: 'any',
+                                    type: extractTypeAnnotation(member.typeAnnotation),
                                     file: normalizedFilePath,
                                     line: lineIndex.getLine(pSpan.start),
                                     isExported: false,
@@ -540,12 +563,15 @@ export class TypescriptExtractor extends BaseExtractor {
                         methods,
                         properties,
                         extends: node.superClass?.name,
+                        typeParameters: node.typeParameters ? extractTypeParameterNames(node.typeParameters) : undefined,
                         isExported: exported,
+                        isAbstract: !!node.abstract, // T61 fix
                         hash: hashContent(JSON.stringify(node.body ?? {})),
                         purpose: '',
                         decorators: decorators.length > 0 ? decorators : undefined,
                     });
                     if (exported) exports.push({ name, type: 'class', file: normalizedFilePath });
+                    declaredNameKind.set(name, 'class');
                     break;
                 }
 
@@ -571,6 +597,7 @@ export class TypescriptExtractor extends BaseExtractor {
                         purpose: '',
                     });
                     if (exported) exports.push({ name, type: kind as any, file: normalizedFilePath });
+                    declaredNameKind.set(name, kind as ParsedExport['type']);
                     break;
                 }
 
@@ -592,6 +619,7 @@ export class TypescriptExtractor extends BaseExtractor {
                         purpose: '',
                     });
                     if (exported) exports.push({ name, type: 'const', file: normalizedFilePath });
+                    declaredNameKind.set(name, 'const');
                     break;
                 }
 
@@ -630,10 +658,11 @@ export class TypescriptExtractor extends BaseExtractor {
                                 startLine: lineIndex.getLine(span.start),
                                 endLine: lineIndex.getLine(span.end),
                                 params: extractParams(init.params?.items ?? init.params ?? []),
-                                returnType: 'any',
+                                returnType: extractReturnType(init.returnType ?? init.typeAnnotation),
                                 isExported: exported,
                                 isAsync: !!init.async,
-                                calls: extractCalls(init.body ?? init, lineIndex),
+                                calls: depth === 'full' ? extractCalls(init.body ?? init, lineIndex) : [],
+                                typeParameters: init.typeParameters ? extractTypeParameterNames(init.typeParameters) : undefined,
                                 hash: hashContent(JSON.stringify(init.body ?? {})),
                                 purpose: '',
                                 edgeCasesHandled: [],
@@ -641,6 +670,7 @@ export class TypescriptExtractor extends BaseExtractor {
                                 detailedLines: [],
                             });
                             if (exported) exports.push({ name, type: 'function', file: normalizedFilePath });
+                            declaredNameKind.set(name, 'function');
                         } else {
                             const span = getSpan(decl);
                             const line = lineIndex.getLine(span.start);
@@ -655,7 +685,10 @@ export class TypescriptExtractor extends BaseExtractor {
                                     isExported: exported,
                                 };
                                 variables.push(variableNode);
-                                if (exported) exports.push({ name, type: 'variable', file: normalizedFilePath });
+                                if (exported) {
+                                    exports.push({ name, type: 'variable', file: normalizedFilePath });
+                                    declaredNameKind.set(name, 'variable');
+                                }
                             }
                         }
                     }
@@ -677,10 +710,10 @@ export class TypescriptExtractor extends BaseExtractor {
                             startLine: lineIndex.getLine(span.start),
                             endLine: lineIndex.getLine(span.end),
                             params: extractParams(decl.params?.items ?? decl.params ?? []),
-                            returnType: 'any',
+                            returnType: extractReturnType(decl.returnType ?? decl.typeAnnotation),
                             isExported: true,
                             isAsync: !!decl.async,
-                            calls: extractCalls(decl.body ?? decl, lineIndex),
+                            calls: depth === 'full' ? extractCalls(decl.body ?? decl, lineIndex) : [],
                             hash: hashContent(JSON.stringify(decl.body ?? {})),
                             purpose: '',
                             edgeCasesHandled: [],
@@ -688,29 +721,48 @@ export class TypescriptExtractor extends BaseExtractor {
                             detailedLines: [],
                         });
                         exports.push({ name, type: 'default', file: normalizedFilePath });
+                        declaredNameKind.set(name, 'function');
                     } else if (decl.type === 'ClassDeclaration' && decl.id) {
                         exports.push({ name: decl.id.name, type: 'default', file: normalizedFilePath });
+                        declaredNameKind.set(decl.id.name, 'class');
                     } else if (decl.type === 'Identifier') {
                         exports.push({ name: decl.name, type: 'default', file: normalizedFilePath });
+                        declaredNameKind.set(decl.name, 'variable');
                     }
                     break;
+                }
+
+                // ── Export All (export * from './source') ─────────────────
+                case 'ExportAllDeclaration': {
+                    const source = node.source?.value
+                    if (!source) break
+                    // Wildcard re-export — record it so the symbol table can follow it
+                    reexports.push({
+                        name: node.exported?.name ?? '*',
+                        source: source,
+                    })
+                    break
                 }
 
                 // ── Named Exports ──────────────────────────────────────────
                 case 'ExportNamedDeclaration': {
                     const source = node.source?.value;
-                    
-                    for (const spec of node.specifiers ?? []) {
-                        const exportedName = spec.exported?.name ?? spec.local?.name;
-                        if (!exportedName) continue;
-                        
-                        if (source) {
-                            reexports.push({
-                                name: exportedName,
-                                source: source,
-                            });
-                        } else {
-                            exports.push({ name: exportedName, type: 'variable', file: normalizedFilePath });
+                    const specifiers = node.specifiers ?? [];
+
+                    if (specifiers.length > 0 && !source) {
+                        // Use pre-built declaredNameKind map from line 373 — O(1) per specifier
+                        for (const spec of specifiers) {
+                            const exportedName = spec.exported?.name ?? spec.local?.name;
+                            if (!exportedName) continue;
+                            const localName = spec.local?.name ?? exportedName;
+                            const exportType: ParsedExport['type'] = declaredNameKind.get(localName) ?? 'variable';
+                            exports.push({ name: exportedName, type: exportType, file: normalizedFilePath });
+                        }
+                    } else {
+                        for (const spec of specifiers) {
+                            const exportedName = spec.exported?.name ?? spec.local?.name;
+                            if (!exportedName) continue;
+                            reexports.push({ name: exportedName, source: source! });
                         }
                     }
                     break;
@@ -718,6 +770,7 @@ export class TypescriptExtractor extends BaseExtractor {
 
                 // ── Module-level call expressions ─────────────────────────
                 case 'ExpressionStatement': {
+                    if (depth !== 'full') break;
                     if (node.expression?.type === 'CallExpression') {
                         const callExpr = node.expression;
                         const calls = extractCalls(callExpr, lineIndex);
@@ -760,6 +813,13 @@ export class TypescriptExtractor extends BaseExtractor {
             // Recurse into children
             for (const key of Object.keys(node)) {
                 if (key === 'span' || key === 'type') continue;
+
+                // For exports-only, we skip diving into function/class bodies to save memory/time
+                if (depth === 'exports-only') {
+                    if (key === 'body' && (node.type === 'FunctionDeclaration' || node.type === 'FunctionExpression' || node.type === 'ArrowFunctionExpression')) continue;
+                    if (key === 'expression' && (node.type === 'ExpressionStatement')) continue;
+                }
+
                 const child = node[key];
                 if (Array.isArray(child)) {
                     for (const c of child) {
@@ -801,7 +861,7 @@ export class TypescriptExtractor extends BaseExtractor {
 
     private emptyFile(filePath: string, content: string, isTS: boolean): ParsedFile {
         return {
-            path: filePath.replace(/\\/g, '/'),
+            path: toPosixPath(filePath),
             language: isTS ? 'typescript' : 'javascript',
             functions: [],
             classes: [],

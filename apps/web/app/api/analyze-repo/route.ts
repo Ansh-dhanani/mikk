@@ -56,7 +56,7 @@ function getModuleColor(module: string): string {
   return MODULE_COLORS[module];
 }
 
-function parseFileForFunctions(content: string, _relativePath: string): { functions: string[], imports: string[], lineCount: number } {
+function parseFileForFunctions(content: string): { functions: string[], imports: string[], lineCount: number } {
   const lines = content.split("\n");
   const functions: string[] = [];
   const imports: string[] = [];
@@ -185,9 +185,8 @@ async function analyzeRepoFromGitHub(owner: string, repo: string): Promise<RepoA
     depth: 0,
   });
 
-  let totalLines = 0;
-  let totalImports = 0;
-  let totalFunctions = 0;
+  const totalLines = 0;
+  const totalImports = 0;
 
   // Fetch first 3 files in parallel to get module structure
   const filesToFetch = sourceFiles.slice(0, 20);
@@ -201,11 +200,7 @@ async function analyzeRepoFromGitHub(owner: string, repo: string): Promise<RepoA
       if (!contentRes.ok) continue;
       
       const content = await contentRes.text();
-      const { functions, imports, lineCount } = parseFileForFunctions(content, file.path);
-      
-      totalLines += lineCount;
-      totalImports += imports.length;
-      totalFunctions = functions.length;
+      const { functions, imports, lineCount } = parseFileForFunctions(content);
       
       // Determine module from path
       const pathParts = file.path.split("/");

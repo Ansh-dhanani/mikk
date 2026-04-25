@@ -141,12 +141,15 @@ export default function RootLayout({
         fontMono.variable,
         fontSerif.variable
       )}
-    >
-      <head>
-        <script
-          type="application/ld+json"
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }}
-        />
+>
+      <head suppressHydrationWarning>
+        {structuredData?.name && (
+          <script
+            type="application/ld+json"
+            suppressHydrationWarning
+            dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }}
+          />
+        )}
       </head>
       {/* Ignore hydration mismatches caused by browser extensions adding attributes (e.g. cz-shortcut-listen). */}
       <body className="min-h-dvh" suppressHydrationWarning>

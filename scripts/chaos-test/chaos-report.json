@@ -1,0 +1,280 @@
+{
+  "summary": {
+    "total": 30,
+    "passed": 30,
+    "failed": 0
+  },
+  "discoveredFailureClasses": [],
+  "results": [
+    {
+      "id": "T31",
+      "name": "Search Non-Determinism — Same Query, 20 Sequential Runs",
+      "category": "TRUST_VIOLATION",
+      "status": "PASS",
+      "durationMs": 1811,
+      "memoryDeltaMB": 2.86,
+      "issues": []
+    },
+    {
+      "id": "T32",
+      "name": "Stale Cache — Deleted File's Symbols Survive in Search Index",
+      "category": "TRUST_VIOLATION",
+      "status": "PASS",
+      "durationMs": 1552,
+      "memoryDeltaMB": 1.07,
+      "issues": []
+    },
+    {
+      "id": "T33",
+      "name": "Search Mode Contradiction — Semantic vs BM25 vs Hybrid Diverge",
+      "category": "TRUST_VIOLATION",
+      "status": "PASS",
+      "durationMs": 2107,
+      "memoryDeltaMB": 0.95,
+      "issues": []
+    },
+    {
+      "id": "T34",
+      "name": "Cross-Project State Bleed — Project B Symbols Appear in Project A Query",
+      "category": "TRUST_VIOLATION",
+      "status": "PASS",
+      "durationMs": 3599,
+      "memoryDeltaMB": 2.66,
+      "issues": []
+    },
+    {
+      "id": "T35",
+      "name": "Duplicate Symbol Disambiguation — 100 files, same function name",
+      "category": "TRUST_VIOLATION",
+      "status": "PASS",
+      "durationMs": 1259,
+      "memoryDeltaMB": 1.32,
+      "issues": []
+    },
+    {
+      "id": "T36",
+      "name": "Read-Your-Writes — New Symbol Not Visible Without Re-Index",
+      "category": "TRUST_VIOLATION",
+      "status": "PASS",
+      "durationMs": 1272,
+      "memoryDeltaMB": 0.85,
+      "issues": []
+    },
+    {
+      "id": "T37",
+      "name": "Post-Rename Impact Analysis — Stale Call Graph Reports Wrong Callers",
+      "category": "TRUST_VIOLATION",
+      "status": "PASS",
+      "durationMs": 808,
+      "memoryDeltaMB": 1.04,
+      "issues": []
+    },
+    {
+      "id": "T38",
+      "name": "Unicode Homograph — Cyrillic аuth Conflated With Latin auth",
+      "category": "TRUST_VIOLATION",
+      "status": "PASS",
+      "durationMs": 1341,
+      "memoryDeltaMB": 0.91,
+      "issues": []
+    },
+    {
+      "id": "T39",
+      "name": "Dynamic Dispatch Completeness — Does Tool Admit It Can't See Everything?",
+      "category": "TRUST_VIOLATION",
+      "status": "PASS",
+      "durationMs": 1028,
+      "memoryDeltaMB": 0.54,
+      "issues": []
+    },
+    {
+      "id": "T40",
+      "name": "5-Rename Chain — Each Rename Uses Previous as Input",
+      "category": "TRUST_VIOLATION",
+      "status": "PASS",
+      "durationMs": 1192,
+      "memoryDeltaMB": 1.32,
+      "issues": []
+    },
+    {
+      "id": "T41",
+      "name": "Full Dev Workflow: Search → Context → Rename → Re-index → Search",
+      "category": "WORKFLOW",
+      "status": "PASS",
+      "durationMs": 1092,
+      "memoryDeltaMB": -41.61,
+      "issues": []
+    },
+    {
+      "id": "T42",
+      "name": "Delete → Search → Re-index → Search: Tombstone Must Be Clean",
+      "category": "WORKFLOW",
+      "status": "PASS",
+      "durationMs": 1148,
+      "memoryDeltaMB": 0.15,
+      "issues": []
+    },
+    {
+      "id": "T43",
+      "name": "100 Interleaved Read/Write Pairs — No Torn Reads",
+      "category": "WORKFLOW",
+      "status": "PASS",
+      "durationMs": 2749,
+      "memoryDeltaMB": 0.64,
+      "issues": []
+    },
+    {
+      "id": "T44",
+      "name": "Misleading Corpus — Does Semantic Search Rank by Name or Behavior?",
+      "category": "WORKFLOW",
+      "status": "PASS",
+      "durationMs": 1536,
+      "memoryDeltaMB": -0.69,
+      "issues": []
+    },
+    {
+      "id": "T45",
+      "name": "Index Drift — 30% File Modification, No Re-index, Quality Should Degrade Visibly",
+      "category": "WORKFLOW",
+      "status": "PASS",
+      "durationMs": 1931,
+      "memoryDeltaMB": 0.45,
+      "issues": []
+    },
+    {
+      "id": "T46",
+      "name": "TOCTOU in mikk_before_edit — Constraint Satisfied at Check, Violated at Edit",
+      "category": "WORKFLOW",
+      "status": "PASS",
+      "durationMs": 943,
+      "memoryDeltaMB": -0.33,
+      "issues": []
+    },
+    {
+      "id": "T47",
+      "name": "Confidence Score Lying — High Score on Wrong Answer",
+      "category": "WORKFLOW",
+      "status": "PASS",
+      "durationMs": 1334,
+      "memoryDeltaMB": -0.03,
+      "issues": []
+    },
+    {
+      "id": "T48",
+      "name": "Escalating Secret Obfuscation — Level 0 to Level 5",
+      "category": "WORKFLOW",
+      "status": "PASS",
+      "durationMs": 4824,
+      "memoryDeltaMB": 0.09,
+      "issues": []
+    },
+    {
+      "id": "T49",
+      "name": "Concurrent before_edit + index_project — Constraint Race Window",
+      "category": "WORKFLOW",
+      "status": "PASS",
+      "durationMs": 1335,
+      "memoryDeltaMB": 0.14,
+      "issues": []
+    },
+    {
+      "id": "T50",
+      "name": "BEHAVIORAL CHAOS BOSS FIGHT — 6 Trust Violations Simultaneously",
+      "category": "WORKFLOW",
+      "status": "PASS",
+      "durationMs": 3572,
+      "memoryDeltaMB": 0.15,
+      "issues": []
+    },
+    {
+      "id": "T51",
+      "name": "Deeply Nested MCP Arguments — 1000 Levels of Nesting",
+      "category": "ADVERSARIAL_INPUT",
+      "status": "PASS",
+      "durationMs": 1365,
+      "memoryDeltaMB": 0.11,
+      "issues": []
+    },
+    {
+      "id": "T52",
+      "name": "AST Poison — Decorators + Conditional Types + Mapped Types in One File",
+      "category": "ADVERSARIAL_INPUT",
+      "status": "PASS",
+      "durationMs": 838,
+      "memoryDeltaMB": -0.03,
+      "issues": []
+    },
+    {
+      "id": "T53",
+      "name": "Adversarial Query — Ranking Manipulation via Contradiction Injection",
+      "category": "ADVERSARIAL_INPUT",
+      "status": "PASS",
+      "durationMs": 1294,
+      "memoryDeltaMB": 0.01,
+      "issues": []
+    },
+    {
+      "id": "T54",
+      "name": "Minified/Generated Code — Single 10K-Char Line, Valid TypeScript",
+      "category": "ADVERSARIAL_INPUT",
+      "status": "PASS",
+      "durationMs": 891,
+      "memoryDeltaMB": 0.01,
+      "issues": []
+    },
+    {
+      "id": "T55",
+      "name": "Re-export Cycle — A exports B re-exports C re-exports A",
+      "category": "ADVERSARIAL_INPUT",
+      "status": "PASS",
+      "durationMs": 876,
+      "memoryDeltaMB": -0.05,
+      "issues": []
+    },
+    {
+      "id": "T56",
+      "name": "Secret Hidden in Multi-line Template Literal",
+      "category": "ADVERSARIAL_INPUT",
+      "status": "PASS",
+      "durationMs": 796,
+      "memoryDeltaMB": -0.05,
+      "issues": []
+    },
+    {
+      "id": "T57",
+      "name": "Barrel File Explosion — index.ts Re-exports 1000 Modules",
+      "category": "ADVERSARIAL_INPUT",
+      "status": "PASS",
+      "durationMs": 4356,
+      "memoryDeltaMB": 0.22,
+      "issues": []
+    },
+    {
+      "id": "T58",
+      "name": "Abstract Class + Generic Constraint — Can MIKK Find Concrete Implementations?",
+      "category": "ADVERSARIAL_INPUT",
+      "status": "PASS",
+      "durationMs": 965,
+      "memoryDeltaMB": -0.05,
+      "issues": []
+    },
+    {
+      "id": "T59",
+      "name": "Bulk Query — 500 Symbols in Single mikk_bulk_query Call",
+      "category": "ADVERSARIAL_INPUT",
+      "status": "PASS",
+      "durationMs": 1383,
+      "memoryDeltaMB": 1.52,
+      "issues": []
+    },
+    {
+      "id": "T60",
+      "name": "ADVERSARIAL INPUT BOSS FIGHT — 5 Attack Vectors Simultaneously",
+      "category": "ADVERSARIAL_INPUT",
+      "status": "PASS",
+      "durationMs": 3890,
+      "memoryDeltaMB": -0.02,
+      "issues": []
+    }
+  ]
+}

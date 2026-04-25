@@ -1,4 +1,4 @@
-import type { MikkContract, MikkLock } from './schema.js'
+﻿import type { MikkContract, MikkLock } from './schema.js'
 import type { DependencyGraph } from '../graph/types.js'
 import type { ParsedFile } from '../parser/types.js'
 import type { ContextFile } from '../utils/fs.js'
@@ -7,6 +7,10 @@ import { hashContent } from '../hash/file-hasher.js'
 import { computeModuleHash, computeRootHash } from '../hash/tree-hasher.js'
 import { minimatch } from '../utils/minimatch.js'
 import { randomUUID } from 'node:crypto'
+import { ClusterDetector } from '../graph/cluster-detector.js'
+import { RouteHarvester } from '../parser/internal/route-harvester.js'
+import { SemanticRoleClassifier } from '../graph/semantic-role-classifier.js'
+import { getPathKey } from '../utils/path.js'
 
 const VERSION = '@getmikk/cli@1.2.1'
 
@@ -123,22 +127,49 @@ function capitalise(s: string): string {
  */
 export class LockCompiler {
     private projectRootPath: string | null = null
-    
+
     /** Main entry -- compile full lock from graph + contract + parsed files */
-    compile(
+    async compile(
         graph: DependencyGraph,
         contract: MikkContract,
         parsedFiles: ParsedFile[],
         contextFiles?: ContextFile[],
         projectRoot?: string
-    ): MikkLock {
+    ): Promise<MikkLock> {
         this.projectRootPath = projectRoot ? nodePath.resolve(projectRoot) : null
-        
-        const functions = this.compileFunctions(graph, contract)
-        const classes = this.compileClasses(graph, contract)
+
+        // Use semantic ClusterDetector for auto-modules
+        const clusterDetector = new ClusterDetector(graph, 1, 0.08, null)
+        const detectedClusters = clusterDetector.detect()
+
+        const fileClusterMap = new Map<string, string>()
+        const dynamicModules: Record<string, MikkLock['modules'][string]> = {}
+        for (const c of detectedClusters) {
+            for (const f of c.files) {
+                // Store under both original and normalised (lowercase forward-slash) key
+                // so findModule lookups succeed regardless of OS path casing.
+                fileClusterMap.set(f, c.id)
+                fileClusterMap.set(f.replace(/\\/g, '/').toLowerCase(), c.id)
+            }
+            const fileHashes = c.files.map(f => parsedFiles.find(pf => pf.path === f)?.hash ?? '')
+            dynamicModules[c.id] = {
+                id: c.id,
+                files: c.files,
+                hash: computeModuleHash(fileHashes),
+                fragmentPath: `.mikk/fragments/${c.id}.lock`,
+                parentId: c.parentId,
+            }
+        }
+
+        const functions = this.compileFunctions(graph, contract, fileClusterMap)
+        const classes = this.compileClasses(graph, contract, fileClusterMap)
         const generics = this.compileGenerics(graph, contract)
-        const modules = this.compileModules(contract, parsedFiles)
-        const files = this.compileFiles(parsedFiles, contract, graph)
+
+        // Merge contract-defined modules with auto-detected modules
+        const contractModules = this.compileModules(contract, parsedFiles)
+        const modules = { ...contractModules, ...dynamicModules }
+
+        const files = this.compileFiles(parsedFiles, contract, graph, fileClusterMap)
         const routes = this.compileRoutes(parsedFiles)
 
         const moduleHashes: Record<string, string> = {}
@@ -170,7 +201,7 @@ export class LockCompiler {
             routes: routes.length > 0 ? routes : undefined,
             graph: {
                 nodes: graph.nodes.size,
-                edges: graph.edges.length,
+                edges: graph.edges.map(e => ({ from: e.from, to: e.to, type: e.type, weight: e.weight })),
                 rootHash: computeRootHash(moduleHashes),
             },
         }
@@ -190,17 +221,21 @@ export class LockCompiler {
     /** Compile function entries, assigning each to its module */
     private compileFunctions(
         graph: DependencyGraph,
-        contract: MikkContract
+        contract: MikkContract,
+        fileClusterMap?: Map<string, string>
     ): Record<string, MikkLock['functions'][string]> {
         const result: Record<string, MikkLock['functions'][string]> = {}
 
+        // Singleton classifier — reuse across all functions
+        const roleClassifier = new SemanticRoleClassifier()
+        // Cache file→role results to avoid redundant classification
+        const fileRoleCache = new Map<string, { role: string; framework?: string }>()
+
         for (const [id, node] of graph.nodes) {
             if (node.type !== 'function') continue
-
-            // Skip vendor files
             if (this.isVendorPath(node.file)) continue
 
-            const moduleId = this.findModule(node.file, contract.declared.modules)
+            const moduleId = this.findModule(node.file, contract.declared.modules, fileClusterMap)
             const displayName = node.name ?? ''
             const metadata = node.metadata ?? {}
             const inEdges = graph.inEdges.get(id) || []
@@ -209,8 +244,13 @@ export class LockCompiler {
             const params = metadata.params || []
             const returnType = metadata.returnType || 'void'
             const signatureHash = hashContent(`${displayName}(${params.map(p => p.type).join(',')}):${returnType}`)
-            // Token vector generation is slow - skip for now, semantic search uses embeddings anyway
-            // const tokenVector = this.generateTokenVector(displayName, params, returnType, metadata.purpose)
+
+            // Semantic role classification — cached per file
+            let fileRole = fileRoleCache.get(node.file)
+            if (!fileRole) {
+                fileRole = roleClassifier.classifyFile(node.file)
+                fileRoleCache.set(node.file, fileRole)
+            }
 
             result[id] = {
                 id,
@@ -235,91 +275,25 @@ export class LockCompiler {
                 edgeCasesHandled: metadata.edgeCasesHandled,
                 errorHandling: metadata.errorHandling,
                 signatureHash,
+                ...(fileRole.role !== 'unknown' ? { role: fileRole.role } : {}),
+                ...(fileRole.framework ? { roleFramework: fileRole.framework } : {}),
             }
         }
 
         return result
     }
 
-    /** @deprecated Token vectors are no longer generated - semantic search uses embeddings instead */
-    private generateTokenVector(
-        name: string,
-        params: Array<{ name: string; type: string; optional?: boolean }>,
-        returnType: string,
-        purpose?: string
-    ): number[] {
-        const tokens: string[] = []
-
-        tokens.push(...name.match(/[A-Z][a-z]+|[a-z]+/g)?.map(t => t.toLowerCase()) || [])
-
-        for (const param of params) {
-            tokens.push(...param.name.match(/[A-Z][a-z]+|[a-z]+/g)?.map(t => t.toLowerCase()) || [])
-        }
-
-        tokens.push(...returnType.match(/[A-Z][a-z]+|[a-z]+/g)?.map(t => t.toLowerCase()) || [])
-
-        if (purpose) {
-            tokens.push(...purpose.match(/[a-z]{3,}/g)?.map(t => t.toLowerCase()) || [])
-        }
-
-        const vocabulary = this.buildVocabulary()
-        const vector = new Array(64).fill(0)
-
-        for (const token of tokens) {
-            if (vocabulary.has(token)) {
-                const idx = vocabulary.get(token)!
-                const hash = this.simpleHash(token)
-                vector[idx % 64] += hash
-            }
-        }
-
-        const magnitude = Math.sqrt(vector.reduce((sum, v) => sum + v * v, 0))
-        if (magnitude > 0) {
-            for (let i = 0; i < vector.length; i++) {
-                vector[i] /= magnitude
-            }
-        }
-
-        return vector
-    }
-
-    private buildVocabulary(): Map<string, number> {
-        const common = [
-            'get', 'set', 'add', 'remove', 'create', 'delete', 'update', 'find',
-            'load', 'save', 'parse', 'format', 'validate', 'check', 'handle',
-            'process', 'render', 'display', 'build', 'make', 'init', 'setup',
-            'config', 'user', 'auth', 'login', 'logout', 'token', 'data', 'file',
-            'path', 'config', 'options', 'params', 'args', 'error', 'result',
-            'async', 'promise', 'callback', 'event', 'handler', 'middleware',
-            'database', 'query', 'insert', 'update', 'delete', 'select', 'transaction',
-            'string', 'number', 'boolean', 'array', 'object', 'function', 'class',
-            'interface', 'type', 'enum', 'const', 'var', 'let', 'return', 'void',
-        ]
-
-        const vocab = new Map<string, number>()
-        common.forEach((word, idx) => vocab.set(word, idx))
-        return vocab
-    }
-
-    private simpleHash(str: string): number {
-        let hash = 0
-        for (let i = 0; i < str.length; i++) {
-            hash = ((hash << 5) - hash) + str.charCodeAt(i)
-            hash = hash & hash
-        }
-        return Math.abs(hash % 10)
-    }
-
     private compileClasses(
         graph: DependencyGraph,
-        contract: MikkContract
+        contract: MikkContract,
+        fileClusterMap?: Map<string, string>
     ): Record<string, any> {
         const result: Record<string, any> = {}
         for (const [id, node] of graph.nodes) {
             if (node.type !== 'class') continue
             if (this.isVendorPath(node.file)) continue
-            
-            const moduleId = this.findModule(node.file, contract.declared.modules)
+
+            const moduleId = this.findModule(node.file, contract.declared.modules, fileClusterMap)
             const className = node.name ?? ''
             const metadata = node.metadata ?? {}
             result[id] = {
@@ -349,14 +323,16 @@ export class LockCompiler {
             // internal implementation details that add noise without value.
             if (!(node.metadata?.isExported)) continue
             if (this.isVendorPath(node.file)) continue
-            
+
             const moduleId = this.findModule(node.file, contract.declared.modules)
             const genericName = node.name ?? ''
             const metadata = node.metadata ?? {}
             raw[id] = {
                 id,
                 name: genericName,
-                type: metadata.hash ?? 'generic', // we stored type name in hash
+                // Fix: use genericKind (the actual type string stored by addGenericNode)
+                // NOT metadata.hash (which is the SHA-256 hash of the node content)
+                type: metadata.genericKind ?? 'generic',
                 file: node.file,
                 startLine: metadata.startLine ?? 0,
                 endLine: metadata.endLine ?? 0,
@@ -396,13 +372,13 @@ export class LockCompiler {
         parsedFiles: ParsedFile[]
     ): Record<string, MikkLock['modules'][string]> {
         const result: Record<string, MikkLock['modules'][string]> = {}
-        
+
         // Build file hash map
         const fileHashMap = new Map<string, string>()
         for (const file of parsedFiles) {
             fileHashMap.set(file.path, file.hash)
         }
-        
+
         // Pre-compute normalized paths for all files (do once)
         const filePathCache = parsedFiles.map(f => ({
             path: f.path,
@@ -410,11 +386,11 @@ export class LockCompiler {
             normalizedAbsolute: f.path.replace(/\\/g, '/').toLowerCase(),
             isVendor: this.isVendorPath(f.path)
         }))
-        
+
         // For each module, find matching files
         for (const module of contract.declared.modules) {
             const moduleFiles: string[] = []
-            
+
             // Pre-compute normalized patterns for this module
             const normalizedProjectRoot = this.projectRootPath
                 ? this.projectRootPath.replace(/\\/g, '/').toLowerCase()
@@ -425,12 +401,12 @@ export class LockCompiler {
                     ? np.slice(normalizedProjectRoot.length + 1)
                     : np
             })
-            
+
             // Check each file against this module's patterns
             for (let i = 0; i < filePathCache.length; i++) {
                 const f = filePathCache[i]
                 if (f.isVendor) continue
-                
+
                 for (const pattern of patterns) {
                     if (minimatch(f.normalizedRelative, pattern) || minimatch(f.normalizedAbsolute, pattern)) {
                         moduleFiles.push(f.path)
@@ -457,7 +433,8 @@ export class LockCompiler {
     private compileFiles(
         parsedFiles: ParsedFile[],
         contract: MikkContract,
-        _graph: DependencyGraph
+        _graph: DependencyGraph,
+        fileClusterMap?: Map<string, string>
     ): Record<string, MikkLock['files'][string]> {
         const result: Record<string, MikkLock['files'][string]> = {}
 
@@ -465,7 +442,7 @@ export class LockCompiler {
             // Skip vendor files entirely
             if (this.isVendorPath(file.path)) continue
 
-            const moduleId = this.findModule(file.path, contract.declared.modules)
+            const moduleId = this.findModule(file.path, contract.declared.modules, fileClusterMap)
 
             // Collect file-level imports from the parsed file info directly
             // to include both source and resolvedPath for unresolved analysis.
@@ -473,26 +450,39 @@ export class LockCompiler {
                 source: imp.source,
                 resolvedPath: imp.resolvedPath || undefined,
             }))
- 
-            result[file.path] = {
-                path: file.path,
+
+            const reexports = (file.reexports || []).map(re => ({
+                name: re.name,
+                source: re.source,
+                sourceResolved: re.sourceResolved,
+            }))
+
+            const fileKey = getPathKey(file.path)
+            result[fileKey] = {
+                path: fileKey,
                 hash: file.hash,
                 moduleId: moduleId || 'unknown',
                 lastModified: new Date(file.parsedAt).toISOString(),
                 ...(imports.length > 0 ? { imports } : {}),
+                ...(reexports.length > 0 ? { reexports } : {}),
             }
         }
 
         return result
     }
 
-    /** Compile route registrations from all parsed files */
+    /** Compile route registrations from all parsed files using universal route harvester */
     private compileRoutes(parsedFiles: ParsedFile[]): MikkLock['routes'] & any[] {
-        const routes: any[] = []
+        // Parser-native routes (OXC puts Express routes here directly from AST).
+        // These are ground truth — use them as-is.
+        const nativeRoutes: any[] = []
+        const filesWithNativeRoutes = new Set<string>()
+
         for (const file of parsedFiles) {
             if (file.routes && file.routes.length > 0) {
+                filesWithNativeRoutes.add(file.path)
                 for (const route of file.routes) {
-                    routes.push({
+                    nativeRoutes.push({
                         method: route.method,
                         path: route.path,
                         handler: route.handler,
@@ -503,20 +493,120 @@ export class LockCompiler {
                 }
             }
         }
-        return routes
-    }
 
-    /** Find which module a file belongs to based on path patterns */
-    private findModule(
-        filePath: string,
-        modules: MikkContract['declared']['modules']
-    ): string | null {
-        for (const module of modules) {
-            if (this.fileMatchesModule(filePath, module.paths)) {
-                return module.id
+        // RouteHarvester fills gaps for files the parsers did not produce native routes for
+        // (e.g. non-JS/TS frameworks that land in tree-sitter without route extraction).
+        const harvesterFiles = parsedFiles.filter(f => !filesWithNativeRoutes.has(f.path))
+        const harvester = new RouteHarvester()
+        const harvesterRoutes = harvester.harvest(harvesterFiles)
+
+        // Merge and deduplicate by method+path+file so overlapping detectors can't create
+        // the same route twice even in edge cases.
+        const seen = new Set<string>()
+        const all: any[] = []
+        for (const r of [...nativeRoutes, ...harvesterRoutes]) {
+            const key = `${r.method}:${r.path}:${r.file}`
+            if (!seen.has(key)) {
+                seen.add(key)
+                all.push(r)
             }
         }
-        return null
+        return all
+    }
+
+    /** Find which module a file belongs to based on path patterns or graph clustering */
+    private findModule(
+        filePath: string,
+        modules: MikkContract['declared']['modules'],
+        fileClusterMap?: Map<string, string>
+    ): string | null {
+        // Priority 1: Match contract module path patterns.
+        // Use MOST-SPECIFIC match (longest pattern wins) to handle overlapping
+        // globs like packages/core/** vs packages/core/src/parser/**.
+        // This prevents broad clusters (/**) from swallowing everything.
+        let bestMatch: { id: string; patternLength: number } | null = null
+        for (const module of modules) {
+            const matchedPattern = this.longestMatchingPattern(filePath, module.paths)
+            if (matchedPattern !== null && matchedPattern > (bestMatch?.patternLength ?? -1)) {
+                bestMatch = { id: module.id, patternLength: matchedPattern }
+            }
+        }
+        if (bestMatch) return bestMatch.id
+
+        // Priority 2: Use the graph-cluster map built during compile().
+        if (fileClusterMap) {
+            const clusterId = fileClusterMap.get(filePath)
+                ?? fileClusterMap.get(filePath.replace(/\\/g, '/').toLowerCase())
+            if (clusterId) return clusterId
+        }
+
+        // Priority 3: Auto-derive from path — guaranteed to return something
+        return this.deriveModuleIdFromPath(filePath)
+    }
+
+    /**
+     * Returns the length of the longest pattern that matches filePath,
+     * or null if no pattern matches. Longer pattern = more specific = wins.
+     */
+    private longestMatchingPattern(filePath: string, patterns: string[]): number | null {
+        if (!patterns || patterns.length === 0) return null
+        if (this.isVendorPath(filePath)) return null
+
+        const relativePath = getModuleMatchPath(filePath, this.projectRootPath)
+        const normalizedRelative = relativePath.replace(/\\/g, '/').toLowerCase()
+        const normalizedAbsolute = filePath.replace(/\\/g, '/').toLowerCase()
+        const normalizedProjectRoot = this.projectRootPath
+            ? this.projectRootPath.replace(/\\/g, '/').toLowerCase()
+            : null
+
+        let longest: number | null = null
+        for (const pattern of patterns) {
+            const normalizedPattern = pattern.replace(/\\/g, '/').toLowerCase()
+            const relativePattern = normalizedProjectRoot && normalizedPattern.startsWith(`${normalizedProjectRoot}/`)
+                ? normalizedPattern.slice(normalizedProjectRoot.length + 1)
+                : normalizedPattern
+
+            // Skip the bare wildcard — it matches everything and is never "specific"
+            if (relativePattern === '**' || relativePattern === '/**') continue
+
+            if (minimatch(normalizedRelative, relativePattern) ||
+                minimatch(normalizedAbsolute, normalizedPattern)) {
+                const len = relativePattern.length
+                if (longest === null || len > longest) longest = len
+            }
+        }
+        return longest
+    }
+
+    /** Derive semantic module ID from file path — works for any project layout.
+     *  Produces IDs in the format the ContractGenerator uses:
+     *    packages/<pkg>/src/... → "packages-<pkg>"
+     *    apps/<app>/...        → "apps-<app>"
+     *    src/<module>/...      → "<module>"
+     */
+    private deriveModuleIdFromPath(filePath: string): string {
+        const normalized = filePath.replace(/\\/g, '/').toLowerCase()
+        const parts = normalized.split('/').filter(Boolean)
+
+        // Monorepo: packages/<pkg>/...  or  apps/<app>/...
+        const monoRoots = ['packages', 'apps']
+        const monoIdx = parts.findIndex(p => monoRoots.includes(p))
+        if (monoIdx >= 0 && monoIdx + 1 < parts.length) {
+            const prefix = parts[monoIdx]          // "packages" | "apps"
+            const pkg = parts[monoIdx + 1]       // "core" | "cli" | "web" …
+            return `${prefix}-${pkg}`.replace(/[^a-z0-9-]/g, '-').replace(/-+$/, '')
+        }
+
+        // Conventional src layout: src/<module>/...
+        const srcDirs = ['src', 'lib', 'app', 'pages', 'modules', 'source']
+        const srcIndex = parts.findIndex(p => srcDirs.includes(p))
+        if (srcIndex >= 0 && srcIndex + 1 < parts.length) {
+            return parts[srcIndex + 1].replace(/[^a-z0-9-]/g, '-').replace(/-+$/, '')
+        }
+
+        // Root-level: use parent directory name
+        if (parts.length >= 2) return parts[parts.length - 2].replace(/[^a-z0-9-]/g, '')
+        return 'root'
     }
 
     /** Check if a file path matches any of the module's path patterns */

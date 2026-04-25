@@ -95,6 +95,11 @@ export const MikkLockFunctionSchema = z.object({
     riskScore: z.number().optional(),
     signatureHash: z.string().optional(),
     tokenVector: z.array(z.number()).optional(),
+    role: z.string().optional(),           // semantic role (route, api-handler, hook, …)
+    roleFramework: z.string().optional(),  // detected framework (nextjs, express, …)
+    isAbstract: z.boolean().optional(),
+    typeParameters: z.array(z.string()).optional(),
+    decorators: z.array(z.string()).optional(),
 })
 
 export const MikkLockModuleSchema = z.object({
@@ -103,6 +108,12 @@ export const MikkLockModuleSchema = z.object({
     hash: z.string(),
     fragmentPath: z.string(),
     parentId: z.string().optional(),
+})
+
+export const MikkLockReExportSchema = z.object({
+    name: z.string(),
+    source: z.string(),
+    sourceResolved: z.string().optional(),
 })
 
 export const MikkLockImportSchema = z.object({
@@ -117,6 +128,7 @@ export const MikkLockFileSchema = z.object({
     moduleId: z.string(),
     lastModified: z.string(),
     imports: z.array(MikkLockImportSchema).optional(),
+    reexports: z.array(MikkLockReExportSchema).optional(),
 })
 
 export const MikkLockClassSchema = z.object({
@@ -136,6 +148,11 @@ export const MikkLockClassSchema = z.object({
     })).optional(),
     confidence: z.number().optional(),
     riskScore: z.number().optional(),
+    isAbstract: z.boolean().optional(),
+    typeParameters: z.array(z.string()).optional(),
+    extends: z.string().optional(),
+    implements: z.array(z.string()).optional(),
+    decorators: z.array(z.string()).optional(),
 })
 
 export const MikkLockGenericSchema = z.object({
@@ -155,7 +172,7 @@ export const MikkLockGenericSchema = z.object({
 export const MikkLockContextFileSchema = z.object({
     path: z.string(),
     content: z.string().optional(),
-    type: z.enum(['schema', 'model', 'types', 'routes', 'config', 'api-spec', 'migration', 'docker']),
+    type: z.string(), // Allow ANY config type - fix for env-config, format-config, etc.
     size: z.number().optional(),
 })
 
@@ -196,7 +213,12 @@ export const MikkLockSchema = z.object({
     routes: z.array(MikkLockRouteSchema).optional(),
     graph: z.object({
         nodes: z.number(),
-        edges: z.number(),
+        edges: z.array(z.object({
+            from: z.string(),
+            to: z.string(),
+            type: z.enum(['calls', 'imports', 'contains', 'extends', 'implements', 'accesses']),
+            weight: z.number().optional()
+        })),
         rootHash: z.string(),
     }),
 })

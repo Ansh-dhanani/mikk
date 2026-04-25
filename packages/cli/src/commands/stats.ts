@@ -3,9 +3,10 @@ import type { Command } from 'commander'
 import chalk from 'chalk'
 import {
     ContractReader, LockReader, BoundaryChecker, DeadCodeDetector,
-    type MikkLock, type DependencyGraph, type GraphNode, type GraphEdge,
+    type MikkLock,
 } from '@getmikk/core'
 import { panel, kv, infoBar, healthBar, gap, tw } from '../ui.js'
+import { buildGraphFromLock } from '../utils.js'
 
 export function registerStatsCommand(program: Command) {
     program
@@ -37,20 +38,36 @@ export function registerStatsCommand(program: Command) {
 
                 const totalFiles = Object.keys(lock.files).length
                 const classCount = lock.classes ? Object.keys(lock.classes).length : 0
-                const genericCount = lock.generics ? Object.keys(lock.generics).length : 0
                 const routeCount = lock.routes?.length ?? 0
 
+                // ── Build file→module index from lock.modules (authoritative) ──────────────────────
+                // lock.files[key].moduleId is unreliable (LockCompiler assigns functions
+                // to path-matched contract modules, but scripts/watcher/etc. files fall
+                // back to 'packages-core' or similar). lock.modules[id].files is the
+                // authoritative mapping from ClusterDetector.
+                const fileToModuleId = new Map<string, string>()
+                for (const [modId, mod] of Object.entries(lock.modules)) {
+                    for (const file of (mod as any).files ?? []) {
+                        fileToModuleId.set(file, modId)
+                    }
+                }
+
+                // Count functions per module using the file-based index
                 const moduleStats = contract.declared.modules.map(mod => {
-                    const modFns = fns.filter(f => f.moduleId === mod.id)
-                    const modFiles = Object.values(lock.files).filter(f => f.moduleId === mod.id)
+                    const lockMod = (lock.modules as any)[mod.id]
+                    const modFileSet = new Set<string>((lockMod?.files ?? []) as string[])
+                    const modFns = fns.filter(f => f.file && modFileSet.has(f.file))
                     return {
                         id: mod.id,
                         name: mod.name,
                         functions: modFns.length,
-                        files: modFiles.length,
+                        files: modFileSet.size,
                         exported: modFns.filter(f => f.isExported).length,
                     }
                 }).sort((a, b) => b.functions - a.functions)
+
+                // Total module count from lock (includes all sub-clusters)
+                const totalModules = Object.keys(lock.modules).length
 
                 const graph = buildGraphFromLock(lock)
                 const detector = new DeadCodeDetector(graph, lock)
@@ -66,7 +83,7 @@ export function registerStatsCommand(program: Command) {
                         project: contract.project.name,
                         version: lock.version,
                         generatedAt: lock.generatedAt,
-                        summary: { totalFunctions, exportedFunctions, asyncFunctions, totalFiles, totalModules: moduleStats.length, totalClasses: classCount, totalGenerics: genericCount, totalRoutes: routeCount, avgFunctionSize: avgSize },
+                        summary: { totalFunctions, exportedFunctions, asyncFunctions, totalFiles, totalModules, totalClasses: classCount, totalRoutes: routeCount, avgFunctionSize: avgSize },
                         health: { deadCode: deadPct, deadCodeCount: deadResult.deadCount, constraintViolations: boundaryResult.violations.length, constraintsPass: boundaryResult.pass },
                         modules: moduleStats,
                     }, null, 2))
@@ -89,7 +106,7 @@ export function registerStatsCommand(program: Command) {
                     chalk.cyan(String(asyncFunctions)) + chalk.dim(` async   `) +
                     chalk.cyan(avgSize + ' lines') + chalk.dim(` avg`)
                 const filesLine = chalk.cyan(String(totalFiles)) + chalk.dim(` files   `) +
-                    chalk.cyan(String(moduleStats.length)) + chalk.dim(` modules   `) +
+                    chalk.cyan(String(totalModules)) + chalk.dim(` modules   `) +
                     chalk.cyan(String(classCount)) + chalk.dim(` classes   `) +
                     chalk.cyan(String(routeCount)) + chalk.dim(` routes`)
 
@@ -131,37 +148,4 @@ export function registerStatsCommand(program: Command) {
                 process.exit(1)
             }
         })
-}
-
-function buildGraphFromLock(lock: MikkLock): DependencyGraph {
-    const nodes = new Map<string, GraphNode>()
-    const edges: GraphEdge[] = []
-    const outEdges = new Map<string, GraphEdge[]>()
-    const inEdges = new Map<string, GraphEdge[]>()
-
-    for (const fn of Object.values(lock.functions)) {
-        nodes.set(fn.id, { id: fn.id, type: 'function', name: fn.name, file: fn.file, moduleId: fn.moduleId, metadata: { startLine: fn.startLine, endLine: fn.endLine, isExported: fn.isExported } })
-    }
-
-    for (const fn of Object.values(lock.functions)) {
-        for (const calleeId of fn.calls ?? []) {
-            if (!nodes.has(calleeId)) continue
-            const edge: GraphEdge = { from: fn.id, to: calleeId, type: 'calls', confidence: 1.0 }
-            edges.push(edge)
-            const out = outEdges.get(fn.id) ?? []; out.push(edge); outEdges.set(fn.id, out)
-            const inE = inEdges.get(calleeId) ?? []; inE.push(edge); inEdges.set(calleeId, inE)
-        }
-    }
-
-    for (const fn of Object.values(lock.functions)) {
-        for (const callerId of fn.calledBy ?? []) {
-            if (!nodes.has(fn.id) || !nodes.has(callerId)) continue
-            const edge: GraphEdge = { from: callerId, to: fn.id, type: 'calls', confidence: 0.9 }
-            edges.push(edge)
-            const out = outEdges.get(callerId) ?? []; out.push(edge); outEdges.set(callerId, out)
-            const inE = inEdges.get(fn.id) ?? []; inE.push(edge); inEdges.set(fn.id, inE)
-        }
-    }
-
-    return { nodes, edges, outEdges, inEdges }
 }

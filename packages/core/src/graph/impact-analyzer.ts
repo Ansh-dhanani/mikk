@@ -1,4 +1,4 @@
- 
+
 import type { DependencyGraph, ImpactResult, ClassifiedImpact } from './types.js'
 import { RiskEngine } from './risk-engine.js'
 import { ConfidenceEngine } from './confidence-engine.js'
@@ -11,6 +11,8 @@ import { ConfidenceEngine } from './confidence-engine.js'
 export class ImpactAnalyzer {
     private riskEngine: RiskEngine;
     private confidenceEngine: ConfidenceEngine;
+    private static readonly MAX_PATHS_PER_NODE = 6;
+    private static readonly MIN_QUEUE_CAP = 1024;
 
     constructor(private graph: DependencyGraph) {
         this.riskEngine = new RiskEngine(graph);
@@ -18,31 +20,55 @@ export class ImpactAnalyzer {
     }
 
     /** Given a list of changed node IDs, find everything impacted */
-    public analyze(changedNodeIds: string[]): ImpactResult {
+    public analyze(changedNodeIds: string[], maxDepth: number = 8, maxImpacted: number = 500): ImpactResult {
         // depth and shortest-path tracking per visited node
         const visited = new Map<string, { depth: number, paths: string[][] }>();
-        // Use an index pointer instead of queue.shift() to avoid O(n) dequeue cost.
-        const queue: { id: string, depth: number, path: string[], pathSet: Set<string> }[] =
-            changedNodeIds.map(id => ({ id, depth: 0, path: [id], pathSet: new Set([id]) }));
+        const pathKeysByNode = new Map<string, Set<string>>();
+        const normalizedDepth = Math.max(maxDepth, 1);
+        const maxQueueSize = Math.max(
+            ImpactAnalyzer.MIN_QUEUE_CAP,
+            maxImpacted * normalizedDepth * 4,
+        );
+
+        // Use parent references to avoid cloning full paths and path sets per hop.
+        const queue: Array<{ id: string; depth: number; parent: number }> = [];
+        const bestQueuedDepth = new Map<string, number>();
+
+        for (const id of changedNodeIds) {
+            queue.push({ id, depth: 0, parent: -1 });
+            bestQueuedDepth.set(id, 0);
+        }
         let queueHead = 0;
 
-        let maxDepth = 0;
+        let traversedMaxDepth = 0;
         const entryPoints = new Set<string>();
         const criticalModules = new Set<string>();
 
-        while (queueHead < queue.length) {
-            const { id: current, depth, path, pathSet } = queue[queueHead++];
+        while (queueHead < queue.length && visited.size < maxImpacted) {
+            const currentIndex = queueHead;
+            const { id: current, depth } = queue[queueHead++];
+
+            // Enforce depth limit to prevent unbounded traversal
+            if (depth > maxDepth) continue;
+
+            const path = this.reconstructPath(queue, currentIndex);
+            const pathKey = path.join('>');
 
             if (!visited.has(current)) {
                 visited.set(current, { depth, paths: [path] });
+                pathKeysByNode.set(current, new Set([pathKey]));
             } else {
-                visited.get(current)!.paths.push(path);
+                const keys = pathKeysByNode.get(current)!;
+                if (keys.size < ImpactAnalyzer.MAX_PATHS_PER_NODE && !keys.has(pathKey)) {
+                    visited.get(current)!.paths.push(path);
+                    keys.add(pathKey);
+                }
                 if (depth < visited.get(current)!.depth) {
                     visited.get(current)!.depth = depth;
                 }
             }
 
-            maxDepth = Math.max(maxDepth, depth);
+            traversedMaxDepth = Math.max(traversedMaxDepth, depth);
             const node = this.graph.nodes.get(current);
 
             if (node?.metadata?.isExported) {
@@ -51,40 +77,26 @@ export class ImpactAnalyzer {
 
             const dependents = this.graph.inEdges.get(current) || [];
             for (const edge of dependents) {
-                if (!pathSet.has(edge.from)) {
-                    const newPathSet = new Set(pathSet);
-                    newPathSet.add(edge.from);
-                    queue.push({
-                        id: edge.from,
-                        depth: depth + 1,
-                        path: [...path, edge.from],
-                        pathSet: newPathSet,
-                    });
+                if (depth + 1 > maxDepth) continue;
+                if (queue.length >= maxQueueSize) continue;
+                if (this.pathContains(queue, currentIndex, edge.from)) continue;
+
+                const nextDepth = depth + 1;
+                const bestDepth = bestQueuedDepth.get(edge.from);
+                if (bestDepth !== undefined && nextDepth > bestDepth + 1) continue;
+                if (bestDepth === undefined || nextDepth < bestDepth) {
+                    bestQueuedDepth.set(edge.from, nextDepth);
                 }
-            }
-            
-            // Also traverse to contained nodes (functions, classes, variables) inside the current node.
-            // This ensures that if a file is impacted, we also check what's inside it for further impact.
-            const contained = this.graph.outEdges.get(current) || [];
-            for (const edge of contained) {
-                if (edge.type === 'contains' && !pathSet.has(edge.to)) {
-                    const newPathSet = new Set(pathSet);
-                    newPathSet.add(edge.to);
-                    queue.push({
-                        id: edge.to,
-                        depth: depth + 1,
-                        path: [...path, edge.to],
-                        pathSet: newPathSet,
-                    });
-                }
+
+                queue.push({ id: edge.from, depth: nextDepth, parent: currentIndex });
             }
         }
 
-        const impactedIds = Array.from(visited.keys()).filter(id => 
-            !changedNodeIds.includes(id) && 
+        const impactedIds = Array.from(visited.keys()).filter(id =>
+            !changedNodeIds.includes(id) &&
             (id.startsWith('fn:') || id.startsWith('class:') || id.startsWith('var:') || id.startsWith('type:') || id.startsWith('prop:'))
         );
-        
+
         let totalRisk = 0;
         let totalConfidence = 0;
 
@@ -142,8 +154,8 @@ export class ImpactAnalyzer {
             }
         }
 
-        const avgConfidence = impactedIds.length > 0 
-            ? totalConfidence / impactedIds.length 
+        const avgConfidence = impactedIds.length > 0
+            ? totalConfidence / impactedIds.length
             : 1.0;
 
         const riskScore = impactedIds.length > 0
@@ -161,7 +173,7 @@ export class ImpactAnalyzer {
             changed: changedNodeIds,
             impacted: impactedIds,
             allImpacted,
-            depth: maxDepth,
+            depth: traversedMaxDepth,
             entryPoints: Array.from(entryPoints),
             criticalModules: Array.from(criticalModules),
             paths: Array.from(visited.values()).flatMap(v => v.paths),
@@ -169,5 +181,24 @@ export class ImpactAnalyzer {
             riskScore: Math.round(riskScore),
             classified
         };
+    }
+
+    private reconstructPath(queue: Array<{ id: string; depth: number; parent: number }>, idx: number): string[] {
+        const path: string[] = [];
+        let cur = idx;
+        while (cur >= 0) {
+            path.push(queue[cur].id);
+            cur = queue[cur].parent;
+        }
+        return path.reverse();
+    }
+
+    private pathContains(queue: Array<{ id: string; depth: number; parent: number }>, idx: number, target: string): boolean {
+        let cur = idx;
+        while (cur >= 0) {
+            if (queue[cur].id === target) return true;
+            cur = queue[cur].parent;
+        }
+        return false;
     }
 }

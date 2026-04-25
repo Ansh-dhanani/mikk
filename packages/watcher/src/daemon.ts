@@ -35,7 +35,9 @@ export class WatcherDaemon {
     private lock: MikkLock | null = null
     private contract: MikkContract | null = null
     private handlers: ((event: WatcherEvent) => void)[] = []
-    private pendingEvents: FileChangeEvent[] = []
+    // Map<path, event> deduplicates by path automatically and gives O(1) insert/evict.
+    // Using a Map preserves insertion order (oldest first) which we use for eviction.
+    private pendingEvents: Map<string, FileChangeEvent> = new Map()
     private debounceTimer: ReturnType<typeof setTimeout> | null = null
     private processing = false
 
@@ -112,10 +114,13 @@ export class WatcherDaemon {
 
     private enqueueChange(event: FileChangeEvent): void {
         const MAX_PENDING_EVENTS = 1000
-        if (this.pendingEvents.length >= MAX_PENDING_EVENTS) {
-            this.pendingEvents.shift()
+        // Insert/update (deduplicates by path automatically).
+        // If at capacity, evict the oldest entry in O(1) via Map iteration order.
+        if (!this.pendingEvents.has(event.path) && this.pendingEvents.size >= MAX_PENDING_EVENTS) {
+            const oldestKey = this.pendingEvents.keys().next().value
+            if (oldestKey !== undefined) this.pendingEvents.delete(oldestKey)
         }
-        this.pendingEvents.push(event)
+        this.pendingEvents.set(event.path, event)
 
         // Cancel any pending flush and schedule new one
         if (this.debounceTimer) {
@@ -131,18 +136,12 @@ export class WatcherDaemon {
 
     private async flushPendingEvents(): Promise<void> {
         // Prevent concurrent flushes with atomic flag
-        if (this.processing || this.pendingEvents.length === 0) return
+        if (this.processing || this.pendingEvents.size === 0) return
         this.processing = true
 
-        const events = [...this.pendingEvents]
-        this.pendingEvents = []
-
-        // Deduplicate by path (keep latest event per file)
-        const byPath = new Map<string, FileChangeEvent>()
-        for (const event of events) {
-            byPath.set(event.path, event)
-        }
-        const dedupedEvents = [...byPath.values()]
+        // Drain the map — events are already deduplicated by path.
+        const dedupedEvents = [...this.pendingEvents.values()]
+        this.pendingEvents.clear()
 
         await this.writeSyncState({
             status: 'syncing',
@@ -166,7 +165,7 @@ export class WatcherDaemon {
             this.processing = false
 
             // If more events arrived during processing, flush again
-            if (this.pendingEvents.length > 0) {
+            if (this.pendingEvents.size > 0) {
                 this.flushPendingEvents()
             }
         }

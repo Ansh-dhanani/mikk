@@ -12,7 +12,7 @@
 <p align="center">
   <a href="https://www.npmjs.com/org/getmikk"><img src="https://img.shields.io/npm/v/@getmikk/core?label=%40getmikk%2Fcore&color=cb3837" alt="npm" /></a>
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-Apache%202.0-blue.svg" alt="License" /></a>
-  <img src="https://img.shields.io/badge/runtime-Bun-f472b6" alt="Bun" />
+  <img src="https://img.shields.io/badge/runtime-Node%2018%2B%20%7C%20Bun-f472b6" alt="Runtime" />
   <img src="https://img.shields.io/badge/100%25-local-22c55e" alt="Local" />
 </p>
 
@@ -80,7 +80,7 @@ Or use the auto-installer: `mikk mcp install`
 
 ---
 
-## MCP Server — 37 Tools
+## MCP Server — 41 Tools
 
 Connect to Claude Desktop, Cursor, VS Code Copilot, or any MCP-compatible client.
 
@@ -89,8 +89,9 @@ Connect to Claude Desktop, Cursor, VS Code Copilot, or any MCP-compatible client
 |---|---|
 | `mikk_get_session_context` | **Call this first.** Project overview, constraint status, hot modules, recent changes. |
 | `mikk_get_changes` | Files added, modified, or deleted since last analysis. SHA-256 hash comparison. |
-| `mikk_get_project_overview` | Modules, function counts, file counts, tech stack. |
+| `mikk_index_project` | Trigger a full architectural indexing of the project. Updates `mikk.lock.json` and rebuilds the dependency graph. |
 | `mikk_token_stats` | Token savings for this session vs. naive file reading. |
+| `mikk_reset_session` | Clear session memory — fresh context for a new task. |
 
 ### Planning Tools
 | Tool | Description |
@@ -103,12 +104,14 @@ Connect to Claude Desktop, Cursor, VS Code Copilot, or any MCP-compatible client
 | Tool | Description |
 |---|---|
 | `mikk_query_context` | Architecture question → graph-traced answer with call chains. |
+| `mikk_explain_codebase` | **Comprehensive one-shot overview** — entry points, API surface, data layer, modules. |
 | `mikk_list_modules` | All declared modules with paths and function counts. |
 | `mikk_get_module_detail` | Functions, files, exported API, and call graph for a module. |
 | `mikk_get_function_detail` | Params, return type, source body, call graph, error handling, line range. |
 | `mikk_search_functions` | Hybrid BM25 + substring search. |
 | `mikk_search_rich` | Search with multiple filters: module, file, async, return type, body content. |
 | `mikk_semantic_search` | Natural-language search using local vector embeddings. Requires `@xenova/transformers`. |
+| `mikk_bulk_query` | Batch multiple function detail queries in one call. |
 | `mikk_find_function` | O(1) exact-name lookup. |
 | `mikk_find_by_signature` | Find function by full signature string. |
 | `mikk_find_by_location` | Find function at a specific file:line. |
@@ -120,8 +123,8 @@ Connect to Claude Desktop, Cursor, VS Code Copilot, or any MCP-compatible client
 | `mikk_list_files` | All tracked files with metadata (language, imports, exports, line count). |
 | `mikk_get_class_detail` | Class details: methods, properties, inheritance, decorators. |
 | `mikk_get_generic_detail` | Type/interface details: type parameters, extends clauses. |
-| `mikk_get_call_graph` | Call graph for a function or module. |
-| `mikk_bulk_query` | Batch multiple function detail queries in one call. |
+| `mikk_get_call_graph` | Mermaid call graph for a function or module. |
+| `mikk_classify_file` | Classify a file's semantic role (route, model, test, etc.) instantly. |
 
 ### Safety Tools
 | Tool | Description |
@@ -136,7 +139,8 @@ Connect to Claude Desktop, Cursor, VS Code Copilot, or any MCP-compatible client
 | Tool | Description |
 |---|---|
 | `mikk_secrets_scan` | Scan for hardcoded secrets, injection, weak crypto, path traversal. |
-| `mikk_secrets_replace` | Auto-extract secrets to process.env references. |
+| `mikk_secrets_replace` | Auto-extract secrets to `process.env` references. |
+| `mikk_taint_analysis` | Data-flow security: traces tainted user inputs to dangerous sinks. |
 
 ### Refactoring Tools
 | Tool | Description |
@@ -185,20 +189,21 @@ Define module boundaries and rules in `mikk.json`:
 
 ```bash
 mikk init                      # Full scan — graph, lock, claude.md
-mikk init --strict-parsing    # Fail if parser diagnostics are detected
+mikk init --strict-parsing     # Fail if parser diagnostics are detected
 mikk analyze                   # Re-analyze after code changes
 mikk analyze --strict-parsing  # CI-friendly parse completeness enforcement
 mikk doctor                    # Diagnostics: config, lock freshness, parser runtime
 mikk update                    # Interactive self-update
 mikk watch                     # Live watcher daemon (incremental, 100ms debounce)
+mikk watch --obsidian          # Also sync an Obsidian vault on every graph update
 mikk diff                      # Files changed since last analysis
 mikk ci                        # CI gate — exits non-zero on violations
-mikk ci --strict              # Also enforce dead code threshold
-mikk ci --format json         # Machine-readable output
-mikk intent "<prompt>"        # Pre-flight a refactor idea
-mikk dead-code                # Show unused functions
-mikk context query "<q>"     # Architecture question
-mikk context impact <file>   # Blast radius of changing a file
+mikk ci --strict               # Also enforce dead code threshold
+mikk ci --format json          # Machine-readable output
+mikk intent "<prompt>"         # Pre-flight a refactor idea
+mikk dead-code                 # Show unused functions
+mikk context query "<q>"      # Architecture question
+mikk context impact <file>    # Blast radius of changing a file
 mikk context for "<task>"     # Token-budgeted context for a coding task
 mikk stats                    # Per-module metrics
 mikk suggest                  # Next-step recommendations
@@ -208,6 +213,20 @@ mikk adr list                 # List all architectural decisions
 mikk mcp                      # Start MCP server
 mikk remove                   # Uninstall and delete artifacts
 ```
+
+---
+
+## Obsidian Plugin
+
+`mikk watch --obsidian` keeps an Obsidian vault continuously in sync with your codebase graph.
+
+The vault contains one Markdown note per **file**, **function**, **class**, **generic/type**, **route**, **variable**, and **property** — all interlinked as wikilinks. A companion 3D graph view renders modules, files, and functions as an interactive Three.js scene directly inside Obsidian.
+
+**3D graph features:**
+- Module nodes expand on click to show files + functions + classes + generics
+- Truncation badge (`120/690f ⚠`) when a module has >120 visible functions  
+- Stats counter: `N vis · N edges · N fns · N mods · N types`
+- Search, LOD selector (Modules / +Files / +Functions), edge toggle, halos, settings panel
 
 ---
 
@@ -229,7 +248,7 @@ mikk remove                   # Uninstall and delete artifacts
 
 | Language | Parser | Notes |
 |---|---|---|
-| TypeScript / JavaScript | OxcParser (Rust) | Full function, class, import, call graph extraction |
+| TypeScript / JavaScript | OxcParser (Rust) | Full function, class, generic, import, call graph, routes, variables |
 | Go | Native GoExtractor | Functions, structs, methods, call graph |
 | Python | Tree-sitter | Functions, classes, imports |
 | Java | Tree-sitter | Functions, classes, imports |
@@ -237,12 +256,26 @@ mikk remove                   # Uninstall and delete artifacts
 | C / C++ | Tree-sitter | Functions, imports |
 | C# | Tree-sitter | Functions, classes, imports |
 | PHP | Tree-sitter | Functions, classes |
+| Ruby | Tree-sitter | Functions, classes |
 | Swift | Tree-sitter | Functions, classes |
 | Shell / Bash | Tree-sitter | Functions |
 
 > **10 languages tested in production** against fixture suites covering 71 functions, 18 classes, 134 call edges across 29 files.
 >
-> **30+ additional languages** in the registry (Kotlin, Scala, Dart, Ruby, Zig, Elixir, and more) use tree-sitter grammars and work once test fixtures are added.
+> **30+ additional languages** in the registry (Kotlin, Scala, Dart, Zig, Elixir, and more) use tree-sitter grammars and work once test fixtures are added.
+
+---
+
+## Known Limitations
+
+| Area | Issue | Workaround |
+|---|---|---|
+| `get_routes` | Next.js file-system routes not parsed (only express-style) | Manual `mikk.json` route entries |
+| `find_by_signature` | Non-functional for custom signature strings | Use `find_function` + `search_functions` |
+| `secrets_scan` | High false-positive rate on template literals (~1000+ hits on small repos) | Use `--severity high` flag |
+| `find_by_location` | Requires exact line match; no range matching | Use `search_functions` + `read_file` |
+| `get_function_detail` | Returns all prefix matches, not just exact match | Use `find_function` for O(1) exact lookup |
+| Python/Go | Call graph edges less complete than TS/JS | Planned: tree-sitter import resolution |
 
 ---
 
@@ -252,11 +285,12 @@ mikk remove                   # Uninstall and delete artifacts
 |---|---|
 | `@getmikk/core` | AST parsing, dependency graph, BM25 search, Merkle hashing, boundary checker, risk/confidence engines |
 | `@getmikk/cli` | CLI commands |
-| `@getmikk/mcp-server` | 37 MCP tools, project cache with mtime-based invalidation |
+| `@getmikk/mcp-server` | 41 MCP tools, project cache with mtime-based invalidation |
 | `@getmikk/ai-context` | BFS context builder, token budgeting, `claude.md` generation |
 | `@getmikk/intent-engine` | Pre-edit validation, 6 safety gates, decision engine, auto-correction, semantic search |
 | `@getmikk/watcher` | Incremental file watcher daemon with atomic lock writes |
 | `@getmikk/vscode-extension` | Status bar, dead code view, impact analysis inline |
+| `obsidian-plugin` | 3D interactive codebase graph — functions, classes, generics, call edges |
 
 ---
 

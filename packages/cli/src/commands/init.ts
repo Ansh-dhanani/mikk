@@ -1,5 +1,6 @@
 import * as path from 'node:path'
-import fs from 'node:fs'
+import { existsSync } from 'node:fs'
+import { spawn } from 'node:child_process'
 import type { Command } from 'commander'
 import ora from 'ora'
 import chalk from 'chalk'
@@ -11,6 +12,25 @@ import {
     detectProjectLanguage, getDiscoveryPatterns,
     runArtifactWriteTransaction, recoverArtifactWriteTransactions,
 } from '@getmikk/core'
+
+function findObsidianScript(projectRoot: string): string | null {
+    const candidates = [
+        path.join(projectRoot, 'scripts/mikk-to-obsidian.mjs'),
+        path.join(projectRoot, 'mikk-to-obsidian.mjs'),
+    ]
+    for (const p of candidates) {
+        if (existsSync(p)) return p
+    }
+    return null
+}
+
+function updateObsidianVault(scriptPath: string, projectRoot: string): Promise<void> {
+    return new Promise((resolve) => {
+        const child = spawn('node', [scriptPath, '--all-fns'], { cwd: projectRoot, stdio: 'ignore' })
+        child.on('close', () => resolve(undefined))
+        child.on('error', () => resolve(undefined))
+    })
+}
 import { panel, kv, cols, gap, line, sq } from '../ui.js'
 import { patchFileContent } from '../utils.js'
 
@@ -21,6 +41,7 @@ export function registerInitCommand(program: Command) {
         .option('--force', 'Overwrite existing mikk.json and lock file')
         .option('--strict-parsing', 'Fail if any files could not be parsed cleanly')
         .option('--no-context', 'Skip context file discovery for faster init')
+        .option('--obsidian', 'Also sync Obsidian vault after init')
         .addHelpText('after',
           `\nExamples:\n` +
           `  mikk init                  Initialize with auto-detected settings\n` +
@@ -180,7 +201,7 @@ export function registerInitCommand(program: Command) {
                 const projectName = pkgJson.name || path.basename(projectRoot)
                 const generator = new ContractGenerator()
                 const contract = generator.generateFromClusters(
-                    clusters, parsedFiles, projectName, pkgJson.description
+                    clusters, parsedFiles, projectName, pkgJson.description, projectRoot
                 )
 
                 // 7. Discover context/schema files
@@ -219,12 +240,16 @@ export function registerInitCommand(program: Command) {
                 // 8. Compile lock file
                 console.log(chalk.dim('\n- Compiling lock file...'))
                 const compiler = new LockCompiler()
-                const lock = compiler.compile(graph, contract, parsedFiles, contextFiles, projectRoot)
-                lock.syncState.parseDiagnostics = {
-                    requestedFiles: files.length,
-                    parsedFiles: parsedFiles.length,
-                    fallbackFiles: parseResult.summary.fallbackFiles,
-                    diagnostics: parseResult.summary.diagnostics,
+                const lock = await compiler.compile(graph, contract, parsedFiles, contextFiles, projectRoot)
+                if (lock.syncState) {
+                    lock.syncState.parseDiagnostics = {
+                        requestedFiles: files.length,
+                        parsedFiles: parsedFiles.length,
+                        fallbackFiles: parseResult.summary.fallbackFiles,
+                        diagnostics: parseResult.summary.diagnostics,
+                    }
+                } else {
+                    console.error('[WARN] lock.syncState undefined, skipping parseDiagnostics')
                 }
                 const functionCount = Object.keys(lock.functions).length
 
@@ -317,6 +342,16 @@ export function registerInitCommand(program: Command) {
                         embSpinner.warn('Embeddings skipped (install @xenova/transformers for semantic search)')
                     } else {
                         embSpinner.warn(`Embeddings generation failed: ${msg}`)
+                    }
+                }
+
+                // Sync Obsidian vault if requested
+                if (options.obsidian) {
+                    const scriptPath = findObsidianScript(projectRoot)
+                    if (scriptPath) {
+                        const obsSpinner = ora('Syncing Obsidian vault...').start()
+                        await updateObsidianVault(scriptPath, projectRoot)
+                        obsSpinner.succeed('Obsidian vault synced')
                     }
                 }
 

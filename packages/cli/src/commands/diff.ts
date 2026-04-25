@@ -1,7 +1,7 @@
 import * as path from 'node:path'
 import type { Command } from 'commander'
 import chalk from 'chalk'
-import { discoverFiles, hashFile, LockReader } from '@getmikk/core'
+import { discoverFiles, hashFile, LockReader, detectProjectLanguage, getDiscoveryPatterns } from '@getmikk/core'
 
 interface Change {
     type: 'added' | 'modified' | 'deleted'
@@ -24,13 +24,25 @@ export function registerDiffCommand(program: Command) {
             try {
                 const lockReader = new LockReader()
                 const lock = await lockReader.read(path.join(projectRoot, 'mikk.lock.json'))
-                const files = await discoverFiles(projectRoot)
+
+                // Use same language-aware patterns as `analyze` so diff and analyze see identical file sets
+                const language = (lock as any).project?.language
+                    ? (lock as any).project.language
+                    : await detectProjectLanguage(projectRoot)
+                const { patterns, ignore } = getDiscoveryPatterns(language)
+                const files = await discoverFiles(projectRoot, patterns, ignore)
 
                 const changes: Change[] = []
 
+                // Normalise: lowercase + forward-slashes. The lock stores lowercase keys
+                // (getPathKey in utils/path.ts lowercases), but path.join returns OS-cased paths
+                // on Windows, causing a string mismatch that makes every file appear both added
+                // and deleted. Normalise both sides to lowercase before comparison.
+                const normKey = (p: string) => p.replace(/\\/g, '/').toLowerCase()
+
                 for (const filePath of files) {
                     const fullPath = path.join(projectRoot, filePath)
-                    const posixFullPath = fullPath.replace(/\\/g, '/')
+                    const posixFullPath = normKey(fullPath)
                     const currentHash = await hashFile(fullPath)
                     const lockedFile = lock.files[posixFullPath]
 
@@ -44,10 +56,10 @@ export function registerDiffCommand(program: Command) {
                     }
                 }
 
-                // Find deleted files
-                const absoluteFiles = new Set(files.map(f => path.join(projectRoot, f).replace(/\\/g, '/')))
+                // Find deleted files — normalise both sets to lowercase
+                const absoluteFiles = new Set(files.map(f => normKey(path.join(projectRoot, f))))
                 for (const lockedPath of Object.keys(lock.files)) {
-                    if (!absoluteFiles.has(lockedPath)) {
+                    if (!absoluteFiles.has(normKey(lockedPath))) {
                         changes.push({ type: 'deleted', path: path.relative(projectRoot, lockedPath).replace(/\\/g, '/') })
                     }
                 }

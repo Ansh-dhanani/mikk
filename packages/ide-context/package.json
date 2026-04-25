@@ -1,0 +1,21 @@
+{
+  "name": "@getmikk/ide-context",
+  "version": "0.1.0",
+  "description": "Importable Mikk context API for IDE chat agents — module maps, node roles, symbol-to-module assignment",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": "./dist/index.js",
+      "types": "./dist/index.d.ts"
+    }
+  },
+  "scripts": {
+    "build": "tsc --build"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "typescript": "^5.7.0"
+  }
+}

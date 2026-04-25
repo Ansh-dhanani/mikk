@@ -3,12 +3,63 @@ import * as fs from 'node:fs/promises'
 import * as path from 'node:path'
 import fg from 'fast-glob'
 import { getDiscoveryExtensions } from './language-registry.js'
+import { loadMikkRc, clearMikkRcCache } from './rc-loader.js'
 
 // --- Well-known patterns for schema/config/route files ---------------------
 // These are structural files an AI agent needs but aren't source code.
 // Mikk auto-discovers them so the AI doesn't have to explore the filesystem.
 // Patterns are language-agnostic -- unused patterns simply return zero matches.
 const CONTEXT_FILE_PATTERNS = [
+    // JS/TS Frameworks - ALL common configs
+    '**/next.config.*',
+    '**/vite.config.*',
+    '**/astro.config.*',
+    '**/nuxt.config.*',
+    '**/svelte.config.*',
+    '**/tailwind.config.*',
+    '**/jest.config.*',
+    '**/vitest.config.*',
+    '**/webpack.config.*',
+    '**/tsconfig*.json',
+    '**/package.json',
+    '**/.eslintrc*',
+    '**/.prettierrc*',
+    '**/.pylintrc',
+    '**/.pylintrc.*',
+    '**/nest-cli.json',
+    '**/angular.json',
+    // Python
+    '**/requirements*.txt',
+    '**/Pipfile*',
+    '**/pyproject.toml',
+    '**/setup.py',
+    '**/setup.cfg',
+    '**/pytest.ini',
+    '**/tox.ini',
+    '**/manage.py',
+    // Ruby
+    '**/Gemfile',
+    '**/Rakefile',
+    '**/config.ru',
+    // Java/Gradle
+    '**/build.gradle*',
+    '**/settings.gradle*',
+    '**/pom.xml',
+    // Go
+    '**/go.mod',
+    '**/go.sum',
+    // Rust
+    '**/Cargo.toml',
+    // .NET
+    '**/*.csproj',
+    '**/*.sln',
+    '**/appsettings.json',
+    // Swift/iOS
+    '**/Package.swift',
+    '**/Podfile',
+    // PHP
+    '**/composer.json',
+    '**/.env*',
     // Data models / schemas -- JS/TS
     '**/prisma/schema.prisma',
     '**/drizzle/**/*.ts',
@@ -55,7 +106,7 @@ const CONTEXT_FILE_PATTERNS = [
     '**/interfaces/**/*.{ts,js}',
     // Config files
     '**/docker-compose.{yml,yaml}',
-    '**/Dockerfile',
+    '**/Dockerfile*',
     '.env.example',
     '.env.local.example',
     // Schema definitions -- general
@@ -102,8 +153,8 @@ const CONTEXT_FILE_IGNORE = [
     '**/.gradle/**',
 ]
 
-/** Category of a discovered context file */
-export type ContextFileType = 'schema' | 'model' | 'types' | 'routes' | 'config' | 'api-spec' | 'migration' | 'docker'
+/** Category of a discovered context file - extensible string type */
+export type ContextFileType = string
 
 /** A discovered context file with its content and inferred category */
 export interface ContextFile {
@@ -201,10 +252,19 @@ export async function discoverContextFiles(
 ): Promise<ContextFile[]> {
     const { maxFiles = 20, onProgress, metadataOnly = false } = options
 
+    // Load .mikkrc or mikk.json config
+    const config = await loadMikkRc(projectRoot)
+    const customPatterns = config.contextPatterns ? Object.values(config.contextPatterns).flat() : []
+    
     const mikkIgnore = await readMikkIgnore(projectRoot)
-    const files = await fg(CONTEXT_FILE_PATTERNS, {
+    const customIgnore = config.ignorePatterns || []
+    
+    // Merge default + custom patterns
+    const allPatterns = [...CONTEXT_FILE_PATTERNS, ...customPatterns]
+    
+    const files = await fg(allPatterns, {
         cwd: projectRoot,
-        ignore: [...CONTEXT_FILE_IGNORE, ...mikkIgnore],
+        ignore: [...CONTEXT_FILE_IGNORE, ...mikkIgnore, ...customIgnore],
         absolute: false,
         onlyFiles: true,
     })
@@ -273,38 +333,94 @@ export async function discoverContextFiles(
     return results
 }
 
-/** Infer the context file's category from its path */
+/** Infer the context file's category from its path - PATTERN BASED for ALL frameworks */
 function inferContextFileType(filePath: string): ContextFileType {
     const lower = filePath.toLowerCase()
-    // Schema files -- multi-language
-    if (lower.includes('prisma/schema') || lower.endsWith('.prisma')) return 'schema'
-    if (lower.includes('drizzle/') || lower.includes('.schema.')) return 'schema'
-    if (lower.endsWith('.graphql') || lower.endsWith('.gql')) return 'schema'
-    if (lower.endsWith('.avsc') || lower.endsWith('.thrift')) return 'schema'
-    if (lower.endsWith('db/schema.rb')) return 'schema'
-    if (lower.endsWith('schema.rs')) return 'schema'
-    if (lower.endsWith('.proto')) return 'api-spec'
-    if (lower.includes('openapi') || lower.includes('swagger')) return 'api-spec'
-    // Migrations -- multi-language
-    if (lower.endsWith('.sql') && lower.includes('migration')) return 'migration'
-    if (lower.includes('db/migrate/')) return 'migration'
-    if (lower.includes('alembic/')) return 'migration'
-    if (lower.endsWith('.sql')) return 'schema'
-    // Models -- any language
-    if (lower.includes('/models/') || lower.includes('/model/')) return 'model'
-    if (lower.endsWith('.model.ts') || lower.endsWith('.model.js') || lower.endsWith('.model.go')) return 'model'
-    if (lower.endsWith('models.py') || lower.endsWith('serializers.py') || lower.endsWith('schemas.py')) return 'model'
-    if (lower.includes('/entity/') || lower.includes('/dto/') || lower.includes('/entities/')) return 'model'
-    if (lower.endsWith('_model.go') || lower.endsWith('models.rs')) return 'model'
-    // Types / Interfaces
-    if (lower.includes('/types/') || lower.startsWith('types/') || lower.endsWith('/types.ts') || lower.endsWith('/types.js')) return 'types'
-    if (lower.includes('/interfaces/') || lower.startsWith('interfaces/')) return 'types'
-    // Routes
-    if (lower.includes('/routes/') || lower.includes('router.')) return 'routes'
-    // Docker
-    if (lower.includes('docker') || lower.includes('dockerfile')) return 'docker'
-    // Config
-    if (lower.includes('.env')) return 'config'
+    const basename = lower.split('/').pop() || ''
+    
+    // === 1. FRAMEWORK-SPECIFIC FIRST (well-known high-frequency patterns) ===
+    if (basename.includes('package.json')) return 'package-config'
+    if (basename.includes('tsconfig')) return 'tsconfig'
+    if (basename.includes('vite.config')) return 'vite-config'
+    if (basename.includes('next.config')) return 'next-config'
+    if (basename.includes('nuxt.config')) return 'nuxt-config'
+    if (basename.includes('astro.config')) return 'astro-config'
+    if (basename.includes('svelte.config')) return 'svelte-config'
+    if (basename.includes('tailwind.config')) return 'tailwind-config'
+    if (basename.includes('jest.config')) return 'jest-config'
+    if (basename.includes('vitest.config')) return 'vitest-config'
+    if (basename.includes('webpack')) return 'webpack-config'
+    if (basename.includes('eslint')) return 'lint-config'
+    if (basename.includes('prettier')) return 'format-config'
+    if (basename.includes('nest-cli')) return 'nest-config'
+    if (basename.includes('nest')) return 'nest-config'
+    
+    // === 2. DIRECTORY-BASED PATTERNS (universal) ===
+    const dirPatterns: [string[], string][] = [
+        [['config', 'Configuration'], 'app-config'],
+        [['resources'], 'app-config'],
+        [['migrations', 'migrate', 'db'], 'migration'],
+        [['models', 'model', 'entities', 'entity', 'dto', 'schemas'], 'model'],
+        [['types', 'interfaces', 'typings'], 'types'],
+        [['routes', 'route', 'router'], 'routes'],
+        [['controllers', 'controller', 'handlers', 'handler'], 'controller'],
+        [['services', 'service'], 'service'],
+        [['middleware'], 'middleware'],
+        [['views', 'templates', 'pages'], 'view'],
+        [['components', 'views', 'ui'], 'component'],
+        [['tests', 'spec', '__tests__'], 'test'],
+        [['mocks', 'fixtures'], 'test-fixture'],
+        [['scripts', 'scripts'], 'build-script'],
+        [['docs', 'documentation'], 'docs'],
+    ]
+    
+    for (const [dirs, type] of dirPatterns) {
+        for (const dir of dirs) {
+            if (lower.includes(`/${dir}/`) || lower.includes(`/${dir}.`) || lower.endsWith(`/${dir}`)) {
+                return type
+            }
+        }
+    }
+    
+    // === 3. EXTENSION-BASED (universal for ANY language) ===
+    const extMap: Record<string, string> = {
+        // Build/Package tools
+        '.gradle': 'build-tool', '.gradle.kts': 'build-tool',
+        '.maven': 'build-tool', '.xml': 'build-tool',  // pom.xml
+        '.toml': 'config',  // Cargo.toml, pyproject.toml
+        '.yml': 'config', '.yaml': 'config',
+        '.ini': 'config', '.cfg': 'config',
+        // Web/API
+        '.graphql': 'schema', '.gql': 'schema',
+        '.protobuf': 'api-spec', '.proto': 'api-spec',
+        '.avsc': 'schema', '.thrift': 'schema',
+        // Database
+        '.sql': 'schema', '.prisma': 'schema',
+        // IaC
+        '.tf': 'terraform', '.hcl': 'terraform',
+        '.tfvars': 'terraform',
+    }
+    const ext = '.' + basename.split('.').pop()
+    if (extMap[ext]) return extMap[ext]
+    if (basename.endsWith('.yaml') && (lower.includes('deployment') || lower.includes('service') || lower.includes('ingress') || lower.includes('configmap'))) return 'kubernetes'
+    
+    // === 4. FILENAME PREFIX PATTERNS ===
+    const prefix = basename.split('.')[0]
+    const prefixMap: Record<string, string> = {
+        'application': 'app-config',
+        'settings': 'app-config',
+        'build': 'build-tool',
+        'setup': 'build-tool',
+    }
+    if (prefixMap[prefix]) return prefixMap[prefix]
+    if (basename.startsWith('.env')) return 'env-config'
+    
+    // === 5. IaC ===
+    if (lower.includes('/k8s/') || lower.includes('/kubernetes/') || lower.includes('/helm/')) return 'kubernetes'
+    if (lower.includes('/terraform/')) return 'terraform'
+    if (basename.includes('dockerfile') || lower.includes('docker-compose')) return 'docker'
+    
+    // === 6. FALLBACK ===
     return 'config'
 }
 
@@ -353,11 +469,13 @@ export async function detectProjectLanguage(projectRoot: string): Promise<Projec
         return 'polyglot'
     }
     
-    // Check in priority order -- most specific first
+    // Check in priority order but check for polyglot first (multiple detected)
+    if (languageFamilyCount > 1) return 'polyglot' // Already handled above, but safe
     if (hasTsConfig) return 'typescript'
     if (hasRust) return 'rust'
     if (hasGo) return 'go'
     if (hasPython) return 'python'
+    if (hasPackageJson) return 'javascript'
     if (hasRuby) return 'ruby'
     if (hasJava) return 'java'
     if (hasSwift) return 'swift'
@@ -386,13 +504,13 @@ export function getDiscoveryPatterns(language: ProjectLanguage): { patterns: str
     switch (language) {
         case 'typescript':
             return {
-                patterns: [...toPatterns(language), '**/*.js', '**/*.jsx'],
-                ignore: [...commonIgnore, '**/node_modules/**', '**/dist/**', '**/.next/**', '**/.nuxt/**', '**/.svelte-kit/**', '**/*.d.ts', '**/*.test.{ts,js,tsx,jsx}', '**/*.spec.{ts,js,tsx,jsx}', '**/venv/**', '**/.venv/**'],
+                patterns: [...toPatterns(language), '**/*.js', '**/*.jsx', '**/*.py'],
+                ignore: [...commonIgnore, '**/node_modules/**', '**/dist/**', '**/.next/**', '**/.nuxt/**', '**/.svelte-kit/**', '**/*.d.ts', '**/*.test.{ts,js,tsx,jsx}', '**/*.spec.{ts,js,tsx,jsx}', '**/venv/**', '**/.venv/**', '**/__pycache__/**', '**/lib/site-packages/**'],
             }
         case 'javascript':
             return {
-                patterns: [...toPatterns(language), '**/*.ts', '**/*.tsx'],
-                ignore: [...commonIgnore, '**/node_modules/**', '**/dist/**', '**/.next/**', '**/*.d.ts', '**/*.test.{ts,js,tsx,jsx}', '**/*.spec.{ts,js,tsx,jsx}', '**/venv/**', '**/.venv/**'],
+                patterns: [...toPatterns(language), '**/*.ts', '**/*.tsx', '**/*.py'],
+                ignore: [...commonIgnore, '**/node_modules/**', '**/dist/**', '**/.next/**', '**/*.d.ts', '**/*.test.{ts,js,tsx,jsx}', '**/*.spec.{ts,js,tsx,jsx}', '**/venv/**', '**/.venv/**', '**/__pycache__/**', '**/lib/site-packages/**'],
             }
         case 'python':
             return {

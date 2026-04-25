@@ -2,7 +2,7 @@ import * as path from 'node:path'
 import type { Command } from 'commander'
 import ora from 'ora'
 import chalk from 'chalk'
-import { ContractReader, LockReader, discoverFiles, hashFile } from '@getmikk/core'
+import { ContractReader, LockReader, discoverFiles, hashFile, detectProjectLanguage, getDiscoveryPatterns } from '@getmikk/core'
 import { BoundaryChecker } from '@getmikk/core'
 
 export function registerContractCommands(program: Command) {
@@ -46,23 +46,30 @@ export function registerContractCommands(program: Command) {
                 // ── 1. File drift check ────────────────────────────────────
                 if (!options.boundariesOnly) {
                     const driftSpinner = ora('Checking file drift...').start()
-                    const files = await discoverFiles(projectRoot)
+                    // Use same language-aware patterns as `analyze` to avoid
+                    // false drift from discovering different file sets.
+                    const language = mikkContract.project.language || await detectProjectLanguage(projectRoot)
+                    const { patterns, ignore } = getDiscoveryPatterns(language as any)
+                    const files = await discoverFiles(projectRoot, patterns, ignore)
                     const drifted: string[] = []
                     const added: string[] = []
                     const deleted: string[] = []
 
+                    const normKey = (p) => p.replace(/\\/g, '/').toLowerCase()
                     for (const filePath of files) {
                         const fullPath = path.join(projectRoot, filePath)
+                        const lockKey = normKey(fullPath)
                         const currentHash = await hashFile(fullPath)
-                        const lockedFile = lock.files[filePath]
+                        const lockedFile = lock.files[lockKey]
                         if (!lockedFile) {
                             added.push(filePath)
                         } else if (lockedFile.hash !== currentHash) {
                             drifted.push(filePath)
                         }
                     }
+                    const absFileSet = new Set(files.map(f => normKey(path.join(projectRoot, f))))
                     for (const lockedPath of Object.keys(lock.files)) {
-                        if (!files.includes(lockedPath)) deleted.push(lockedPath)
+                        if (!absFileSet.has(normKey(lockedPath))) deleted.push(path.relative(projectRoot, lockedPath).replace(/\\/g, '/'))
                     }
 
                     const driftTotal = drifted.length + added.length + deleted.length

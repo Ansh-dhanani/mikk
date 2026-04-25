@@ -3,9 +3,10 @@ import type { Command } from 'commander'
 import chalk from 'chalk'
 import {
     ContractReader, LockReader, DeadCodeDetector,
-    type MikkLock, type DependencyGraph, type GraphNode, type GraphEdge,
+    type MikkLock,
 } from '@getmikk/core'
 import { panel, sq, gap } from '../ui.js'
+import { buildGraphFromLock, computeComplexity } from '../utils.js'
 
 export function registerCiCommand(program: Command) {
     program
@@ -52,8 +53,8 @@ export function registerCiCommand(program: Command) {
                     const detector = new DeadCodeDetector(graph, lock)
                     const detected = detector.detect()
                     const threshold = parseInt(opts.deadCodeThreshold, 10)
-                    const totalCount = detected.totalCount || Object.keys(lock.functions || {}).length
-                    const deadCount = detected.deadCount || 0
+                    const totalCount = detected.totalFunctions
+                    const deadCount = detected.deadCount
                     const pct = totalCount > 0 ? (deadCount / totalCount) * 100 : 0
                     deadCodeResult = {
                         deadCount,
@@ -84,7 +85,7 @@ export function registerCiCommand(program: Command) {
                         name: 'Complexity',
                         pass: complexityResult.pass,
                         message: `${complexityResult.overThreshold.length} functions over threshold`,
-                        details: complexityResult.overThreshold.slice(0, 10)
+                        details: complexityResult.overThreshold.slice(0, 10).map(f => `${f.name} (${f.file}, complexity ${f.complexity})`)
                     })
                 }
 
@@ -280,7 +281,8 @@ function checkComplexity(lock: MikkLock, threshold: number): ComplexityCheckResu
     const overThreshold: { name: string; file: string; complexity: number }[] = []
 
     for (const fn of Object.values(lock.functions || {})) {
-        const complexity = fn.complexity || 1
+        // fn.complexity doesn't exist in schema — compute from available fields
+        const complexity = computeComplexity(fn)
         if (complexity > threshold) {
             overThreshold.push({
                 name: fn.name || 'anonymous',
@@ -297,60 +299,17 @@ function checkComplexity(lock: MikkLock, threshold: number): ComplexityCheckResu
 }
 
 function checkModuleSize(lock: MikkLock, threshold: number): ModuleSizeCheckResult {
-    const moduleFiles = new Map<string, Set<string>>()
-
-    for (const fn of Object.values(lock.functions || {})) {
-        const moduleId = fn.moduleId || 'unknown'
-        if (!moduleFiles.has(moduleId)) {
-            moduleFiles.set(moduleId, new Set())
-        }
-        if (fn.file) {
-            moduleFiles.get(moduleId)!.add(fn.file)
-        }
-    }
-
+    // Use lock.modules[id].files as the authoritative count.
+    // Counting via fn.moduleId is unreliable (many files fall back to wrong module).
     const overSize: { name: string; fileCount: number }[] = []
-    for (const [module, files] of moduleFiles) {
-        if (files.size > threshold) {
-            overSize.push({ name: module, fileCount: files.size })
+    for (const [modId, mod] of Object.entries(lock.modules ?? {})) {
+        const fileCount = (mod as any).files?.length ?? 0
+        if (fileCount > threshold) {
+            overSize.push({ name: modId, fileCount })
         }
     }
-
     return {
         pass: overSize.length === 0,
         overSize: overSize.sort((a, b) => b.fileCount - a.fileCount)
     }
-}
-
-function buildGraphFromLock(lock: MikkLock): DependencyGraph {
-    const nodes = new Map<string, GraphNode>()
-    const edges: GraphEdge[] = []
-    const outEdges = new Map<string, GraphEdge[]>()
-    const inEdges = new Map<string, GraphEdge[]>()
-
-    for (const fn of Object.values(lock.functions)) {
-        nodes.set(fn.id, { id: fn.id, type: 'function', name: fn.name, file: fn.file, moduleId: fn.moduleId, metadata: { startLine: fn.startLine, endLine: fn.endLine, isExported: fn.isExported } })
-    }
-
-    for (const fn of Object.values(lock.functions)) {
-        for (const calleeId of fn.calls ?? []) {
-            if (!nodes.has(calleeId)) continue
-            const edge: GraphEdge = { from: fn.id, to: calleeId, type: 'calls', confidence: 1.0 }
-            edges.push(edge)
-            const out = outEdges.get(fn.id) ?? []; out.push(edge); outEdges.set(fn.id, out)
-            const inE = inEdges.get(calleeId) ?? []; inE.push(edge); inEdges.set(calleeId, inE)
-        }
-    }
-
-    for (const fn of Object.values(lock.functions)) {
-        for (const callerId of fn.calledBy ?? []) {
-            if (!nodes.has(fn.id) || !nodes.has(callerId)) continue
-            const edge: GraphEdge = { from: callerId, to: fn.id, type: 'calls', confidence: 0.9 }
-            edges.push(edge)
-            const out = outEdges.get(callerId) ?? []; out.push(edge); outEdges.set(callerId, out)
-            const inE = inEdges.get(fn.id) ?? []; inE.push(edge); inEdges.set(fn.id, inE)
-        }
-    }
-
-    return { nodes, edges, outEdges, inEdges }
 }

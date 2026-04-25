@@ -29,7 +29,7 @@ Parse → Graph → Hash → Contract → Serve
 | **Graph** | Custom GraphBuilder | O(n) construction, O(1) lookups |
 | **Hash** | SHA-256 | Function → file → module → root |
 | **Contract** | mikk.json | Modules, constraints, ADRs |
-| **Serve** | MCP Server | 37 tools, 30s TTL cache |
+| **Serve** | MCP Server | 41 tools, 30s TTL cache |
 
 ---
 
@@ -70,7 +70,7 @@ Parse → Graph → Hash → Contract → Serve
 
 ---
 
-## MCP Tools (38 Total)
+## MCP Tools (41 Total)
 
 ### Session Tools (4)
 | Tool | Description |
@@ -229,6 +229,11 @@ Tests: 1 file
 2. **Ruby, Dart, Objective-C, Elm** — Known tree-sitter WASM issues (gracefully skipped)
 3. **Semantic search** — Requires `@xenova/transformers` (optional)
 4. **Large projects (>50k files)** — Memory scale needs testing
+5. **`get_routes`** — Next.js file-system routes not detected; Express-style only
+6. **`find_by_signature`** — Non-functional; signature normalization not implemented
+7. **`secrets_scan`** — ~1,000+ false positives on template literals; use `--severity high`
+8. **`find_by_location`** — Requires exact line number; no range matching
+9. **`get_function_detail`** — Returns all prefix matches, not just exact name
 
 ---
 
@@ -557,9 +562,13 @@ Options:
 > **What it does**: Daemon mode. Watches file changes and auto-updates the lock file.
 
 ```bash
-mikk watch              # Start watcher (Ctrl+C to stop)
-mikk watch &           # Run in background (Unix)
+mikk watch                # Start watcher (Ctrl+C to stop)
+mikk watch --debounce 500 # Custom debounce in ms (default: 100)
+mikk watch --obsidian     # Also regenerate Obsidian vault in mikk-vault/ on graph updates
+mikk watch &              # Run in background (Unix)
 ```
+
+With `--obsidian`, a vault containing one Markdown note per file/function/class/type/route/variable is regenerated on every graph update. Any error from the sync script is shown in the terminal.
 
 ---
 

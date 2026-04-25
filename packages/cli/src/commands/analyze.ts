@@ -157,12 +157,16 @@ export function registerAnalyzeCommand(program: Command) {
                 const contextFiles = await discoverContextFiles(projectRoot)
 
                 spinner.text = 'Compiling lock file...'
-                const lock = new LockCompiler().compile(graph, contract, parsedFiles, contextFiles, projectRoot)
-                lock.syncState.parseDiagnostics = {
-                    requestedFiles: parseResult.summary.requestedFiles,
-                    parsedFiles: parseResult.summary.parsedFiles,
-                    fallbackFiles: parseResult.summary.fallbackFiles,
-                    diagnostics: parseResult.summary.diagnostics,
+                const lock = await new LockCompiler().compile(graph, contract, parsedFiles, contextFiles, projectRoot)
+                if (lock.syncState) {
+                    lock.syncState.parseDiagnostics = {
+                        requestedFiles: parseResult.summary?.requestedFiles || parsedFiles.length,
+                        parsedFiles: parseResult.summary?.parsedFiles || parsedFiles.length,
+                        fallbackFiles: parseResult.summary?.fallbackFiles || 0,
+                        diagnostics: parseResult.summary?.diagnostics || 0,
+                    }
+                } else {
+                    console.error('[WARN] lock.syncState is undefined, skipping parseDiagnostics')
                 }
 
                 const lockReader = new LockReader()

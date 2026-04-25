@@ -1,0 +1,23 @@
+{
+  "name": "mikk-stress-tests",
+  "version": "1.0.0",
+  "private": true,
+  "description": "MIKK reliability stress test suite",
+  "scripts": {
+    "dry-run": "npx ts-node run-all.ts --dry-run",
+    "run-all": "npx ts-node run-all.ts",
+    "suite:1": "npx ts-node run-all.ts --suite 1",
+    "suite:2": "npx ts-node run-all.ts --suite 2",
+    "suite:3": "npx ts-node run-all.ts --suite 3",
+    "suite:4": "npx ts-node run-all.ts --suite 4",
+    "suite:5": "npx ts-node run-all.ts --suite 5"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "ts-node": "^10.9.0",
+    "typescript": "^5.7.0"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.29.0"
+  }
+}

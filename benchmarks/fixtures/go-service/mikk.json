@@ -1,5 +1,0 @@
-{
-  "version": "1.0.0",
-  "project": { "name": "go-service", "description": "Go REST API with auth and task management", "language": "go" },
-  "declared": { "modules": [], "constraints": [], "decisions": [] }
-}

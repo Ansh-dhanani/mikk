@@ -324,6 +324,12 @@ ${chalk.bold('Semantic Search Providers:')}
         }
 
         const lock = await new LockReader().read(lockPath)
+
+        // Build authoritative file->module map from lock.modules (fn.moduleId is unreliable)
+        const modFileSets = new Map<string, Set<string>>()
+        for (const [mId, mod] of Object.entries((lock as any).modules ?? {})) {
+            modFileSets.set(mId, new Set((mod as any).files ?? []))
+        }
         const lockFunctions = lock.functions
         const lockClasses = lock.classes || {}
         const lockGenerics = lock.generics || {}
@@ -334,7 +340,7 @@ ${chalk.bold('Semantic Search Providers:')}
         const allGenerics = Object.values(lockGenerics)
         
         // For unified search, map everything to a common format
-        const allItems = [
+        const allItems: any[] = [
             ...allFunctions.map(f => ({ ...f, itemType: 'function' })),
             ...allClasses.map(c => ({ ...c, itemType: 'class', name: c.name, purpose: c.purpose || '' })),
             ...allGenerics.map(g => ({ ...g, itemType: 'generic', name: g.name, purpose: g.purpose || '' }))
@@ -344,9 +350,11 @@ ${chalk.bold('Semantic Search Providers:')}
         if (options.listModules) {
             const modules = Object.values(lock.modules || {})
             const moduleStats = modules.map(mod => {
-                const fns = allFunctions.filter(f => f.moduleId === mod.id)
-                const types = allGenerics.filter(g => g.moduleId === mod.id)
-                const classes = allClasses.filter(c => c.moduleId === mod.id)
+                // Use file-set membership (authoritative) not fn.moduleId (unreliable)
+                const modFileSet = modFileSets.get(mod.id) ?? new Set<string>()
+                const fns = allFunctions.filter(f => modFileSet.has(f.file))
+                const types = allGenerics.filter(g => modFileSet.has(g.file))
+                const classes = allClasses.filter(c => modFileSet.has(c.file))
                 return { id: mod.id, files: mod.files?.length || 0, functions: fns.length, types: types.length, classes: classes.length }
             }).sort((a, b) => b.functions - a.functions)
 
@@ -402,7 +410,21 @@ ${chalk.bold('Semantic Search Providers:')}
         let filtered = allItems
 
         for (const modId of moduleFilters) {
-            filtered = filtered.filter(f => f.moduleId.includes(modId) || modId.includes(f.moduleId))
+            // Use authoritative file-set from lock.modules (fn.moduleId is unreliable).
+            // Match exact ID or sub-cluster IDs (e.g. packages-core-parser for packages-core).
+            const matchingModIds = [...modFileSets.keys()].filter(
+                id => id === modId || id.startsWith(modId + '-')
+            )
+            const matchingFiles = new Set<string>()
+            for (const mid of matchingModIds) {
+                for (const f of modFileSets.get(mid) ?? []) matchingFiles.add(f)
+            }
+            if (matchingFiles.size > 0) {
+                filtered = filtered.filter(f => matchingFiles.has(f.file))
+            } else {
+                // Fallback: if no lock module matches, use substring on moduleId field
+                filtered = filtered.filter(f => (f.moduleId ?? '').includes(modId))
+            }
         }
 
         for (const pattern of fileFilters) {
@@ -415,6 +437,14 @@ ${chalk.bold('Semantic Search Providers:')}
 
         if (options.internal) {
             filtered = filtered.filter(f => !f.isExported)
+        }
+
+        // Type-specific filters: these flags imply function-only results.
+        // Classes and generics don't have isAsync/returnType/params/calls/calledBy,
+        // so including them makes no sense when these flags are set.
+        const hasFunctionFilter = options.async || options.returns || paramFilters.length > 0 || callsFilters.length > 0 || calledByFilters.length > 0
+        if (hasFunctionFilter) {
+            filtered = filtered.filter(f => f.itemType === 'function')
         }
 
         if (options.async) {
@@ -549,14 +579,32 @@ ${chalk.bold('Semantic Search Providers:')}
             if (mode === 'exact') {
                 const fn = engine.getExactMatch(query)
                 if (fn) results = [{ name: fn.name, file: fn.file, fn, score: 1.0 }]
+            } else if (mode === 'direct') {
+                // direct mode: name-substring matches only, no semantic padding.
+                // Anything scoring below 0.90 in direct mode is noise.
+                const nameResults = engine.search({ name: query })
+                const seenIds = new Set<string>()
+                for (const fn of nameResults.slice(0, limit * 2)) {
+                    if (!seenIds.has(fn.id)) {
+                        seenIds.add(fn.id)
+                        // In direct mode only keep strong name matches
+                        const fnName = fn.name.toLowerCase()
+                        const q = query.toLowerCase()
+                        const score = fnName === q ? 1.0 : fnName.includes(q) ? 0.92 : fnName.split(/[-_.]/).some((w: string) => w.includes(q)) ? 0.91 : 0
+                        if (score >= 0.90) results.push({ name: fn.name, file: fn.file, fn, score })
+                    }
+                }
             } else {
                 // Direct search - require exact name match
                 const nameResults = engine.search({ name: query })
                 
-                // Only use name results - no fallback
-                // If no matches, fuzzy search will handle it
+                // Track seen IDs (not names) to correctly dedup across files
+                const seenIds = new Set<string>()
                 for (const fn of nameResults.slice(0, limit * 2)) {
-                    results.push({ name: fn.name, file: fn.file, fn, score: 1.0 })
+                    if (!seenIds.has(fn.id)) {
+                        seenIds.add(fn.id)
+                        results.push({ name: fn.name, file: fn.file, fn, score: 1.0 })
+                    }
                 }
 
                 // Semantic search only in semantic or hybrid mode
@@ -573,11 +621,11 @@ ${chalk.bold('Semantic Search Providers:')}
                             const semanticResults = await searcher.search(query, filteredLock, limit * 2)
                             
                             for (const res of semanticResults) {
-                                if (!results.find(r => r.name === res.name)) {
-                                    const fn = filtered.find(f => f.id === res.id || f.name === res.name)
-                                    if (fn) results.push({ name: fn.name, file: fn.file, fn, score: res.score })
-                                }
+                            if (!results.find(r => r.fn.id === res.id)) {
+                                const fn = filtered.find(f => f.id === res.id)
+                                if (fn) results.push({ name: fn.name, file: fn.file, fn, score: res.score })
                             }
+                        }
                             spinner.stop()
                         } catch (err) {
                             spinner.stop()
@@ -593,20 +641,18 @@ ${chalk.bold('Semantic Search Providers:')}
                     }
                 }
 
-                // Fuzzy search - always runs to enhance results, especially for typos
-                // Skip if we already have good results from exact match
-                if (results.length === 0 || mode === 'hybrid') {
-                    const spinner = ora('Fuzzy search (typo tolerance)...').start()
-                    const fuzzyResults = fuzzySearch(query, filtered)
+                // Fuzzy search — only run when results are sparse (< limit) to enhance coverage.
+                // In exact/direct mode we skip fuzzy; in hybrid we supplement if needed.
+                if (results.length < limit || mode === 'hybrid') {
+                    const fuzzyResults = fuzzySearch(query, filtered.filter(f => f.itemType === 'function'))
                     for (const res of fuzzyResults.slice(0, limit * 2)) {
-                        const existing = results.find(r => r.name === res.fn.name)
+                        const existing = results.find(r => r.fn.id === res.fn.id)
                         if (!existing) {
                             results.push({ name: res.fn.name, file: res.fn.file, fn: res.fn, score: res.score })
                         } else if (res.score > existing.score) {
                             existing.score = res.score
                         }
                     }
-                    spinner.stop()
                 }
             }
         } else {
@@ -641,7 +687,27 @@ ${chalk.bold('Semantic Search Providers:')}
                 console.log(chalk.dim(`  --exported to filter exported only`))
                 console.log(chalk.dim(`  --module <id> to search in specific module`))
             }
+            // Exit 1 only when truly no results — lets shell scripts detect misses
+            process.exit(1)
             return
+        }
+
+        // When function-specific filters are active and all results are low-confidence
+        // semantic matches, warn the user rather than silently returning junk.
+        // Threshold: 50% normally, but 65% when NO function name contains the query.
+        const hasFnFiltersActive = options.async || options.returns || (options.param?.length > 0) || (options.calls?.length > 0) || (options.calledBy?.length > 0)
+        if (hasFnFiltersActive && displayResults.length > 0) {
+            const queryLower = query.toLowerCase()
+            const anyNameMatch = displayResults.some(r => r.name.toLowerCase().includes(queryLower))
+            const junkThreshold = anyNameMatch ? 0.50 : 0.75
+            if (displayResults.every(r => r.score < junkThreshold)) {
+                console.log(chalk.yellow(`\nNo confident matches for "${query}" with the given filters.`))
+                console.log(chalk.dim(`  Best score was ${Math.round((Math.max(...displayResults.map(r=>r.score)))*100)}% — below ${Math.round(junkThreshold*100)}% confidence threshold.`))
+                console.log(chalk.dim(`  No function name contains "${queryLower}" — the query may not exist in this codebase.`))
+                console.log(chalk.dim(`  Try relaxing filters or use --mode direct for exact name matching.`))
+                process.exit(1)
+                return
+            }
         }
 
         if (asJson) {
@@ -695,6 +761,8 @@ ${chalk.bold('Semantic Search Providers:')}
             console.log(chalk.dim(`  Use --exported to filter exported functions`))
             console.log(chalk.dim(`  Use --mode semantic for fuzzy matching`))
         }
+        // Success — exit 0 so shell scripts can detect clean runs
+        process.exit(0)
 
       } catch (err: unknown) {
         const message = err instanceof Error ? err.message : String(err)

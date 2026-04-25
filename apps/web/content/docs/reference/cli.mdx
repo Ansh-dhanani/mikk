@@ -64,6 +64,7 @@ Start the live file watcher daemon. Keeps `mikk.lock.json` in sync as you edit.
 ```bash
 mikk watch
 mikk watch --debounce 500    # debounce delay in ms (default: 100)
+mikk watch --obsidian        # also regenerate Obsidian vault on graph updates
 ```
 
 <Callout type="info">
@@ -72,6 +73,14 @@ mikk watch --debounce 500    # debounce delay in ms (default: 100)
   Changes ≥ 15 files trigger a full re-analysis.
   All lock writes are atomic: temp file → rename. Zero corruption on crash.
 </Callout>
+
+**`--obsidian` flag:**
+When a `graph:updated` event fires, the watcher spawns `node scripts/mikk-to-obsidian.mjs --all-fns` to regenerate the Obsidian vault in `mikk-vault/`. The vault contains one note per file, function, class, type, route, variable, and property — all interlinked as wikilinks.
+
+If the sync script exits non-zero, the first line of stderr is shown:
+```
+→ Obsidian vault sync failed: Cannot read lock: ENOENT
+```
 
 ---
 
@@ -261,6 +270,7 @@ Exemptions applied automatically: exported symbols, entry-point names, route han
     mikk mcp install --tool cursor       # Cursor
     mikk mcp install --tool vscode       # VS Code Copilot
     mikk mcp install --tool windsurf     # Windsurf
+    mikk mcp install --dry-run           # preview without writing
     ```
   </Tab>
 </Tabs>
@@ -277,6 +287,10 @@ Exemptions applied automatically: exported symbols, entry-point names, route han
     },
     "mikk doctor": {
       description: "7-point diagnostic check — config file validity, lock freshness, parser availability, MCP server reachability.",
+      type: "command",
+    },
+    "mikk suggest": {
+      description: "Practical next-step recommendations based on the current project state.",
       type: "command",
     },
     "mikk remove": {

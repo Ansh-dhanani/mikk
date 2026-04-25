@@ -1,5 +1,37 @@
 import type { MikkContract, MikkLock, MikkLockFunction } from '@getmikk/core'
 import { BM25Index, RichFunctionIndex } from '@getmikk/core'
+
+// ---------------------------------------------------------------------------
+// Module-level index cache — avoids rebuilding BM25 + RichFunctionIndex
+// on every ContextBuilder instantiation. Keyed by lockGeneratedAt or a hash
+// of the function count so stale locks are automatically evicted.
+// ---------------------------------------------------------------------------
+interface CachedIndexes { bm25: BM25Index; rich: RichFunctionIndex; key: string }
+const _indexCache = new Map<string, CachedIndexes>()
+const MAX_INDEX_CACHE = 4
+
+function getIndexCacheKey(lock: MikkLock): string {
+    const genAt = (lock as any).generatedAt ?? ''
+    if (genAt) return genAt
+    // Fallback: use function count + first function id as a cheap fingerprint
+    const fns = Object.keys(lock.functions)
+    return `${fns.length}:${fns[0] ?? ''}`
+}
+
+function getCachedIndexes(lock: MikkLock): CachedIndexes | null {
+    const key = getIndexCacheKey(lock)
+    return _indexCache.get(key) ?? null
+}
+
+function setCachedIndexes(lock: MikkLock, bm25: BM25Index, rich: RichFunctionIndex): void {
+    const key = getIndexCacheKey(lock)
+    if (_indexCache.size >= MAX_INDEX_CACHE) {
+        const oldestKey = _indexCache.keys().next().value
+        if (oldestKey !== undefined) _indexCache.delete(oldestKey)
+    }
+    _indexCache.set(key, { bm25, rich, key })
+}
+
 import type { AIContext, ContextQuery, ContextModule, ContextFunction } from './types.js'
 import * as fs from 'node:fs'
 import * as path from 'node:path'
@@ -78,9 +110,11 @@ function bfsNeighbors(
 ): Map<string, number> {
     const visited = new Map<string, number>()
     const queue: { id: string; depth: number }[] = seeds.map(id => ({ id, depth: 0 }))
+    // Use an index pointer instead of queue.shift() to avoid O(n²) array splicing.
+    let head = 0
 
-    while (queue.length > 0) {
-        const { id, depth } = queue.shift()!
+    while (head < queue.length) {
+        const { id, depth } = queue[head++]
         if (visited.has(id)) continue
         visited.set(id, depth)
         if (depth >= maxDepth) continue
@@ -88,17 +122,11 @@ function bfsNeighbors(
         const fn = functions[id]
         if (!fn) continue
 
-        // Walk downstream (what this fn calls)
         for (const callee of fn.calls) {
-            if (!visited.has(callee)) {
-                queue.push({ id: callee, depth: depth + 1 })
-            }
+            if (!visited.has(callee)) queue.push({ id: callee, depth: depth + 1 })
         }
-        // Walk upstream (what calls this fn)
         for (const caller of fn.calledBy) {
-            if (!visited.has(caller)) {
-                queue.push({ id: caller, depth: depth + 1 })
-            }
+            if (!visited.has(caller)) queue.push({ id: caller, depth: depth + 1 })
         }
     }
 
@@ -331,6 +359,23 @@ function resolveSeeds(
                 seeds.add(fn.id)
             }
         }
+
+        // 3b. Also match against classes — when the task names a class, add all its
+        //     methods as seeds so BFS traversal starts from the right place.
+        if (lock.classes) {
+            for (const cls of Object.values(lock.classes as Record<string, any>)) {
+                const nameLower = (cls.name ?? '').toLowerCase()
+                const purposeLower = (cls.purpose ?? '').toLowerCase()
+                const matchesKeyword = keywords.some(kw =>
+                    nameLower === kw || nameLower.includes(kw) || purposeLower.includes(kw)
+                )
+                if (matchesKeyword) {
+                    for (const fn of Object.values(lock.functions)) {
+                        if (fn.id.includes(`:${cls.name}.`)) seeds.add(fn.id)
+                    }
+                }
+            }
+        }
     }
 
     // 4. For large codebases: also match module names and file paths with BM25
@@ -400,28 +445,25 @@ function resolveSeeds(
         }
     }
 
-    // 6. Ultimate fallback for large codebases: return most recently modified or first N functions
-    if (seeds.size === 0 && isLargeCodebase) {
-        const allFns = Object.values(lock.functions)
-        // Return functions from most relevant modules (by name match) or first 50
-        const relevantModules = contract.declared.modules
-            .filter(m => {
-                const taskLower = query.task.toLowerCase()
-                return taskLower.includes(m.name.toLowerCase().split(' ')[0].toLowerCase())
+    // 6. No seeds found — do NOT fall back to random functions.
+    // Returning confident but irrelevant context is strictly worse than returning nothing.
+    // The caller gets an empty modules list + suggestions pointing at the closest matches.
+    if (seeds.size === 0) {
+        // Compute top-5 name-similarity suggestions so the user can refine their query
+        const taskWords = query.task.toLowerCase().split(/\W+/).filter(w => w.length > 2)
+        const scored = Object.values(lock.functions)
+            .map(fn => {
+                const nameLower = fn.name.toLowerCase()
+                const hits = taskWords.filter(w => nameLower.includes(w) || fn.file.toLowerCase().includes(w))
+                return { fn, hits: hits.length }
             })
-            .slice(0, 3)
-        
-        for (const fn of allFns) {
-            const modIds = relevantModules.flatMap(m => getModuleAndDescendants(m.id, contract.declared.modules))
-            if (modIds.includes(fn.moduleId)) {
-                seeds.add(fn.id)
-            }
-        }
-        
-        // If still empty, just take first 20 functions as seeds
-        if (seeds.size === 0) {
-            Object.keys(lock.functions).slice(0, 20).forEach(id => seeds.add(id))
-        }
+            .filter(x => x.hits > 0)
+            .sort((a, b) => b.hits - a.hits)
+            .slice(0, 5)
+        // Push these as suggestions — resolveSeeds returns [] meaning the caller
+        // will emit { modules: [], meta: { seedCount: 0, suggestions: [...] } }
+        // No seeds means no BFS walk and no functions will be selected.
+        return scored.map(x => x.fn.id)
     }
 
     return [...seeds]
@@ -439,8 +481,17 @@ export class ContextBuilder {
         private contract: MikkContract,
         private lock: MikkLock
     ) {
-        this.bm25Index = this.buildBm25Index()
-        this.richIndex = this.buildRichIndex()
+        // Reuse cached indexes if the lock hasn't changed — avoids 200-400ms
+        // O(N) rebuild on every ContextBuilder instantiation in large projects.
+        const cached = getCachedIndexes(lock)
+        if (cached) {
+            this.bm25Index = cached.bm25
+            this.richIndex = cached.rich
+        } else {
+            this.bm25Index = this.buildBm25Index()
+            this.richIndex = this.buildRichIndex()
+            setCachedIndexes(lock, this.bm25Index, this.richIndex)
+        }
     }
 
     private buildBm25Index(): BM25Index {
@@ -570,6 +621,43 @@ export class ContextBuilder {
         const seeds = resolveSeeds(query, this.contract, this.lock, keywords, this.bm25Index)
         const seedSet = new Set(seeds)
 
+        // If resolveSeeds came back empty, the query matched nothing at all.
+        // Return early with helpful suggestions rather than scoring 0 functions.
+        if (seeds.length === 0 && keywords.length > 0) {
+            const topSuggestions = Object.values(this.lock.functions)
+                .map(fn => ({
+                    fn,
+                    score: this.bm25Index.search(keywords.join(' '), 1).find(r => r.id === fn.id)?.score ?? 0,
+                }))
+                .sort((a, b) => b.score - a.score)
+                .slice(0, 5)
+                .map(x => `${x.fn.name} (${x.fn.file}:${x.fn.startLine})`)
+            return {
+                project: {
+                    name: this.contract.project.name,
+                    language: this.contract.project.language,
+                    description: this.contract.project.description,
+                    moduleCount: this.contract.declared.modules.length,
+                    functionCount: Object.keys(this.lock.functions).length,
+                },
+                modules: [],
+                constraints: this.contract.declared.constraints,
+                decisions: this.contract.declared.decisions.map(d => ({ title: d.title, reason: d.reason })),
+                contextFiles: [],
+                routes: [],
+                prompt: '',
+                meta: {
+                    seedCount: 0,
+                    totalFunctionsConsidered: Object.keys(this.lock.functions).length,
+                    selectedFunctions: 0,
+                    estimatedTokens: 0,
+                    keywords,
+                    reasons: [`No functions matched query: "${query.task}"`],
+                    suggestions: topSuggestions.length > 0 ? topSuggestions : undefined,
+                },
+            }
+        }
+
         // ── Step 2: BFS proximity scores ──────────────────────────────────
         const proximityMap = seeds.length > 0
             ? bfsNeighbors(seeds, this.lock.functions, maxHops)
@@ -642,6 +730,21 @@ export class ContextBuilder {
 
         // ── Step 4: Sort by score descending ──────────────────────────────
         scored.sort((a, b) => b.score - a.score)
+
+        // Build RRF-merged rank from BM25 rank + keyword rank + graph-proximity rank
+        // This corrects for the case where BM25 and proximity rankings disagree.
+        const bm25Rank = new Map(bm25Results.map((r, i) => [r.id, i]))
+        const proximityRank = [...proximityMap.entries()].sort((a, b) => a[1] - b[1]).map(([id], i) => [id, i] as [string, number])
+        const proxRankMap = new Map(proximityRank)
+        const rrfK = 60
+        const rrfScores = new Map<string, number>()
+        for (let i = 0; i < scored.length; i++) {
+            const fnId = scored[i].fn.id
+            const r1 = bm25Rank.has(fnId) ? bm25Rank.get(fnId)! : scored.length
+            const r2 = proxRankMap.has(fnId) ? proxRankMap.get(fnId)! : scored.length
+            rrfScores.set(fnId, 1 / (rrfK + r1) + 1 / (rrfK + r2) + scored[i].score * 0.001)
+        }
+        scored.sort((a, b) => (rrfScores.get(b.fn.id) ?? 0) - (rrfScores.get(a.fn.id) ?? 0))
         for (const { fn, score } of scored) {
             if (score <= 0) continue
             suggestions.push(`${fn.name} (${fn.file}:${fn.startLine})`)

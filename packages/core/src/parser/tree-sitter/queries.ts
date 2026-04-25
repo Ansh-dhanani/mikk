@@ -9,6 +9,10 @@ export const TYPESCRIPT_QUERIES = `
 (lexical_declaration (variable_declarator name: (identifier) @name value: (function_expression))) @definition.function
 (export_statement declaration: (lexical_declaration (variable_declarator name: (identifier) @name value: (arrow_function)))) @definition.function
 (export_statement declaration: (lexical_declaration (variable_declarator name: (identifier) @name value: (function_expression)))) @definition.function
+(export_statement declaration: (class_declaration name: (type_identifier) @name)) @definition.class
+(export_statement declaration: (function_declaration name: (identifier) @name)) @definition.function
+(export_statement declaration: (abstract_class_declaration name: (type_identifier) @name)) @definition.class
+(abstract_class_declaration name: (type_identifier) @name) @definition.class
 (import_statement source: (string) @import.source) @import
 (export_statement source: (string) @import.source) @import
 (call_expression function: (identifier) @call.name) @call
@@ -42,6 +46,9 @@ export const PYTHON_QUERIES = `
 (class_definition name: (identifier) @name) @definition.class
 (class_definition name: (identifier) @heritage.class superclasses: (argument_list (identifier) @heritage.extends)) @heritage
 (function_definition name: (identifier) @name) @definition.function
+(decorated_definition
+  (decorator) @decorator
+  definition: (function_definition name: (identifier) @name)) @definition.function
 (import_statement name: (dotted_name) @import.source) @import
 (import_from_statement module_name: (dotted_name) @import.source) @import
 (import_from_statement module_name: (relative_import) @import.source) @import
@@ -66,10 +73,11 @@ export const JAVA_QUERIES = `
 `;
 
 export const KOTLIN_QUERIES = `
-; Kotlin uses type_identifier as child node, not as a named field
+; Top-level and member functions
 (class_declaration (type_identifier) @name) @definition.class
 (object_declaration (type_identifier) @name) @definition.class
 (function_declaration (simple_identifier) @name) @definition.function
+(class_body (function_declaration (simple_identifier) @name) @definition.method)
 (property_declaration (variable_declaration (simple_identifier) @name)) @definition.property
 (type_alias (type_identifier) @name) @definition.type
 (import_header (identifier) @import.source) @import
@@ -161,10 +169,13 @@ export const CSHARP_QUERIES = `
 
 export const RUST_QUERIES = `
 (function_item name: (identifier) @name) @definition.function
+(impl_item
+  type: (type_identifier) @impl.type
+  body: (declaration_list
+    (function_item name: (identifier) @name) @definition.method))
 (struct_item name: (type_identifier) @name) @definition.struct
 (enum_item name: (type_identifier) @name) @definition.enum
 (trait_item name: (type_identifier) @name) @definition.trait
-(impl_item type: (type_identifier) @name !trait) @definition.impl
 (mod_item name: (identifier) @name) @definition.module
 (type_item name: (type_identifier) @name) @definition.type
 (use_declaration argument: (_) @import.source) @import
@@ -175,17 +186,18 @@ export const RUST_QUERIES = `
 `;
 
 export const PHP_QUERIES = `
+(class_declaration name: (name) @name) @definition.class
+(function_definition name: (name) @name) @definition.function
+(method_declaration name: (name) @name) @definition.method
+(interface_declaration name: (name) @name) @definition.interface
+(trait_declaration name: (name) @name) @definition.trait
+(enum_declaration name: (name) @name) @definition.enum
 (namespace_definition name: (namespace_name) @name) @definition.namespace
-(class_declaration (name) @name) @definition.class
-(interface_declaration (name) @name) @definition.interface
-(trait_declaration (name) @name) @definition.trait
-(enum_declaration (name) @name) @definition.enum
-(method_declaration (name) @name) @definition.method
-(namespace_use_declaration (namespace_use_clause (qualified_name) @import.source)) @import
-(function_call_expression function: (name) @call.name) @call
+(namespace_use_clause (name) @import.source) @import
+(function_call_expression function: [(name) (qualified_name)] @call.name) @call
 (member_call_expression name: (name) @call.name) @call
 (nullsafe_member_call_expression name: (name) @call.name) @call
-(object_creation_expression (name) @call.name) @call
+(object_creation_expression class: [(name) (qualified_name)] @call.name) @call
 `;
 
 export const RUBY_QUERIES = `
@@ -316,10 +328,23 @@ export const ZIG_QUERIES = `
 (variable_declaration (identifier) @name) @definition.const
 `;
 
-// Elixir queries - uses call nodes for everything
+// Elixir queries — def/defp/defmacro only, not all calls
 export const ELIXIR_QUERIES = `
-(call (identifier) @name) @definition.function
-(call (identifier) @call.name) @call
+(call
+  target: (identifier) @_def
+  (#match? @_def "^(def|defp|defmacro|defmacrop)$")
+  (arguments (identifier) @name)) @definition.function
+(call
+  target: (identifier) @_def
+  (#match? @_def "^(def|defp|defmacro|defmacrop)$")
+  (arguments (call target: (identifier) @name))) @definition.function
+(call target: (dot field: (identifier) @call.name)) @call
+(call
+  target: (identifier) @call.name
+  (#not-match? @call.name "^(def|defp|defmodule|defmacro|defmacrop|use|import|require|alias)$")) @call
+(binary_remote_call
+  left: (_)
+  right: (identifier) @call.name) @call
 `;
 
 // OCaml queries - uses value_definition and value_name

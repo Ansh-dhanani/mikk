@@ -135,6 +135,17 @@ export class RiskExplainer {
             })
         }
 
+        // PageRank centrality factor — catches globally critical hubs
+        const pageRank = this.riskEngine.getPageRank(nodeId)
+        if (pageRank > 0.5) {
+            factors.push({
+                name: 'High call-graph centrality (PageRank)',
+                contribution: Math.round(pageRank * 25),
+                detail: `PageRank centrality ${(pageRank * 100).toFixed(0)}% of max — this node is a global hub. Many transitive callers depend on it even if direct fan-in appears low.`,
+                severity: pageRank > 0.8 ? 'high' : 'medium',
+            })
+        }
+
         // Find hot call paths (shortest paths from this node to critical nodes)
         const hotPaths = this.findHotPaths(nodeId, impact.classified.critical.slice(0, 3))
 

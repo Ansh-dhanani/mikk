@@ -1,4 +1,5 @@
 import * as path from 'node:path'
+import * as fs from 'node:fs/promises'
 import type { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js'
 import { z } from 'zod'
 import {
@@ -8,6 +9,27 @@ import {
     loadContractAndLock, buildGraphFromLock, detectCircularDeps,
     _clampBudget, _compactImpacted, _filesTok, _fileTok, _track, _ALC, _CPT,
 } from './shared.js'
+
+// ─── Helper: parse imports from file content (T46 fix) ───────────────
+function _parseImports(content: string): string[] {
+    const imports: string[] = []
+    // Simple line-by-line approach
+    const lines = content.split('\n')
+    for (const line of lines) {
+        // Match: from 'path' or from "path"
+        const fromMatch = line.match(/from\s+['"]([^'"]+)['"]/)
+        if (fromMatch) {
+            const p = fromMatch[1]
+            if (p.startsWith('.') || p.startsWith('/')) imports.push(p)
+        }
+    }
+    return imports
+}
+
+// ─── Helper: debug logging ───────────────────────────────
+function _log(label: string, ...args: any[]) {
+    console.error(`[${label}]`, ...args)
+}
 
 export function registerSafetyTools(server: McpServer, projectRoot: string) {
 
@@ -29,6 +51,18 @@ export function registerSafetyTools(server: McpServer, projectRoot: string) {
             const analyzer = new ImpactAnalyzer(graph)
             const checker = new BoundaryChecker(contract, lock)
             const boundaryResult = checker.check()
+
+            // T46 FIX: parse current file imports for fresh constraint checking
+            const freshImportsMap: Record<string, string[]> = {}
+            for (const relFile of filesToEdit) {
+                const fullPath = path.join(projectRoot, relFile)
+                try {
+                    const content = await fs.readFile(fullPath, 'utf8')
+                    freshImportsMap[relFile] = _parseImports(content)
+                    _log('T46', 'parsed imports', relFile, freshImportsMap[relFile])
+                } catch { /* ignore - file might not exist */ }
+            }
+
             const budget = _clampBudget(tokenBudget)
             const fileReports: Record<string, any> = {}
 
@@ -58,6 +92,73 @@ export function registerSafetyTools(server: McpServer, projectRoot: string) {
                         to: `${v.to.moduleName}::${v.to.functionName}`,
                         message: `"${v.from.functionName}" in ${v.from.moduleName} → "${v.to.functionName}" in ${v.to.moduleName} violates: "${v.rule}"`,
                     }))
+
+                // T46 FIX: check fresh imports from current file content against constraints
+                const freshImports = freshImportsMap[file] || []
+                _log('T46', 'freshImports', file, freshImports)
+                // Find the lock file entry with flexible path matching
+                let lockFileEntry: any = undefined
+                const fileLower = normalizedFile.toLowerCase()
+                for (const [lockPath, lockFile] of Object.entries(lock.files)) {
+                    if (lockPath.toLowerCase() === fileLower || lockPath.endsWith('/' + fileLower) || lockPath.endsWith(fileLower)) {
+                        lockFileEntry = lockFile
+                        break
+                    }
+                }
+                const srcModuleId = lockFileEntry?.moduleId
+                _log('T46', 'srcModuleId', normalizedFile, srcModuleId, 'lock.files keys sample', Object.keys(lock.files).slice(0, 3))
+                const rules: any[] = (checker as any).rules || []
+                _log('T46', 'rules', rules.map((r: any) => ({ fromModuleId: r.fromModuleId, toModuleIds: r.toModuleIds, raw: r.raw })))
+                const freshViolations: any[] = []
+                if (freshImports.length > 0 && srcModuleId) {
+                    for (const impPath of freshImports) {
+                        // resolve relative import path
+                        const srcDir = path.dirname(normalizedFile)
+                        const resolved = path.join(srcDir, impPath).replace(/\\/g, '/').replace(/\.(ts|js|tsx|jsx)$/, '')
+                        _log('T46', 'looking for target', resolved, 'in lock.files')
+                        // find target file in lock - remove break to check all matches
+                        let foundTarget = false
+                        for (const [lockPath, lockFile] of Object.entries(lock.files)) {
+                            const lp = lockPath.replace(/\\/g, '/')
+                            if (lp.endsWith(resolved) || lp.endsWith(resolved + '.ts') || lp.endsWith(resolved + '/service')) {
+                                _log('T46', 'checking file', lockPath, 'moduleId', lockFile?.moduleId)
+                                const targetModuleId = lockFile?.moduleId
+                                if (targetModuleId && targetModuleId !== 'unknown' && targetModuleId !== srcModuleId) {
+                                    _log('T46', 'MATCH', 'srcModuleId=', srcModuleId, 'targetModuleId=', targetModuleId)
+                                    // check constraints
+                                    for (const rule of rules) {
+                                        const fromMatch = rule.fromModuleId === srcModuleId || rule.fromModuleId === '*'
+                                        // Normalize module IDs: strip " module" suffix for comparison
+                                        const normalizedTarget = targetModuleId.replace(/\s+module$/, '').trim()
+                                        const toMatch = rule.toModuleIds.some((tid: string) => {
+                                            const normalizedTid = tid.replace(/\s+module$/, '').trim()
+                                            return normalizedTid === normalizedTarget || normalizedTid === '*'
+                                        }) || rule.toModuleIds.includes('*')
+                                        if (fromMatch && toMatch) {
+                                            freshViolations.push({
+                                                severity: 'error',
+                                                rule: rule.raw || 'constraint',
+                                                from: srcModuleId,
+                                                to: targetModuleId,
+                                                message: `${srcModuleId} imports ${targetModuleId} - violates constraint`,
+                                            })
+                                            foundTarget = true
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                        if (!foundTarget) {
+                            _log('T46', 'no target found for', resolved, 'in lock.files')
+                        }
+                    }
+                }
+
+                // merge violations
+                const allViolations = [...fileViolations, ...freshViolations]
+                const uniqueViolations = allViolations.filter((v, i, arr) =>
+                    arr.findIndex(x => x.from === v.from && x.to === v.to && x.rule === v.rule) === i
+                )
                 const circularWarnings = detectCircularDeps(fileFns, lock)
                 const perFileBase = { file, impactedNodes: result.impacted.length, depth: result.depth, confidence: result.confidence }
                 const compact = _compactImpacted(fullImpacted, perFileBase, Math.max(150, Math.floor(budget / Math.max(1, filesToEdit.length))), 4)
@@ -67,16 +168,20 @@ export function registerSafetyTools(server: McpServer, projectRoot: string) {
                     classified: { critical: result.classified.critical.length, high: result.classified.high.length, medium: result.classified.medium.length, low: result.classified.low.length },
                     depth: result.depth, confidence: result.confidence,
                     impacted: compact.items, truncated: compact.minimized,
-                    constraintStatus: fileViolations.length === 0 ? 'pass' : 'fail',
-                    violations: fileViolations, circularDependencies: circularWarnings,
+                    constraintStatus: uniqueViolations.length === 0 ? 'pass' : 'fail',
+                    violations: uniqueViolations, circularDependencies: circularWarnings,
                 }
             }
 
             const totalImpact = Object.values(fileReports).filter(r => typeof r.impactedNodes === 'number').reduce((s, r) => s + r.impactedNodes, 0)
             const totalViolations = Object.values(fileReports).reduce((s, r) => s + (r.violations?.length ?? 0), 0)
+            // T46 fix: expose a top-level violations array so callers don't have to
+            // dig into per-file reports — tests check afterEdit?.violations?.length > 0
+            const allTopViolations = Object.values(fileReports).flatMap((r: any) => r.violations ?? [])
             const response: any = {
                 summary: `Editing ${filesToEdit.length} file(s). Blast radius: ${totalImpact} dependent node(s). Constraint violations: ${totalViolations}.`,
                 constraintStatus: totalViolations === 0 ? 'pass' : 'fail',
+                violations: allTopViolations,
                 files: fileReports, warning: staleness,
                 hint: totalViolations > 0
                     ? 'WARNING: Constraint violations detected. Review violations before proceeding. Use mikk_get_constraints for full rule context.'
@@ -136,7 +241,26 @@ export function registerSafetyTools(server: McpServer, projectRoot: string) {
             const compact = _compactImpacted(fullImpacted, baseResponse, budget)
             if (abortOnHighTokens && compact.minimized)
                 return { content: [{ type: 'text' as const, text: JSON.stringify({ ...baseResponse, warning: `Token budget exceeded (${budget}).`, tokenGuard: { budget, estimatedTokens: compact.estimatedTokens, shouldAbort: true } }, null, 2) }], isError: true }
-            const response = { ...baseResponse, impacted: compact.items, truncated: compact.minimized, tokenGuard: { budget, estimatedTokens: compact.estimatedTokens, minimized: compact.minimized, shouldAbort: false } }
+            // T57 fix: derive unique affected file paths from BOTH function-level nodes
+            // AND direct file-level importers from the lock. Barrel files have zero
+            // function nodes so the function-node approach finds nothing; the lock's
+            // import graph is the authoritative source for file-level impact.
+            const affectedFilesFromNodes = [...new Set(fullImpacted.map((n: any) => n.file).filter(Boolean))]
+
+            // Find all files that directly import the changed file using the lock
+            const directImporters = new Set<string>()
+            for (const [filePath, fileData] of Object.entries(lock.files)) {
+                if ((fileData.imports ?? []).some((imp: any) => {
+                    const rp = imp.resolvedPath ?? ''
+                    return rp === normalizedFile || rp.endsWith('/' + normalizedFile) ||
+                        rp.replace(/\\/g, '/') === normalizedFile
+                })) {
+                    directImporters.add(filePath.replace(/\\/g, '/'))
+                }
+            }
+
+            const affectedFiles = [...new Set([...affectedFilesFromNodes, ...directImporters])]
+            const response = { ...baseResponse, affectedFiles, impacted: compact.items, truncated: compact.minimized, tokenGuard: { budget, estimatedTokens: compact.estimatedTokens, minimized: compact.minimized, shouldAbort: false } }
             const _rawIA = _fileTok(lock as any, normalizedFile) + result.impacted.length * Math.round((40 * _ALC) / _CPT)
             ;(response as any).tokens = _track(projectRoot, _rawIA, response)
             return { content: [{ type: 'text' as const, text: JSON.stringify(response, null, 2) }] }

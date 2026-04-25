@@ -76,7 +76,7 @@ describe('LockCompiler', () => {
         },
     })
 
-    it('compiles a valid lock file', () => {
+    it('compiles a valid lock file', async () => {
         const files = [
             mockParsedFile(
                 'src/auth/verify.ts',
@@ -86,7 +86,7 @@ describe('LockCompiler', () => {
             mockParsedFile('src/utils/jwt.ts', [mockFunction('jwtDecode', [], 'src/utils/jwt.ts', true)]),
         ]
         const graph = new GraphBuilder().build(files)
-        const lock = compiler.compile(graph, contract, files)
+        const lock = await compiler.compile(graph, contract, files)
 
         expect(lock.version).toBe('2.0.0')
         expect(lock.syncState.status).toBe('clean')
@@ -95,31 +95,31 @@ describe('LockCompiler', () => {
         expect(Object.keys(lock.files).length).toBe(2)
     })
 
-    it('assigns functions to correct modules', () => {
+    it('assigns functions to correct modules', async () => {
         const files = [
             mockParsedFile('src/auth/verify.ts', [mockFunction('verifyToken', [], 'src/auth/verify.ts')]),
         ]
         const graph = new GraphBuilder().build(files)
-        const lock = compiler.compile(graph, contract, files)
+        const lock = await compiler.compile(graph, contract, files)
         expect(lock.functions['fn:src/auth/verify.ts:verifytoken']?.moduleId).toBe('auth')
     })
 
-    it('computes stable module hash', () => {
+    it('computes stable module hash', async () => {
         const files = [
             mockParsedFile('src/auth/verify.ts', [mockFunction('verifyToken', [], 'src/auth/verify.ts')]),
         ]
         const graph = new GraphBuilder().build(files)
-        const lock1 = compiler.compile(graph, contract, files)
-        const lock2 = compiler.compile(graph, contract, files)
+        const lock1 = await compiler.compile(graph, contract, files)
+        const lock2 = await compiler.compile(graph, contract, files)
         expect(lock1.modules['auth']?.hash).toBe(lock2.modules['auth']?.hash)
     })
 
-    it('validates against MikkLockSchema', () => {
+    it('validates against MikkLockSchema', async () => {
         const files = [
             mockParsedFile('src/auth/verify.ts', [mockFunction('verifyToken', [], 'src/auth/verify.ts')]),
         ]
         const graph = new GraphBuilder().build(files)
-        const lock = compiler.compile(graph, contract, files)
+        const lock = await compiler.compile(graph, contract, files)
         const result = MikkLockSchema.safeParse(lock)
         expect(result.success).toBe(true)
     })

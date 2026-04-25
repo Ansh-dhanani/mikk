@@ -1,12 +1,14 @@
- 
+
 import * as nodePath from 'node:path'
 import { LanguageRegistry } from './language-registry.js'
 export { LanguageRegistry } from './language-registry.js'
 import './oxc-parser.js'
 import './tree-sitter/parser.js'
-import './go/go-extractor.js'
-import { BaseExtractor } from './base-extractor.js'
+// go-extractor and rust-extractor no longer self-register;
+// tree-sitter/parser.ts handles both via GO_QUERIES and RUST_QUERIES.
+import { BaseExtractor, ParseDepth } from './base-extractor.js'
 import { hashContent } from '../hash/file-hasher.js'
+import { normalizeFsPath, toPosixPath } from '../utils/id.js'
 import { IncrementalCache } from '../cache/incremental-cache.js'
 import { languageForExtension, toParsedFileLanguage } from '../utils/language-registry.js'
 import { ErrorRecoveryEngine } from './error-recovery.js'
@@ -27,6 +29,7 @@ export type {
 
 export { BaseExtractor } from './base-extractor.js'
 export { BoundaryChecker } from './boundary-checker.js'
+export { TypescriptExtractor } from './oxc-parser.js'
 
 export type ParseDiagnosticStage = 'read' | 'parse' | 'resolve-imports'
 export type ParseDiagnosticReason =
@@ -61,7 +64,7 @@ export interface ParseFilesResult {
 }
 
 const buildFallbackParsedFile = (filePath: string, content: string, ext: string): ParsedFile => ({
-    path: filePath,
+    path: toPosixPath(filePath),
     language: toParsedFileLanguage(languageForExtension(ext)),
     functions: [],
     classes: [],
@@ -95,11 +98,11 @@ async function parallelBatch<T, R>(
 ): Promise<R[]> {
     const results: R[] = new Array(items.length)
     const errors: (Error | null)[] = new Array(items.length)
-    
+
     for (let i = 0; i < items.length; i += concurrency) {
         const batch = items.slice(i, i + concurrency)
         const batchResults = await Promise.allSettled(batch.map((item, _j) => processor(item)))
-        
+
         for (let j = 0; j < batchResults.length; j++) {
             const result = batchResults[j]
             if (result.status === 'fulfilled') {
@@ -109,7 +112,7 @@ async function parallelBatch<T, R>(
             }
         }
     }
-    
+
     return results
 }
 
@@ -127,14 +130,14 @@ export async function parseFilesWithDiagnostics(
     const diagnostics: ParseDiagnostic[] = []
     const normalizedRoot = nodePath.resolve(projectRoot).replace(/\\/g, '/')
     const concurrency = options.concurrency ?? DEFAULT_CONCURRENCY
-    
+
     const cache = new IncrementalCache(projectRoot)
     const registry = LanguageRegistry.getInstance()
-    
+
     const filesByExtractor = new Map<BaseExtractor, ParsedFile[]>()
     const fallbackFiles: ParsedFile[] = []
     const _pendingDiagnostics: Array<{ filePath: string; ext: string; stage: ParseDiagnosticStage; reason: ParseDiagnosticReason; message: string }> = []
-    
+
     let parsedFilesCount = 0
     let fallbackFilesCount = 0
     let unreadableFiles = 0
@@ -144,14 +147,20 @@ export async function parseFilesWithDiagnostics(
         const absoluteFp = nodePath.resolve(normalizedRoot, fp).replace(/\\/g, '/')
         const ext = nodePath.extname(absoluteFp).toLowerCase()
         const langDef = registry.getForFile(absoluteFp)
-        
+
         try {
             const content = await readFile(absoluteFp)
-            return { absoluteFp, ext, langDef, content }
+            // Strategy: <1MB full, 1-10MB exports, >10MB metadata
+            const size = content ? Buffer.byteLength(content, 'utf-8') : 0
+            let depth: ParseDepth = 'full'
+            if (size > 10 * 1024 * 1024) depth = 'metadata-only'
+            else if (size > 1 * 1024 * 1024) depth = 'exports-only'
+
+            return { absoluteFp, ext, langDef, content, depth }
         } catch (err: unknown) {
-            return { 
-                absoluteFp, ext, langDef, content: null, 
-                error: normalizeErrorMessage(err) 
+            return {
+                absoluteFp, ext, langDef, content: null,
+                error: normalizeErrorMessage(err)
             }
         }
     }, concurrency)
@@ -171,7 +180,7 @@ export async function parseFilesWithDiagnostics(
 
         if (result.content === null) continue
 
-        const { absoluteFp, ext, langDef, content } = result
+        const { absoluteFp, ext, langDef, content, depth } = result as any
 
         if (!langDef) {
             unsupportedFiles += 1
@@ -188,9 +197,11 @@ export async function parseFilesWithDiagnostics(
         }
 
         try {
+            // Include depth in cache key or just invalidate if depth changes?
+            // For now, let's just use it in extraction.
             const contentHash = hashContent(content!)
             const cached = await cache.get(absoluteFp, contentHash)
-            
+
             if (cached) {
                 const group = filesByExtractor.get(langDef.extractor) || []
                 group.push(cached)
@@ -199,9 +210,9 @@ export async function parseFilesWithDiagnostics(
                 continue
             }
 
-            const parsed = await langDef.extractor.extract(absoluteFp, content!)
+            const parsed = await langDef.extractor.extract(absoluteFp, content!, { depth })
             await cache.set(absoluteFp, contentHash, parsed)
-            
+
             const group = filesByExtractor.get(langDef.extractor) || []
             group.push(parsed)
             filesByExtractor.set(langDef.extractor, group)
@@ -211,13 +222,13 @@ export async function parseFilesWithDiagnostics(
                 console.error(`[parser] Error extracting ${absoluteFp}:`, err instanceof Error ? err.message : String(err))
             }
             fallbackFilesCount += 1
-            
+
             const errorMessage = normalizeErrorMessage(err)
             const language = langDef?.name ?? languageForExtension(ext) ?? 'unknown'
-            
+
             const recoveryEngine = new ErrorRecoveryEngine()
             const recoveryResult = await recoveryEngine.recover(absoluteFp, content!, language)
-            
+
             if (recoveryResult.success && recoveryResult.confidence > 0.2) {
                 fallbackFiles.push(recoveryResult.parsed)
                 diagnostics.push({
@@ -243,7 +254,7 @@ export async function parseFilesWithDiagnostics(
     for (const [extractor, files] of filesByExtractor.entries()) {
         try {
             const resolved = await extractor.resolveImports(files, normalizedRoot)
-            
+
             for (let i = 0; i < files.length; i++) {
                 const originalFile = files[i]
                 const resolvedFile = resolved[i]
@@ -264,7 +275,7 @@ export async function parseFilesWithDiagnostics(
         }
     }
 
-    cache.flush()
+    await cache.flush()
 
     return {
         files: fallbackFiles,

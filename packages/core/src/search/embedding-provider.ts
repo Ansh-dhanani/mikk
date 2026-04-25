@@ -140,9 +140,13 @@ export class LocalONNXEmbedder implements EmbeddingProvider {
 
   async embedBatch(texts: string[]): Promise<number[][]> {
     await this.ensurePipeline();
-    const p = this.pipeline as (texts: string[], options: unknown) => Promise<Array<{ data: Float32Array }>>;
-    const output = await p(texts, { pooling: 'mean', normalize: true });
-    return output.map(o => Array.from(o.data));
+    // Workaround: embed one at a time to avoid batch format issues
+    const results: number[][] = []
+    for (const text of texts) {
+      const embedding = await this.embed(text)
+      results.push(embedding)
+    }
+    return results
   }
 
   getDimensions(): number {

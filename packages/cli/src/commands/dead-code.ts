@@ -3,14 +3,21 @@ import * as nodePath from 'node:path'
 import {
     LockReader,
     DeadCodeDetector,
-    type MikkLock, type DependencyGraph, type GraphNode, type GraphEdge,
+    GraphBuilder,
+    type MikkLock,
 } from '@getmikk/core'
+
+function normalizePathKey(p: string): string {
+    return (p || '').replace(/\\/g, '/').toLowerCase()
+}
 
 export function registerDeadCodeCommand(program: Command) {
     program
         .command('dead-code')
         .description('Find functions never called by anyone')
         .option('-m, --module <moduleId>', 'Filter to a specific module')
+        .option('--include-exported', 'Include exported functions in output')
+        .option('--min-lines <n>', 'Minimum function length to include', '3')
         .option('--json', 'Output raw JSON instead of formatted table')
         .addHelpText('after',
           `\nExamples:\n` +
@@ -19,7 +26,7 @@ export function registerDeadCodeCommand(program: Command) {
           `  mikk dead-code --json         Machine-readable output\n` +
           `\nDead code detection analyzes the call graph to find functions\n` +
           `that are never referenced by other code.\n`)
-        .action(async (opts: { module?: string; json?: boolean }) => {
+        .action(async (opts: { module?: string; includeExported?: boolean; minLines?: string; json?: boolean }) => {
             const projectRoot = process.cwd()
 
             // Read lock file
@@ -32,20 +39,50 @@ export function registerDeadCodeCommand(program: Command) {
                 process.exit(1)
             }
 
-            // Build graph from lock
-            const graph = buildGraphFromLock(lock)
+            // Build graph from lock (same canonical builder as MCP)
+            const graph = new GraphBuilder().buildFromLock(lock)
 
             // Detect dead code
             const detector = new DeadCodeDetector(graph, lock)
             const result = detector.detect()
+            const minLines = Math.max(0, Number.parseInt(opts.minLines ?? '3', 10) || 0)
 
-            // Filter by module if specified
-            const deadItems = opts.module
-                ? result.deadFunctions.filter((f: { moduleId?: string }) => f.moduleId === opts.module)
-                : result.deadFunctions
+            // Filter by module if specified.
+            // Use lock.modules[id].files as the authoritative file-to-module map
+            // (lock.functions[id].moduleId is unreliable for path-based assignments).
+            let deadItems = result.deadFunctions
+            if (opts.module) {
+                const lockMod = (lock.modules as any)[opts.module]
+                const modFileSet = new Set<string>(((lockMod?.files ?? []) as string[]).map(normalizePathKey))
+                deadItems = result.deadFunctions.filter(
+                    (f: { file: string }) => modFileSet.has(normalizePathKey(f.file))
+                )
+            }
+            if (!opts.includeExported) {
+                deadItems = deadItems.filter((f: any) => {
+                    const fn = lock.functions[f.id]
+                    return !(fn?.isExported)
+                })
+            }
+            if (minLines > 0) {
+                deadItems = deadItems.filter((f: any) => {
+                    const fn = lock.functions[f.id]
+                    if (!fn) return true
+                    return (fn.endLine - fn.startLine + 1) >= minLines
+                })
+            }
+
+            const filteredPercent = result.totalFunctions > 0
+                ? Math.round((deadItems.length / result.totalFunctions) * 1000) / 10
+                : 0
 
             if (opts.json) {
-                console.log(JSON.stringify(opts.module ? { ...result, deadFunctions: deadItems } : result, null, 2))
+                console.log(JSON.stringify({
+                    ...result,
+                    deadFunctions: deadItems,
+                    deadCount: deadItems.length,
+                    deadPercentage: filteredPercent,
+                }, null, 2))
                 return
             }
 
@@ -55,7 +92,7 @@ export function registerDeadCodeCommand(program: Command) {
             console.log(`${'─'.repeat(60)}`)
             console.log(`   Total functions: ${result.totalFunctions}`)
             console.log(`   Dead functions:  ${deadItems.length}`)
-            console.log(`   Dead percentage: ${result.deadPercentage}%`)
+            console.log(`   Dead percentage: ${filteredPercent}%`)
             console.log()
 
             if (deadItems.length === 0) {
@@ -86,90 +123,4 @@ export function registerDeadCodeCommand(program: Command) {
                 console.log()
             }
         })
-}
-
-/** Build DependencyGraph from lock — same logic as mcp-server/tools.ts */
-function buildGraphFromLock(lock: MikkLock): DependencyGraph {
-    const nodes = new Map<string, GraphNode>()
-    const edges: GraphEdge[] = []
-    const outEdges = new Map<string, GraphEdge[]>()
-    const inEdges = new Map<string, GraphEdge[]>()
-
-    for (const fn of Object.values(lock.functions)) {
-        nodes.set(fn.id, {
-            id: fn.id,
-            type: 'function',
-            name: fn.name,
-            file: fn.file,
-            moduleId: fn.moduleId,
-            metadata: {
-                startLine: fn.startLine,
-                endLine: fn.endLine,
-                isExported: fn.isExported,
-                isAsync: fn.isAsync,
-                hash: fn.hash,
-                purpose: fn.purpose,
-                params: fn.params,
-                returnType: fn.returnType,
-            },
-        })
-    }
-
-    for (const file of Object.values(lock.files)) {
-        nodes.set(file.path, {
-            id: file.path,
-            type: 'file',
-            name: file.path.split('/').pop() || file.path,
-            file: file.path,
-            moduleId: file.moduleId,
-            metadata: {},
-        })
-    }
-
-    for (const cls of Object.values(lock.classes ?? {})) {
-        nodes.set(cls.id, {
-            id: cls.id,
-            type: 'class',
-            name: cls.name,
-            file: cls.file,
-            moduleId: cls.moduleId,
-            metadata: {
-                isExported: cls.isExported,
-            },
-        })
-    }
-
-    for (const fn of Object.values(lock.functions)) {
-        for (const calleeId of fn.calls ?? []) {
-            if (!nodes.has(calleeId)) continue
-            const edge: GraphEdge = { from: fn.id, to: calleeId, type: 'calls', confidence: 1.0 }
-            edges.push(edge)
-
-            const out = outEdges.get(fn.id) ?? []
-            out.push(edge)
-            outEdges.set(fn.id, out)
-
-            const inE = inEdges.get(calleeId) ?? []
-            inE.push(edge)
-            inEdges.set(calleeId, inE)
-        }
-    }
-
-    for (const fn of Object.values(lock.functions)) {
-        for (const callerId of fn.calledBy ?? []) {
-            if (!nodes.has(fn.id) || !nodes.has(callerId)) continue
-            const edge: GraphEdge = { from: callerId, to: fn.id, type: 'calls', confidence: 0.9 }
-            edges.push(edge)
-
-            const out = outEdges.get(callerId) ?? []
-            out.push(edge)
-            outEdges.set(callerId, out)
-
-            const inE = inEdges.get(fn.id) ?? []
-            inE.push(edge)
-            inEdges.set(fn.id, inE)
-        }
-    }
-
-    return { nodes, edges, outEdges, inEdges }
 }

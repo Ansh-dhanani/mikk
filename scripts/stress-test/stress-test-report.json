@@ -1,0 +1,250 @@
+[
+  {
+    "id": "T01",
+    "name": "10K File Semantic Index Flood",
+    "category": "PERFORMANCE",
+    "status": "PASS",
+    "durationMs": 40636,
+    "memoryDeltaMB": -21.65
+  },
+  {
+    "id": "T02",
+    "name": "Single 10MB+ TypeScript File Parse",
+    "category": "PERFORMANCE",
+    "status": "PASS",
+    "durationMs": 12274,
+    "memoryDeltaMB": 8.84
+  },
+  {
+    "id": "T03",
+    "name": "Circular Dependency Ring (500 modules)",
+    "category": "PERFORMANCE",
+    "status": "PASS",
+    "durationMs": 2182,
+    "memoryDeltaMB": -8.65
+  },
+  {
+    "id": "T04",
+    "name": "Diamond Dependency 1000-Wide",
+    "category": "PERFORMANCE",
+    "status": "PASS",
+    "durationMs": 3254,
+    "memoryDeltaMB": -0.63
+  },
+  {
+    "id": "T05",
+    "name": "Rapid-Fire Semantic Query Spam (100 concurrent)",
+    "category": "PERFORMANCE",
+    "status": "PASS",
+    "durationMs": 6668,
+    "memoryDeltaMB": 1.27
+  },
+  {
+    "id": "T06",
+    "name": "Deeply Nested Call Chain Depth 10000",
+    "category": "PERFORMANCE",
+    "status": "PASS",
+    "durationMs": 2584,
+    "memoryDeltaMB": 3.29
+  },
+  {
+    "id": "T07",
+    "name": "Incremental Re-index Under Rapid File Churn",
+    "category": "PERFORMANCE",
+    "status": "FAIL",
+    "durationMs": 13576,
+    "memoryDeltaMB": -3.04,
+    "errorMessage": "Mutations not reflected in index — stale cache",
+    "notes": "Use file mtime + content hash for cache keys. Invalidate by hash, not just path. Write-behind cache with dirty-bit tracking."
+  },
+  {
+    "id": "T08",
+    "name": "Null Byte Injection in File Path",
+    "category": "DATA_INTEGRITY",
+    "status": "PASS",
+    "durationMs": 2089,
+    "memoryDeltaMB": 0.22
+  },
+  {
+    "id": "T09",
+    "name": "Path Traversal — Read /etc/passwd via Tool",
+    "category": "DATA_INTEGRITY",
+    "status": "PASS",
+    "durationMs": 3142,
+    "memoryDeltaMB": 1.28
+  },
+  {
+    "id": "T10",
+    "name": "Corrupted Lock File — All 6 Corruption Modes",
+    "category": "DATA_INTEGRITY",
+    "status": "PASS",
+    "durationMs": 1770,
+    "memoryDeltaMB": 39.29
+  },
+  {
+    "id": "T11",
+    "name": "Encoding Chaos — UTF-16, BOM, RTL, Null Bytes in Source",
+    "category": "DATA_INTEGRITY",
+    "status": "PASS",
+    "durationMs": 2003,
+    "memoryDeltaMB": 1.32
+  },
+  {
+    "id": "T12",
+    "name": "Malformed JSON Tool Arguments",
+    "category": "DATA_INTEGRITY",
+    "status": "PASS",
+    "durationMs": 11098,
+    "memoryDeltaMB": -45.13
+  },
+  {
+    "id": "T13",
+    "name": "Symlink Loop and Hardlink Trap",
+    "category": "DATA_INTEGRITY",
+    "status": "PASS",
+    "durationMs": 1043,
+    "memoryDeltaMB": -0.05
+  },
+  {
+    "id": "T14",
+    "name": "Secrets Scanner Obfuscation Bypass",
+    "category": "SECURITY",
+    "status": "PASS",
+    "durationMs": 654,
+    "memoryDeltaMB": 0.58
+  },
+  {
+    "id": "T15",
+    "name": "Taint Analysis — Multi-Hop Indirect Data Flow",
+    "category": "SECURITY",
+    "status": "FAIL",
+    "durationMs": 702,
+    "memoryDeltaMB": -0.3,
+    "errorMessage": "Taint paths found but none show full 5-hop chain. Found: {\"source\":\"getInput\",\"sink\":\"query(\",\"hops\":[\"getInput\",\"handleRequest\"],\"chain\":[\"getInput\",\"handleRequest\"],\"path\":[\"getInput\",\"handleRequest\"],\"severity\":\"high\",\"confidence\":0.7}",
+    "notes": "Implement inter-procedural data flow graph (IDFG). Track taint through function arguments, return values, and callbacks. Use TypeScript type narrowing to reduce false positives."
+  },
+  {
+    "id": "T16",
+    "name": "Secrets in node_modules — Must Not Be Indexed",
+    "category": "SECURITY",
+    "status": "PASS",
+    "durationMs": 694,
+    "memoryDeltaMB": -0.17
+  },
+  {
+    "id": "T17",
+    "name": "ReDoS Attack on Secret Scanner Regex",
+    "category": "SECURITY",
+    "status": "PASS",
+    "durationMs": 8182,
+    "memoryDeltaMB": 0.66
+  },
+  {
+    "id": "T18",
+    "name": "Taint via Dynamic Property Access (Prototype Pollution Path)",
+    "category": "SECURITY",
+    "status": "PASS",
+    "durationMs": 818,
+    "memoryDeltaMB": -0.16
+  },
+  {
+    "id": "T19",
+    "name": "Disk Full During Index Write",
+    "category": "FAULT_TOLERANCE",
+    "status": "PASS",
+    "durationMs": 1556,
+    "memoryDeltaMB": -0.45
+  },
+  {
+    "id": "T20",
+    "name": "Parallel Tool Execution Race Condition",
+    "category": "CONCURRENCY",
+    "status": "PASS",
+    "durationMs": 6495,
+    "memoryDeltaMB": 0.43
+  },
+  {
+    "id": "T21",
+    "name": "Interrupted Execution Leaves No Corrupt State",
+    "category": "FAULT_TOLERANCE",
+    "status": "PASS",
+    "durationMs": 1540,
+    "memoryDeltaMB": 0.31
+  },
+  {
+    "id": "T22",
+    "name": "Memory Leak Detection — 1000 Sequential Queries",
+    "category": "CONCURRENCY",
+    "status": "PASS",
+    "durationMs": 22831,
+    "memoryDeltaMB": -0.01
+  },
+  {
+    "id": "T23",
+    "name": "Concurrent Index Write + File Delete Race",
+    "category": "CONCURRENCY",
+    "status": "PASS",
+    "durationMs": 1598,
+    "memoryDeltaMB": 0.03
+  },
+  {
+    "id": "T24",
+    "name": "Windows Path Separator Cross-Platform Confusion",
+    "category": "FAULT_TOLERANCE",
+    "status": "PASS",
+    "durationMs": 5430,
+    "memoryDeltaMB": 0.32
+  },
+  {
+    "id": "T25",
+    "name": "Worker Thread Orphan on Tool Cancellation",
+    "category": "FAULT_TOLERANCE",
+    "status": "FAIL",
+    "durationMs": 6390,
+    "memoryDeltaMB": 0.64,
+    "errorMessage": "27 handles leaked after 10 rapid start+cancel cycles — worker thread orphan",
+    "notes": "Maintain WorkerPool with explicit terminate-all method. Use AbortController/AbortSignal for cancellable operations. Register SIGTERM/SIGINT handlers to drain pool."
+  },
+  {
+    "id": "T26",
+    "name": "TS Overloads + Declaration Merging Breaks Call Graph",
+    "category": "LOGIC",
+    "status": "PASS",
+    "durationMs": 804,
+    "memoryDeltaMB": 0.54
+  },
+  {
+    "id": "T27",
+    "name": "Monorepo Multiple tsconfig.json — Wrong Root Assumption",
+    "category": "LOGIC",
+    "status": "PASS",
+    "durationMs": 1250,
+    "memoryDeltaMB": -0.81
+  },
+  {
+    "id": "T28",
+    "name": "Rename Refactor — Silent Breakage of String-Based References",
+    "category": "LOGIC",
+    "status": "PASS",
+    "durationMs": 728,
+    "memoryDeltaMB": 0.56
+  },
+  {
+    "id": "T29",
+    "name": "Semantic Search Query Injection / Prompt Injection",
+    "category": "LOGIC",
+    "status": "PASS",
+    "durationMs": 1276,
+    "memoryDeltaMB": -0.09
+  },
+  {
+    "id": "T30",
+    "name": "COMBINED CHAOS — 5 Simultaneous Failure Modes",
+    "category": "LOGIC",
+    "status": "FAIL",
+    "durationMs": 146383,
+    "memoryDeltaMB": -1.84,
+    "errorMessage": "System not responsive after combined chaos test: MCP error -32001: Request timed out",
+    "notes": "Circuit breaker pattern for degraded operation. Bulkheads between features (search failure ≠ call graph failure). Per-request error boundaries."
+  }
+]

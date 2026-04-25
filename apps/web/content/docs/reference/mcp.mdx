@@ -1,6 +1,6 @@
 ---
 title: MCP Server Reference
-description: 16 tools, 3 resources, millisecond responses — all grounded in your real codebase graph. Connect Mikk to Claude Desktop, Cursor, and VS Code Copilot.
+description: 41 tools, 3 resources, millisecond responses — all grounded in your real codebase graph. Connect Mikk to Claude Desktop, Cursor, VS Code Copilot, and any MCP-compatible client.
 ---
 
 <Callout title="Every tool reads from mikk.lock.json" type="info">
@@ -69,77 +69,16 @@ Refresh with `mikk analyze`, or keep it continuously current with `mikk watch`.
 
 ## Tools Reference
 
-### Core Analysis Tools
+### Session & Orientation
 
 <TypeTable
   type={{
-    mikk_query_context: {
-      description: "Ask an architecture question. Returns graph-traced, token-budgeted context with relevant functions, files, and call chains.",
-      type: "tool",
-    },
-    mikk_get_project_overview: {
-      description: "Get a high-level overview: modules, function counts, file counts, constraints.",
-      type: "tool",
-    },
-    mikk_list_modules: {
-      description: "List all declared modules with file counts, function counts, entry points, and descriptions.",
-      type: "tool",
-    },
     mikk_get_session_context: {
-      description: "One-shot context for session start: project overview + constraint status + hot modules + recently modified files.",
+      description: "Call this first. One-shot onboarding: project overview + constraint status + hot modules + recently modified files + active decisions.",
       type: "tool",
     },
-  }}
-/>
-
-### Navigation & Search Tools
-
-<TypeTable
-  type={{
-    mikk_search_functions: {
-      description: "Search for functions by name or ID using a hybrid BM25+substring search.",
-      type: "tool",
-    },
-    mikk_find_function: {
-      description: "Direct O(1) lookup of a function by exact name. FASTER than mikk_search_functions for exact matches.",
-      type: "tool",
-    },
-    mikk_get_function_detail: {
-      description: "360-degree view of a function: params, return type, source body, call graph, error handling.",
-      type: "tool",
-    },
-    mikk_read_file: {
-      description: "Read file scoped to specific functions. Returns bodies with metadata headers. Saves tokens vs whole-file reads.",
-      type: "tool",
-    },
-  }}
-/>
-
-### Safety & Impact Analysis
-
-<TypeTable
-  type={{
-    mikk_before_edit: {
-      description: "Call BEFORE editing any file. Returns blast radius, exported functions at risk, constraint violations, circular dependency warnings.",
-      type: "tool",
-    },
-    mikk_impact_analysis: {
-      description: "Analyze the blast radius of changing a file. Returns impacted functions classified by severity (critical/high/medium/low).",
-      type: "tool",
-    },
-  }}
-/>
-
-### Project Management Tools
-
-<TypeTable
-  type={{
-    mikk_get_constraints: {
-      description: "Get all architectural constraints and ADRs from mikk.json.",
-      type: "tool",
-    },
-    mikk_get_routes: {
-      description: "Get all detected HTTP routes with methods, paths, handlers, and middleware chains.",
+    mikk_explain_codebase: {
+      description: "Comprehensive one-shot overview — entry points, API surface (routes, HTTP handlers, middleware), data layer (models, schemas), module map with function counts, top exported APIs, key config files.",
       type: "tool",
     },
     mikk_get_changes: {
@@ -147,11 +86,197 @@ Refresh with `mikk analyze`, or keep it continuously current with `mikk watch`.
       type: "tool",
     },
     mikk_token_stats: {
-      description: "Show token savings for this session - how many tokens Mikk saved vs. the agent reading raw source files.",
+      description: "Show token savings for this session — how many tokens Mikk saved vs. the agent reading raw source files.",
       type: "tool",
     },
-    mikk_security_scan: {
-      description: "Scan codebase for security vulnerabilities: hardcoded secrets, SQL injection, XSS, weak crypto, path traversal, command injection.",
+    mikk_reset_session: {
+      description: "Clear session memory so the next mikk_query_context returns full context without 'already sent' annotations.",
+      type: "tool",
+    },
+  }}
+/>
+
+### Planning & Safety
+
+<TypeTable
+  type={{
+    mikk_change_plan: {
+      description: "One-shot pre-flight for any non-trivial change. Runs scope analysis → risk explanation → blast radius → constraint check. Returns executionOrder, riskSummary, violationSummary, and a CLEAR or BLOCKED verdict.",
+      type: "tool",
+    },
+    mikk_scope_check: {
+      description: "Determine the minimum set of files to touch for a task. Returns editFiles (ranked by relevance) and readFiles (context-only). Inverse of mikk_impact_analysis.",
+      type: "tool",
+    },
+    mikk_before_edit: {
+      description: "Call BEFORE editing any file. Returns blast radius, exported functions at risk, constraint violations, and circular dependency warnings.",
+      type: "tool",
+    },
+    mikk_impact_analysis: {
+      description: "Analyze the blast radius of changing a file. Returns impacted functions classified by severity (critical/high/medium/low) with the full dependency chain.",
+      type: "tool",
+    },
+    mikk_explain_risk: {
+      description: "Explain why a function or file has its risk score — fan-in, cross-module deps, domain sensitivity, export surface, error handling gaps, circular depth.",
+      type: "tool",
+    },
+  }}
+/>
+
+### Navigation & Search
+
+<TypeTable
+  type={{
+    mikk_query_context: {
+      description: "Ask an architecture question. Returns graph-traced, token-budgeted context with relevant functions, files, and call chains.",
+      type: "tool",
+    },
+    mikk_list_modules: {
+      description: "List all declared modules with file counts, function counts, entry points, and descriptions.",
+      type: "tool",
+    },
+    mikk_get_module_detail: {
+      description: "Deep dive into a single module: all functions, files, exported API surface, internal call graph.",
+      type: "tool",
+    },
+    mikk_get_function_detail: {
+      description: "360-degree view of a function: params, return type, source body, call graph (who calls it + what it calls).",
+      type: "tool",
+    },
+    mikk_search_functions: {
+      description: "Search for functions by name or ID using hybrid BM25+substring search.",
+      type: "tool",
+    },
+    mikk_search_rich: {
+      description: "Rich search with multiple filters: name, module, file, exported, async, return type. Also searches function body content.",
+      type: "tool",
+    },
+    mikk_semantic_search: {
+      description: "Find functions by meaning using local vector embeddings. Query 'validate JWT' returns verifyToken ranked by cosine similarity. Requires @xenova/transformers.",
+      type: "tool",
+    },
+    mikk_bulk_query: {
+      description: "Batch query multiple functions at once. Much more efficient than multiple mikk_get_function_detail calls.",
+      type: "tool",
+    },
+    mikk_find_function: {
+      description: "Direct O(1) lookup of a function by exact name. FASTER than mikk_search_functions for exact matches.",
+      type: "tool",
+    },
+    mikk_find_by_signature: {
+      description: "Find a function by its full signature. ⚠ Known issue: non-functional for custom signature strings.",
+      type: "tool",
+    },
+    mikk_find_by_location: {
+      description: "Find a function at a specific file:line location. ⚠ Requires exact line number, no range matching.",
+      type: "tool",
+    },
+    mikk_find_similar: {
+      description: "Find functions similar to a given name. Useful for renames/refactors.",
+      type: "tool",
+    },
+    mikk_find_usages: {
+      description: "Find every function that calls a specific function. Essential before renaming or changing signatures.",
+      type: "tool",
+    },
+    mikk_classify_file: {
+      description: "Classify the semantic role of a file path (route, api-handler, model, test, etc.) without reading it.",
+      type: "tool",
+    },
+  }}
+/>
+
+### Code Reading
+
+<TypeTable
+  type={{
+    mikk_get_file: {
+      description: "Read raw source of a tracked file. Use mikk_read_file with function names to save tokens.",
+      type: "tool",
+    },
+    mikk_read_file: {
+      description: "Read a file scoped to specific function names. Returns bodies with rich metadata headers (params, calls, calledBy, purpose, module). Saves 60–90% tokens vs whole-file read.",
+      type: "tool",
+    },
+    mikk_list_files: {
+      description: "List all tracked files with filtering by module, language, imports, or exports.",
+      type: "tool",
+    },
+    mikk_get_routes: {
+      description: "Get all detected HTTP routes with methods, paths, handlers, and middleware chains. ⚠ Next.js file-system routes not detected.",
+      type: "tool",
+    },
+    mikk_get_class_detail: {
+      description: "Get detailed info about a class: methods, properties, inheritance, decorators.",
+      type: "tool",
+    },
+    mikk_get_generic_detail: {
+      description: "Get detailed info about a TypeScript type/interface/generic.",
+      type: "tool",
+    },
+    mikk_get_call_graph: {
+      description: "Generate a Mermaid call graph diagram for a function or module (callers, callees, or both).",
+      type: "tool",
+    },
+  }}
+/>
+
+### Analysis
+
+<TypeTable
+  type={{
+    mikk_dead_code: {
+      description: "Detect unused functions. Exports, entry points, route handlers, tests, and constructors are automatically excluded.",
+      type: "tool",
+    },
+    mikk_get_complexity: {
+      description: "Get functions above a complexity threshold — identifies technical debt and refactoring candidates.",
+      type: "tool",
+    },
+    mikk_get_constraints: {
+      description: "Get all architectural constraints and ADRs with full context from mikk.json.",
+      type: "tool",
+    },
+  }}
+/>
+
+### Security
+
+<TypeTable
+  type={{
+    mikk_secrets_scan: {
+      description: "Scan for hardcoded secrets, API keys, tokens, connection strings, and security vulnerabilities (SQLi, XSS, eval, CORS wildcards). ⚠ High false-positive rate on template literals — use severity: 'high'.",
+      type: "tool",
+    },
+    mikk_secrets_replace: {
+      description: "Find hardcoded secrets and replace them in-place with process.env references. Writes real values to .env. DRY RUN by default.",
+      type: "tool",
+    },
+    mikk_taint_analysis: {
+      description: "Detect data-flow security vulnerabilities: SQL injection, command injection, XSS, path traversal, prototype pollution. Traces tainted user-controlled sources to dangerous sinks.",
+      type: "tool",
+    },
+  }}
+/>
+
+### Refactoring
+
+<TypeTable
+  type={{
+    mikk_rename: {
+      description: "Plan a safe, coordinated multi-file rename. Finds ALL call sites, import locations, and export references. Returns a step-by-step edit plan.",
+      type: "tool",
+    },
+    mikk_git_diff_impact: {
+      description: "Map git diff hunks to affected symbols — shows which functions were modified, added, or deleted with module attribution.",
+      type: "tool",
+    },
+    mikk_file_diff: {
+      description: "Check if a tracked file has drifted from what mikk.lock.json knows about it — hash mismatch and line count change.",
+      type: "tool",
+    },
+    mikk_index_project: {
+      description: "Trigger a full architectural indexing of the project. Updates mikk.lock.json and rebuilds the dependency graph.",
       type: "tool",
     },
   }}
@@ -216,12 +341,12 @@ mikk_query_context({
 ```
 Session start:     mikk_get_session_context()
 Understanding:     mikk_query_context({ question: "How does auth work?", tokenBudget: 6000 })
-Find functions:     mikk_search_functions({ query: "auth login" })
-Get details:        mikk_get_function_detail({ name: "login" })
+Find functions:    mikk_search_functions({ query: "auth login" })
+Get details:       mikk_get_function_detail({ name: "login" })
 Before any edit:   mikk_before_edit({ files: ["src/auth/login.ts"] })
 Impact check:      mikk_impact_analysis({ file: "src/auth/login.ts" })
 Read code:         mikk_read_file({ file: "src/auth/login.ts", functions: ["login"] })
-Security check:    mikk_security_scan({ severity: "high" })
+Security check:    mikk_secrets_scan({ severity: "high" })
 ```
 
 <Callout title="Never paste the lock file directly" type="success">

@@ -8,11 +8,9 @@ import {
     DeadCodeDetector,
     type MikkLock,
     type MikkContract,
-    type DependencyGraph,
-    type GraphNode,
-    type GraphEdge,
 } from '@getmikk/core'
 import { panel, sq, gap } from '../ui.js'
+import { buildGraphFromLock } from '../utils.js'
 
 export function registerSuggestCommand(program: Command) {
     program
@@ -90,60 +88,4 @@ export function registerSuggestCommand(program: Command) {
                 process.exit(1)
             }
         })
-}
-
-function buildGraphFromLock(lock: MikkLock): DependencyGraph {
-    const nodes = new Map<string, GraphNode>()
-    const edges: GraphEdge[] = []
-    const outEdges = new Map<string, GraphEdge[]>()
-    const inEdges = new Map<string, GraphEdge[]>()
-
-    for (const fn of Object.values(lock.functions)) {
-        nodes.set(fn.id, {
-            id: fn.id,
-            type: 'function',
-            name: fn.name,
-            file: fn.file,
-            moduleId: fn.moduleId,
-            metadata: {
-                startLine: fn.startLine,
-                endLine: fn.endLine,
-                isExported: fn.isExported,
-            },
-        })
-    }
-
-    for (const fn of Object.values(lock.functions)) {
-        for (const calleeId of fn.calls ?? []) {
-            if (!nodes.has(calleeId)) continue
-            const edge: GraphEdge = { from: fn.id, to: calleeId, type: 'calls', confidence: 1.0 }
-            edges.push(edge)
-
-            const out = outEdges.get(fn.id) ?? []
-            out.push(edge)
-            outEdges.set(fn.id, out)
-
-            const incoming = inEdges.get(calleeId) ?? []
-            incoming.push(edge)
-            inEdges.set(calleeId, incoming)
-        }
-    }
-
-    for (const fn of Object.values(lock.functions)) {
-        for (const callerId of fn.calledBy ?? []) {
-            if (!nodes.has(fn.id) || !nodes.has(callerId)) continue
-            const edge: GraphEdge = { from: callerId, to: fn.id, type: 'calls', confidence: 0.9 }
-            edges.push(edge)
-
-            const out = outEdges.get(callerId) ?? []
-            out.push(edge)
-            outEdges.set(callerId, out)
-
-            const incoming = inEdges.get(fn.id) ?? []
-            incoming.push(edge)
-            inEdges.set(fn.id, incoming)
-        }
-    }
-
-    return { nodes, edges, outEdges, inEdges }
 }

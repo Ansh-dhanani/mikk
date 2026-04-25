@@ -45,8 +45,10 @@ process.on('uncaughtException', (err) => {
     process.exit(1)
 })
 
+import { isMainThread } from 'node:worker_threads'
+
 // ── Show retro banner + command list when invoked with no arguments ───────────
-if (process.argv.length <= 2) {
+if (isMainThread && process.argv.length <= 2) {
     banner()
 
     const cmds = [
@@ -108,4 +110,12 @@ registerSuggestCommand(program)
 registerUpdateCommand(program)
 registerSearchCommand(program)
 
-program.parse()
+// R-1: register trace and adr commands that were listed in banner but never wired up
+import { registerTraceCommand } from './commands/trace.js'
+import { registerAdrCommand } from './commands/adr.js'
+registerTraceCommand(program)
+registerAdrCommand(program)
+
+if (isMainThread) {
+    program.parse()
+}

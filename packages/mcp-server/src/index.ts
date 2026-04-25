@@ -6,8 +6,9 @@ import { startStdioServer } from './stdio.js'
 // Auto-start when run directly (not imported)
 // Check if this file is the main entry point
 const isMain = import.meta.url === `file://${process.argv[1]}` ||
-               process.argv[1]?.includes('index.cjs') ||
-               process.argv[1]?.includes('index.js')
+    process.argv[1]?.includes('index.cjs') ||
+    process.argv[1]?.includes('index.js') ||
+    process.argv[1]?.includes('mikk-mcp.js')
 
 if (isMain) {
     startStdioServer().catch((err) => {

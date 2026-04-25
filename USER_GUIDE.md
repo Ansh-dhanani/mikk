@@ -55,11 +55,15 @@ This updates: `mikk.lock.json`, `claude.md`, `AGENTS.md`, `.clinerules`
 Watch for file changes and sync lock file automatically (daemon).
 
 ```bash
-mikk watch              # Start the watcher daemon
-mikk watch &            # Run in background (Unix/macOS)
+mikk watch                # Start the watcher daemon
+mikk watch --debounce 500 # Custom debounce delay in ms (default: 100)
+mikk watch --obsidian     # Also regenerate Obsidian vault on every graph update
+mikk watch &              # Run in background (Unix/macOS)
 ```
 
 The watcher monitors file changes with 100ms debounce and auto-updates the lock file.
+
+**`--obsidian`:** On every `graph:updated` event the watcher runs `node scripts/mikk-to-obsidian.mjs --all-fns` and regenerates a complete Obsidian-compatible Markdown vault in `mikk-vault/`. Any error from the sync is shown in the terminal with the first stderr line.
 
 #### `mikk diff`
 Show what changed since last analysis.

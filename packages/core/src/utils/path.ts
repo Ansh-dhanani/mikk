@@ -1,5 +1,5 @@
 export function normalizeSlashes(filePath: string): string {
-    return filePath.replace(/\\/g, '/')
+    return filePath.replace(/\\/g, '/').replace(/\/+/g, '/')
 }
 
 export function normalizePath(filePath: string, lowercase: boolean = true): string {
@@ -20,6 +20,7 @@ export function pathsEqual(a: string, b: string): boolean {
 }
 
 export function isSubPath(child: string, parent: string): boolean {
+    if (!parent) return false
     const childNorm = normalizePathQuiet(child)
     const parentNorm = normalizePathQuiet(parent)
     return childNorm.startsWith(parentNorm + '/') || childNorm === parentNorm

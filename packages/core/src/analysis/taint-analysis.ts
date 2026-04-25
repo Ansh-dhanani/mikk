@@ -212,7 +212,8 @@ export class TaintAnalyzer {
    */
   analyze(): DataFlowResult {
     const flows: TaintFlow[] = []
-    const allFunctions = Object.values(this.lock.functions)
+    const functionMap = this.buildFunctionMap()
+    const allFunctions = [...functionMap.values()]
 
     // Find functions that contain taint sources
     const sourceFunctions = this.findTaintSources(allFunctions)
@@ -225,7 +226,7 @@ export class TaintAnalyzer {
       for (const sinkFn of sinkFunctions) {
         if (sourceFn.id === sinkFn.fn.id) continue
 
-        const flow = this.traceTaintFlow(sourceFn, sinkFn.fn, sinkFn.sink, allFunctions)
+        const flow = this.traceTaintFlow(sourceFn, sinkFn.fn, sinkFn.sink, functionMap)
         if (flow) {
           flows.push(flow)
         }
@@ -251,7 +252,13 @@ export class TaintAnalyzer {
     const sources: MikkLockFunction[] = []
 
     for (const fn of functions) {
-      const fnText = `${fn.name} ${fn.purpose || ''}`.toLowerCase()
+      const fnText = [
+        fn.name,
+        fn.purpose || '',
+        fn.file || '',
+        fn.returnType || '',
+        ...(fn.params ?? []).map(p => `${p.name} ${p.type}`),
+      ].join(' ').toLowerCase()
 
       for (const source of this.sources) {
         for (const pattern of source.patterns) {
@@ -273,7 +280,13 @@ export class TaintAnalyzer {
     const sinks: Array<{ fn: MikkLockFunction; sink: TaintSink }> = []
 
     for (const fn of functions) {
-      const fnText = `${fn.name} ${fn.purpose || ''}`.toLowerCase()
+      const fnText = [
+        fn.name,
+        fn.purpose || '',
+        fn.file || '',
+        fn.returnType || '',
+        ...(fn.params ?? []).map(p => `${p.name} ${p.type}`),
+      ].join(' ').toLowerCase()
 
       for (const sink of this.sinks) {
         for (const pattern of sink.patterns) {
@@ -295,30 +308,33 @@ export class TaintAnalyzer {
     source: MikkLockFunction,
     sinkFn: MikkLockFunction,
     sink: TaintSink,
-    allFunctions: MikkLockFunction[]
+    functionMap: Map<string, MikkLockFunction>
   ): TaintFlow | null {
     // Direct call: source calls sink directly
     if (source.calls?.includes(sinkFn.id)) {
+      const directPath = [source.id, sinkFn.id]
+      const sanitized = this.pathContainsSanitizer(directPath, sink, functionMap)
       return {
         source: source.name,
         sink: sinkFn.name,
         path: [source.name, sinkFn.name],
         vulnerability: `${source.name} -> ${sinkFn.name}`,
-        severity: sink.severity,
-        confidence: 0.9,
+        severity: sanitized ? this.downgradeSeverity(sink.severity) : sink.severity,
+        confidence: sanitized ? 0.45 : 0.9,
       }
     }
 
     // Check if there's a path through the call graph
-    const path = this.findPath(source.id, sinkFn.id, allFunctions)
+    const path = this.findPath(source.id, sinkFn.id, functionMap)
     if (path) {
+      const sanitized = this.pathContainsSanitizer(path, sink, functionMap)
       return {
         source: source.name,
         sink: sinkFn.name,
-        path: path.map(id => this.lock.functions[id]?.name || id),
+        path: path.map(id => functionMap.get(id)?.name || id),
         vulnerability: `${source.name} -> ${path.length - 1} intermediate(s) -> ${sinkFn.name}`,
-        severity: sink.severity,
-        confidence: 0.7,
+        severity: sanitized ? this.downgradeSeverity(sink.severity) : sink.severity,
+        confidence: sanitized ? 0.35 : 0.7,
       }
     }
 
@@ -331,37 +347,72 @@ export class TaintAnalyzer {
   private findPath(
     sourceId: string,
     sinkId: string,
-    allFunctions: MikkLockFunction[]
+    functionMap: Map<string, MikkLockFunction>,
+    maxDepth: number = 12,
   ): string[] | null {
-    const visited = new Set<string>()
-    const path: string[] = []
+    if (sourceId === sinkId) return [sourceId]
 
-    function dfs(currentId: string): boolean {
-      if (currentId === sinkId) {
-        path.push(currentId)
-        return true
-      }
+    const queue: Array<{ id: string; depth: number }> = [{ id: sourceId, depth: 0 }]
+    const visited = new Set<string>([sourceId])
+    const parents = new Map<string, string>()
+    let head = 0
 
-      if (visited.has(currentId)) return false
-      visited.add(currentId)
-      path.push(currentId)
+    while (head < queue.length) {
+      const { id, depth } = queue[head++]
+      if (depth >= maxDepth) continue
 
-      const fn = allFunctions.find(f => f.id === currentId)
-      if (fn?.calls) {
-        for (const calleeId of fn.calls) {
-          if (dfs(calleeId)) return true
+      const fn = functionMap.get(id)
+      if (!fn?.calls) continue
+
+      for (const calleeId of fn.calls) {
+        if (visited.has(calleeId)) continue
+
+        visited.add(calleeId)
+        parents.set(calleeId, id)
+
+        if (calleeId === sinkId) {
+          return this.reconstructPath(sourceId, sinkId, parents)
         }
+
+        queue.push({ id: calleeId, depth: depth + 1 })
       }
-
-      path.pop()
-      return false
-    }
-
-    if (dfs(sourceId)) {
-      return path
     }
 
     return null
+  }
+
+  private buildFunctionMap(): Map<string, MikkLockFunction> {
+    return new Map(Object.entries(this.lock.functions))
+  }
+
+  private reconstructPath(sourceId: string, sinkId: string, parents: Map<string, string>): string[] {
+    const path: string[] = [sinkId]
+    let current = sinkId
+
+    while (current !== sourceId) {
+      const parent = parents.get(current)
+      if (!parent) break
+      path.push(parent)
+      current = parent
+    }
+
+    return path.reverse()
+  }
+
+  private pathContainsSanitizer(pathIds: string[], sink: TaintSink, functionMap: Map<string, MikkLockFunction>): boolean {
+    for (const id of pathIds) {
+      const fn = functionMap.get(id)
+      if (!fn) continue
+      if (this.hasSanitizer(fn, sink)) return true
+    }
+    return false
+  }
+
+  private downgradeSeverity(severity: TaintFlow['severity']): TaintFlow['severity'] {
+    if (severity === 'critical') return 'high'
+    if (severity === 'high') return 'medium'
+    if (severity === 'medium') return 'low'
+    return 'low'
   }
 
   /**
@@ -377,6 +428,45 @@ export class TaintAnalyzer {
     }
 
     return false
+  }
+
+  /**
+   * Trace the origin of a variable through the call graph.
+   * Returns a list of TraceStep objects describing the data flow.
+   */
+  traceSource(functionId: string, variableName: string): Array<{ variableName: string; cause: string; depth: number; nodeId: string }> {
+    const fn = this.lock.functions[functionId]
+    if (!fn) return []
+
+    const steps: Array<{ variableName: string; cause: string; depth: number; nodeId: string }> = []
+    const visited = new Set<string>()
+
+    const walk = (fnId: string, varName: string, depth: number) => {
+      if (depth > 8 || visited.has(fnId + ':' + varName)) return
+      visited.add(fnId + ':' + varName)
+      const currentFn = this.lock.functions[fnId]
+      if (!currentFn) return
+
+      const matchParam = currentFn.params?.find(p => p.name === varName)
+      if (matchParam) {
+        steps.push({ variableName: varName, cause: 'parameter', depth, nodeId: fnId })
+        for (const callerId of currentFn.calledBy ?? []) {
+          walk(callerId, varName, depth + 1)
+        }
+        return
+      }
+
+      steps.push({ variableName: varName, cause: 'local', depth, nodeId: fnId })
+      for (const calleeId of currentFn.calls ?? []) {
+        const callee = this.lock.functions[calleeId]
+        if (callee && callee.returnType && callee.returnType !== 'void') {
+          walk(calleeId, callee.name, depth + 1)
+        }
+      }
+    }
+
+    walk(functionId, variableName, 0)
+    return steps
   }
 
   /**

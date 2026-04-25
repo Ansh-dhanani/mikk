@@ -39,6 +39,8 @@ export function registerMcpCommand(program: Command) {
                 const candidates: string[] = [
                     // Local monorepo workspace layout
                     path.resolve(projectRoot, 'packages/mcp-server/dist/index.cjs'),
+                    ...findWorkspaceServerCandidates(projectRoot),
+                    ...findWorkspaceServerCandidates(process.cwd()),
                     // Local install from npm/pnpm/bun
                     path.resolve(projectRoot, 'node_modules/@getmikk/mcp-server/dist/index.cjs'),
                     // Relative sibling package when installed side-by-side
@@ -118,6 +120,17 @@ interface McpEntry {
     args: string[]
 }
 
+function findWorkspaceServerCandidates(startDir: string, maxDepth = 6): string[] {
+    const out: string[] = []
+    let current = path.resolve(startDir)
+    for (let i = 0; i < maxDepth; i++) {
+        out.push(path.resolve(current, 'packages/mcp-server/dist/index.cjs'))
+        const parent = path.dirname(current)
+        if (parent === current) break
+        current = parent
+    }
+    return out
+}
 function installMcpConfig(projectRoot: string, toolFilter: string | undefined, dryRun: boolean) {
     const absProject = path.resolve(projectRoot)
     const mcpEntry = buildMcpEntry(absProject)

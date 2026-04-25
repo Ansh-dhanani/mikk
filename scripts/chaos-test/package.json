@@ -1,0 +1,23 @@
+{
+  "name": "mikk-chaos-tests",
+  "version": "1.0.0",
+  "private": true,
+  "description": "MIKK adversarial chaos test suite — finds when the system becomes UNTRUSTWORTHY",
+  "scripts": {
+    "run": "npx ts-node run-chaos.ts",
+    "suite:6": "npx ts-node run-chaos.ts --suite 6",
+    "suite:7": "npx ts-node run-chaos.ts --suite 7",
+    "suite:8": "npx ts-node run-chaos.ts --suite 8",
+    "suite:9": "npx ts-node run-chaos.ts --suite 9",
+    "dry-run": "npx ts-node run-chaos.ts --dry-run",
+    "escalate": "npx ts-node run-chaos.ts --infinite"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "ts-node": "^10.9.0",
+    "typescript": "^5.7.0"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.29.0"
+  }
+}

@@ -33,6 +33,7 @@ export interface ParsedFunction {
   isExported: boolean;
   isAsync: boolean;
   isGenerator?: boolean;
+  isAbstract?: boolean;
   typeParameters?: string[];
   calls: CallExpression[]; // Behavioral tracking (Upgraded from string[])
   hash: string;
@@ -100,6 +101,7 @@ export interface ParsedClass {
   implements?: string[];
   isExported: boolean;
   decorators?: string[];
+  isAbstract?: boolean;
   typeParameters?: string[];
   hash: string;
   purpose?: string;

@@ -28,6 +28,9 @@ export interface GraphNode {
     startLine?: number;
     endLine?: number;
     isAsync?: boolean;
+    isAbstract?: boolean;
+    typeParameters?: string[];
+    decorators?: string[];
     hash?: string;
     purpose?: string;
     genericKind?: string;
@@ -66,7 +69,7 @@ export interface DependencyGraph {
  * that never matched any graph node.
  */
 export function makeFnId(file: string, name: string): string {
-  return `fn:${file.replace(/\\/g, '/')}:${name}`;
+  return `fn:${file.replace(/\\/g, '/').toLowerCase()}:${name}`;
 }
 
 export type RiskLevel = 'CRITICAL' | 'HIGH' | 'MEDIUM' | 'LOW';
@@ -104,4 +107,5 @@ export interface ModuleCluster {
   confidence: number;
   suggestedName: string;
   functions: string[];
+  parentId?: string;
 }

@@ -28,18 +28,25 @@ export class GraphBuilder {
         for (const file of files) {
             this.addFileNode(graph, file)
             symbolTable.register(file)
-            
+
             for (const fn of file.functions) this.addFunctionNode(graph, fn)
             for (const cls of file.classes ?? []) this.addClassNode(graph, cls)
             for (const gen of file.generics ?? []) this.addGenericNode(graph, gen)
             for (const v of file.variables ?? []) this.addVariableNode(graph, v)
         }
 
+        // Build classNameToId ONCE after pass 1 — used by all addInheritanceEdges calls.
+        // Previously rebuilt per file: O(files × nodes). Now O(nodes) total.
+        const classNameToId = new Map<string, string>()
+        for (const [, node] of graph.nodes) {
+            if (node.type === 'class') classNameToId.set(node.name, node.id)
+        }
+
         // Pass 2: Structural edges (imports, containment, inheritance)
         for (const file of files) {
             this.addImportEdges(graph, file, edgeKeys)
             this.addContainmentEdges(graph, file, edgeKeys)
-            this.addInheritanceEdges(graph, file, edgeKeys)
+            this.addInheritanceEdges(graph, file, edgeKeys, classNameToId)
         }
 
         // Pass 3: Behavioural edges (Using Global Symbol Table)
@@ -65,45 +72,94 @@ export class GraphBuilder {
             })
         }
 
-        // Function nodes
+        // Function nodes + build file→function index for O(n) containment
+        const fileFnIndex = new Map<string, string[]>()
         for (const fn of Object.values(lock.functions)) {
+            const normFile = this.normPath(fn.file)
             graph.nodes.set(fn.id, {
                 id: fn.id, type: 'function', name: fn.name,
-                file: this.normPath(fn.file), moduleId: fn.moduleId,
+                file: normFile, moduleId: fn.moduleId,
                 metadata: { ...fn },
             })
+            const fns = fileFnIndex.get(normFile) || []
+            fns.push(fn.id)
+            fileFnIndex.set(normFile, fns)
         }
 
-        // Class nodes
+        // Class nodes + file→class index
+        const fileClsIndex = new Map<string, string[]>()
         for (const cls of Object.values(lock.classes ?? {})) {
+            const normFile = this.normPath(cls.file)
             graph.nodes.set(cls.id, {
                 id: cls.id, type: 'class', name: cls.name,
-                file: this.normPath(cls.file), moduleId: cls.moduleId,
+                file: normFile, moduleId: cls.moduleId,
                 metadata: { ...cls },
+            })
+            const clss = fileClsIndex.get(normFile) || []
+            clss.push(cls.id)
+            fileClsIndex.set(normFile, clss)
+        }
+
+        // Generic nodes (types, interfaces, enums)
+        for (const gen of Object.values(lock.generics ?? {})) {
+            const normFile = this.normPath(gen.file)
+            graph.nodes.set(gen.id, {
+                id: gen.id, type: 'generic', name: gen.name,
+                file: normFile, moduleId: gen.moduleId,
+                metadata: { ...gen },
             })
         }
 
-        // Edges from lock data
+        // Build all file-level edges using pre-computed indices (O(n) total)
         for (const file of Object.values(lock.files)) {
             const fp = this.normPath(file.path)
+
+            // Import edges — use resolvedPath when available, source as fallback
             for (const imp of file.imports ?? []) {
-                if (!imp.resolvedPath) continue
-                const rp = this.normPath(imp.resolvedPath)
-                if (graph.nodes.has(rp)) {
+                const rp = imp.resolvedPath ? this.normPath(imp.resolvedPath) : null
+                if (rp && graph.nodes.has(rp)) {
                     this.pushEdge(graph, edgeKeys, { from: fp, to: rp, type: 'imports', confidence: 1.0, weight: EDGE_WEIGHTS.imports })
                 }
             }
-            for (const fn of Object.values(lock.functions)) {
-                if (this.normPath(fn.file) === fp) {
-                    this.pushEdge(graph, edgeKeys, { from: fp, to: fn.id, type: 'contains', confidence: 1.0, weight: EDGE_WEIGHTS.contains })
-                }
+
+            // Containment edges — O(1) per file via index lookup
+            for (const fnId of fileFnIndex.get(fp) || []) {
+                this.pushEdge(graph, edgeKeys, { from: fp, to: fnId, type: 'contains', confidence: 1.0, weight: EDGE_WEIGHTS.contains })
+            }
+            for (const clsId of fileClsIndex.get(fp) || []) {
+                this.pushEdge(graph, edgeKeys, { from: fp, to: clsId, type: 'contains', confidence: 1.0, weight: EDGE_WEIGHTS.contains })
             }
         }
 
+        // Call edges
         for (const fn of Object.values(lock.functions)) {
             for (const calleeId of fn.calls) {
                 if (graph.nodes.has(calleeId)) {
                     this.pushEdge(graph, edgeKeys, { from: fn.id, to: calleeId, type: 'calls', confidence: 0.8, weight: EDGE_WEIGHTS.calls.exact })
+                }
+            }
+        }
+
+        // Inheritance edges (extends/implements)
+        for (const node of graph.nodes.values()) {
+            if (node.type === 'class') {
+                const meta = node.metadata as any
+                // T58 fix: buildFromLock spreads MikkLockClass which uses 'extends' (string),
+                // while build() from ParsedFile uses 'inheritsFrom' (string[]). Support both.
+                const baseNames: string[] = meta.inheritsFrom ?? (meta.extends ? [meta.extends] : [])
+                for (const baseName of baseNames) {
+                    const targetId = this.resolveSymbolInGraph(graph, baseName, node.file)
+                    if (targetId) {
+                        this.pushEdge(graph, edgeKeys, { from: node.id, to: targetId, type: 'extends', confidence: 1.0, weight: EDGE_WEIGHTS.extends })
+                    }
+                }
+                // T58 fix: 'implements' field name is the same in both lock and ParsedFile
+                const ifaceNames: string[] = Array.isArray(meta.implements) ? meta.implements : []
+                for (const ifaceName of ifaceNames) {
+                    const targetId = this.resolveSymbolInGraph(graph, ifaceName, node.file)
+                    if (targetId) {
+                        this.pushEdge(graph, edgeKeys, { from: node.id, to: targetId, type: 'implements', confidence: 1.0, weight: EDGE_WEIGHTS.implements })
+                    }
                 }
             }
         }
@@ -135,6 +191,7 @@ export class GraphBuilder {
             metadata: {
                 startLine: fn.startLine, endLine: fn.endLine,
                 isExported: fn.isExported, isAsync: fn.isAsync,
+                isAbstract: fn.isAbstract,
                 hash: fn.hash, purpose: fn.purpose,
                 params: fn.params, returnType: fn.returnType !== 'void' ? fn.returnType : undefined,
                 edgeCasesHandled: fn.edgeCasesHandled,
@@ -153,6 +210,7 @@ export class GraphBuilder {
                 isExported: cls.isExported, purpose: cls.purpose,
                 inheritsFrom: cls.extends ? [cls.extends] : [],
                 implements: cls.implements,
+                isAbstract: cls.isAbstract
             },
         })
         for (const method of cls.methods) this.addFunctionNode(graph, method)
@@ -205,12 +263,7 @@ export class GraphBuilder {
         }
     }
 
-    private addInheritanceEdges(graph: DependencyGraph, file: ParsedFile, edgeKeys: Set<string>): void {
-        const classNameToId = new Map<string, string>()
-        for (const [, node] of graph.nodes) {
-            if (node.type === 'class') classNameToId.set(node.name, node.id)
-        }
-
+    private addInheritanceEdges(graph: DependencyGraph, file: ParsedFile, edgeKeys: Set<string>, classNameToId: Map<string, string>): void {
         for (const cls of file.classes ?? []) {
             if (cls.extends && classNameToId.has(cls.extends)) {
                 this.pushEdge(graph, edgeKeys, {
@@ -249,7 +302,7 @@ export class GraphBuilder {
                     this.pushEdge(graph, edgeKeys, {
                         from: sourceId, to: targetId,
                         type: call.type === 'property' ? 'accesses' : 'calls',
-                        confidence: 0.9, 
+                        confidence: 0.9,
                         weight: call.type === 'property' ? EDGE_WEIGHTS.accesses : EDGE_WEIGHTS.calls.exact,
                     })
                 }
@@ -262,6 +315,18 @@ export class GraphBuilder {
         if (edgeKeys.has(key)) return
         edgeKeys.add(key)
         graph.edges.push(edge)
+    }
+
+    private resolveSymbolInGraph(graph: DependencyGraph, name: string, fromFile: string): string | null {
+        // Simple name-based resolution for global/exported symbols in graph
+        // In a real scenario, this would use the symbol table, but from lock we 
+        // can heuristic-match exported classes/interfaces by name.
+        for (const [id, node] of graph.nodes) {
+            if (node.name === name && (node.type === 'class' || node.type === 'generic')) {
+                return id
+            }
+        }
+        return null
     }
 
     private buildAdjacencyMaps(graph: DependencyGraph): void {

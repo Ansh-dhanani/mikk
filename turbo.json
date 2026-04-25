@@ -8,7 +8,9 @@
             "outputs": [
                 ".next/**",
                 "!.next/cache/**",
-                "dist/**"
+                "dist/**",
+                "main.js",
+                "manifest.json"
             ],
             "env": [
                 "BUN_INSTALL_CACHE_DIR",

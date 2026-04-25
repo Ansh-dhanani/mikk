@@ -131,25 +131,29 @@ function compactifyLock(lock: MikkLock): any {
         const fn = lock.functions[fnKeys[idx]]
         const c: any = {
             lines: [fn.startLine, fn.endLine],
-            // P4: no hash, P6: no moduleId
         }
+        // Always preserve moduleId — critical for module-level queries
+        if (fn.moduleId && fn.moduleId !== 'unknown') c.moduleId = fn.moduleId
+        // Preserve semantic role classification
+        if (fn.role) c.role = fn.role
+        if (fn.roleFramework) c.roleFramework = fn.roleFramework
         // P7: integer calls/calledBy referencing fnIndex positions
         const { name: parsedName } = parseEntityKey(fn.id, 'fn:')
-        if (fn.name && fn.name !== parsedName) {
-            c.name = fn.name
-        }
+        c.name = fn.name || parsedName
         if (fn.calls.length > 0) c.calls = fn.calls.map(id => fnIndexMap.get(id) ?? -1).filter((n: number) => n >= 0)
         if (fn.calledBy.length > 0) c.calledBy = fn.calledBy.map(id => fnIndexMap.get(id) ?? -1).filter((n: number) => n >= 0)
         if (fn.params && fn.params.length > 0) c.params = fn.params
         if (fn.returnType) c.returnType = fn.returnType
         if (fn.isAsync) c.isAsync = true
         if (fn.isExported) c.isExported = true
+        if (fn.isAbstract) c.isAbstract = true
+        if (fn.typeParameters) c.typeParameters = fn.typeParameters
+        if (fn.decorators) c.decorators = fn.decorators
         if (fn.purpose) c.purpose = fn.purpose
         if (fn.edgeCasesHandled && fn.edgeCasesHandled.length > 0) c.edgeCases = fn.edgeCasesHandled
         if (fn.errorHandling && fn.errorHandling.length > 0) {
             c.errors = fn.errorHandling.map(e => [e.line, e.type, e.detail])
         }
-        // P2: no c.details (detailedLines removed)
         out.functions[String(idx)] = c
     }
 
@@ -158,9 +162,15 @@ function compactifyLock(lock: MikkLock): any {
         out.classes = {}
         for (const [key, cls] of Object.entries(lock.classes)) {
             const c: any = {
+                name: cls.name,
                 lines: [cls.startLine, cls.endLine],
-                isExported: cls.isExported,
             }
+            if (cls.isExported) c.isExported = true
+            if (cls.isAbstract) c.isAbstract = true
+            if (cls.typeParameters) c.typeParameters = cls.typeParameters
+            if (cls.extends) c.extends = cls.extends
+            if (cls.implements) c.implements = cls.implements
+            if (cls.decorators) c.decorators = cls.decorators
             if (cls.moduleId && cls.moduleId !== 'unknown') c.moduleId = cls.moduleId
             if (cls.purpose) c.purpose = cls.purpose
             if (cls.edgeCasesHandled && cls.edgeCasesHandled.length > 0) c.edgeCases = cls.edgeCasesHandled
@@ -176,6 +186,7 @@ function compactifyLock(lock: MikkLock): any {
         out.generics = {}
         for (const [key, gen] of Object.entries(lock.generics)) {
             const c: any = {
+                name: gen.name,
                 lines: [gen.startLine, gen.endLine],
             }
             if (gen.type && gen.type !== 'generic') c.type = gen.type
@@ -197,7 +208,8 @@ function compactifyLock(lock: MikkLock): any {
             hash: file.hash,
             lastModified: file.lastModified,
         }
-        if (file.moduleId && file.moduleId !== 'unknown') c.moduleId = file.moduleId
+        // Always store moduleId for proper hydration (P6)
+        if (file.moduleId) c.moduleId = file.moduleId
         if (file.imports && file.imports.length > 0) {
             c.imports = file.imports.map(normalizeImportEntry)
         }
@@ -233,7 +245,11 @@ function hydrateLock(raw: any): any {
         generatorVersion: raw.generatorVersion,
         projectRoot: raw.projectRoot,
         syncState: raw.syncState,
-        graph: raw.graph,
+        graph: raw.graph ? {
+            ...raw.graph,
+            // P7 Handle legacy lock format where edges was just a count (number)
+            edges: Array.isArray(raw.graph.edges) ? raw.graph.edges : []
+        } : undefined,
     }
 
     // P7: function index for integer edge resolution
@@ -261,29 +277,36 @@ function hydrateLock(raw: any): any {
         const calls = (c.calls || []).map((v: any) => typeof v === 'number' ? (fnIndex[v] ?? null) : v).filter(Boolean)
         const calledBy = (c.calledBy || []).map((v: any) => typeof v === 'number' ? (fnIndex[v] ?? null) : v).filter(Boolean)
 
+        // Priority: stored moduleId > file-map derivation > 'unknown'
         const normalizedFile = normalizeFilePath(file)
+        const moduleId = c.moduleId || fileModuleMap[normalizedFile] || fileModuleMap[file] || 'unknown'
+
         out.functions[fullId] = {
             id: fullId,
             name,
             file,
             startLine: lines[0],
             endLine: lines[1],
-            hash: c.hash || '',  // P4: empty string when not stored
+            hash: c.hash || '',
             calls,
             calledBy,
-            moduleId: fileModuleMap[normalizedFile] || fileModuleMap[file] || c.moduleId || 'unknown',  // P6: derive from file
+            moduleId,
             ...(c.params ? { params: c.params } : {}),
             ...(c.returnType ? { returnType: c.returnType } : {}),
             ...(c.isAsync ? { isAsync: true } : {}),
             ...(c.isExported ? { isExported: true } : {}),
+            ...(c.isAbstract ? { isAbstract: true } : {}),
+            ...(c.typeParameters ? { typeParameters: c.typeParameters } : {}),
+            ...(c.decorators ? { decorators: c.decorators } : {}),
             ...(c.purpose ? { purpose: c.purpose } : {}),
+            ...(c.role ? { role: c.role } : {}),
+            ...(c.roleFramework ? { roleFramework: c.roleFramework } : {}),
             ...(c.edgeCases && c.edgeCases.length > 0 ? { edgeCasesHandled: c.edgeCases } : {}),
             ...(c.errors && c.errors.length > 0 ? {
                 errorHandling: c.errors.map((e: any) => ({
                     line: e[0], type: e[1], detail: e[2]
                 }))
             } : {}),
-            // P2: no detailedLines restoration
         }
     }
 
@@ -302,6 +325,11 @@ function hydrateLock(raw: any): any {
                 endLine: lines[1],
                 moduleId: c.moduleId || 'unknown',
                 isExported: c.isExported ?? false,
+                isAbstract: c.isAbstract ?? false,
+                ...(c.typeParameters ? { typeParameters: c.typeParameters } : {}),
+                ...(c.extends ? { extends: c.extends } : {}),
+                ...(c.implements ? { implements: c.implements } : {}),
+                ...(c.decorators ? { decorators: c.decorators } : {}),
                 ...(c.purpose ? { purpose: c.purpose } : {}),
                 ...(c.edgeCases && c.edgeCases.length > 0 ? { edgeCasesHandled: c.edgeCases } : {}),
                 ...(c.errors && c.errors.length > 0 ? {
@@ -358,10 +386,29 @@ function hydrateLock(raw: any): any {
     return out
 }
 
-/** Parse entity key like "fn:path/to/file.ts:FunctionName" */
+/**
+ * Parse entity key like "fn:path/to/file.ts:FunctionName"
+ * Handles both new single-colon format (fn:path:name) and legacy
+ * double-colon format (fn::path::name) for backward compatibility.
+ */
 function parseEntityKey(key: string, prefix: string): { name: string; file: string } {
+    // Handle legacy double-colon format: fn::path::name
+    const doubleColonPrefix = prefix.replace(/:$/, '::')
+    if (key.startsWith(doubleColonPrefix)) {
+        const withoutPrefix = key.slice(doubleColonPrefix.length)
+        const lastSep = withoutPrefix.lastIndexOf('::')
+        if (lastSep !== -1) {
+            return {
+                file: withoutPrefix.slice(0, lastSep),
+                name: withoutPrefix.slice(lastSep + 2),
+            }
+        }
+    }
+
+    // Standard single-colon format: fn:path:name
     const withoutPrefix = key.startsWith(prefix) ? key.slice(prefix.length) : key
-    const lastColon = withoutPrefix.lastIndexOf(':')
+    // Find the last colon that's NOT part of a drive letter (e.g., c:/)
+    const lastColon = findLastNonDriveColon(withoutPrefix)
     if (lastColon === -1) return { name: withoutPrefix, file: '' }
     return {
         file: withoutPrefix.slice(0, lastColon),
@@ -374,14 +421,36 @@ function parseEntityKeyFull(key: string): { prefix: string; file: string; name: 
     const firstColon = key.indexOf(':')
     if (firstColon === -1) return { prefix: '', file: '', name: key }
     const prefix = key.slice(0, firstColon)
-    const rest = key.slice(firstColon + 1)
-    const lastColon = rest.lastIndexOf(':')
+    // Skip a second colon if present (legacy double-colon format)
+    const restStart = key[firstColon + 1] === ':' ? firstColon + 2 : firstColon + 1
+    const rest = key.slice(restStart)
+    const lastColon = findLastNonDriveColon(rest)
     if (lastColon === -1) return { prefix, file: rest, name: '' }
     return {
         prefix,
         file: rest.slice(0, lastColon),
         name: rest.slice(lastColon + 1),
     }
+}
+
+/**
+ * Find the last colon in a string, skoring drive-letter colons (e.g., c:/).
+ * This ensures 'c:/users/project/file.ts:functionName' splits correctly.
+ */
+function findLastNonDriveColon(s: string): number {
+    for (let i = s.length - 1; i >= 0; i--) {
+        if (s[i] === ':') {
+            // Skip if this is a drive letter colon (single letter before, / or \ after)
+            if (i === 1 && /^[a-zA-Z]$/.test(s[0]) && (s[2] === '/' || s[2] === '\\')) {
+                continue
+            }
+            // Skip legacy double-colon separators
+            if (s[i - 1] === ':') continue
+            if (s[i + 1] === ':') continue
+            return i
+        }
+    }
+    return -1
 }
 
 function normalizeImportEntry(entry: any): { source: string; resolvedPath?: string; names?: string[] } {

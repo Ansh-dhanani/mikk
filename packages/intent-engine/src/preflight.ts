@@ -40,13 +40,21 @@ export class PreflightPipeline {
         const graph    = new GraphBuilder().buildFromLock(this.lock)
         const analyzer = new ImpactAnalyzer(graph)
 
+        // Build name→node index once (O(n)) instead of scanning per intent (O(intents×n))
+        const nodeByNameLower = new Map<string, string>()
+        for (const [id, node] of graph.nodes) {
+            nodeByNameLower.set(node.name.toLowerCase(), id)
+        }
+
         const targetIds: string[] = []
         for (const intent of intents) {
-            const match = [...graph.nodes.values()].find(n =>
-                n.name.toLowerCase() === intent.target.name.toLowerCase() &&
-                (intent.target.type === 'function' ? n.type === 'function' : true),
-            )
-            if (match) targetIds.push(match.id)
+            const id = nodeByNameLower.get(intent.target.name.toLowerCase())
+            if (id) {
+                const node = graph.nodes.get(id)!
+                if (intent.target.type !== 'function' || node.type === 'function') {
+                    targetIds.push(id)
+                }
+            }
         }
 
         const impact = analyzer.analyze(targetIds)

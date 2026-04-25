@@ -65,9 +65,13 @@ Live file watcher daemon. Keeps the lock file in sync as you edit.
 
 ```bash
 mikk watch
+mikk watch --debounce 500    # debounce delay in ms (default: 100)
+mikk watch --obsidian        # also sync Obsidian vault on every graph update
 ```
 
 Uses debounced incremental analysis with atomic lock writes. Single-instance enforced via PID file.
+
+**With `--obsidian`:** On every `graph:updated` event, runs `node scripts/mikk-to-obsidian.mjs --all-fns` which writes a complete Obsidian vault in `mikk-vault/`. Any error from the sync script is shown in the terminal. The vault is regenerated fully each time (not incremental).
 
 ### `mikk diff`
 
@@ -240,6 +244,26 @@ my-project/
     │   └── capsule-<id>.mmd
     ├── hashes.db
     └── watcher.pid
+```
+
+With `mikk watch --obsidian`:
+
+```
+my-project/
+├── mikk-vault/
+│   ├── index.md
+│   ├── module-*.md
+│   ├── file/
+│   ├── fn/
+│   ├── class/
+│   ├── type/
+│   ├── route/
+│   ├── var/
+│   ├── prop/
+│   ├── ctxfile/
+│   └── .obsidian/
+│       ├── app.json
+│       └── graph.json
 ```
 
 ---

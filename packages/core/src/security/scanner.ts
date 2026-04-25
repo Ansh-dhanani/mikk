@@ -103,7 +103,7 @@ const VULNERABILITY_PATTERNS: VulnerabilityPattern[] = [
     category: 'secrets',
     title: 'Hardcoded Password',
     description: 'Password appears to be hardcoded in source code.',
-    regex: /(?:password|passwd|pwd)\s*[:=]\s*["'][^"']{3,}["']/i,
+    regex: /(?:password|passwd|pwd)\s*[:=]\s*[`"'][^`"']{3,}[`"']/i,
     suggestion: 'Use environment variables or a secrets manager.',
     cwe: 'CWE-798',
   },
@@ -113,7 +113,7 @@ const VULNERABILITY_PATTERNS: VulnerabilityPattern[] = [
     category: 'secrets',
     title: 'Hardcoded API Key',
     description: 'API key or token appears to be hardcoded.',
-    regex: /(?:api[_-]?key|api[_-]?secret|access[_-]?token|auth[_-]?token)\s*[:=]\s*["'][A-Za-z0-9_-]{8,}["']/i,
+    regex: /(?:api[_-]?key|api[_-]?secret|access[_-]?token|auth[_-]?token)\s*[:=]\s*[`"'][A-Za-z0-9_-]{8,}[`"']/im,
     suggestion: 'Use environment variables or a secrets manager.',
     cwe: 'CWE-798',
   },
@@ -135,6 +135,26 @@ const VULNERABILITY_PATTERNS: VulnerabilityPattern[] = [
     description: 'Private key content detected in source code.',
     regex: /-----BEGIN\s+(?:RSA\s+)?PRIVATE\s+KEY-----/,
     suggestion: 'Never embed private keys in source code. Use a secrets manager.',
+    cwe: 'CWE-798',
+  },
+  {
+    id: 'obfuscated-secret',
+    severity: 'high',
+    category: 'secrets',
+    title: 'Obfuscated Secret',
+    description: 'Secret hidden via base64 or hex encoding detected.',
+    regex: /(?:base64|hex|Buffer\.from|atob)\s*\(\s*[`"'](?:[A-Za-z0-9+/]{20,}|[0-9a-f]{40,})[`"']\s*\)/i,
+    suggestion: 'Avoid storing secrets in obfuscated forms; use environment variables.',
+    cwe: 'CWE-798',
+  },
+  {
+    id: 'high-entropy-string',
+    severity: 'medium',
+    category: 'secrets',
+    title: 'High Entropy String',
+    description: 'A long string with high character diversity was found, likely a secret.',
+    regex: /[`"'][A-Za-z0-9+/=_-]{32,}[`"']/,
+    suggestion: 'Review this string to ensure it is not a sensitive credential.',
     cwe: 'CWE-798',
   },
 
@@ -268,23 +288,51 @@ export class SecurityScanner {
         continue
       }
 
-      for (let i = 0; i < lines.length; i++) {
-        const line = lines[i]
-        const match = line.match(pattern.regex)
-        if (match) {
-          findings.push({
-            id: `${pattern.id}-${filePath}:${i + 1}`,
-            severity: pattern.severity,
-            category: pattern.category,
-            title: pattern.title,
-            description: pattern.description,
-            file: filePath,
-            line: i + 1,
-            column: match.index,
-            code: line.trim(),
-            suggestion: pattern.suggestion,
-            cwe: pattern.cwe,
-          })
+      // Multi-line scan with 's' (dotall) support for template literals
+      const flags = (pattern.regex.flags.includes('g') ? pattern.regex.flags : pattern.regex.flags + 'g')
+        + (pattern.regex.flags.includes('s') ? '' : 's')
+      const globalRegex = new RegExp(pattern.regex.source, flags)
+
+      let m: RegExpExecArray | null
+      while ((m = globalRegex.exec(content)) !== null) {
+        const lineIndex = content.slice(0, m.index).split('\n').length
+        const finding: SecurityFinding = {
+          id: `${pattern.id}-${filePath}:${lineIndex}`,
+          severity: pattern.severity,
+          category: pattern.category,
+          title: pattern.title,
+          description: pattern.description,
+          file: filePath,
+          line: lineIndex,
+          column: m.index - content.lastIndexOf('\n', m.index),
+          code: content.split('\n')[lineIndex - 1]?.trim() ?? 'unknown',
+          suggestion: pattern.suggestion,
+          cwe: pattern.cwe,
+        }
+        findings.push(finding)
+
+        // Pass 2: If finding is an obfuscated secret, try to decode and scan recursively
+        if (pattern.id === 'obfuscated-secret' && m[0]) {
+          try {
+            const encoded = m[0].match(/[`"']([^`"']+)[`"']/)?.[1]
+            if (encoded) {
+              let decoded = ''
+              if (m[0].toLowerCase().includes('base64') || m[0].toLowerCase().includes('atob')) {
+                decoded = Buffer.from(encoded, 'base64').toString('utf-8')
+              } else if (m[0].toLowerCase().includes('hex')) {
+                decoded = Buffer.from(encoded, 'hex').toString('utf-8')
+              }
+              if (decoded && decoded.length > 8) {
+                const subFindings = this.scanFile(`${filePath}#decoded`, decoded, language)
+                for (const sub of subFindings) {
+                  sub.title = `[DECODED] ${sub.title}`
+                  sub.description = `Decoded from obfuscated string: ${sub.description}`
+                  sub.line = lineIndex // Attribute to the original line
+                  findings.push(sub)
+                }
+              }
+            }
+          } catch { /* ignore decode errors */ }
         }
       }
     }

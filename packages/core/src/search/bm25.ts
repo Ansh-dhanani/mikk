@@ -99,10 +99,10 @@ export class BM25Index {
 
                 // Extract function name from ID for better matching
                 // ID format: fn:path:functionName
-                const fnNameInId = doc.id.includes(':') 
+                const fnNameInId = doc.id.includes(':')
                     ? doc.id.split(':').pop()?.toLowerCase() ?? doc.id.toLowerCase()
                     : doc.id.toLowerCase()
-                
+
                 // Strong bonus for name prefix match (login matches loginUser)
                 if (fnNameInId.startsWith(term.toLowerCase())) {
                     termScore += 2.0
@@ -168,13 +168,14 @@ export function reciprocalRankFusion(
  */
 export function tokenize(text: string): string[] {
     const tokens: string[] = []
-
-    // Split on non-alphanumeric chars
-    const words = text.split(/[^a-zA-Z0-9]+/).filter(Boolean)
+    // Removed NFKD normalization as it conflates distinct Unicode symbols (T38)
+    const normalized = text
+    // Split on non-alphanumeric chars (Unicode-aware)
+    const words = normalized.split(/[^\p{L}\p{N}]+/u).filter(Boolean)
 
     for (const word of words) {
-        // Split camelCase: "parseFiles" → ["parse", "Files"]
-        const camelParts = word.replace(/([a-z])([A-Z])/g, '$1 $2').split(' ')
+        // Split camelCase: "parseFiles" → ["parse", "Files"] (Unicode-aware)
+        const camelParts = word.replace(/(\p{Ll})(\p{Lu})/gu, '$1 $2').split(' ')
 
         for (const part of camelParts) {
             const lower = part.toLowerCase()

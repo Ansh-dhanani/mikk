@@ -25,6 +25,7 @@ export class IncrementalCache {
   private hits = 0
   private misses = 0
   private queue: Array<() => void> = []
+  private queueHead = 0
   private running = false
   private initialized = false
   private pendingInit: Promise<void> | null = null
@@ -43,6 +44,7 @@ export class IncrementalCache {
     if (this.initialized) return
     if (this.pendingInit) {
       await this.pendingInit
+      this.pendingInit = null
     }
   }
 
@@ -65,11 +67,17 @@ export class IncrementalCache {
 
   private async processQueue(): Promise<void> {
     this.running = true
-    while (this.queue.length > 0) {
-      const fn = this.queue.shift()!
-      await fn()
+    try {
+      while (this.queueHead < this.queue.length) {
+        const fn = this.queue[this.queueHead++]!
+        await fn()
+      }
+    } finally {
+      // Reset storage after draining to keep memory bounded and avoid sparse arrays.
+      this.queue = []
+      this.queueHead = 0
+      this.running = false
     }
-    this.running = false
   }
 
   private getCacheFilePath(hash: string): string {
@@ -138,8 +146,9 @@ export class IncrementalCache {
         entry.lastAccessed = Date.now()
         return parsed
       } catch (err) {
-        console.warn(`Corrupted cache entry for ${filePath}:`, err)
+        if (process.env.MIKK_DEBUG) console.warn(`Corrupted cache entry for ${filePath}:`, err)
         this.metadata.entries.delete(filePath)
+        await this.saveMetadata()
       }
 
       this.misses++
@@ -156,10 +165,12 @@ export class IncrementalCache {
         await this.evictLRU()
       }
 
+      // Serialize once — reuse string for both size tracking and disk write
+      const serialized = JSON.stringify(parsed)
       const entry: CacheEntry = {
         hash: contentHash,
         parsedAt: new Date().toISOString(),
-        size: JSON.stringify(parsed).length,
+        size: serialized.length,
         lastAccessed: Date.now()
       }
 
@@ -168,7 +179,7 @@ export class IncrementalCache {
       try {
         await fs.mkdir(this.cacheDir, { recursive: true })
         const cacheFile = this.getCacheFilePath(contentHash)
-        await fs.writeFile(cacheFile, JSON.stringify(parsed), 'utf-8')
+        await fs.writeFile(cacheFile, serialized, 'utf-8')
       } catch {
         // Silently fail — cache is non-critical
       }
@@ -187,6 +198,7 @@ export class IncrementalCache {
           await fs.unlink(cacheFile)
         } catch { /* ignore */ }
         this.metadata.entries.delete(filePath)
+        await this.saveMetadata()
       }
     })
   }
@@ -234,8 +246,11 @@ export class IncrementalCache {
    * Evict least recently used entries when cache is full.
    */
   private async evictLRU(): Promise<void> {
+    // Sort by lastAccessed ascending — evict the least recently USED entries first,
+    // not the oldest-parsed ones (which was the previous bug: old-but-hot files
+    // were being evicted before new-but-cold ones).
     const sorted = [...this.metadata.entries.entries()].sort(
-      (a, b) => new Date(a[1].parsedAt).getTime() - new Date(b[1].parsedAt).getTime()
+      (a, b) => (a[1].lastAccessed ?? 0) - (b[1].lastAccessed ?? 0)
     )
     const toRemove = Math.ceil(sorted.length * 0.2)
     for (let i = 0; i < toRemove; i++) {
@@ -246,6 +261,7 @@ export class IncrementalCache {
       } catch { /* ignore */ }
       this.metadata.entries.delete(filePath)
     }
+    await this.saveMetadata()
   }
 
   /**

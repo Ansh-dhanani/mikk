@@ -58,10 +58,10 @@ export class DirectSearchEngine {
     find(query: string): RichFunction | undefined {
         const exact = this.index.getByExactName(query)
         if (exact) return exact
-        
+
         const results = this.index.searchByName(query, 1)
         if (results.length > 0) return results[0].function
-        
+
         return undefined
     }
 
@@ -83,7 +83,7 @@ export class DirectSearchEngine {
 
     search(query: DirectQuery): RichFunction[] {
         const searchQuery: SearchQuery = {}
-        
+
         if (query.name) searchQuery.name = query.name  // Use 'name' field directly
         if (query.text) searchQuery.text = query.text
         if (query.exact) searchQuery.exactName = query.exact
@@ -100,7 +100,7 @@ export class DirectSearchEngine {
         if (query.keyword) searchQuery.keyword = query.keyword
         if (query.calls) searchQuery.calls = query.calls
         if (query.calledBy) searchQuery.calledBy = query.calledBy
-        
+
         return this.index.search(searchQuery).map((r: SearchResult) => r.function)
     }
 
@@ -115,9 +115,9 @@ export class DirectSearchEngine {
     findExport(pattern?: string): RichFunction[] {
         const exported = this.index.getExported()
         if (!pattern) return exported
-        
+
         const lower = pattern.toLowerCase()
-        return exported.filter((f: RichFunction) => 
+        return exported.filter((f: RichFunction) =>
             f.name.toLowerCase().includes(lower) ||
             f.purpose.toLowerCase().includes(lower)
         )
@@ -126,11 +126,11 @@ export class DirectSearchEngine {
     findAsync(pattern?: string): RichFunction[] {
         const asyncFns = this.index.search({ isAsync: true, limit: 1000 })
             .map((r: SearchResult) => r.function)
-        
+
         if (!pattern) return asyncFns
-        
+
         const lower = pattern.toLowerCase()
-        return asyncFns.filter((f: RichFunction) => 
+        return asyncFns.filter((f: RichFunction) =>
             f.name.toLowerCase().includes(lower) ||
             f.purpose.toLowerCase().includes(lower)
         )
@@ -165,8 +165,8 @@ export class DirectSearchEngine {
     getContext(functionId: string, options?: DirectContext): FunctionContext | null {
         const include = options?.full ? 'all' :
             options?.body ? 'body' :
-            options?.calls ? 'calls' : 'full'
-        
+                options?.calls ? 'calls' : 'full'
+
         return this.index.getContext({
             functionId,
             include,
@@ -235,7 +235,7 @@ export class DirectSearchEngine {
     } | null {
         const fn = this.index.get(functionId)
         if (!fn) return null
-        
+
         return {
             id: fn.id,
             name: fn.name,
@@ -326,7 +326,7 @@ export class DirectSearchEngine {
         })
     }
 
-    findSimilar(query: { 
+    findSimilar(query: {
         name?: string
         signature?: string
         paramTypes?: string[]
@@ -344,13 +344,18 @@ export class DirectSearchEngine {
                 score += 100
             }
 
-            if (query.name && this.levenshteinSimilar(fn.name, query.name) > 0.7) {
-                score += 50
+            if (query.name) {
+                const similarity = this.levenshteinSimilar(fn.name, query.name)
+                if (fn.name === query.name) {
+                    score += 100
+                } else if (similarity > 0.8) {
+                    score += 50
+                }
             }
 
             if (query.paramTypes && query.paramTypes.length > 0) {
                 const fnParamTypes = fn.params.map(p => p.type)
-                const matchCount = query.paramTypes.filter(pt => 
+                const matchCount = query.paramTypes.filter(pt =>
                     fnParamTypes.some(fpt => fpt.includes(pt))
                 ).length
                 score += (matchCount / query.paramTypes.length) * 30
@@ -381,7 +386,7 @@ export class DirectSearchEngine {
 
     findByFileAndSimilarity(file: string, name: string, limit: number = 5): RichFunction[] {
         const fnsInFile = this.index.getByFile(file)
-        
+
         const scored = fnsInFile.map(fn => {
             const similarity = this.levenshteinSimilar(fn.name, name)
             return { fn, similarity }
@@ -394,7 +399,7 @@ export class DirectSearchEngine {
     private levenshteinSimilar(a: string, b: string): number {
         const maxLen = Math.max(a.length, b.length)
         if (maxLen === 0) return 1
-        
+
         const distance = this.levenshtein(a.toLowerCase(), b.toLowerCase())
         return 1 - (distance / maxLen)
     }
@@ -463,7 +468,7 @@ export function summarizeFunction(fn: RichFunction): string {
 
 export function formatFunctionList(functions: RichFunction[], includePurpose: boolean = false): string {
     if (functions.length === 0) return '(none)'
-    
+
     return functions.map((fn: RichFunction) => {
         const line = `${fn.fullSignature} (${fn.file.split('/').pop()})`
         if (includePurpose && fn.purpose) {

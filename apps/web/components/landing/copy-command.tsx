@@ -14,8 +14,7 @@ export function CopyCommand({ value }: { value: string }) {
           // trackEvent('copy_success', { value });
           setCopied(true);
           setTimeout(() => setCopied(false), 1800);
-        } catch (_err) {
-          // trackEvent('copy_failure', { value, error: err });
+        } catch {
           // Optionally log error
         }
       }}

@@ -99,8 +99,21 @@ export function kv(label: string, value: string, labelWidth = 14): string {
 /** Two columns side by side. */
 export function cols(left: string, right: string, totalWidth?: number): string {
     const W = (totalWidth ?? tw()) - 2
-    const half = Math.floor(W / 2)
-    return pad(' ' + left, half) + right
+    // panel() puts a ' ' before the row, so our max safe inner length is W - 1
+    const maxLen = W - 1
+    const lLen = visLen(left)
+    const rLen = visLen(right)
+    const padding = maxLen - lLen - rLen
+
+    if (padding > 0) {
+        return left + ' '.repeat(padding) + right
+    } else {
+        const allowedLeft = Math.max(0, maxLen - rLen - 4)
+        if (allowedLeft > 0) {
+            return left.slice(0, allowedLeft) + '... ' + right
+        }
+        return right
+    }
 }
 
 /** Blank row inside a panel. */

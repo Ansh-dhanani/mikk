@@ -33,7 +33,7 @@ mikk init
 For high-assurance environments, use `mikk init --strict-parsing` and `mikk analyze --strict-parsing` to fail fast on parser diagnostics.
 
 - **`mikk.json`** — your architecture contract: modules, constraints, ADRs, policies
-- **`mikk.lock.json`** — full codebase snapshot: every function, class, import, call edge, and hash
+- **`mikk.lock.json`** — full codebase snapshot: every function, class, generic, import, call edge, and hash
 - **`claude.md` / `AGENTS.md`** — tiered, token-budgeted AI context files (auto-regenerated on `mikk analyze`)
 
 <SectionSpacer />
@@ -46,15 +46,16 @@ For high-assurance environments, use `mikk init --strict-parsing` and `mikk anal
 | **Graph** | `@getmikk/core` | Two-pass O(n) graph: nodes first, edges second. Forward + reverse adjacency maps |
 | **Hash** | `@getmikk/core` | Merkle SHA-256: function → file → module → root. One hash = full drift detection |
 | **Lock** | `@getmikk/core` | `mikk.lock.json` written — compact integer-indexed format, ~60% smaller than raw source |
-| **Serve** | `@getmikk/mcp-server` | 37 MCP tools + 3 resources. Cache busted immediately after `mikk analyze`. ~5ms per call |
+| **Serve** | `@getmikk/mcp-server` | 41 MCP tools + 3 resources. Cache busted immediately after `mikk analyze`. ~5ms per call |
 | **Watch** | `@getmikk/watcher` | Chokidar daemon — incremental re-analysis, atomic writes, single-instance PID guard |
+| **Obsidian** | `obsidian-plugin` | `mikk watch --obsidian` generates a live Markdown vault + 3D graph view in Obsidian |
 | **Safety** | `@getmikk/intent-engine` | Pre-edit validation: intent analysis, 6 safety gates, auto-correction, decision engine |
 
 <SectionSpacer />
 
 ## Token Efficiency
 
-Mikk uses fewer tokens than manual file reading by serving distilled API boundaries instead of raw files.
+Mikk uses fewer tokens than manual file reading by serving distilled API boundaries instead of raw files. A full agent session typically uses fewer than 5,000 tokens total — versus 50,000+ for naive file-pasting approaches.
 
 <SectionSpacer />
 
@@ -83,20 +84,32 @@ Configure all thresholds in `mikk.json` under `policies`.
 | Package | Description |
 |---------|-------------|
 | `@getmikk/core` | OXC parser, dependency graph, Merkle hashing, BM25 search, boundary checker, risk/confidence engines |
-| `@getmikk/cli` | 17+ CLI commands |
-| `@getmikk/mcp-server` | 37 MCP tools + 3 resources, lock-file-mtime cache invalidation |
+| `@getmikk/cli` | 20+ CLI commands |
+| `@getmikk/mcp-server` | 41 MCP tools + 3 resources, lock-file-mtime cache invalidation |
 | `@getmikk/ai-context` | BFS context builder, token budgeting, strict mode, `claude.md` generation |
 | `@getmikk/intent-engine` | Pre-edit validation, 6 safety gates, decision engine, auto-correction, intent understanding |
 | `@getmikk/watcher` | Incremental watcher daemon, atomic writes |
-
 | `@getmikk/vscode-extension` | Module tree, status bar, impact analysis, MCP integration |
+| `obsidian-plugin` | 3D interactive graph — modules, files, functions, classes, generics, call edges |
+
+<SectionSpacer />
+
+## Known Limitations
+
+| Area | Issue |
+|------|-------|
+| `get_routes` | Next.js file-system routes not parsed (Express-style only) |
+| `find_by_signature` | Non-functional for custom signature strings — use `find_function` |
+| `secrets_scan` | High false-positive rate on template literals — use `severity: "high"` |
+| `find_by_location` | Requires exact line number, no range matching |
+| Python/Go call graphs | Less complete than TS/JS — import resolution via tree-sitter is planned |
 
 <SectionSpacer />
 
 ## Next Steps
 
 <Cards>
-  <Card title="Interactive Playground" href="/playground" description="Try all 22 MCP tools with live examples. See exactly what Mikk returns for each command." />
+  <Card title="Interactive Playground" href="/playground" description="Try all 41 MCP tools with live examples. See exactly what Mikk returns for each command." />
   <Card title="3D Codebase Explorer" href="/playground/3d" description="Interactive 3D graph visualization of your codebase with AI chat. Free models powered by OpenRouter." />
   <Card title="Installation & Quick Start" href="/docs/core/installation" description="Get Mikk running in your project in under 3 minutes." />
   <Card title="Core Concepts" href="/docs/core/concepts" description="The Mesh, Merkle hashing, AI Context Builder, Intent Engine, and Safety Gates." />

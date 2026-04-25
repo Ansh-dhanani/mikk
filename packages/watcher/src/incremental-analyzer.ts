@@ -110,7 +110,7 @@ export class IncrementalAnalyzer {
 
         const allParsedFiles = [...this.parsedFiles.values()]
         const compiler = new LockCompiler()
-        this.lock = compiler.compile(this.graph, this.contract, allParsedFiles, undefined, this.projectRoot)
+        this.lock = await compiler.compile(this.graph, this.contract, allParsedFiles, undefined, this.projectRoot)
 
         return { graph: this.graph, lock: this.lock, impactResult, mode: 'incremental' }
     }
@@ -172,7 +172,7 @@ export class IncrementalAnalyzer {
         this.graph = builder.build(allParsedFiles)
 
         const compiler = new LockCompiler()
-        this.lock = compiler.compile(this.graph, this.contract, allParsedFiles, undefined, this.projectRoot)
+        this.lock = await compiler.compile(this.graph, this.contract, allParsedFiles, undefined, this.projectRoot)
 
         const impactResult: ImpactResult = {
             changed: events.map(e => e.path),

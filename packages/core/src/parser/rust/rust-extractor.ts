@@ -1,37 +1,48 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
+/**
+ * RustExtractor — DEPRECATED.
+ *
+ * Rust parsing is now handled by the tree-sitter parser using RUST_QUERIES
+ * defined in tree-sitter/queries.ts (which correctly captures impl methods).
+ *
+ * The LanguageRegistry registration has been REMOVED.
+ * tree-sitter/parser.ts already registers 'rust' with the correct grammar.
+ *
+ * This file is retained only to avoid breaking any external imports.
+ */
+
 import { hashContent } from '../../hash/file-hasher.js'
-import { BaseExtractor } from '../base-extractor.js'
-import { LanguageRegistry } from '../language-registry.js'
+import { BaseExtractor, ExtractOptions } from '../base-extractor.js'
+import { makeIdAllocator, toPosixPath } from '../../utils/id.js'
 import type { ParsedFile, ParsedFunction, ParsedClass, ParsedImport, ParsedExport } from '../types.js'
 
 export class RustExtractor extends BaseExtractor {
-    constructor() {
-        super();
-    }
-
-    async extract(filePath: string, content: string): Promise<ParsedFile> {
-        const lines = content.split('\n');
-        const functions: ParsedFunction[] = [];
-        const classes: ParsedClass[] = []; // Structs/Enums
-        const imports: ParsedImport[] = [];
-        const exports: ParsedExport[] = [];
+    async extract(filePath: string, content: string, _options?: ExtractOptions): Promise<ParsedFile> {
+        const displayPath = toPosixPath(filePath)
+        const allocateId = makeIdAllocator(filePath)
+        const lines = content.split('\n')
+        const functions: ParsedFunction[] = []
+        const classes: ParsedClass[] = []
+        const imports: ParsedImport[] = []
+        const exports: ParsedExport[] = []
 
         for (let i = 0; i < lines.length; i++) {
-            const line = lines[i].trim();
+            const line = lines[i].trim()
 
-            // Minimal Function Detection: pub fn name(...)
-            const fnMatch = /^(?:pub(?:\([^)]+\))?\s+)?fn\s+([a-z_][a-z0-9_]*)/.exec(line);
+            // Top-level and impl-method functions
+            const fnMatch = /^(?:pub(?:\([^)]+\))?\s+)?(?:async\s+)?fn\s+([a-z_][a-z0-9_]*)/.exec(line)
             if (fnMatch) {
-                const name = fnMatch[1];
+                const name = fnMatch[1]
+                const isExported = line.startsWith('pub')
                 functions.push({
-                    id: `fn:${filePath}:${name}`,
+                    id: allocateId('fn', name),
                     name,
-                    file: filePath,
+                    file: displayPath,
                     startLine: i + 1,
-                    endLine: i + 1, // Placeholder
+                    endLine: i + 1,
                     params: [],
                     returnType: 'unknown',
-                    isExported: line.startsWith('pub'),
+                    isExported,
                     isAsync: line.includes('async fn'),
                     calls: [],
                     hash: hashContent(line),
@@ -39,51 +50,49 @@ export class RustExtractor extends BaseExtractor {
                     edgeCasesHandled: [],
                     errorHandling: [],
                     detailedLines: []
-                });
-                if (line.startsWith('pub')) {
-                    exports.push({ name, type: 'function', file: filePath });
+                })
+                if (isExported) {
+                    exports.push({ name, type: 'function', file: displayPath })
                 }
             }
 
-            // Minimal Import Detection: use path::to::pkg;
-            const useMatch = /^use\s+([^;]+);/.exec(line);
+            const useMatch = /^(?:pub\s+)?use\s+([^;]+);/.exec(line)
             if (useMatch) {
-                const path = useMatch[1].trim();
-                const parts = path.split('::');
+                const src = useMatch[1].trim()
+                const parts = src.split('::')
                 imports.push({
-                    source: path,
+                    source: src,
                     resolvedPath: '',
                     names: [parts[parts.length - 1]],
                     isDefault: false,
                     isDynamic: false
-                });
+                })
             }
 
-            // Minimal Struct Detection: pub struct Name { ... }
-            const structMatch = /^(?:pub(?:\([^)]+\))?\s+)?(?:struct|enum|trait)\s+([A-Z][A-Za-z0-9_]*)/.exec(line);
+            const structMatch = /^(?:pub(?:\([^)]+\))?\s+)?(?:struct|enum|trait)\s+([A-Z][A-Za-z0-9_]*)/.exec(line)
             if (structMatch) {
-                const name = structMatch[1];
+                const name = structMatch[1]
+                const isExported = line.startsWith('pub')
                 classes.push({
-                    id: `cls:${filePath}:${name}`,
+                    id: allocateId('class', name),
                     name,
-                    file: filePath,
+                    file: displayPath,
                     startLine: i + 1,
-                    endLine: i + 1, // Placeholder
-                    isExported: line.startsWith('pub'),
+                    endLine: i + 1,
+                    isExported,
                     methods: [],
                     properties: [],
                     hash: hashContent(line),
                     purpose: ''
-                });
-                if (line.startsWith('pub')) {
-                    const type = line.includes('struct') ? 'class' : 'interface';
-                    exports.push({ name, type, file: filePath });
+                })
+                if (isExported) {
+                    exports.push({ name, type: line.includes('struct') ? 'class' : 'interface', file: displayPath })
                 }
             }
         }
 
         return {
-            path: filePath.replace(/\\/g, '/'),
+            path: displayPath,
             language: 'rust' as any,
             functions,
             classes,
@@ -95,15 +104,9 @@ export class RustExtractor extends BaseExtractor {
             calls: [],
             hash: hashContent(content),
             parsedAt: Date.now()
-        };
+        }
     }
 }
 
-// Automatically register with the LanguageRegistry
-LanguageRegistry.getInstance().register({
-    name: 'rust',
-    extensions: ['.rs'],
-    treeSitterGrammar: '',
-    extractor: new RustExtractor(),
-    semanticFeatures: { hasTypeSystem: true, hasGenerics: true, hasMacros: true, hasAnnotations: false, hasPatternMatching: true }
-});
+// NOTE: No LanguageRegistry.register() call here.
+// Rust is registered by tree-sitter/parser.ts using proper RUST_QUERIES.

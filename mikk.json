@@ -3,727 +3,145 @@
   "project": {
     "name": "mikk",
     "description": "",
-    "language": "typescript",
+    "language": "polyglot",
     "entryPoints": [
-      "C:/Users/Ansh/Desktop/web/Mesh/packages/obsidian-plugin/main.js",
-      "C:/Users/Ansh/Desktop/web/Mesh/apps/registry/src/index.ts",
-      "C:/Users/Ansh/Desktop/web/Mesh/packages/ai-context/src/index.ts",
-      "C:/Users/Ansh/Desktop/web/Mesh/packages/cli/src/index.ts",
-      "C:/Users/Ansh/Desktop/web/Mesh/packages/core/src/index.ts",
-      "C:/Users/Ansh/Desktop/web/Mesh/packages/intent-engine/src/index.ts",
-      "C:/Users/Ansh/Desktop/web/Mesh/packages/mcp-server/src/index.ts",
-      "C:/Users/Ansh/Desktop/web/Mesh/packages/mcp-server/src/server.ts",
-      "C:/Users/Ansh/Desktop/web/Mesh/packages/obsidian-plugin/src/main.ts",
-      "C:/Users/Ansh/Desktop/web/Mesh/packages/watcher/src/index.ts",
-      "C:/Users/Ansh/Desktop/web/Mesh/benchmarks/fixtures/ts-express-api/src/index.ts",
-      "C:/Users/Ansh/Desktop/web/Mesh/packages/core/src/analysis/index.ts",
-      "C:/Users/Ansh/Desktop/web/Mesh/packages/core/src/cache/index.ts",
-      "C:/Users/Ansh/Desktop/web/Mesh/packages/core/src/contract/index.ts",
-      "C:/Users/Ansh/Desktop/web/Mesh/packages/core/src/graph/index.ts",
-      "C:/Users/Ansh/Desktop/web/Mesh/packages/core/src/hash/index.ts",
-      "C:/Users/Ansh/Desktop/web/Mesh/packages/core/src/parser/index.ts",
-      "C:/Users/Ansh/Desktop/web/Mesh/packages/core/src/security/index.ts",
-      "C:/Users/Ansh/Desktop/web/Mesh/packages/core/src/search/index.ts",
-      "C:/Users/Ansh/Desktop/web/Mesh/apps/web/components/kibo-ui/contribution-graph/index.tsx",
-      "C:/Users/Ansh/Desktop/web/Mesh/apps/web/components/kibo-ui/marquee/index.tsx",
-      "C:/Users/Ansh/Desktop/web/Mesh/apps/web/components/kibo-ui/image-zoom/index.tsx",
-      "C:/Users/Ansh/Desktop/web/Mesh/packages/cli/src/commands/contract/index.ts"
+      "C:/Users/Ansh/Desktop/web/Mikk/packages/obsidian-plugin/main.js",
+      "C:/Users/Ansh/Desktop/web/Mikk/apps/registry/src/index.ts",
+      "C:/Users/Ansh/Desktop/web/Mikk/packages/ai-context/src/index.ts",
+      "C:/Users/Ansh/Desktop/web/Mikk/packages/cli/src/index.ts",
+      "C:/Users/Ansh/Desktop/web/Mikk/packages/core/src/index.ts",
+      "C:/Users/Ansh/Desktop/web/Mikk/packages/ide-context/src/index.ts",
+      "C:/Users/Ansh/Desktop/web/Mikk/packages/intent-engine/src/index.ts",
+      "C:/Users/Ansh/Desktop/web/Mikk/packages/mcp-server/src/index.ts",
+      "C:/Users/Ansh/Desktop/web/Mikk/packages/mcp-server/src/server.ts",
+      "C:/Users/Ansh/Desktop/web/Mikk/packages/obsidian-plugin/src/main.ts",
+      "C:/Users/Ansh/Desktop/web/Mikk/packages/watcher/src/index.ts",
+      "C:/Users/Ansh/Desktop/web/Mikk/packages/core/src/analysis/index.ts",
+      "C:/Users/Ansh/Desktop/web/Mikk/packages/core/src/cache/index.ts",
+      "C:/Users/Ansh/Desktop/web/Mikk/packages/core/src/contract/index.ts",
+      "C:/Users/Ansh/Desktop/web/Mikk/packages/core/src/graph/index.ts",
+      "C:/Users/Ansh/Desktop/web/Mikk/packages/core/src/hash/index.ts",
+      "C:/Users/Ansh/Desktop/web/Mikk/packages/core/src/parser/index.ts",
+      "C:/Users/Ansh/Desktop/web/Mikk/packages/core/src/search/index.ts",
+      "C:/Users/Ansh/Desktop/web/Mikk/packages/core/src/security/index.ts",
+      "C:/Users/Ansh/Desktop/web/Mikk/apps/web/components/kibo-ui/contribution-graph/index.tsx",
+      "C:/Users/Ansh/Desktop/web/Mikk/apps/web/components/kibo-ui/marquee/index.tsx",
+      "C:/Users/Ansh/Desktop/web/Mikk/apps/web/components/kibo-ui/image-zoom/index.tsx",
+      "C:/Users/Ansh/Desktop/web/Mikk/packages/cli/src/commands/contract/index.ts"
     ]
   },
   "declared": {
     "modules": [
       {
-        "id": "mesh-apps-web",
-        "name": "Config & API",
-        "description": "5 files, 0 functions",
+        "id": "apps-web",
+        "name": "Apps Web",
+        "description": "3 files, 0 exported entry functions",
         "intent": "",
         "paths": [
-          "c:/users/ansh/desktop/web/mesh/apps/web/**"
+          "apps/web/providers/**"
         ],
         "entryFunctions": []
       },
       {
-        "id": "apps-web-providers",
-        "name": "Providers",
-        "description": "3 files, 0 functions",
+        "id": "packages-ai-context",
+        "name": "Packages Ai-context",
+        "description": "6 files, 0 exported entry functions",
         "intent": "",
         "paths": [
-          "c:/users/ansh/desktop/web/mesh/apps/web/providers/**"
+          "packages/ai-context/src/**"
         ],
         "entryFunctions": []
       },
       {
-        "id": "packages-vscode-extension-webview",
-        "name": "Dashboard",
-        "description": "3 files, 0 functions",
+        "id": "packages-cli",
+        "name": "Packages Cli",
+        "description": "5 files, 0 exported entry functions",
         "intent": "",
         "paths": [
-          "c:/users/ansh/desktop/web/mesh/packages/vscode-extension/src/webview/**"
+          "packages/cli/src/**",
+          "packages/cli/bin/**"
         ],
         "entryFunctions": []
       },
       {
-        "id": "app-api-feedback",
-        "name": "API & Blog",
-        "description": "1 files, 0 functions",
+        "id": "packages-core",
+        "name": "Packages Core",
+        "description": "26 files, 0 exported entry functions",
         "intent": "",
         "paths": [
-          "c:/users/ansh/desktop/web/mesh/apps/web/app/api/feedback/**"
+          "packages/core/**"
         ],
         "entryFunctions": []
       },
       {
-        "id": "app-api-mikk-query",
-        "name": "API",
-        "description": "1 files, 0 functions",
+        "id": "packages-ide-context",
+        "name": "Packages Ide-context",
+        "description": "1 files, 0 exported entry functions",
         "intent": "",
         "paths": [
-          "c:/users/ansh/desktop/web/mesh/apps/web/app/api/mikk-query/**"
+          "packages/ide-context/src/**"
         ],
         "entryFunctions": []
       },
       {
-        "id": "packages-core-utils",
-        "name": "Utils",
-        "description": "10 files, 0 functions",
+        "id": "packages-intent-engine",
+        "name": "Packages Intent-engine",
+        "description": "9 files, 0 exported entry functions",
         "intent": "",
         "paths": [
-          "c:/users/ansh/desktop/web/mesh/packages/core/src/utils/**"
+          "packages/intent-engine/src/**"
         ],
         "entryFunctions": []
       },
       {
-        "id": "packages-core-parser",
-        "name": "Blog & Storage",
-        "description": "11 files, 0 functions",
+        "id": "packages-mcp-server",
+        "name": "Packages Mcp-server",
+        "description": "9 files, 0 exported entry functions",
         "intent": "",
         "paths": [
-          "c:/users/ansh/desktop/web/mesh/packages/core/src/parser/**"
+          "packages/mcp-server/bin/**",
+          "packages/mcp-server/src/**"
         ],
         "entryFunctions": []
       },
       {
-        "id": "mesh-packages-cli",
-        "name": "CLI & Utils",
-        "description": "4 files, 0 functions",
+        "id": "packages-obsidian-plugin",
+        "name": "Packages Obsidian-plugin",
+        "description": "2 files, 0 exported entry functions",
         "intent": "",
         "paths": [
-          "c:/users/ansh/desktop/web/mesh/packages/cli/**",
-          "c:/users/ansh/desktop/web/mesh/packages/cli/src/**"
+          "packages/obsidian-plugin/**"
         ],
         "entryFunctions": []
       },
       {
-        "id": "fixtures-js-utility-parsers",
-        "name": "Utils & Testing",
-        "description": "2 files, 0 functions",
+        "id": "packages-vscode-extension",
+        "name": "Packages Vscode-extension",
+        "description": "4 files, 0 exported entry functions",
         "intent": "",
         "paths": [
-          "c:/users/ansh/desktop/web/mesh/benchmarks/fixtures/js-utility/src/parsers/**"
+          "packages/vscode-extension/src/webview/**",
+          "packages/vscode-extension/src/providers/**"
         ],
         "entryFunctions": []
       },
       {
-        "id": "packages-core-hash",
-        "name": "Providers & Storage",
-        "description": "4 files, 0 functions",
+        "id": "packages-watcher",
+        "name": "Packages Watcher",
+        "description": "5 files, 0 exported entry functions",
         "intent": "",
         "paths": [
-          "c:/users/ansh/desktop/web/mesh/packages/core/src/hash/**"
+          "packages/watcher/src/**"
         ],
         "entryFunctions": []
       },
       {
-        "id": "fixtures-ts-express-api-auth",
-        "name": "Authentication",
-        "description": "4 files, 0 functions",
+        "id": "scripts",
+        "name": "Scripts",
+        "description": "4 files, 0 exported entry functions",
         "intent": "",
         "paths": [
-          "c:/users/ansh/desktop/web/mesh/benchmarks/fixtures/ts-express-api/src/auth/**"
-        ],
-        "entryFunctions": []
-      },
-      {
-        "id": "apps-web-app",
-        "name": "Layout & API",
-        "description": "3 files, 0 functions",
-        "intent": "",
-        "paths": [
-          "c:/users/ansh/desktop/web/mesh/apps/web/app/**"
-        ],
-        "entryFunctions": []
-      },
-      {
-        "id": "apps-web-components",
-        "name": "Components",
-        "description": "19 files, 0 functions",
-        "intent": "",
-        "paths": [
-          "c:/users/ansh/desktop/web/mesh/apps/web/components/**"
-        ],
-        "entryFunctions": []
-      },
-      {
-        "id": "desktop-web-mesh",
-        "name": "Config",
-        "description": "1 files, 0 functions",
-        "intent": "",
-        "paths": [
-          "c:/users/ansh/desktop/web/mesh/**"
-        ],
-        "entryFunctions": []
-      },
-      {
-        "id": "packages-cli-bin",
-        "name": "CLI",
-        "description": "1 files, 0 functions",
-        "intent": "",
-        "paths": [
-          "c:/users/ansh/desktop/web/mesh/packages/cli/bin/**"
-        ],
-        "entryFunctions": []
-      },
-      {
-        "id": "packages-mcp-server-bin",
-        "name": "Packages Mcp Server Bin",
-        "description": "1 files, 0 functions",
-        "intent": "",
-        "paths": [
-          "c:/users/ansh/desktop/web/mesh/packages/mcp-server/bin/**"
-        ],
-        "entryFunctions": []
-      },
-      {
-        "id": "fixtures-js-utility-formatters",
-        "name": "Utils & Forms",
-        "description": "1 files, 0 functions",
-        "intent": "",
-        "paths": [
-          "c:/users/ansh/desktop/web/mesh/benchmarks/fixtures/js-utility/src/formatters/**"
-        ],
-        "entryFunctions": []
-      },
-      {
-        "id": "fixtures-js-utility-async",
-        "name": "Utils",
-        "description": "1 files, 0 functions",
-        "intent": "",
-        "paths": [
-          "c:/users/ansh/desktop/web/mesh/benchmarks/fixtures/js-utility/src/async/**"
-        ],
-        "entryFunctions": []
-      },
-      {
-        "id": "fixtures-js-utility-validators",
-        "name": "Validation",
-        "description": "1 files, 0 functions",
-        "intent": "",
-        "paths": [
-          "c:/users/ansh/desktop/web/mesh/benchmarks/fixtures/js-utility/src/validators/**"
-        ],
-        "entryFunctions": []
-      },
-      {
-        "id": "mesh-packages-core",
-        "name": "Storage & Authentication",
-        "description": "3 files, 0 functions",
-        "intent": "",
-        "paths": [
-          "c:/users/ansh/desktop/web/mesh/packages/core/src/**"
-        ],
-        "entryFunctions": []
-      },
-      {
-        "id": "mesh-packages-watcher",
-        "name": "Storage",
-        "description": "5 files, 0 functions",
-        "intent": "",
-        "paths": [
-          "c:/users/ansh/desktop/web/mesh/packages/watcher/src/**"
-        ],
-        "entryFunctions": []
-      },
-      {
-        "id": "web-app-docs",
-        "name": "Layout",
-        "description": "1 files, 0 functions",
-        "intent": "",
-        "paths": [
-          "c:/users/ansh/desktop/web/mesh/apps/web/app/docs/**"
-        ],
-        "entryFunctions": []
-      },
-      {
-        "id": "web-components-animated-icons",
-        "name": "Components",
-        "description": "3 files, 0 functions",
-        "intent": "",
-        "paths": [
-          "c:/users/ansh/desktop/web/mesh/apps/web/components/animated-icons/**"
-        ],
-        "entryFunctions": []
-      },
-      {
-        "id": "web-components-landing",
-        "name": "Components & CLI",
-        "description": "2 files, 0 functions",
-        "intent": "",
-        "paths": [
-          "c:/users/ansh/desktop/web/mesh/apps/web/components/landing/**"
-        ],
-        "entryFunctions": []
-      },
-      {
-        "id": "packages-core-analysis",
-        "name": "Search",
-        "description": "3 files, 0 functions",
-        "intent": "",
-        "paths": [
-          "c:/users/ansh/desktop/web/mesh/packages/core/src/analysis/**"
-        ],
-        "entryFunctions": []
-      },
-      {
-        "id": "packages-core-cache",
-        "name": "Caching",
-        "description": "2 files, 0 functions",
-        "intent": "",
-        "paths": [
-          "c:/users/ansh/desktop/web/mesh/packages/core/src/cache/**"
-        ],
-        "entryFunctions": []
-      },
-      {
-        "id": "packages-core-security",
-        "name": "Search",
-        "description": "2 files, 0 functions",
-        "intent": "",
-        "paths": [
-          "c:/users/ansh/desktop/web/mesh/packages/core/src/security/**"
-        ],
-        "entryFunctions": []
-      },
-      {
-        "id": "packages-vscode-extension-providers",
-        "name": "Providers",
-        "description": "2 files, 0 functions",
-        "intent": "",
-        "paths": [
-          "c:/users/ansh/desktop/web/mesh/packages/vscode-extension/src/providers/**"
-        ],
-        "entryFunctions": []
-      },
-      {
-        "id": "app-api-chat",
-        "name": "API",
-        "description": "1 files, 0 functions",
-        "intent": "",
-        "paths": [
-          "c:/users/ansh/desktop/web/mesh/apps/web/app/api/chat/**"
-        ],
-        "entryFunctions": []
-      },
-      {
-        "id": "app-api-search",
-        "name": "API",
-        "description": "1 files, 0 functions",
-        "intent": "",
-        "paths": [
-          "c:/users/ansh/desktop/web/mesh/apps/web/app/api/search/**"
-        ],
-        "entryFunctions": []
-      },
-      {
-        "id": "fixtures-ts-express-api-cache",
-        "name": "Caching",
-        "description": "1 files, 0 functions",
-        "intent": "",
-        "paths": [
-          "c:/users/ansh/desktop/web/mesh/benchmarks/fixtures/ts-express-api/src/cache/**"
-        ],
-        "entryFunctions": []
-      },
-      {
-        "id": "core-parser-javascript",
-        "name": "GraphQL",
-        "description": "1 files, 0 functions",
-        "intent": "",
-        "paths": [
-          "c:/users/ansh/desktop/web/mesh/packages/core/src/parser/javascript/**"
-        ],
-        "entryFunctions": []
-      },
-      {
-        "id": "core-parser-rust",
-        "name": "Core Parser Rust",
-        "description": "1 files, 0 functions",
-        "intent": "",
-        "paths": [
-          "c:/users/ansh/desktop/web/mesh/packages/core/src/parser/rust/**"
-        ],
-        "entryFunctions": []
-      },
-      {
-        "id": "core-parser-typescript",
-        "name": "GraphQL",
-        "description": "1 files, 0 functions",
-        "intent": "",
-        "paths": [
-          "c:/users/ansh/desktop/web/mesh/packages/core/src/parser/typescript/**"
-        ],
-        "entryFunctions": []
-      },
-      {
-        "id": "core-parser-go",
-        "name": "GraphQL",
-        "description": "2 files, 0 functions",
-        "intent": "",
-        "paths": [
-          "c:/users/ansh/desktop/web/mesh/packages/core/src/parser/go/**"
-        ],
-        "entryFunctions": []
-      },
-      {
-        "id": "mesh-packages-vscode-extension",
-        "name": "Providers",
-        "description": "2 files, 0 functions",
-        "intent": "",
-        "paths": [
-          "c:/users/ansh/desktop/web/mesh/packages/vscode-extension/**",
-          "c:/users/ansh/desktop/web/mesh/packages/vscode-extension/src/**"
-        ],
-        "entryFunctions": []
-      },
-      {
-        "id": "web-mesh-benchmarks",
-        "name": "CLI & Testing",
-        "description": "5 files, 0 functions",
-        "intent": "",
-        "paths": [
-          "c:/users/ansh/desktop/web/mesh/benchmarks/**"
-        ],
-        "entryFunctions": []
-      },
-      {
-        "id": "core-parser-tree-sitter",
-        "name": "GraphQL & Internationalization",
-        "description": "3 files, 0 functions",
-        "intent": "",
-        "paths": [
-          "c:/users/ansh/desktop/web/mesh/packages/core/src/parser/tree-sitter/**"
-        ],
-        "entryFunctions": []
-      },
-      {
-        "id": "mesh-packages-obsidian-plugin",
-        "name": "Utils & Forms",
-        "description": "3 files, 0 functions",
-        "intent": "",
-        "paths": [
-          "c:/users/ansh/desktop/web/mesh/packages/obsidian-plugin/**",
-          "c:/users/ansh/desktop/web/mesh/packages/obsidian-plugin/src/**"
-        ],
-        "entryFunctions": []
-      },
-      {
-        "id": "mesh-packages-ai-context",
-        "name": "Providers",
-        "description": "11 files, 0 functions",
-        "intent": "",
-        "paths": [
-          "c:/users/ansh/desktop/web/mesh/packages/ai-context/src/**"
-        ],
-        "entryFunctions": []
-      },
-      {
-        "id": "fixtures-ts-express-api-users",
-        "name": "API & Testing",
-        "description": "2 files, 0 functions",
-        "intent": "",
-        "paths": [
-          "c:/users/ansh/desktop/web/mesh/benchmarks/fixtures/ts-express-api/src/users/**"
-        ],
-        "entryFunctions": []
-      },
-      {
-        "id": "packages-core-contract",
-        "name": "Secrets & Storage",
-        "description": "8 files, 0 functions",
-        "intent": "",
-        "paths": [
-          "c:/users/ansh/desktop/web/mesh/packages/core/src/contract/**"
-        ],
-        "entryFunctions": []
-      },
-      {
-        "id": "fixtures-ts-express-api-payments",
-        "name": "Payments",
-        "description": "2 files, 0 functions",
-        "intent": "",
-        "paths": [
-          "c:/users/ansh/desktop/web/mesh/benchmarks/fixtures/ts-express-api/src/payments/**"
-        ],
-        "entryFunctions": []
-      },
-      {
-        "id": "mesh-packages-mcp-server",
-        "name": "Search",
-        "description": "6 files, 0 functions",
-        "intent": "",
-        "paths": [
-          "c:/users/ansh/desktop/web/mesh/packages/mcp-server/**",
-          "c:/users/ansh/desktop/web/mesh/packages/mcp-server/src/**"
-        ],
-        "entryFunctions": []
-      },
-      {
-        "id": "app-api-analyze-repo",
-        "name": "API",
-        "description": "1 files, 0 functions",
-        "intent": "",
-        "paths": [
-          "c:/users/ansh/desktop/web/mesh/apps/web/app/api/analyze-repo/**"
-        ],
-        "entryFunctions": []
-      },
-      {
-        "id": "components-kibo-ui-contribution-graph",
-        "name": "Navigation",
-        "description": "1 files, 0 functions",
-        "intent": "",
-        "paths": [
-          "c:/users/ansh/desktop/web/mesh/apps/web/components/kibo-ui/contribution-graph/**"
-        ],
-        "entryFunctions": []
-      },
-      {
-        "id": "packages-core-graph",
-        "name": "Search",
-        "description": "14 files, 0 functions",
-        "intent": "",
-        "paths": [
-          "c:/users/ansh/desktop/web/mesh/packages/core/src/graph/**"
-        ],
-        "entryFunctions": []
-      },
-      {
-        "id": "app-api-lock",
-        "name": "API",
-        "description": "1 files, 0 functions",
-        "intent": "",
-        "paths": [
-          "c:/users/ansh/desktop/web/mesh/apps/web/app/api/lock/**"
-        ],
-        "entryFunctions": []
-      },
-      {
-        "id": "packages-mcp-server-tools",
-        "name": "Storage & Caching",
-        "description": "11 files, 0 functions",
-        "intent": "",
-        "paths": [
-          "c:/users/ansh/desktop/web/mesh/packages/mcp-server/src/tools/**"
-        ],
-        "entryFunctions": []
-      },
-      {
-        "id": "benchmarks-fixtures-test-project",
-        "name": "Testing & Project Management",
-        "description": "9 files, 0 functions",
-        "intent": "",
-        "paths": [
-          "c:/users/ansh/desktop/web/mesh/benchmarks/fixtures/test-project/**"
-        ],
-        "entryFunctions": []
-      },
-      {
-        "id": "web-mesh-scripts",
-        "name": "CLI & Dashboard",
-        "description": "8 files, 0 functions",
-        "intent": "",
-        "paths": [
-          "c:/users/ansh/desktop/web/mesh/scripts/**"
-        ],
-        "entryFunctions": []
-      },
-      {
-        "id": "mesh-packages-intent-engine",
-        "name": "Search & AI & ML",
-        "description": "13 files, 0 functions",
-        "intent": "",
-        "paths": [
-          "c:/users/ansh/desktop/web/mesh/packages/intent-engine/src/**"
-        ],
-        "entryFunctions": []
-      },
-      {
-        "id": "web-app--marketing-",
-        "name": "Layout",
-        "description": "2 files, 0 functions",
-        "intent": "",
-        "paths": [
-          "c:/users/ansh/desktop/web/mesh/apps/web/app/(marketing)/**"
-        ],
-        "entryFunctions": []
-      },
-      {
-        "id": "packages-core-search",
-        "name": "Search",
-        "description": "5 files, 0 functions",
-        "intent": "",
-        "paths": [
-          "c:/users/ansh/desktop/web/mesh/packages/core/src/search/**"
-        ],
-        "entryFunctions": []
-      },
-      {
-        "id": "benchmarks-fixtures-polyglot-services",
-        "name": "Authentication & gRPC",
-        "description": "2 files, 0 functions",
-        "intent": "",
-        "paths": [
-          "c:/users/ansh/desktop/web/mesh/benchmarks/fixtures/polyglot-services/src/**"
-        ],
-        "entryFunctions": []
-      },
-      {
-        "id": "packages-cli-commands",
-        "name": "CLI",
-        "description": "18 files, 0 functions",
-        "intent": "",
-        "paths": [
-          "c:/users/ansh/desktop/web/mesh/packages/cli/src/commands/**"
-        ],
-        "entryFunctions": []
-      },
-      {
-        "id": "web-components-ui",
-        "name": "Navigation & Components",
-        "description": "25 files, 0 functions",
-        "intent": "",
-        "paths": [
-          "c:/users/ansh/desktop/web/mesh/apps/web/components/ui/**"
-        ],
-        "entryFunctions": []
-      },
-      {
-        "id": "benchmarks-fixtures-ts-express-api",
-        "name": "Testing & API",
-        "description": "2 files, 0 functions",
-        "intent": "",
-        "paths": [
-          "c:/users/ansh/desktop/web/mesh/benchmarks/fixtures/ts-express-api/**",
-          "c:/users/ansh/desktop/web/mesh/benchmarks/fixtures/ts-express-api/src/**"
-        ],
-        "entryFunctions": []
-      },
-      {
-        "id": "mesh-apps-registry",
-        "name": "Search",
-        "description": "1 files, 0 functions",
-        "intent": "",
-        "paths": [
-          "c:/users/ansh/desktop/web/mesh/apps/registry/src/**"
-        ],
-        "entryFunctions": []
-      },
-      {
-        "id": "apps-web-lib",
-        "name": "Utils",
-        "description": "7 files, 0 functions",
-        "intent": "",
-        "paths": [
-          "c:/users/ansh/desktop/web/mesh/apps/web/lib/**"
-        ],
-        "entryFunctions": []
-      },
-      {
-        "id": "app-docs--slug-",
-        "name": "Layout",
-        "description": "1 files, 0 functions",
-        "intent": "",
-        "paths": [
-          "c:/users/ansh/desktop/web/mesh/apps/web/app/docs/[[...slug]]/**"
-        ],
-        "entryFunctions": []
-      },
-      {
-        "id": "components-base-ui",
-        "name": "Components",
-        "description": "2 files, 0 functions",
-        "intent": "",
-        "paths": [
-          "c:/users/ansh/desktop/web/mesh/apps/web/components/base/ui/**"
-        ],
-        "entryFunctions": []
-      },
-      {
-        "id": "components-kibo-ui-marquee",
-        "name": "Components",
-        "description": "1 files, 0 functions",
-        "intent": "",
-        "paths": [
-          "c:/users/ansh/desktop/web/mesh/apps/web/components/kibo-ui/marquee/**"
-        ],
-        "entryFunctions": []
-      },
-      {
-        "id": "components-kibo-ui-image-zoom",
-        "name": "Media",
-        "description": "1 files, 0 functions",
-        "intent": "",
-        "paths": [
-          "c:/users/ansh/desktop/web/mesh/apps/web/components/kibo-ui/image-zoom/**"
-        ],
-        "entryFunctions": []
-      },
-      {
-        "id": "fixtures-ts-express-api-db",
-        "name": "Database & Components",
-        "description": "1 files, 0 functions",
-        "intent": "",
-        "paths": [
-          "c:/users/ansh/desktop/web/mesh/benchmarks/fixtures/ts-express-api/src/db/**"
-        ],
-        "entryFunctions": []
-      },
-      {
-        "id": "fixtures-ts-express-api-middleware",
-        "name": "API",
-        "description": "3 files, 0 functions",
-        "intent": "",
-        "paths": [
-          "c:/users/ansh/desktop/web/mesh/benchmarks/fixtures/ts-express-api/src/middleware/**"
-        ],
-        "entryFunctions": []
-      },
-      {
-        "id": "fixtures-ts-express-api-routes",
-        "name": "API & Testing",
-        "description": "3 files, 0 functions",
-        "intent": "",
-        "paths": [
-          "c:/users/ansh/desktop/web/mesh/benchmarks/fixtures/ts-express-api/src/routes/**"
-        ],
-        "entryFunctions": []
-      },
-      {
-        "id": "cli-commands-contract",
-        "name": "CLI",
-        "description": "1 files, 0 functions",
-        "intent": "",
-        "paths": [
-          "c:/users/ansh/desktop/web/mesh/packages/cli/src/commands/contract/**"
-        ],
-        "entryFunctions": []
-      },
-      {
-        "id": "fixtures-ts-express-api-utils",
-        "name": "Utils & API",
-        "description": "2 files, 0 functions",
-        "intent": "",
-        "paths": [
-          "c:/users/ansh/desktop/web/mesh/benchmarks/fixtures/ts-express-api/src/utils/**"
+          "scripts/**"
         ],
         "entryFunctions": []
       }

@@ -61,7 +61,7 @@ export function registerFileTools(server: McpServer, projectRoot: string) {
                     return { content: [{ type: 'text' as const, text: `Refusing to read "${fileInput}": file exceeds ${MAX_SOURCE_FILE_BYTES} bytes.` }], isError: true }
                 const rel = path.relative(rootResolved, resolved).replace(/\\/g, '/')
                 const allowlisted = new Set(['mikk.json', 'mikk.lock.json', 'package.json', 'tsconfig.json'])
-                if (!(rel in (lock as any).files) && !allowlisted.has(rel))
+                if (!isTrackedByLock(lock, projectRoot, resolved) && !allowlisted.has(rel))
                     return { content: [{ type: 'text' as const, text: `Access denied: "${fileInput}" is not tracked in mikk.lock.json.` }], isError: true }
                 content = await fs.readFile(resolved, 'utf-8')
             } catch (err: any) {

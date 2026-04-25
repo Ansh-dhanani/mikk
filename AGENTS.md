@@ -7,15 +7,16 @@
 <repository_context>
   <name>mikk</name>
   <stats>
-    <files>284</files>
-    <functions>1456</functions>
-    <modules>0</modules>
-    <language>typescript</language>
+    <files>279</files>
+    <functions>1560</functions>
+    <modules>11</modules>
+    <language>polyglot</language>
   </stats>
 </repository_context>
 
 <modules>
 <tech_stack>
+  <technology>Polyglot</technology>
   <technology>Turborepo</technology>
 </tech_stack>
 <commands>
@@ -36,768 +37,263 @@
     <executes>turbo run lint</executes>
   </command>
 </commands>
+  <module id="packages-core">
+    <name>Packages Core</name>
+    <location>packages/core/**</location>
+    <purpose>26 files, 0 exported entry functions</purpose>
+    <entry_points>
+      <function signature="async TypescriptExtractor.extract(filePath, content, options?) [packages/core/src/parser/oxc-parser.ts:341]" purpose="Typescript extractor.extract (filePath, content, options)" />
+      <function signature="TreeSitterParser.processMatches(filePath, content, ext, matches, options?) [packages/core/src/parser/tree-sitter/parser.ts:590]" purpose="Tree sitter parser.process matches" />
+      <function signature="async discoverContextFiles(projectRoot, options) [packages/core/src/utils/fs.ts:249]" purpose="Discover context files (projectRoot, options)" />
+      <function signature="ErrorHandler.wrap(fn, errorCode, context) [packages/core/src/error-handler.ts:186]" purpose="Error handler.wrap (fn, errorCode, context)" />
+      <function signature="ContractGenerator.generateFromClusters(clusters, parsedFiles, projectName, packageJsonDescription?, projectRoot?) [packages/core/src/contract/contract-generator.ts:96]" purpose="Contract generator.generate from clusters" />
+    </entry_points>
+    <key_internal_functions>
+      <function name="log" callers="90" purpose="Log (level, message, data)" />
+      <function name="makeCanonicalId" callers="14" purpose="Make canonical id" />
+      <function name="classifyFile" callers="12" purpose="Classify file (filePath)" />
+      <function name="isVendorPath" callers="8" purpose="Check if vendor path (filePath)" />
+      <function name="writeFileAtomic" callers="7" purpose="Write file atomic (targetPath, content, options)" />
+    </key_internal_functions>
+    <depends_on>Packages Mcp-server</depends_on>
+  </module>
+  <module id="packages-intent-engine">
+    <name>Packages Intent-engine</name>
+    <location>packages/intent-engine/src/**</location>
+    <purpose>9 files, 0 exported entry functions</purpose>
+    <entry_points>
+      <function signature="async SemanticSearcher.index(lock) [packages/intent-engine/src/semantic-searcher.ts:65]" purpose="Semantic searcher.index (lock)" />
+      <function signature="IntentUnderstanding.analyzeIntent(impact, context) [packages/intent-engine/src/intent-understanding.ts:38]" purpose="Intent understanding.analyze intent (impact, context)" />
+      <function signature="IntentUnderstanding.analyzeChangePattern(impact, filesChanged) [packages/intent-engine/src/intent-understanding.ts:154]" purpose="Intent understanding.analyze change pattern (impact, filesChanged)" />
+      <function signature="async SemanticSearcher.search(query, lock, topK) [packages/intent-engine/src/semantic-searcher.ts:130]" purpose="Semantic searcher.search (query, lock, topK)" />
+      <function signature="AutoCorrectionEngine.findCorrectedImportPath(oldPath) [packages/intent-engine/src/auto-correction.ts:262]" purpose="Auto correction engine.find corrected import path (oldPath)" />
+    </entry_points>
+    <key_internal_functions>
+      <function name="SemanticSearcher.isAvailable" callers="10" purpose="Semantic searcher.is available" />
+      <function name="EmbeddingManager.getInstance" callers="4" purpose="Embedding manager.get instance" />
+      <function name="EmbeddingManager.getSearcher" callers="3" purpose="Embedding manager.get searcher (projectRoot, lock)" />
+      <function name="promote" callers="2" purpose="Promote (next)" />
+      <function name="norm" callers="1" purpose="Norm (f)" />
+    </key_internal_functions>
+    <depends_on>Packages Cli, Packages Core</depends_on>
+  </module>
+  <module id="packages-mcp-server">
+    <name>Packages Mcp-server</name>
+    <location>packages/mcp-server/bin/**, packages/mcp-server/src/**</location>
+    <purpose>9 files, 0 exported entry functions</purpose>
+    <entry_points>
+      <function signature="async loadContractAndLock(projectRoot) [packages/mcp-server/src/tools/shared.ts:502]" purpose="Load contract and lock (projectRoot)" />
+      <function signature="getFunctionBody(fn, projectRoot) [packages/mcp-server/src/tools/shared.ts:111]" purpose="Get function body (fn, projectRoot)" />
+      <function signature="async indexSemanticSearcherIfStale(projectRoot, lock, _searcher?) [packages/mcp-server/src/tools/shared.ts:294]" purpose="Index semantic searcher if stale (projectRoot, lock, _searcher)" />
+      <function signature="createMikkMcpServer(projectRoot) [packages/mcp-server/src/server.ts:12]" purpose="Create mikk mcp server (projectRoot)" />
+      <function signature="async walk(dir, depth) [packages/mcp-server/src/tools/security.ts:165]" purpose="Walk (dir, depth)" />
+    </entry_points>
+    <key_internal_functions>
+      <function name="normalize" callers="10" purpose="Normalize (s)" />
+      <function name="_track" callers="10" purpose="Track (root, raw, resp)" />
+      <function name="_fileTok" callers="5" purpose="File tok (lock, fp)" />
+      <function name="isExcluded" callers="4" purpose="Check if excluded (filePath, patterns)" />
+      <function name="isTrackedByLock" callers="4" purpose="Check if tracked by lock (lock, projectRoot, resolvedPath)" />
+    </key_internal_functions>
+    <depends_on>Packages Ai-context, Packages Core, Packages Intent-engine</depends_on>
+  </module>
+  <module id="packages-ai-context">
+    <name>Packages Ai-context</name>
+    <location>packages/ai-context/src/**</location>
+    <purpose>6 files, 0 exported entry functions</purpose>
+    <entry_points>
+      <function signature="ContextBuilder.build(query) [packages/ai-context/src/context-builder.ts:606]" purpose="Context builder.build (query)" />
+      <function signature="ContextBuilder.readFunctionBody(fn, projectRoot) [packages/ai-context/src/context-builder.ts:942]" purpose="Context builder.read function body (fn, projectRoot)" />
+      <function signature="ClaudeMdGenerator.generate() [packages/ai-context/src/claude-md-generator.ts:42]" purpose="Claude md generator.generate" />
+      <function signature="ContextStreamer.toReadableStream(context, options) [packages/ai-context/src/streaming.ts:157]" purpose="Context streamer.to readable stream (context, options)" />
+      <function signature="ClaudeMdGenerator.collapsePaths(paths) [packages/ai-context/src/claude-md-generator.ts:710]" purpose="Claude md generator.collapse paths (paths)" />
+    </entry_points>
+    <key_internal_functions>
+      <function name="getProvider" callers="4" purpose="Get provider (name)" />
+      <function name="getIndexCacheKey" callers="2" purpose="Get index cache key (lock)" />
+      <function name="setCachedIndexes" callers="2" purpose="Set cached indexes (lock, bm25, rich)" />
+      <function name="tokenizeFunction" callers="2" purpose="Tokenize function (fn)" />
+      <function name="readContextFile" callers="2" purpose="Read context file (filePath, projectRoot)" />
+    </key_internal_functions>
+    <depends_on>Packages Core</depends_on>
+  </module>
+  <module id="packages-cli">
+    <name>Packages Cli</name>
+    <location>packages/cli/src/**, packages/cli/bin/**</location>
+    <purpose>5 files, 0 exported entry functions</purpose>
+    <entry_points>
+      <function signature="panel(title, rows, width?) [packages/cli/src/ui.ts:73]" purpose="Panel (title, rows, width)" />
+      <function signature="buildGraphFromLock(lock) [packages/cli/src/utils.ts:35]" purpose="Build graph from lock (lock)" />
+      <function signature="computeComplexity(fn) [packages/cli/src/utils.ts:105]" purpose="Compute complexity (fn)" />
+      <function signature="rule(width?) [packages/cli/src/ui.ts:87]" purpose="Rule (width)" />
+      <function signature="blank() [packages/cli/src/ui.ts:120]" purpose="Blank" />
+    </entry_points>
+    <key_internal_functions>
+      <function name="gap" callers="11" purpose="Gap" />
+      <function name="kv" callers="6" purpose="Kv (label, value, labelWidth)" />
+      <function name="tw" callers="5" purpose="Tw" />
+      <function name="patchFileContent" callers="4" purpose="Patch file content (filePath, newContent)" />
+      <function name="resolveCoreModule" callers="4" purpose="Resolve core module (projectRoot)" />
+    </key_internal_functions>
+    <depends_on>apps-web-components, Packages Core, Packages Intent-engine, Packages Ai-context, Packages Mcp-server</depends_on>
+  </module>
+  <module id="scripts">
+    <name>Scripts</name>
+    <location>scripts/**</location>
+    <purpose>4 files, 0 exported entry functions</purpose>
+    <entry_points>
+      <function signature="editDistanceMatch(fn, fnId, query) [scripts/search-techniques-test.js:87]" purpose="Edit distance match (fn, fnId, query)" />
+      <function signature="fileLink(fp) [scripts/mikk-to-obsidian.mjs:476]" purpose="File link (fp)" />
+      <function signature="fnLink(id) [scripts/mikk-to-obsidian.mjs:481]" purpose="Fn link (id)" />
+      <function signature="fuzzyMatch(fn, fnId, query) [scripts/search-techniques-test.js:51]" purpose="Fuzzy match (fn, fnId, query)" />
+      <function signature="generateDriftingCorpus(rootDir, version, baseCount) [scripts/chaos-test/corpus-chaos.ts:211]" purpose="Generate drifting corpus (rootDir, version, baseCount)" />
+    </entry_points>
+    <key_internal_functions>
+      <function name="writeMikkJson" callers="11" purpose="Write mikk json (rootDir, extras)" />
+      <function name="getFnName" callers="5" purpose="Get fn name (fnId)" />
+      <function name="simpleName" callers="4" purpose="Simple name (s, isFn)" />
+      <function name="writeMikkJson" callers="4" purpose="Write mikk json (rootDir)" />
+      <function name="norm" callers="3" purpose="Norm (p)" />
+    </key_internal_functions>
+    <depends_on>Packages Core, scripts-chaos-test-2</depends_on>
+  </module>
+  <module id="apps-web">
+    <name>Apps Web</name>
+    <location>apps/web/providers/**</location>
+    <purpose>3 files, 0 exported entry functions</purpose>
+    <entry_points>
+      <function signature="ThemeHotkey() [apps/web/providers/theme-provider.tsx:34]" purpose="Theme hotkey" />
+      <function signature="onKeyDown(event) [apps/web/providers/theme-provider.tsx:37]" purpose="Handle key down" />
+      <function signature="ThemeHotkey() [apps/web/providers/fuma-provider.tsx:8]" purpose="Theme hotkey" />
+      <function signature="onKeyDown(e) [apps/web/providers/fuma-provider.tsx:11]" purpose="Handle key down" />
+      <function signature="RootLayout({...}) [apps/web/providers/fuma-provider.tsx:32]" purpose="Root layout ({...})" />
+    </entry_points>
+    <key_internal_functions>
+      <function name="isTypingTarget" callers="3" purpose="Check if typing target (target)" />
+    </key_internal_functions>
+  </module>
+  <module id="packages-ide-context">
+    <name>Packages Ide-context</name>
+    <location>packages/ide-context/src/**</location>
+    <purpose>1 files, 0 exported entry functions</purpose>
+    <entry_points>
+      <function signature="MikkContext.getProjectSummary() [packages/ide-context/src/index.ts:314]" purpose="Mikk context.get project summary" />
+      <function signature="MikkContext.scoreModulesForSymbol(symbol, moduleMap) [packages/ide-context/src/index.ts:722]" purpose="Mikk context.score modules for symbol (symbol, moduleMap)" />
+      <function signature="MikkContext.suggestModuleForFile(filePath) [packages/ide-context/src/index.ts:495]" purpose="Mikk context.suggest module for file (filePath)" />
+      <function signature="SemanticRoleClassifier.classifyFile(filePath) [packages/ide-context/src/index.ts:181]" purpose="Semantic role classifier.classify file (filePath)" />
+      <function signature="MikkContext.getMikkContext(options) [packages/ide-context/src/index.ts:549]" purpose="Mikk context.get mikk context (options)" />
+    </entry_points>
+    <key_internal_functions>
+      <function name="parseEntityKey" callers="1" purpose="Parse entity key (fullId, prefix)" />
+      <function name="normalizeFilePath" callers="1" purpose="Normalize file path (filePath)" />
+      <function name="readAndHydrateLock" callers="1" purpose="Read and hydrate lock (projectRoot)" />
+      <function name="MikkContext.load" callers="1" purpose="Mikk context.load (projectRoot)" />
+    </key_internal_functions>
+    <depends_on>Packages Mcp-server, Packages Core</depends_on>
+  </module>
+  <module id="packages-obsidian-plugin">
+    <name>Packages Obsidian-plugin</name>
+    <location>packages/obsidian-plugin/**</location>
+    <purpose>2 files, 0 exported entry functions</purpose>
+    <entry_points>
+      <function signature="hydrateLock(raw) [packages/obsidian-plugin/main.js:115]" purpose="Hydrate lock (raw)" />
+      <function signature="MikkGraphView._buildGraph() [packages/obsidian-plugin/src/main.ts:636]" purpose="Mikk graph view. build graph" />
+      <function signature="MikkGraphView._buildSettingsPanel(root) [packages/obsidian-plugin/src/main.ts:1675]" purpose="Mikk graph view. build settings panel (root)" />
+      <function signature="async MikkGraphView._loadLock() [packages/obsidian-plugin/src/main.ts:590]" purpose="Mikk graph view. load lock" />
+      <function signature="MikkGraphView.__onMM(e) [packages/obsidian-plugin/src/main.ts:1311]" purpose="Mikk graph view. on mm" />
+    </entry_points>
+    <key_internal_functions>
+      <function name="mk" callers="6" purpose="Mk (tag, css, parent)" />
+      <function name="mk" callers="4" purpose="Mk (tag, css, parent)" />
+      <function name="normPath" callers="3" purpose="Norm path (p)" />
+      <function name="normPath" callers="3" purpose="Norm path (p)" />
+      <function name="addToggle" callers="3" purpose="Add toggle (label, key, onChange)" />
+    </key_internal_functions>
+    <depends_on>Scripts, Packages Mcp-server, Packages Core</depends_on>
+  </module>
+  <module id="packages-vscode-extension">
+    <name>Packages Vscode-extension</name>
+    <location>packages/vscode-extension/src/webview/**, packages/vscode-extension/src/providers/**</location>
+    <purpose>4 files, 0 exported entry functions</purpose>
+    <entry_points>
+      <function signature="activate(context) [packages/vscode-extension/src/extension.ts:177]" purpose="Activate (context)" />
+      <function signature="MikkExplorerProvider.getChildren(parent?) [packages/vscode-extension/src/extension.ts:100]" purpose="Mikk explorer provider.get children (parent)" />
+      <function signature="MikkCodeLensProvider.provideCodeLenses(document, _token) [packages/vscode-extension/src/providers/mikkcodelensprovider.ts:14]" purpose="Mikk code lens provider.provide code lenses (document, _token)" />
+      <function signature="DiagramPanel.createOrShow(diagramPath) [packages/vscode-extension/src/webview/diagrampanel.ts:16]" purpose="Diagram panel.create or show (diagramPath)" />
+      <function signature="deactivate() [packages/vscode-extension/src/extension.ts:293]" purpose="Deactivate" />
+    </entry_points>
+    <key_internal_functions>
+      <function name="updateStatusBar" callers="4" purpose="Update status bar (bar, data)" />
+      <function name="refresh" callers="3" purpose="Refresh" />
+      <function name="MikkDecoratorProvider.updateDecorations" callers="3" purpose="Mikk decorator provider.update decorations (editor, dataProvider)" />
+      <function name="DashboardPanel.update" callers="3" purpose="Dashboard panel.update (data)" />
+      <function name="findRoot" callers="2" purpose="Find root (startPath)" />
+    </key_internal_functions>
+  </module>
+  <module id="packages-watcher">
+    <name>Packages Watcher</name>
+    <location>packages/watcher/src/**</location>
+    <purpose>5 files, 0 exported entry functions</purpose>
+    <entry_points>
+      <function signature="async IncrementalAnalyzer.parseWithRaceCheck(changedFile) [packages/watcher/src/incremental-analyzer.ts:131]" purpose="Incremental analyzer.parse with race check (changedFile)" />
+      <function signature="async WatcherDaemon.start() [packages/watcher/src/daemon.ts:48]" purpose="Watcher daemon.start" />
+      <function signature="WatcherDaemon.enqueueChange(event) [packages/watcher/src/daemon.ts:115]" purpose="Watcher daemon.enqueue change" />
+      <function signature="async WatcherDaemon.processBatch(events) [packages/watcher/src/daemon.ts:174]" purpose="Watcher daemon.process batch (events)" />
+      <function signature="FileWatcher.start() [packages/watcher/src/file-watcher.ts:18]" purpose="File watcher.start" />
+    </entry_points>
+    <depends_on>Packages Core</depends_on>
+  </module>
 </modules>
-
-## Data Models & Schemas
-
-These files define the project's data structures, schemas, and configuration.
-They are auto-discovered and included verbatim from the source.
-
-### `benchmarks/fixtures/go-service/models/task.go` (model)
-
-```go
-﻿package models
-
-import "time"
-
-type TaskStatus string
-
-const (
-	TaskPending    TaskStatus = "pending"
-	TaskInProgress TaskStatus = "in_progress"
-	TaskDone       TaskStatus = "done"
-)
-
-type Task struct {
-	ID          string     `json:"id"`
-	Title       string     `json:"title"`
-	Description string     `json:"description"`
-	Status      TaskStatus `json:"status"`
-	OwnerID     string     `json:"owner_id"`
-	CreatedAt   time.Time  `json:"created_at"`
-	UpdatedAt   time.Time  `json:"updated_at"`
-}
-
-type CreateTaskRequest struct {
-	Title       string `json:"title"`
-	Description string `json:"description"`
-}
-```
-
-### `benchmarks/fixtures/go-service/models/user.go` (model)
-
-```go
-﻿package models
-
-import "time"
-
-type Role string
-
-const (
-	RoleAdmin Role = "admin"
-	RoleUser  Role = "user"
-)
-
-type User struct {
-	ID           string    `json:"id"`
-	Email        string    `json:"email"`
-	PasswordHash string    `json:"-"`
-	Role         Role      `json:"role"`
-	CreatedAt    time.Time `json:"created_at"`
-	UpdatedAt    time.Time `json:"updated_at"`
-}
-
-type CreateUserRequest struct {
-	Email    string `json:"email"`
-	Password string `json:"password"`
-}
-
-type LoginRequest struct {
-	Email    string `json:"email"`
-	Password string `json:"password"`
-}
-
-type LoginResponse struct {
-	User  UserPublic `json:"user"`
-	Token string     `json:"token"`
-}
-
-type UserPublic struct {
-	ID        string    `json:"id"`
-	Email     string    `json:"email"`
-	Role      Role      `json:"role"`
-	CreatedAt time.Time `json:"created_at"`
-}
-```
-
-### `benchmarks/fixtures/polyglot-services/src/models.py` (model)
-
-```python
-#!/usr/bin/env python3
-"""Main entry point for the application."""
-
-
-def connect_database():
-    """Connect to the database."""
-    pass
-
-
-def is_connected():
-    """Check if database is connected."""
-    pass
-
-
-def disconnect_database():
-    """Disconnect from the database."""
-    pass
-
-
-def authenticate_user(email: str, password: str) -> bool:
-    """Authenticate a user with email and password."""
-    pass
-
-
-def hash_password(password: str) -> str:
-    """Hash a password."""
-    pass
-
-
-def verify_password(password: str, hash: str) -> bool:
-    """Verify a password against a hash."""
-    pass
-
-
-class User:
-    def __init__(self, email: str, name: str):
-        self.email = email
-        self.name = name
-
-    def get_profile(self):
-        """Get user profile."""
-        pass
-
-
-def create_invoice(amount: float) -> dict:
-    """Create an invoice."""
-    pass
-
-
-def process_payment(invoice_id: str, amount: float) -> bool:
-    """Process payment for an invoice."""
-    pass
-
-
-def error_handler(error: Exception):
-    """Handle errors."""
-    pass
-
-
-if __name__ == "__main__":
-    connect_database()
-```
-
-### `packages/ai-context/src/types.ts` (types)
-
-```typescript
-/** The structured context object passed to AI models */
-export interface AIContext {
-    project: {
-        name: string
-        language: string
-        description: string
-        moduleCount: number
-        functionCount: number
-    }
-    modules: ContextModule[]
-    constraints: string[]
-    decisions: { title: string; reason: string }[]
-    /** Discovered schema/config/model files included verbatim */
-    contextFiles?: { path: string; content: string; type: string }[]
-    /** Detected HTTP route registrations */
-    routes?: { method: string; path: string; handler: string; middlewares: string[]; file: string; line: number }[]
-    prompt: string
-    /** Diagnostic info — helpful for debugging context quality */
-    meta: {
-        seedCount: number
-        totalFunctionsConsidered: number
-        selectedFunctions: number
-        estimatedTokens: number
-        keywords: string[]
-        reasons?: string[]
-        suggestions?: string[]
-    }
-}
-
-export interface ContextModule {
-    id: string
-    name: string
-    description: string
-    intent?: string
-    functions: ContextFunction[]
-    files: string[]
-}
-
-export interface ContextFunction {
-    name: string
-    file: string
-    startLine: number
-    endLine: number
-    calls: string[]
-    calledBy: string[]
-    params?: { name: string; type: string; optional?: boolean }[]
-    returnType?: string
-    isAsync?: boolean
-    isExported?: boolean
-    purpose?: string
-    errorHandling?: string[]
-    edgeCases?: string[]
-    /** The actual source code body (only included for top-scored functions) */
-    body?: string
-}
-
-/** Query options for context generation */
-export interface ContextQuery {
-    /** The user's task description — the primary relevance signal */
-    task: string
-    /** Specific files to anchor the graph traversal from */
-    focusFiles?: string[]
-    /** Specific modules to include */
-    focusModules?: string[]
-    /** Max functions to include in output (hard cap) */
-    maxFunctions?: number
-    /** Max BFS hops from seed nodes (default 4) */
-    maxHops?: number
-    /** Approximate token budget for function listings (default 6000) */
-    tokenBudget?: number
-    /** Include call graph arrows (default true) */
-    includeCallGraph?: boolean
-    /** Include function bodies for top-scored functions (default true) */
-    includeBodies?: boolean
-    /** Relevance mode: balanced (default) or strict (high-precision filtering) */
-    relevanceMode?: 'balanced' | 'strict'
-    /** Additional required terms (comma-separated in CLI) that must be respected */
-    requiredKeywords?: string[]
-    /** In strict mode, require all extracted/required keywords to match */
-    requireAllKeywords?: boolean
-    /** Minimum number of matched keywords required in strict mode (default 1) */
-    minKeywordMatches?: number
-    /** Hard gate in strict mode: final output keeps only strict keyword matches */
-    exactOnly?: boolean
-    /** In strict mode, return empty context if no exact matches are found */
-    failFast?: boolean
-    /** Absolute filesystem path to the project root (needed for body reading) */
-    projectRoot?: string
-}
-
-/** Context provider interface for different AI platforms */
-export interface ContextProvider {
-    name: string
-    formatContext(context: AIContext): string
-    maxTokens: number
-}
-```
-
-### `packages/intent-engine/src/types.ts` (types)
-
-```typescript
-import { z } from 'zod'
-
-/** A single candidate intent parsed from user prompt */
-export const IntentSchema = z.object({
-    action: z.enum(['create', 'modify', 'delete', 'refactor', 'move']),
-    target: z.object({
-        type: z.enum(['function', 'file', 'module', 'class']),
-        name: z.string(),
-        moduleId: z.string().optional(),
-        filePath: z.string().optional(),
-    }),
-    reason: z.string(),
-    confidence: z.number().min(0).max(1),
-})
-
-export type Intent = z.infer<typeof IntentSchema>
-
-/** Result of conflict detection */
-export interface ConflictResult {
-    hasConflicts: boolean
-    conflicts: Conflict[]
-}
-
-export interface Conflict {
-    type: 'constraint-violation' | 'ownership-conflict' | 'boundary-crossing' | 'missing-dependency' | 'low-confidence'
-    severity: 'error' | 'warning'
-    message: string
-    relatedIntent: Intent
-    suggestedFix?: string
-}
-
-/** A suggestion for how to implement an intent */
-export interface Suggestion {
-    intent: Intent
-    affectedFiles: string[]
-    newFiles: string[]
-    estimatedImpact: number
-    implementation: string
-}
-
-export type DecisionStatus = 'APPROVED' | 'WARNING' | 'BLOCKED';
-
-export interface DecisionResult {
-    status: DecisionStatus
-    reasons: string[]
-    riskScore: number
-    impactNodes: number
-}
-
-export interface Explanation {
-    summary: string
-    details: string[]
-    riskBreakdown: {
-        symbol: string
-        reason: string
-        score: number
-    }[]
-}
-
-/** Configuration for the AI provider */
-export interface AIProviderConfig {
-    provider: 'anthropic' | 'openai' | 'local'
-    apiKey?: string
-    model?: string
-}
-
-/** Preflight result — the final output of the intent pipeline */
-export interface PreflightResult {
-    intents: Intent[]
-    conflicts: ConflictResult
-    suggestions: Suggestion[]
-    decision: DecisionResult
-    explanation: Explanation
-    approved: boolean
-}
-```
-
-### `packages/watcher/src/types.ts` (types)
-
-```typescript
-/** File change event emitted when a source file is added, changed, or deleted */
-export interface FileChangeEvent {
-    type: 'added' | 'changed' | 'deleted'
-    path: string
-    oldHash: string | null
-    newHash: string | null
-    timestamp: number
-    affectedModuleIds: string[]
-}
-
-/** Configuration for the watcher */
-export interface WatcherConfig {
-    projectRoot: string
-    include: string[]    // ["src/**/*.ts"]
-    exclude: string[]    // ["node_modules", ".mikk", "dist"]
-    debounceMs: number   // 100
-}
-
-/** Typed watcher events */
-export type WatcherEvent =
-    | { type: 'file:changed'; data: FileChangeEvent }
-    | { type: 'module:updated'; data: { moduleId: string; newHash: string } }
-    | { type: 'graph:updated'; data: { changedNodes: string[]; impactedNodes: string[] } }
-    | { type: 'sync:clean'; data: { rootHash: string } }
-    | { type: 'sync:drifted'; data: { reason: string; affectedModules: string[] } }
-```
-
-### `packages/core/src/graph/types.ts` (types)
-
-```typescript
-export type NodeType =
-  | "file"
-  | "class"
-  | "function"
-  | "variable"
-  | "generic";
-
-export type EdgeType =
-  | "imports"
-  | "calls"
-  | "extends"
-  | "implements"
-  | "accesses"
-  | "contains"; // Keeping for containment edges
-
-export interface GraphNode {
-  id: string;              // unique (normalized file::name)
-  type: NodeType;
-  name: string;
-  file: string;
-  moduleId?: string;       // Original cluster feature
-
-  metadata?: {
-    isExported?: boolean;
-    inheritsFrom?: string[];
-    implements?: string[];
-    className?: string; // for methods
-    startLine?: number;
-    endLine?: number;
-    isAsync?: boolean;
-    hash?: string;
-    purpose?: string;
-    genericKind?: string;
-    params?: { name: string; type: string; optional?: boolean }[];
-    returnType?: string;
-    edgeCasesHandled?: string[];
-    errorHandling?: { line: number; type: 'try-catch' | 'throw'; detail: string }[];
-    detailedLines?: { startLine: number; endLine: number; blockType: string }[];
-  };
-}
-
-export interface GraphEdge {
-  from: string;
-  to: string;
-  type: EdgeType;
-  confidence: number; // 0–1
-  weight?: number;    // Weight from EDGE_WEIGHT constants
-}
-
-export interface DependencyGraph {
-  nodes: Map<string, GraphNode>;
-  edges: GraphEdge[];
-  outEdges: Map<string, GraphEdge[]>;   // node → [edges going out]
-  inEdges: Map<string, GraphEdge[]>;    // node → [edges coming in]
-}
-
-/**
- * Canonical ID helpers.
- * Function IDs:  fn:<absolute-posix-path>:<FunctionName>
- * Class IDs:     class:<absolute-posix-path>:<ClassName>
- * Type/enum IDs: type:<absolute-posix-path>:<Name> | enum:<absolute-posix-path>:<Name>
- * File IDs:      <absolute-posix-path>  (no prefix)
- *
- * NOTE: The old normalizeId() that used `file::name` (double-colon, lowercase)
- * was removed — it did not match any current ID format and would produce IDs
- * that never matched any graph node.
- */
-export function makeFnId(file: string, name: string): string {
-  return `fn:${file.replace(/\\/g, '/')}:${name}`;
-}
-
-export type RiskLevel = 'CRITICAL' | 'HIGH' | 'MEDIUM' | 'LOW';
-
-export interface ImpactResult {
-  changed: string[];
-  impacted: string[];
-  allImpacted: ClassifiedImpact[]; // New field for Decision Engine
-  depth: number;
-  entryPoints: string[];
-  criticalModules: string[];
-  paths: string[][];
-  confidence: number;
-  riskScore: number;
-  classified: {
-    critical: ClassifiedImpact[];
-    high: ClassifiedImpact[];
-    medium: ClassifiedImpact[];
-    low: ClassifiedImpact[];
-  };
-}
-
-export interface ClassifiedImpact {
-  nodeId: string;
-  label: string;
-  file: string;
-  risk: RiskLevel;
-  riskScore: number; // numeric score for precise policy checks
-  depth: number;
-}
-
-export interface ModuleCluster {
-  id: string;
-  files: string[];
-  confidence: number;
-  suggestedName: string;
-  functions: string[];
-}
-```
-
-### `packages/core/src/parser/types.ts` (types)
-
-```typescript
-/**
- * Parser types — data shapes that flow through the entire Mikk system.
- */
-
-import type { ParsedFileLanguage } from '../utils/language-registry.js';
-
-/** A single parameter in a function signature */
-export interface ParsedParam {
-  name: string;
-  type: string;
-  optional: boolean;
-  defaultValue?: string;
-}
-
-/** A single call expression found in code (Mikk 2.0) */
-export interface CallExpression {
-  name: string;
-  line: number;
-  type: 'function' | 'method' | 'property';
-  arguments?: string[];
-}
-
-/** A detailed function declaration */
-export interface ParsedFunction {
-  id: string;              // unique normalized ID (file::name)
-  name: string;
-  file: string;
-  moduleId?: string;
-  startLine: number;
-  endLine: number;
-  params: ParsedParam[];
-  returnType: string;
-  isExported: boolean;
-  isAsync: boolean;
-  isGenerator?: boolean;
-  typeParameters?: string[];
-  calls: CallExpression[]; // Behavioral tracking (Upgraded from string[])
-  hash: string;
-  purpose: string;
-  edgeCasesHandled: string[];
-  errorHandling: { line: number; type: 'try-catch' | 'throw'; detail: string }[];
-  detailedLines: { startLine: number; endLine: number; blockType: string }[];
-  decorators?: string[];
-}
-
-/** A single import specifier with alias support */
-export interface ImportSpecifier {
-  imported: string;
-  local: string;
-}
-
-/** A re-export statement (export { X } from './source') */
-export interface ReExport {
-  name: string;
-  source: string;
-  sourceResolved?: string;
-}
-
-/** A single import statement */
-export interface ParsedImport {
-  source: string;
-  resolvedPath: string;
-  names: string[];
-  specifiers?: ImportSpecifier[];
-  isDefault: boolean;
-  isDynamic: boolean;
-}
-
-/** A single exported symbol */
-export interface ParsedExport {
-  name: string;
-  type: 'function' | 'class' | 'const' | 'type' | 'default' | 'interface' | 'variable';
-  file: string;
-}
-
-/** A single variable or property */
-export interface ParsedVariable {
-  id: string;
-  name: string;
-  type: string;
-  file: string;
-  line: number;
-  isExported: boolean;
-  isStatic?: boolean;
-  purpose?: string;
-  decorators?: string[];
-}
-
-/** A parsed class */
-export interface ParsedClass {
-  id: string;
-  name: string;
-  file: string;
-  moduleId?: string;
-  startLine: number;
-  endLine: number;
-  methods: ParsedFunction[];
-  properties: ParsedVariable[];
-  extends?: string;
-  implements?: string[];
-  isExported: boolean;
-  decorators?: string[];
-  typeParameters?: string[];
-  hash: string;
-  purpose?: string;
-  edgeCasesHandled?: string[];
-  errorHandling?: { line: number; type: 'try-catch' | 'throw'; detail: string }[];
-}
-
-/** A generic declaration (interface, type aliase, etc.) */
-export interface ParsedGeneric {
-  id: string;
-  name: string;
-  type: string; // "interface" | "type"
-  file: string;
-  startLine: number;
-  endLine: number;
-  isExported: boolean;
-  typeParameters?: string[];
-  hash: string;
-  purpose?: string;
-}
-
-/** A detected HTTP route registration */
-export interface ParsedRoute {
-  method: string;
-  path: string;
-  handler: string;
-  middlewares: string[];
-  file: string;
-  line: number;
-}
-
-/** Everything extracted from a single file */
-export interface ParsedFile {
-  path: string;            // normalized absolute path
-  language: ParsedFileLanguage;
-  functions: ParsedFunction[];
-  classes: ParsedClass[];
-  variables: ParsedVariable[];
-  generics: ParsedGeneric[];
-  imports: ParsedImport[];
-  exports: ParsedExport[];
-  reexports?: ReExport[];
-  routes: ParsedRoute[];
-  calls: CallExpression[]; // module-level calls
-  hash: string;
-  parsedAt: number;
-}
-```
-
-### `benchmarks/fixtures/ts-express-api/src/routes/auth.ts` (routes)
-
-```typescript
-﻿import { Router } from 'express'
-import { loginUser, registerUser } from '../users/service'
-import { isValidEmail } from '../utils/validate'
-
-export const authRouter = Router()
-
-authRouter.post('/login', async (req, res) => {
-  try {
-    const { email, password } = req.body
-    if (!isValidEmail(email)) {
-      res.status(400).json({ error: 'Invalid email format' })
-      return
-    }
-    const result = await loginUser(email, password)
-    res.json(result)
-  } catch (err: any) {
-    res.status(401).json({ error: err.message })
-  }
-})
-
-authRouter.post('/register', async (req, res) => {
-  try {
-    const { email, password } = req.body
-    if (!isValidEmail(email)) {
-      res.status(400).json({ error: 'Invalid email format' })
-      return
-    }
-    const user = await registerUser(email, password)
-    res.status(201).json(user)
-  } catch (err: any) {
-    res.status(400).json({ error: err.message })
-  }
-})
-```
-
-### `benchmarks/fixtures/ts-express-api/src/routes/payments.ts` (routes)
-
-```typescript
-﻿import { Router } from 'express'
-import { requireAuth } from '../middleware/auth'
-import { createInvoice, chargeInvoice, markInvoicePaid, refundInvoice } from '../payments/billing'
-
-export const paymentsRouter = Router()
-
-paymentsRouter.post('/invoices', requireAuth, async (req, res) => {
-  try {
-    const { amount, currency } = req.body
-    const userId = (req as any).user.userId
-    const invoice = await createInvoice(userId, amount, currency)
-    res.status(201).json(invoice)
-  } catch (err: any) {
-    res.status(400).json({ error: err.message })
-  }
-})
-
-paymentsRouter.post('/invoices/:id/charge', requireAuth, async (req, res) => {
-  try {
-    const clientSecret = await chargeInvoice(req.params.id)
-    res.json({ clientSecret })
-  } catch (err: any) {
-    res.status(400).json({ error: err.message })
-  }
-})
-
-paymentsRouter.post('/invoices/:id/paid', requireAuth, async (req, res) => {
-  try {
-    const { paymentIntentId } = req.body
-    await markInvoicePaid(req.params.id, paymentIntentId)
-    res.json({ message: 'Invoice marked as paid' })
-  } catch (err: any) {
-    res.status(400).json({ error: err.message })
-  }
-})
-
-paymentsRouter.post('/invoices/:id/refund', requireAuth, requireAdmin, async (req, res) => {
-  try {
-    await refundInvoice(req.params.id)
-    res.json({ message: 'Refund initiated' })
-  } catch (err: any) {
-    res.status(400).json({ error: err.message })
-  }
-})
-```
-
-### `benchmarks/fixtures/ts-express-api/src/routes/users.ts` (routes)
-
-```typescript
-﻿import { Router } from 'express'
-import { requireAuth, requireAdmin } from '../middleware/auth'
-import { getUserProfile, removeUser, promoteToAdmin } from '../users/service'
-
-export const usersRouter = Router()
-
-usersRouter.get('/me', requireAuth, async (req, res) => {
-  try {
-    const userId = (req as any).user.userId
-    const profile = await getUserProfile(userId)
-    res.json(profile)
-  } catch (err: any) {
-    res.status(404).json({ error: err.message })
-  }
-})
-
-usersRouter.delete('/:id', requireAuth, requireAdmin, async (req, res) => {
-  try {
-    await removeUser(req.params.id)
-    res.status(204).send()
-  } catch (err: any) {
-    res.status(404).json({ error: err.message })
-  }
-})
-
-usersRouter.post('/:id/promote', requireAuth, requireAdmin, async (req, res) => {
-  try {
-    await promoteToAdmin(req.params.id)
-    res.json({ message: 'User promoted to admin' })
-  } catch (err: any) {
-    res.status(404).json({ error: err.message })
-  }
-})
-```
 
 ## HTTP Routes
 
-- **POST** `/login` → `async (req, res) => { try { const { email, password } = req.body if (!isValidEma...` *(C:/Users/Ansh/Desktop/web/Mikk/benchmarks/fixtures/ts-express-api/src/routes/auth.ts:7)*
-- **POST** `/register` → `async (req, res) => { try { const { email, password } = req.body if (!isValidEma...` *(C:/Users/Ansh/Desktop/web/Mikk/benchmarks/fixtures/ts-express-api/src/routes/auth.ts:21)*
-- **POST** `/invoices` → `async (req, res) => { try { const { amount, currency } = req.body const userId =...` → [requireAuth] *(C:/Users/Ansh/Desktop/web/Mikk/benchmarks/fixtures/ts-express-api/src/routes/payments.ts:7)*
-- **POST** `/invoices/:id/charge` → `async (req, res) => { try { const clientSecret = await chargeInvoice(req.params....` → [requireAuth] *(C:/Users/Ansh/Desktop/web/Mikk/benchmarks/fixtures/ts-express-api/src/routes/payments.ts:18)*
-- **POST** `/invoices/:id/paid` → `async (req, res) => { try { const { paymentIntentId } = req.body await markInvoi...` → [requireAuth] *(C:/Users/Ansh/Desktop/web/Mikk/benchmarks/fixtures/ts-express-api/src/routes/payments.ts:27)*
-- **POST** `/invoices/:id/refund` → `async (req, res) => { try { await refundInvoice(req.params.id) res.json({ messag...` → [requireAuth, requireAdmin] *(C:/Users/Ansh/Desktop/web/Mikk/benchmarks/fixtures/ts-express-api/src/routes/payments.ts:37)*
-- **GET** `/me` → `async (req, res) => { try { const userId = (req as any).user.userId const profil...` → [requireAuth] *(C:/Users/Ansh/Desktop/web/Mikk/benchmarks/fixtures/ts-express-api/src/routes/users.ts:7)*
-- **DELETE** `/:id` → `async (req, res) => { try { await removeUser(req.params.id) res.status(204).send...` → [requireAuth, requireAdmin] *(C:/Users/Ansh/Desktop/web/Mikk/benchmarks/fixtures/ts-express-api/src/routes/users.ts:17)*
-- **POST** `/:id/promote` → `async (req, res) => { try { await promoteToAdmin(req.params.id) res.json({ messa...` → [requireAuth, requireAdmin] *(C:/Users/Ansh/Desktop/web/Mikk/benchmarks/fixtures/ts-express-api/src/routes/users.ts:26)*
+- **GET** `/POST` → `POST` *(C:/Users/Ansh/Desktop/web/Mikk/apps/web/app/api/analyze-repo/route.ts:298)*
+- **POST** `s/web` → `POST` *(C:/Users/Ansh/Desktop/web/Mikk/apps/web/app/api/analyze-repo/route.ts:298)*
+- **GET** `/GET` → `GET` *(C:/Users/Ansh/Desktop/web/Mikk/apps/web/app/api/lock/route.ts:11)*
+- **GET** `s/web` → `GET` *(C:/Users/Ansh/Desktop/web/Mikk/apps/web/app/api/lock/route.ts:11)*
 
 <!-- MIKK-END -->
+
+<!-- gitnexus:start -->
+# GitNexus — Code Intelligence
+
+This project is indexed by GitNexus as **Mikk** (13103 symbols, 19079 relationships, 282 execution flows). Use the GitNexus MCP tools to understand code, assess impact, and navigate safely.
+
+> If any GitNexus tool warns the index is stale, run `npx gitnexus analyze` in terminal first.
+
+## Always Do
+
+- **MUST run impact analysis before editing any symbol.** Before modifying a function, class, or method, run `gitnexus_impact({target: "symbolName", direction: "upstream"})` and report the blast radius (direct callers, affected processes, risk level) to the user.
+- **MUST run `gitnexus_detect_changes()` before committing** to verify your changes only affect expected symbols and execution flows.
+- **MUST warn the user** if impact analysis returns HIGH or CRITICAL risk before proceeding with edits.
+- When exploring unfamiliar code, use `gitnexus_query({query: "concept"})` to find execution flows instead of grepping. It returns process-grouped results ranked by relevance.
+- When you need full context on a specific symbol — callers, callees, which execution flows it participates in — use `gitnexus_context({name: "symbolName"})`.
+
+## Never Do
+
+- NEVER edit a function, class, or method without first running `gitnexus_impact` on it.
+- NEVER ignore HIGH or CRITICAL risk warnings from impact analysis.
+- NEVER rename symbols with find-and-replace — use `gitnexus_rename` which understands the call graph.
+- NEVER commit changes without running `gitnexus_detect_changes()` to check affected scope.
+
+## Resources
+
+| Resource | Use for |
+|----------|---------|
+| `gitnexus://repo/Mikk/context` | Codebase overview, check index freshness |
+| `gitnexus://repo/Mikk/clusters` | All functional areas |
+| `gitnexus://repo/Mikk/processes` | All execution flows |
+| `gitnexus://repo/Mikk/process/{name}` | Step-by-step execution trace |
+
+## CLI
+
+| Task | Read this skill file |
+|------|---------------------|
+| Understand architecture / "How does X work?" | `.claude/skills/gitnexus/gitnexus-exploring/SKILL.md` |
+| Blast radius / "What breaks if I change X?" | `.claude/skills/gitnexus/gitnexus-impact-analysis/SKILL.md` |
+| Trace bugs / "Why is X failing?" | `.claude/skills/gitnexus/gitnexus-debugging/SKILL.md` |
+| Rename / extract / split / refactor | `.claude/skills/gitnexus/gitnexus-refactoring/SKILL.md` |
+| Tools, resources, schema reference | `.claude/skills/gitnexus/gitnexus-guide/SKILL.md` |
+| Index, status, clean, wiki CLI commands | `.claude/skills/gitnexus/gitnexus-cli/SKILL.md` |
+
+<!-- gitnexus:end -->

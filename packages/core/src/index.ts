@@ -9,6 +9,9 @@ export * from './search/index.js'
 export * from './cache/index.js'
 export * from './security/index.js'
 export * from './analysis/index.js'
+// Composable hooks API
+export * from './hooks.js'
+// Utils
 export * from './utils/errors.js'
 export * from './utils/logger.js'
 export { MikkError, ErrorHandler, ErrorBuilder, ErrorCategory, FileSystemError, ModuleLoadError, GraphError, TokenBudgetError, ValidationError, createDefaultErrorListener, createFileNotFoundError, createFileTooLargeError, createPermissionDeniedError, createModuleNotFoundError, createModuleLoadFailedError, createGraphBuildFailedError, createNodeNotFoundError, createTokenBudgetExceededError, createValidationError, isMikkError, getRootCause, toMikkError } from './error-handler.js'

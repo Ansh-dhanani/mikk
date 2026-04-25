@@ -1,20 +1,20 @@
 {
   "main": {
-    "id": "529587ba1939635a",
+    "id": "052ed488dae04a1f",
     "type": "split",
     "children": [
       {
-        "id": "10c00ddbde880e5e",
+        "id": "388c8b15fe44d759",
         "type": "tabs",
         "children": [
           {
-            "id": "8adac98e19281a8e",
+            "id": "31f9cf0413a4dbbf",
             "type": "leaf",
             "state": {
-              "type": "mikk-v3",
+              "type": "graph",
               "state": {},
-              "icon": "git-fork",
-              "title": "Mikk Graph 3D"
+              "icon": "lucide-git-fork",
+              "title": "Graph view"
             }
           }
         ]
@@ -23,15 +23,15 @@
     "direction": "vertical"
   },
   "left": {
-    "id": "9f70a0d5d594e7a2",
+    "id": "23d18bd972385c14",
     "type": "split",
     "children": [
       {
-        "id": "05eed028e8ee5f7b",
+        "id": "ea6c34f422aafae0",
         "type": "tabs",
         "children": [
           {
-            "id": "a48f4ec6700dd41a",
+            "id": "1453a7f3dba7bd5f",
             "type": "leaf",
             "state": {
               "type": "file-explorer",
@@ -44,7 +44,7 @@
             }
           },
           {
-            "id": "9b743d382fafbc0a",
+            "id": "3c4de6f4d4fa6147",
             "type": "leaf",
             "state": {
               "type": "search",
@@ -61,7 +61,7 @@
             }
           },
           {
-            "id": "63eab03a603ead31",
+            "id": "2f2fab8ddc9fa710",
             "type": "leaf",
             "state": {
               "type": "bookmarks",
@@ -74,23 +74,24 @@
       }
     ],
     "direction": "horizontal",
-    "width": 200
+    "width": 300,
+    "collapsed": true
   },
   "right": {
-    "id": "4f9af4672b975bb7",
+    "id": "6d51e95c1bedb6d8",
     "type": "split",
     "children": [
       {
-        "id": "de19d659aabfe03a",
+        "id": "147a32df7dc5f7e3",
         "type": "tabs",
         "children": [
           {
-            "id": "27a90950ac70e970",
+            "id": "a51a9c017a173337",
             "type": "leaf",
             "state": {
               "type": "backlink",
               "state": {
-                "collapseAll": true,
+                "collapseAll": false,
                 "extraContext": false,
                 "sortOrder": "alphabetical",
                 "showSearch": false,
@@ -103,7 +104,7 @@
             }
           },
           {
-            "id": "10c2fe210cbd118e",
+            "id": "862efabac30c57d9",
             "type": "leaf",
             "state": {
               "type": "outgoing-link",
@@ -116,7 +117,7 @@
             }
           },
           {
-            "id": "1f86f2c08e9995c0",
+            "id": "e049d7fa5f6054e1",
             "type": "leaf",
             "state": {
               "type": "tag",
@@ -131,7 +132,7 @@
             }
           },
           {
-            "id": "87801328543c5f8d",
+            "id": "c293686b0f734fea",
             "type": "leaf",
             "state": {
               "type": "all-properties",
@@ -145,7 +146,7 @@
             }
           },
           {
-            "id": "f58de19e92250e28",
+            "id": "9e1e3d56b9437a70",
             "type": "leaf",
             "state": {
               "type": "outline",
@@ -162,7 +163,8 @@
       }
     ],
     "direction": "horizontal",
-    "width": 200
+    "width": 300,
+    "collapsed": true
   },
   "left-ribbon": {
     "hiddenItems": {
@@ -172,17 +174,38 @@
       "daily-notes:Open today's daily note": false,
       "templates:Insert template": false,
       "command-palette:Open command palette": false,
-      "bases:Create new base": false,
-      "mikk-v2:Mikk 3D Graph": false
+      "bases:Create new base": false
     }
   },
-  "active": "8adac98e19281a8e",
+  "active": "31f9cf0413a4dbbf",
   "lastOpenFiles": [
-    "claude.md",
-    "packages/mcp-server/CHANGELOG.md",
-    "2026-04-16.md",
-    "Untitled.canvas",
-    "Untitled",
-    "mikk.lock.json"
+    "mikk.lock.json",
+    "mikk.json",
+    "mikk-vault/prop/watcherdaemon.md",
+    "mikk-vault/prop/typescriptresolver.md",
+    "mikk-vault/prop/typeflowanalyzer.md",
+    "mikk-vault/prop/vocabularyembedder.md",
+    "mikk-vault/prop/riskengine.md",
+    "mikk-vault/prop/treesitterparser.md",
+    "mikk-vault/prop/tokenbudget.md",
+    "mikk-vault/prop/taintanalyzer.md",
+    "mikk-vault/prop/semanticsearcher.md",
+    "mikk-vault/prop/semanticcodesearch.md",
+    "mikk-vault/prop/securityscanner.md",
+    "mikk-vault/prop/routeharvester.md",
+    "mikk-vault/prop/riskexplainer.md",
+    "mikk-vault/prop/richfunctionindex.md",
+    "mikk-vault/prop/preeditvalidation.md",
+    "mikk-vault/prop/querysuggestionengine.md",
+    "mikk-vault/prop/preflightpipeline.md",
+    "mikk-vault/prop/parserworker.md",
+    "mikk-vault/prop/openclawrulesgenerator.md",
+    "mikk-vault/prop/oxcresolver.md",
+    "mikk-vault/prop/mikksettingtab.md",
+    "mikk-vault/prop/mikkgraphview.md",
+    "mikk-vault/prop/mikkplugin.md",
+    "mikk-vault/prop/mikknode.md",
+    "mikk-vault/prop/mikkexplorerprovider.md",
+    "mikk-vault/prop"
   ]
 }

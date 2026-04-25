@@ -231,24 +231,22 @@ export default function Page() {
           <div className="mt-10 text-[15px] md:text-base text-muted-foreground">
             <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
               <Link
-                href="/docs"
-                className="inline-flex items-center gap-2 h-10 px-5 rounded-full bg-foreground text-background text-sm font-medium hover:bg-foreground/90 transition-colors"
+                href="/visualize"
+                className="inline-flex items-center gap-2 h-10 px-5 rounded-full bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90 transition-colors"
               >
-                Get started <ChevronRight className="size-4" />
+                Visualize <Network className="size-4" />
+              </Link>
+              <Link
+                href="/docs"
+                className="inline-flex items-center gap-2 h-10 px-5 rounded-full border border-border/60 bg-background/70 hover:bg-muted/20 transition-colors text-sm font-medium"
+              >
+                Docs <ChevronRight className="size-4" />
               </Link>
               <Link
                 href="/docs/reference/mcp"
                 className="inline-flex items-center gap-2 h-10 px-5 rounded-full border border-border/60 bg-background/70 hover:bg-muted/20 transition-colors text-sm font-medium"
               >
-                MCP tools <ChevronRight className="size-4" />
-              </Link>
-              <Link
-                href="https://github.com/ansh-dhanani/mikk"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex items-center gap-2 h-10 px-5 rounded-full border border-border/60 bg-background/70 hover:bg-muted/20 transition-colors text-sm font-medium"
-              >
-                GitHub <ArrowUpRight className="size-4" />
+                MCP <ChevronRight className="size-4" />
               </Link>
             </div>
           </div>
@@ -393,16 +391,16 @@ export default function Page() {
             </div>
             <div className="mt-8 flex items-center justify-center gap-3">
               <Link
-                href="/docs"
-                className="inline-flex items-center gap-2 h-10 px-5 rounded-lg bg-foreground text-background text-sm font-medium hover:bg-foreground/90 transition-colors"
+                href="/visualize"
+                className="inline-flex items-center gap-2 h-10 px-5 rounded-lg bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90 transition-colors"
               >
-                Read the docs <ChevronRight className="size-4" />
+                Visualize <Network className="size-4" />
               </Link>
               <Link
-                href="/docs/reference/mcp"
+                href="/docs"
                 className="inline-flex items-center gap-2 h-10 px-5 rounded-lg border border-border/60 text-sm font-medium hover:bg-muted/30 transition-colors"
               >
-                MCP setup <ChevronRight className="size-4" />
+                Docs <ChevronRight className="size-4" />
               </Link>
             </div>
           </div>

@@ -215,29 +215,31 @@ export function registerContextCommands(program: Command) {
                     return
                 }
 
-                // BFS traversal to find all impacted with depth tracking
-                const maxDepth = parseInt(options.depth as string) || 10
+                // BFS upstream: who CALLS this function? (calledBy = who depends on it)
+                // Traversing fn.calls would show what this function depends on — wrong direction.
+                const maxUpstreamDepth = 10
                 const impacted = new Map<string, number>() // id -> depth
                 const visited = new Set<string>()
-                
-                // Handle both single function and file-based targets
-                const startIds = targetEntity.functions 
-                    ? targetEntity.functions 
-                    : [targetId]
-                
-                const toVisit: { id: string; depth: number }[] = startIds.map(id => ({ id, depth: 0 }))
 
-                while (toVisit.length > 0) {
-                    const { id, depth } = toVisit.shift()!
-                    if (visited.has(id) || depth > maxDepth) continue
+                const startIds = targetEntity.functions
+                    ? targetEntity.functions
+                    : [targetId]
+
+                const toVisit: { id: string; depth: number }[] = startIds.map((id: string) => ({ id, depth: 0 }))
+                let head = 0
+
+                while (head < toVisit.length) {
+                    const { id, depth } = toVisit[head++]!
+                    if (visited.has(id) || depth > maxUpstreamDepth) continue
                     visited.add(id)
 
                     const fn = lock.functions?.[id]
-                    if (fn?.calls) {
-                        for (const callId of fn.calls) {
-                            if (!visited.has(callId)) {
-                                impacted.set(callId, depth + 1)
-                                toVisit.push({ id: callId, depth: depth + 1 })
+                    // calledBy = who calls this function = upstream dependents
+                    if (fn?.calledBy) {
+                        for (const callerId of fn.calledBy) {
+                            if (!visited.has(callerId)) {
+                                impacted.set(callerId, depth + 1)
+                                toVisit.push({ id: callerId, depth: depth + 1 })
                             }
                         }
                     }
@@ -387,15 +389,24 @@ export function registerContextCommands(program: Command) {
     context
         .command('list [path]')
         .description('List all modules and their function counts')
-        .action(async (projectPath: string, options: any) => {
+        .action(async (projectPath: string, _options: any) => {
             const projectRoot = projectPath || process.cwd()
             try {
                 const { contract, lock } = await loadContractAndLock(projectRoot)
 
+                // Build file→module index from lock.modules (authoritative).
+                // Do NOT use fn.moduleId or lock.files[k].moduleId — both are unreliable.
+                const modFileSets = new Map<string, Set<string>>()
+                for (const [modId, mod] of Object.entries(lock.modules ?? {})) {
+                    modFileSets.set(modId, new Set((mod as any).files ?? []))
+                }
+
+                const fns = Object.values(lock.functions)
                 console.log(chalk.bold('\n📦 Modules in this project:\n'))
                 for (const mod of contract.declared.modules) {
-                    const fnCount = Object.values(lock.functions).filter(f => f.moduleId === mod.id).length
-                    const fileCount = Object.values(lock.files).filter(f => f.moduleId === mod.id).length
+                    const modFileSet = modFileSets.get(mod.id) ?? new Set<string>()
+                    const fnCount = fns.filter(f => f.file && modFileSet.has(f.file)).length
+                    const fileCount = modFileSet.size
                     console.log(
                         `  ${chalk.cyan(mod.id.padEnd(20))} ` +
                         `${chalk.bold(mod.name.padEnd(25))} ` +
@@ -406,7 +417,7 @@ export function registerContextCommands(program: Command) {
                     }
                 }
 
-                const totalFns = Object.keys(lock.functions).length
+                const totalFns = fns.length
                 const totalFiles = Object.keys(lock.files).length
                 console.log(chalk.dim(`\n  Total: ${totalFns} functions across ${totalFiles} files`))
 
