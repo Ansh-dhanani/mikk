@@ -123,7 +123,7 @@ export function getFunctionBody(fn: { file: string; startLine: number; endLine: 
 }
 
 export function sanitizeMermaidId(id: string): string {
-    return id.replace(/[:/\\.#*@<>\[\]{}()]/g, '_').replace(/^[0-9]/, '_$&')
+    return id.replace(/[:/\\.#*@<>[\]{}()]/g, '_').replace(/^[0-9]/, '_$&')
 }
 
 /**
