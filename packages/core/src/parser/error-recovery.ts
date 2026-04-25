@@ -204,7 +204,7 @@ export class ErrorRecoveryEngine {
   ): void {
     const funcRegex = /^\s*(?:export\s+)?(?:default\s+)?(?:async\s+)?function\s+(\w+)\s*(?:<[^>]*>)?\s*\(([^)]*)\)/
     const arrowRegex = /^\s*(?:export\s+)?(?:const|let|var)\s+(\w+)\s*=\s*(?:async\s+)?\(([^)]*)\)/
-    const methodRegex = /^\s*(?:async\s+)?(?:get\s+|set\s+)?(\w+)\s*\(([^)]*)\)\s*(?::\s*[^\{]+)?\s*\{/
+    const methodRegex = /^\s*(?:async\s+)?(?:get\s+|set\s+)?(\w+)\s*\(([^)]*)\)\s*(?::\s*[^{]+)?\s*\{/
     const interfaceRegex = /^\s*(?:export\s+)?interface\s+(\w+)/
     const typeRegex = /^\s*(?:export\s+)?type\s+(\w+)/
     const classRegex = /^\s*(?:@\w+(?:\([^)]*\))?\s*)*(?:export\s+)?(?:default\s+)?class\s+(\w+)/
@@ -242,7 +242,7 @@ export class ErrorRecoveryEngine {
       }
 
       // Interfaces and Types
-      let gMatch = lines[i].match(interfaceRegex) || lines[i].match(typeRegex)
+      const gMatch = lines[i].match(interfaceRegex) || lines[i].match(typeRegex)
       if (gMatch) {
         const name = gMatch[1]
         generics.push({
@@ -277,7 +277,7 @@ export class ErrorRecoveryEngine {
         })
 
         // Simple method recovery within class
-        const methodRegex = /^\s*(?:async\s+)?(?:get\s+|set\s+)?(\w+)\s*\(([^)]*)\)\s*(?::\s*[^\{]+)?\s*\{/
+        const methodRegex = /^\s*(?:async\s+)?(?:get\s+|set\s+)?(\w+)\s*\(([^)]*)\)\s*(?::\s*[^{]+)?\s*\{/
         const classEnd = this.findJSBraceEnd(lines, i)
         for (let j = i + 1; j < classEnd; j++) {
           const mMatch = lines[j].match(methodRegex)
